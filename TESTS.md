@@ -1806,3 +1806,16 @@ topLevelFunc2 = f . g
     -- single line comment
     g = undefined
 ```
+
+```haskell
+{-# LANGUAGE OverloadedRecordDot #-}
+
+data Point a =
+  Point
+    { x :: a
+    , y :: a
+    }
+
+distance :: Fractional a => Point a -> Point a -> a
+distance p1 p2 = sqrt $ pow (p1.x - p2.x) + pow (p1.y - p2.y)
+```
