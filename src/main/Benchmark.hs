@@ -1,17 +1,16 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE BangPatterns #-}
 
 -- | Benchmark the pretty printer.
-
 module Main where
 
 import           Control.DeepSeq
 import           Criterion
 import           Criterion.Main
-import qualified Data.ByteString as S
-import qualified Data.ByteString.Char8 as S8
+import qualified Data.ByteString              as S
+import qualified Data.ByteString.Char8        as S8
 import qualified Data.ByteString.Lazy.Builder as L
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Data.ByteString.UTF8         as UTF8
 import           HIndent
 import           HIndent.Types
 import           Markdone
@@ -19,9 +18,9 @@ import           Markdone
 -- | Main benchmarks.
 main :: IO ()
 main = do
-    bytes <- S.readFile "BENCHMARKS.md"
-    !forest <- fmap force (parse (tokenize bytes))
-    defaultMain (toCriterion forest)
+  bytes <- S.readFile "BENCHMARKS.md"
+  !forest <- fmap force (parse (tokenize bytes))
+  defaultMain (toCriterion forest)
 
 -- | Convert the Markdone document to Criterion benchmarks.
 toCriterion :: [Markdone] -> [Benchmark]
@@ -31,15 +30,15 @@ toCriterion = go
       bgroup (S8.unpack name) (go children) : go next
     go (PlainText desc:CodeFence lang code:next) =
       if lang == "haskell"
-        then (bench
-                (UTF8.toString desc)
-                (nf
-                   (either error L.toLazyByteString .
-                    reformat
-                      HIndent.Types.defaultConfig
-                      (Just defaultExtensions)
-                      Nothing)
-                   code)) :
+        then bench
+               (UTF8.toString desc)
+               (nf
+                  (either error L.toLazyByteString .
+                   reformat
+                     HIndent.Types.defaultConfig
+                     (Just defaultExtensions)
+                     Nothing)
+                  code) :
              go next
         else go next
     go (PlainText {}:next) = go next
