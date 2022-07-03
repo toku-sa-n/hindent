@@ -1,8 +1,7 @@
-{-# OPTIONS_GHC -cpp #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -102,8 +101,7 @@ instance FromJSON Config where
       fmap
         (fromMaybe (configLineBreaks defaultConfig))
         (v Y..:? "line-breaks") <*>
-      (traverse readExtension
-        =<< fmap (fromMaybe []) (v Y..:? "extensions"))
+      (traverse readExtension . fromMaybe [] =<< v Y..:? "extensions")
   parseJSON _ = fail "Expected Object for Config value"
 
 -- | Default style configuration.
