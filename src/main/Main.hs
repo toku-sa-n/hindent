@@ -29,7 +29,6 @@ import qualified System.Directory as IO
 import           System.Exit (exitWith)
 import qualified System.IO as IO
 import           Options.Applicative hiding (action, style)
-import           Data.Monoid ((<>))
 import qualified Data.Text as T
 
 data Action = Validate | Reformat
@@ -93,15 +92,15 @@ options ::
   Config -> Parser RunMode
 options config =
   flag' ShowVersion ( long "version" <> help "Print the version") <|>
-  (Run <$> style <*> exts <*> action <*> files)
+  Run <$> style <*> exts <*> action <*> files
   where
     style =
-      (makeStyle config <$>
+      makeStyle config <$>
       lineLen <*>
       indentSpaces <*>
       trailingNewline <*>
       sortImports
-      ) <*
+       <*
       optional (strOption
            (long "style" <> help "Style to print with (historical, now ignored)" <> metavar "STYLE") :: Parser String)
     exts = fmap getExtensions (many (T.pack <$> strOption (short 'X' <> help "Language extension" <> metavar "GHCEXT")))

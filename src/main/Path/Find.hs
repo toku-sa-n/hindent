@@ -6,17 +6,11 @@ module Path.Find
   ( findFileUp
   ) where
 
-import           Control.DeepSeq          (force)
-import           Control.Exception        (evaluate)
-import           Control.Monad
 import           Control.Monad.Catch
 import           Control.Monad.IO.Class
 import           Data.List
 import           Path
 import           Path.IO                  hiding (findFiles)
-import           System.IO.Error          (isPermissionError)
-import           System.PosixCompat.Files (getSymbolicLinkStatus,
-                                           isSymbolicLink)
 
 -- | Find the location of a file matching the given predicate.
 findFileUp ::
