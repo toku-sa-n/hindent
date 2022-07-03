@@ -6,7 +6,6 @@
 
 -- | Haskell indenter.
 module HIndent
-   -- * Formatting functions.
   ( reformat
   , prettyPrint
   , parseMode
@@ -129,24 +128,19 @@ reformat config mexts mfilepath =
               Just exts -> parseMode {extensions = exts}
               Nothing   -> parseMode
        in m {parseFilename = fromMaybe "<interactive>" mfilepath}
-    preserveTrailingNewline f x =
-      if S8.null x || S8.all isSpace x
-        then return mempty
-        else if hasTrailingLine x || configTrailingNewline config
-               then fmap
-                      (\x' ->
-                         if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
-                           then x'
-                           else x' <> "\n")
-                      (f x)
-               else f x
+    preserveTrailingNewline f x
+      | S8.null x || S8.all isSpace x = return mempty
+      | hasTrailingLine x || configTrailingNewline config = fmap
+             (\x' ->
+                if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
+                  then x'
+                  else x' <> "\n")
+             (f x)
+      | otherwise = f x
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
-hasTrailingLine xs =
-  if S8.null xs
-    then False
-    else S8.last xs == '\n'
+hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 
 -- | Print the module.
 prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Either a Builder
@@ -305,7 +299,7 @@ collectAllComments =
     -- Sort the comments by their end position.
     traverseBackwards =
       traverseInOrder
-        (\x y -> on (flip compare) (srcSpanEnd . srcInfoSpan . nodeInfoSpan) x y) -- Stop traversing if all comments have been consumed.
+        (on (flip compare) (srcSpanEnd . srcInfoSpan . nodeInfoSpan)) -- Stop traversing if all comments have been consumed.
     shortCircuit m v = do
       comments <- get
       if null comments
