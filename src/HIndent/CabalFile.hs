@@ -82,10 +82,10 @@ packageStanzas pd = let
       BenchmarkExeV10 _ path -> [path]
       _ -> []
   in mconcat
-       [ maybeToList $ fmap libStanza $ library pd
-       , fmap exeStanza $ executables pd
-       , fmap testStanza $ testSuites pd
-       , fmap benchStanza $ benchmarks pd
+       [ maybeToList $ libStanza <$> library pd
+       , exeStanza <$> executables pd
+       , testStanza <$> testSuites pd
+       , benchStanza <$> benchmarks pd
        ]
 
 -- | Find cabal files that are "above" the source path
@@ -98,7 +98,7 @@ findCabalFiles dir rel = do
     []
       | dir == "/" -> return Nothing
     [] -> findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
-    _ -> return $ Just (fmap (\n -> dir </> n) cabalnames, rel)
+    _ -> return $ Just (fmap (dir </>) cabalnames, rel)
 
 getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
 #if MIN_VERSION_Cabal(2, 2, 0)
@@ -125,10 +125,10 @@ getCabalStanza srcpath = do
           genericPackageDescription <- getGenericPackageDescription cabalpath
           case genericPackageDescription of
             Nothing -> return []
-            Just gpd -> do
+            Just gpd ->
               return $ packageStanzas $ flattenPackageDescription gpd
       return $
-        case filter (\stanza -> stanzaIsSourceFilePath stanza relpath) $
+        case filter (`stanzaIsSourceFilePath` relpath) $
              mconcat stanzass of
           [] -> Nothing
           (stanza:_) -> Just stanza -- just pick the first one
@@ -141,7 +141,7 @@ getCabalExtensions srcpath = do
   return $
     case mstanza of
       Nothing -> (Haskell98, [])
-      Just (MkStanza bi _) -> do
+      Just (MkStanza bi _) ->
         (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
 convertLanguage :: Language -> HSE.Language
@@ -155,9 +155,9 @@ convertKnownExtension ext =
 
 convertExtension :: Extension -> Maybe HSE.Extension
 convertExtension (EnableExtension ke) =
-  fmap HSE.EnableExtension $ convertKnownExtension ke
+  HSE.EnableExtension <$> convertKnownExtension ke
 convertExtension (DisableExtension ke) =
-  fmap HSE.DisableExtension $ convertKnownExtension ke
+  HSE.DisableExtension <$> convertKnownExtension ke
 convertExtension (UnknownExtension s) = Just $ HSE.UnknownExtension s
 
 -- | Get extensions from the cabal file for this source path
