@@ -510,7 +510,9 @@ exp (App _ op arg) = do
   mst <- fitsOnOneLine (spaced (map pretty flattened))
   case mst of
     Nothing -> do
-      let (f:args) = flattened
+      let (f,args) = case flattened of
+                         []->error "Unmatched."
+                         (f':args')->(f',args')
       col <- gets psColumn
       spaces <- getIndentSpaces
       pretty f
@@ -1615,10 +1617,6 @@ stmt (Generator _ p e) =
                  e
                  pretty)
 stmt x = case x of
-           Generator _ p e ->
-             depend (do pretty p
-                        write " <- ")
-                    (pretty e)
            Qualifier _ e -> pretty e
            LetStmt _ binds ->
              depend (write "let ")

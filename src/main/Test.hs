@@ -8,12 +8,11 @@ import           Data.Algorithm.DiffOutput
 import qualified Data.ByteString as S
 import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString.Lazy.Builder as L
+import qualified Data.ByteString.Builder as L
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy.UTF8 as LUTF8
 import qualified Data.ByteString.UTF8 as UTF8
 import           Data.Function
-import           Data.Monoid
 import qualified HIndent
 import           HIndent.CodeBlock
 import           HIndent.Types
