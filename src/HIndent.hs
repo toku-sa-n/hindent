@@ -130,14 +130,15 @@ reformat config mexts mfilepath =
        in m {parseFilename = fromMaybe "<interactive>" mfilepath}
     preserveTrailingNewline f x
       | S8.null x || S8.all isSpace x = return mempty
-      | otherwise = if hasTrailingLine x || configTrailingNewline config
-               then fmap
-                      (\x' ->
-                         if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
-                           then x'
-                           else x' <> "\n")
-                      (f x)
-               else f x
+      | otherwise =
+        if hasTrailingLine x || configTrailingNewline config
+          then fmap
+                 (\x' ->
+                    if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
+                      then x'
+                      else x' <> "\n")
+                 (f x)
+          else f x
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
