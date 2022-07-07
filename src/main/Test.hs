@@ -108,21 +108,21 @@ codeBlocksSpec =
     it "should put just Haskell code in its own block" $ do
       let input = "this is totally haskell code\n\nit deserves its own block!\n"
       cppSplitBlocks input `shouldBe` [HaskellSource 0 input]
-    it "should put #if/#endif and Haskell code into separate blocks" $ do
+    it "should put #if/#endif and Haskell code into separate blocks" $
       cppSplitBlocks
         "haskell code\n#if DEBUG\ndebug code\n#endif\nmore haskell code\n" `shouldBe`
-        [ HaskellSource 0 "haskell code"
-        , CPPDirectives "#if DEBUG"
-        , HaskellSource 2 "debug code"
-        , CPPDirectives "#endif"
-        , HaskellSource 4 "more haskell code\n"
-        ]
-    it "should put the shebang line into its own block" $ do
+      [ HaskellSource 0 "haskell code"
+      , CPPDirectives "#if DEBUG"
+      , HaskellSource 2 "debug code"
+      , CPPDirectives "#endif"
+      , HaskellSource 4 "more haskell code\n"
+      ]
+    it "should put the shebang line into its own block" $
       cppSplitBlocks
         "#!/usr/bin/env runhaskell\n{-# LANGUAGE OverloadedStrings #-}\n" `shouldBe`
-        [ Shebang "#!/usr/bin/env runhaskell"
-        , HaskellSource 1 "{-# LANGUAGE OverloadedStrings #-}\n"
-        ]
+      [ Shebang "#!/usr/bin/env runhaskell"
+      , HaskellSource 1 "{-# LANGUAGE OverloadedStrings #-}\n"
+      ]
     it "should put a multi-line #define into its own block" $ do
       let input = "#define A \\\n  macro contents \\\n  go here\nhaskell code\n"
       cppSplitBlocks input `shouldBe`
@@ -147,22 +147,22 @@ markdoneSpec = do
         , PlainLine ""
         , PlainLine "this is a new paragraph"
         ]
-    it "should tokenize headings" $ do
+    it "should tokenize headings" $
       tokenize "# Heading" `shouldBe` [Heading 1 "Heading"]
     it "should tokenize code fence beginnings with labels" $ do
       tokenize "``` haskell\n" `shouldBe` [BeginFence "haskell"]
       tokenize "```haskell expect\n" `shouldBe` [BeginFence "haskell expect"]
       tokenize "before\n```code\nafter\n" `shouldBe`
         [PlainLine "before", BeginFence "code", PlainLine "after"]
-    it "should tokenize full code fences" $ do
+    it "should tokenize full code fences" $
       tokenize "```haskell\ncode goes here\n```" `shouldBe`
-        [BeginFence "haskell", PlainLine "code goes here", EndFence]
+      [BeginFence "haskell", PlainLine "code goes here", EndFence]
     it "should tokenize lines inside code fences as plain text" $ do
       tokenize "```haskell\n#!/usr/bin/env stack\n```" `shouldBe`
         [BeginFence "haskell", PlainLine "#!/usr/bin/env stack", EndFence]
       tokenize "```haskell\n# not a heading\n```" `shouldBe`
         [BeginFence "haskell", PlainLine "# not a heading", EndFence]
-  describe "markdown parser" $ do
+  describe "markdown parser" $
     it "should parse a heading followed by text as a section" $ do
       let input =
             [ Heading 1 "This is a heading"
