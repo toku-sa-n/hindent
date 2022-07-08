@@ -131,7 +131,7 @@ data NodeComment
   = CommentSameLine SrcSpan SomeComment
   | CommentAfterLine SrcSpan SomeComment
   | CommentBeforeLine SrcSpan SomeComment
-  deriving (Show, Ord, Eq)
+  deriving (Show, Eq)
 
 -- | Information for each node in the AST.
 data NodeInfo = NodeInfo
