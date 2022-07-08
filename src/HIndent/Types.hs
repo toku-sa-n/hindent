@@ -29,7 +29,6 @@ import           Data.Int (Int64)
 import           Data.Maybe
 import           Data.Yaml (FromJSON(..))
 import qualified Data.Yaml as Y
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, classifyExtension, UnknownExtension, SrcSpanInfo, SrcSpan)
 import           Language.Haskell.Extension (classifyExtension, Extension(UnknownExtension))
 import           SwitchToGhcLibParserHelper (SrcSpanInfo)
 import qualified SwitchToGhcLibParserHelper as Helper
