@@ -5,8 +5,10 @@ module SwitchToGhcLibParserHelper
   , SrcSpan(..)
   , fromHSESrcSpan
   , toHSESrcSpan
+  , toExtension
   ) where
 
+import qualified GHC.LanguageExtensions          as GLE
 import qualified Language.Haskell.Extension      as Cabal
 import qualified Language.Haskell.Exts           as HSE
 import qualified Language.Haskell.Exts.Extension as HSE
@@ -38,3 +40,6 @@ data SrcSpanInfo =
 
 fromHSESrcSpanInfo :: HSE.SrcSpanInfo -> SrcSpanInfo
 fromHSESrcSpanInfo (HSE.SrcSpanInfo s p) = SrcSpanInfo s p
+
+toExtension :: GLE.Extension -> HSE.Extension
+toExtension = HSE.EnableExtension . read . show

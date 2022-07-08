@@ -31,6 +31,7 @@ import qualified System.IO as IO
 import           Options.Applicative hiding (action, style)
 import           Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified SwitchToGhcLibParserHelper as Helper
 
 data Action = Validate | Reformat
 
@@ -52,7 +53,7 @@ main = do
         forM_ paths $ \filepath -> do
           cabalexts <- getCabalExtensionsForSourcePath filepath
           text <- S.readFile filepath
-          case reformat style (Just $ cabalexts ++ exts) (Just filepath) text of
+          case reformat style (Just $ fmap Helper.toExtension cabalexts ++ exts) (Just filepath) text of
             Left e -> error e
             Right out ->
               unless (L8.fromStrict text == S.toLazyByteString out) $
