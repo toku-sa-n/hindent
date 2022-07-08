@@ -48,7 +48,7 @@ import           HIndent.Types
 import qualified Language.Haskell.Exts as Exts
 import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
 import           Prelude
-import           SwitchToGhcLibParserHelper
+import           SwitchToGhcLibParserHelper (cabalExtensionToHSEExtension)
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
