@@ -30,7 +30,6 @@ import           Data.Maybe
 import           Data.Yaml (FromJSON(..))
 import qualified Data.Yaml as Y
 import           Language.Haskell.Extension (classifyExtension, Extension(UnknownExtension))
-import           SwitchToGhcLibParserHelper (SrcSpanInfo)
 import qualified SwitchToGhcLibParserHelper as Helper
 
 -- | A pretty printing monad.
@@ -136,7 +135,7 @@ data NodeComment
 
 -- | Information for each node in the AST.
 data NodeInfo = NodeInfo
-  { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
+  { nodeInfoSpan :: !Helper.SrcSpanInfo -- ^ Location info from the parser.
   , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
   }
 instance Show NodeInfo where
