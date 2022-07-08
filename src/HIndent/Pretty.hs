@@ -27,6 +27,7 @@ import qualified Language.Haskell.Exts as P
 import           Language.Haskell.Exts.SrcLoc
 import           Language.Haskell.Exts.Syntax
 import           Prelude hiding (exp)
+import qualified SwitchToGhcLibParserHelper as Helper
 
 --------------------------------------------------------------------------------
 -- * Pretty printing class
@@ -91,7 +92,7 @@ pretty a = do
 
 -- | Pretty print using HSE's own printer. The 'P.Pretty' class here
 -- is HSE's.
-pretty' :: (Pretty ast,P.Pretty (ast SrcSpanInfo))
+pretty' :: (Pretty ast,P.Pretty (ast Helper.SrcSpanInfo))
         => ast NodeInfo -> Printer ()
 pretty' = write . P.prettyPrint . fmap nodeInfoSpan
 
@@ -1306,8 +1307,8 @@ formatImports =
   map formatImportGroup . groupAdjacentBy atNextLine
   where
     atNextLine import1 import2 =
-      let end1 = srcSpanEndLine (srcInfoSpan (nodeInfoSpan (ann import1)))
-          start2 = srcSpanStartLine (srcInfoSpan (nodeInfoSpan (ann import2)))
+      let end1 = srcSpanEndLine (Helper.srcInfoSpan (nodeInfoSpan (ann import1)))
+          start2 = srcSpanStartLine (Helper.srcInfoSpan (nodeInfoSpan (ann import2)))
       in start2 - end1 <= 1
     formatImportGroup imps = do
       shouldSortImports <- gets $ configSortImports . psConfig

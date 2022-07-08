@@ -49,6 +49,7 @@ import qualified Language.Haskell.Exts as Exts
 import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
 import           Prelude
 import           SwitchToGhcLibParserHelper (cabalExtensionToHSEExtension)
+import qualified SwitchToGhcLibParserHelper as Helper
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
@@ -334,13 +335,13 @@ collectAllComments =
               (snd (srcSpanStart nodeSpan) == 1 &&
                snd (srcSpanStart commentSpan) == 1) &&
               fst (srcSpanStart commentSpan) < fst (srcSpanStart nodeSpan)))) .
-  fmap nodify
+  fmap (nodify . Helper.fromHSESrcSpanInfo)
   where
     nodify s = NodeInfo s mempty
     -- Sort the comments by their end position.
     traverseBackwards =
       traverseInOrder
-        (\x y -> on (flip compare) (srcSpanEnd . srcInfoSpan . nodeInfoSpan) x y)
+        (\x y -> on (flip compare) (srcSpanEnd . Helper.srcInfoSpan . nodeInfoSpan) x y)
     -- Stop traversing if all comments have been consumed.
     shortCircuit m v = do
       comments <- get
@@ -356,7 +357,7 @@ collectCommentsBy
   -> (SrcSpan -> SrcSpan -> Bool)
   -> NodeInfo
   -> State [Comment] NodeInfo
-collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) = do
+collectCommentsBy cons predicate nodeInfo@(NodeInfo (Helper.SrcSpanInfo nodeSpan _) _) = do
   comments <- get
   let (others, mine) =
         partitionEithers
@@ -400,7 +401,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
       put notAbove
       return $ addCommentsToNode CommentBeforeLine above nodeInfo
     partitionAboveNotAbove :: [Comment] -> NodeInfo -> ([Comment], [Comment])
-    partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
+    partitionAboveNotAbove cs (NodeInfo (Helper.SrcSpanInfo nodeSpan _) _) =
       fst $
       foldr'
         (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
@@ -421,7 +422,7 @@ addCommentsToNode :: (SrcSpan -> SomeComment -> NodeComment)
                   -> [Comment]
                   -> NodeInfo
                   -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments) =
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanInfo _ _) existingComments) =
   nodeInfo
     {nodeInfoComments = existingComments <> map mkBeforeNodeComment newComments}
   where
