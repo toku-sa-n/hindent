@@ -353,7 +353,7 @@ collectAllComments =
 -- comment means to remove it from the pool of available comments in
 -- the State. This allows for a multiple pass approach.
 collectCommentsBy
-  :: (SrcSpan -> SomeComment -> NodeComment)
+  :: (Helper.SrcSpan -> SomeComment -> NodeComment)
   -> (SrcSpan -> SrcSpan -> Bool)
   -> NodeInfo
   -> State [Comment] NodeInfo
@@ -418,7 +418,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
        in commentColStart == colStart && commentLnEnd + 1 == lnStart
 addCommentsToTopLevelWhereClauses other = return other
 
-addCommentsToNode :: (SrcSpan -> SomeComment -> NodeComment)
+addCommentsToNode :: (Helper.SrcSpan -> SomeComment -> NodeComment)
                   -> [Comment]
                   -> NodeInfo
                   -> NodeInfo
@@ -429,7 +429,7 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanIn
     mkBeforeNodeComment :: Comment -> NodeComment
     mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
       mkNodeComment
-        commentSpan
+        (Helper.fromHSESrcSpan commentSpan)
         ((if multiLine
             then MultiLine
             else EndOfLine)

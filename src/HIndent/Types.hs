@@ -29,9 +29,10 @@ import           Data.Int (Int64)
 import           Data.Maybe
 import           Data.Yaml (FromJSON(..))
 import qualified Data.Yaml as Y
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, classifyExtension, UnknownExtension, SrcSpanInfo)
+import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, classifyExtension, UnknownExtension, SrcSpanInfo, SrcSpan)
 import           Language.Haskell.Extension (classifyExtension, Extension(UnknownExtension))
 import           SwitchToGhcLibParserHelper (SrcSpanInfo)
+import qualified SwitchToGhcLibParserHelper as Helper
 
 -- | A pretty printing monad.
 newtype Printer a =
@@ -129,9 +130,9 @@ data SomeComment
 -- | Comment associated with a node.
 -- 'SrcSpan' is the original source span of the comment.
 data NodeComment
-  = CommentSameLine SrcSpan SomeComment
-  | CommentAfterLine SrcSpan SomeComment
-  | CommentBeforeLine SrcSpan SomeComment
+  = CommentSameLine Helper.SrcSpan SomeComment
+  | CommentAfterLine Helper.SrcSpan SomeComment
+  | CommentBeforeLine Helper.SrcSpan SomeComment
   deriving (Show, Eq)
 
 -- | Information for each node in the AST.

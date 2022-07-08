@@ -59,7 +59,7 @@ pretty a = do
            if col == 0
              then do
                -- write comment keeping original indentation
-               let col' = fromIntegral $ srcSpanStartColumn spn - 1
+               let col' = fromIntegral $ srcSpanStartColumn (Helper.toHSESrcSpan spn) - 1
                column col' $ writeComment c
              else do
                space
@@ -67,7 +67,7 @@ pretty a = do
          CommentAfterLine spn c -> do
            when (i == 0) newline
            -- write comment keeping original indentation
-           let col = fromIntegral $ srcSpanStartColumn spn - 1
+           let col = fromIntegral $ srcSpanStartColumn (Helper.toHSESrcSpan spn) - 1
            column col $ writeComment c
          _ -> return ())
     (zip [0 :: Int ..] comments)
