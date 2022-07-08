@@ -29,7 +29,8 @@ import           Data.Int (Int64)
 import           Data.Maybe
 import           Data.Yaml (FromJSON(..))
 import qualified Data.Yaml as Y
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
+import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, classifyExtension, UnknownExtension)
+import           Language.Haskell.Extension (classifyExtension, Extension(UnknownExtension))
 
 -- | A pretty printing monad.
 newtype Printer a =

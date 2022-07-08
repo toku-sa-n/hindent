@@ -48,6 +48,7 @@ import           HIndent.Types
 import qualified Language.Haskell.Exts as Exts
 import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
 import           Prelude
+import           SwitchToGhcLibParserHelper
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
@@ -68,13 +69,13 @@ reformat config mexts mfilepath =
                        Just (Nothing, exts') ->
                          mode' { extensions =
                                    exts'
-                                   ++ configExtensions config
+                                   ++ fmap cabalExtensionToHSEExtension (configExtensions config)
                                    ++ extensions mode' }
                        Just (Just lang, exts') ->
                          mode' { baseLanguage = lang
                                , extensions =
                                    exts'
-                                   ++ configExtensions config
+                                   ++ fmap cabalExtensionToHSEExtension (configExtensions config)
                                    ++ extensions mode' }
         in case parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
@@ -256,10 +257,10 @@ getExtensions :: [Text] -> [Extension]
 getExtensions = foldl f defaultExtensions . map T.unpack
   where f _ "Haskell98" = []
         f a ('N':'o':x)
-          | Just x' <- readExtension x =
+          | Just x' <- fmap cabalExtensionToHSEExtension (readExtension x) =
             delete x' a
         f a x
-          | Just x' <- readExtension x =
+          | Just x' <- fmap cabalExtensionToHSEExtension (readExtension x) =
             x' :
             delete x' a
         f _ x = error $ "Unknown extension: " ++ x
