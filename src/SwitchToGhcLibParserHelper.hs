@@ -6,6 +6,7 @@ module SwitchToGhcLibParserHelper
   , fromHSESrcSpan
   , toHSESrcSpan
   , toExtension
+  , gleExtensionToCabalExtension
   ) where
 
 import           Data.Maybe
@@ -17,11 +18,9 @@ import           Text.Read
 
 cabalExtensionToHSEExtension :: Cabal.Extension -> HSE.Extension
 cabalExtensionToHSEExtension (Cabal.EnableExtension e) =
-  HSE.EnableExtension $
-  fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
+  HSE.EnableExtension $ fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
 cabalExtensionToHSEExtension (Cabal.DisableExtension e) =
-  HSE.DisableExtension $
-  fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
+  HSE.DisableExtension $ fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
 cabalExtensionToHSEExtension (Cabal.UnknownExtension e) = HSE.UnknownExtension e
 
 data SrcSpan =
@@ -51,3 +50,6 @@ fromHSESrcSpanInfo (HSE.SrcSpanInfo s p) = SrcSpanInfo s p
 
 toExtension :: GLE.Extension -> HSE.Extension
 toExtension = HSE.EnableExtension . read . show
+
+gleExtensionToCabalExtension :: GLE.Extension -> Cabal.Extension
+gleExtensionToCabalExtension = read . show

@@ -46,8 +46,8 @@ import           HIndent.CodeBlock
 import           HIndent.Pretty
 import           HIndent.Types
 import qualified Language.Haskell.Exts as Exts
-import           Language.Haskell.Extension (Extension, Extension(EnableExtension), KnownExtension(..))
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, EnableExtension, KnownExtension(..))
+import           Language.Haskell.Extension (Extension, Extension(..), KnownExtension(..))
+import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension(..), EnableExtension, KnownExtension(..))
 import           Prelude
 import qualified SwitchToGhcLibParserHelper as Helper
 
@@ -190,10 +190,7 @@ parseMode :: ParseMode
 parseMode =
   defaultParseMode {extensions = allExtensions
                    ,fixities = Nothing}
-  where allExtensions =
-          filter isDisabledExtension knownExtensions
-        isDisabledExtension (DisableExtension _) = False
-        isDisabledExtension _ = True
+  where allExtensions = fmap (Helper.cabalExtensionToHSEExtension . EnableExtension) [minBound ..]
 
 -- | Test the given file.
 testFile :: FilePath -> IO ()

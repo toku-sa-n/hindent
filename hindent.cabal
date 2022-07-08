@@ -61,6 +61,7 @@ executable hindent
   build-depends:     base >= 4 && < 5
                    , hindent
                    , bytestring
+                   , Cabal
                    , utf8-string
                    , haskell-src-exts
                    , ghc-prim

@@ -20,11 +20,12 @@ import           GHC.IO.Exception
 import           HIndent
 import           HIndent.CabalFile
 import           HIndent.Types
-import           Language.Haskell.Exts hiding (Style, style)
+import           Language.Haskell.Exts hiding (Style, style, Extension)
 import           Path
 import qualified Path.Find as Path
 import qualified Path.IO as Path
 import           Paths_hindent (version)
+import           Language.Haskell.Extension
 import qualified System.Directory as IO
 import           System.Exit (exitWith)
 import qualified System.IO as IO
@@ -53,7 +54,7 @@ main = do
         forM_ paths $ \filepath -> do
           cabalexts <- getCabalExtensionsForSourcePath filepath
           text <- S.readFile filepath
-          case reformat style (Just $ fmap Helper.toExtension cabalexts ++ exts) (Just filepath) text of
+          case reformat style (Just $ fmap Helper.gleExtensionToCabalExtension cabalexts ++ exts) (Just filepath) text of
             Left e -> error e
             Right out ->
               unless (L8.fromStrict text == S.toLazyByteString out) $
