@@ -21,13 +21,11 @@ import Distribution.PackageDescription.Parsec
 import Distribution.PackageDescription.Parse
 #endif
 import Language.Haskell.Extension
-import qualified Language.Haskell.Exts.Extension as HSE
 import qualified GHC.LanguageExtensions.Type as GLP
 import qualified GHC.Driver.Session as GLP
 import GHC.Driver.Session (languageExtensions, impliedXFlags)
 import System.Directory
 import System.FilePath
-import Text.Read
 
 data Stanza = MkStanza
   { _stanzaBuildInfo :: BuildInfo
