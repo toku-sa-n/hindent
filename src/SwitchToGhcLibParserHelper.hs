@@ -8,13 +8,21 @@ module SwitchToGhcLibParserHelper
   , toExtension
   ) where
 
+import           Data.Maybe
 import qualified GHC.LanguageExtensions          as GLE
 import qualified Language.Haskell.Extension      as Cabal
 import qualified Language.Haskell.Exts           as HSE
 import qualified Language.Haskell.Exts.Extension as HSE
+import           Text.Read
 
 cabalExtensionToHSEExtension :: Cabal.Extension -> HSE.Extension
-cabalExtensionToHSEExtension = undefined
+cabalExtensionToHSEExtension (Cabal.EnableExtension e) =
+  HSE.EnableExtension $
+  fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
+cabalExtensionToHSEExtension (Cabal.DisableExtension e) =
+  HSE.DisableExtension $
+  fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
+cabalExtensionToHSEExtension (Cabal.UnknownExtension e) = HSE.UnknownExtension e
 
 data SrcSpan =
   SrcSpan

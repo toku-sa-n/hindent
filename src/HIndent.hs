@@ -46,7 +46,8 @@ import           HIndent.CodeBlock
 import           HIndent.Pretty
 import           HIndent.Types
 import qualified Language.Haskell.Exts as Exts
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
+import           Language.Haskell.Extension (Extension, Extension(EnableExtension), KnownExtension(..))
+import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension, EnableExtension, KnownExtension(..))
 import           Prelude
 import qualified SwitchToGhcLibParserHelper as Helper
 
@@ -125,7 +126,7 @@ reformat config mexts mfilepath =
         let m = case mexts of
                   Just exts ->
                     parseMode
-                    { extensions = exts
+                    { extensions = fmap Helper.cabalExtensionToHSEExtension exts
                     }
                   Nothing -> parseMode
         in m { parseFilename = fromMaybe "<interactive>" mfilepath }
@@ -224,10 +225,7 @@ testAst x =
 
 -- | Default extensions.
 defaultExtensions :: [Extension]
-defaultExtensions =
-  [ e
-  | e@EnableExtension {} <- knownExtensions ] \\
-  map EnableExtension badExtensions
+defaultExtensions = fmap EnableExtension $ [minBound .. ] \\ badExtensions
 
 -- | Extensions which steal too much syntax.
 badExtensions :: [KnownExtension]
@@ -257,10 +255,10 @@ getExtensions :: [Text] -> [Extension]
 getExtensions = foldl f defaultExtensions . map T.unpack
   where f _ "Haskell98" = []
         f a ('N':'o':x)
-          | Just x' <- fmap Helper.cabalExtensionToHSEExtension (readExtension x) =
+          | Just x' <- readExtension x =
             delete x' a
         f a x
-          | Just x' <- fmap Helper.cabalExtensionToHSEExtension (readExtension x) =
+          | Just x' <- readExtension x =
             x' :
             delete x' a
         f _ x = error $ "Unknown extension: " ++ x
