@@ -74,24 +74,17 @@ reformat config mexts mfilepath =
             code = unlines' (map (stripPrefix prefix) ls)
             exts = readExtensions (UTF8.toString code)
             filename = fromMaybe "<interactive>" mfilepath
+            allExts = maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts ++ case exts of
+                                                                                                  Just (_, exts') -> fmap Helper.cabalExtensionToHSEExtension (configExtensions config) ++ exts'
+                                                                                                  _ -> []
             mode' = parseMode
-                    { extensions = maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts
+                    { extensions = allExts
                     , fixities = Nothing
                     , parseFilename = filename
                     }
             mode'' = case exts of
-                       Nothing -> mode'
-                       Just (Nothing, exts') ->
-                         mode' { extensions =
-                                   exts'
-                                   ++ fmap Helper.cabalExtensionToHSEExtension (configExtensions config)
-                                   ++ extensions mode' }
-                       Just (Just lang, exts') ->
-                         mode' { baseLanguage = lang
-                               , extensions =
-                                   exts'
-                                   ++ fmap Helper.cabalExtensionToHSEExtension (configExtensions config)
-                                   ++ extensions mode' }
+                       Just (Just lang, _) -> mode' { baseLanguage = lang }
+                       _ -> mode'
         in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
                    fmap
