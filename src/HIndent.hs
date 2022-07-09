@@ -87,6 +87,7 @@ reformat config mexts mfilepath =
                                       , fixities = Nothing
                                       , parseFilename = filename
                                       }
+            opts = mkParserOpts ES.empty (ES.fromList (maybe [] Helper.uniqueExtensions mexts)) False True True True
         in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
                    fmap
@@ -131,7 +132,6 @@ reformat config mexts mfilepath =
                         first
                         (findSmallestPrefix (S.tail p : map S.tail ps))
                else ""
-    opts = mkParserOpts ES.empty (ES.fromList (maybe [] Helper.uniqueExtensions mexts)) False True True True
     preserveTrailingNewline f x =
         if S8.null x || S8.all isSpace x
             then return mempty
