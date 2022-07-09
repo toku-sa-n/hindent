@@ -77,14 +77,16 @@ reformat config mexts mfilepath =
             allExts = maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts ++ case exts of
                                                                                                   Just (_, exts') -> fmap Helper.cabalExtensionToHSEExtension (configExtensions config) ++ exts'
                                                                                                   _ -> []
-            mode' = parseMode
-                    { extensions = allExts
-                    , fixities = Nothing
-                    , parseFilename = filename
-                    }
             mode'' = case exts of
-                       Just (Just lang, _) -> mode' { baseLanguage = lang }
-                       _ -> mode'
+                       Just (Just lang, _) ->parseMode { baseLanguage = lang
+                                                       , extensions = allExts
+                                                       , fixities = Nothing
+                                                       , parseFilename = filename
+                                                       }
+                       _ -> parseMode { extensions = allExts
+                                      , fixities = Nothing
+                                      , parseFilename = filename
+                                      }
         in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
                    fmap
