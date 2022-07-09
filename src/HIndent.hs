@@ -73,14 +73,18 @@ reformat config mexts mfilepath =
             prefix = findPrefix ls
             code = unlines' (map (stripPrefix prefix) ls)
             exts = readExtensions (UTF8.toString code)
-            mode' =
-                let m = case mexts of
+            filename = fromMaybe "<interactive>" mfilepath
+            mode' = case mexts of
                         Just exts ->
                             parseMode
                             { extensions = fmap Helper.cabalExtensionToHSEExtension exts
+                            , fixities = Nothing
+                            , parseFilename = filename
                             }
-                        Nothing -> parseMode
-                in m { parseFilename = fromMaybe "<interactive>" mfilepath }
+                        Nothing -> defaultParseMode { extensions = allExtensions
+                                                    , fixities = Nothing
+                                                    , parseFilename = filename
+                                                    }
             mode'' = case exts of
                        Nothing -> mode'
                        Just (Nothing, exts') ->
