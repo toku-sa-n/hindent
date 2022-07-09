@@ -57,6 +57,7 @@ import Generics.SYB.Schemes
 import GHC.Types.SrcLoc
 import GHC.Data.FastString
 import GHC.Data.StringBuffer
+import qualified GHC.Data.EnumSet as ES
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
@@ -137,6 +138,7 @@ reformat config mexts mfilepath =
                     }
                   Nothing -> parseMode
         in m { parseFilename = fromMaybe "<interactive>" mfilepath }
+    opts = mkParserOpts ES.empty (ES.fromList (maybe [] Helper.uniqueExtensions mexts)) False True True True
     preserveTrailingNewline f x =
         if S8.null x || S8.all isSpace x
             then return mempty
