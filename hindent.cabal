@@ -49,6 +49,7 @@ library
                    , utf8-string
                    , transformers
                    , exceptions
+                   , syb
                    , text
                    , yaml
 
