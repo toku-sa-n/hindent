@@ -199,7 +199,9 @@ parseMode :: ParseMode
 parseMode =
   defaultParseMode {extensions = allExtensions
                    ,fixities = Nothing}
-  where allExtensions = fmap (Helper.cabalExtensionToHSEExtension . EnableExtension) [minBound ..]
+
+allExtensions :: [Exts.Extension]
+allExtensions = fmap (Helper.cabalExtensionToHSEExtension . EnableExtension) [minBound ..]
 
 -- | Test the given file.
 testFile :: FilePath -> IO ()
