@@ -74,17 +74,11 @@ reformat config mexts mfilepath =
             code = unlines' (map (stripPrefix prefix) ls)
             exts = readExtensions (UTF8.toString code)
             filename = fromMaybe "<interactive>" mfilepath
-            mode' = case mexts of
-                        Just exts ->
-                            parseMode
-                            { extensions = fmap Helper.cabalExtensionToHSEExtension exts
-                            , fixities = Nothing
-                            , parseFilename = filename
-                            }
-                        Nothing -> defaultParseMode { extensions = allExtensions
-                                                    , fixities = Nothing
-                                                    , parseFilename = filename
-                                                    }
+            mode' = parseMode
+                    { extensions = maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts
+                    , fixities = Nothing
+                    , parseFilename = filename
+                    }
             mode'' = case exts of
                        Nothing -> mode'
                        Just (Nothing, exts') ->
