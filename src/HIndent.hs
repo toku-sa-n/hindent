@@ -73,6 +73,14 @@ reformat config mexts mfilepath =
             prefix = findPrefix ls
             code = unlines' (map (stripPrefix prefix) ls)
             exts = readExtensions (UTF8.toString code)
+            mode' =
+                let m = case mexts of
+                        Just exts ->
+                            parseMode
+                            { extensions = fmap Helper.cabalExtensionToHSEExtension exts
+                            }
+                        Nothing -> parseMode
+                in m { parseFilename = fromMaybe "<interactive>" mfilepath }
             mode'' = case exts of
                        Nothing -> mode'
                        Just (Nothing, exts') ->
@@ -130,14 +138,6 @@ reformat config mexts mfilepath =
                         first
                         (findSmallestPrefix (S.tail p : map S.tail ps))
                else ""
-    mode' =
-        let m = case mexts of
-                  Just exts ->
-                    parseMode
-                    { extensions = fmap Helper.cabalExtensionToHSEExtension exts
-                    }
-                  Nothing -> parseMode
-        in m { parseFilename = fromMaybe "<interactive>" mfilepath }
     opts = mkParserOpts ES.empty (ES.fromList (maybe [] Helper.uniqueExtensions mexts)) False True True True
     preserveTrailingNewline f x =
         if S8.null x || S8.all isSpace x
