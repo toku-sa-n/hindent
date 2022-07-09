@@ -1,5 +1,6 @@
 module SwitchToGhcLibParserHelper
   ( cabalExtensionToHSEExtension
+  , hseExtensionToCabalExtension
   , SrcSpanInfo(..)
   , fromHSESrcSpanInfo
   , SrcSpan(..)
@@ -24,6 +25,13 @@ cabalExtensionToHSEExtension (Cabal.EnableExtension e) =
 cabalExtensionToHSEExtension (Cabal.DisableExtension e) =
   HSE.DisableExtension $ fromMaybe HSE.ImplicitPrelude $ readMaybe $ show e
 cabalExtensionToHSEExtension (Cabal.UnknownExtension e) = HSE.UnknownExtension e
+
+hseExtensionToCabalExtension :: HSE.Extension -> Cabal.Extension
+hseExtensionToCabalExtension (HSE.EnableExtension e) =
+  Cabal.EnableExtension $ fromMaybe Cabal.ImplicitPrelude $ readMaybe $ show e
+hseExtensionToCabalExtension (HSE.DisableExtension e) =
+  Cabal.DisableExtension $ fromMaybe Cabal.ImplicitPrelude $ readMaybe $ show e
+hseExtensionToCabalExtension (HSE.UnknownExtension e) = Cabal.UnknownExtension e
 
 data SrcSpan =
   SrcSpan

@@ -87,7 +87,7 @@ reformat config mexts mfilepath =
                                       , fixities = Nothing
                                       , parseFilename = filename
                                       }
-            opts = mkParserOpts ES.empty (ES.fromList (maybe [] Helper.uniqueExtensions mexts)) False True True True
+            opts = mkParserOpts ES.empty (ES.fromList $ Helper.uniqueExtensions $ fmap Helper.hseExtensionToCabalExtension allExts) False True True True
         in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
                    fmap
