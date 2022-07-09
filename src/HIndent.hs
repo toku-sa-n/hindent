@@ -45,11 +45,18 @@ import           Data.Traversable hiding (mapM)
 import           HIndent.CodeBlock
 import           HIndent.Pretty
 import           HIndent.Types
-import qualified Language.Haskell.Exts as Exts
+import qualified Language.Haskell.Exts as Exts hiding (unLoc)
 import           Language.Haskell.Extension (Extension, Extension(..), KnownExtension(..))
-import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse, Extension(..), EnableExtension, KnownExtension(..))
+import           Language.Haskell.Exts hiding (unLoc, Style, prettyPrint, Pretty, style, parse, Extension(..), EnableExtension, KnownExtension(..), ParseResult, parseModule)
 import           Prelude
 import qualified SwitchToGhcLibParserHelper as Helper
+import GHC.Hs
+import GHC.Parser.Lexer
+import GHC.Parser
+import Generics.SYB.Schemes
+import GHC.Types.SrcLoc
+import GHC.Data.FastString
+import GHC.Data.StringBuffer
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
@@ -78,7 +85,7 @@ reformat config mexts mfilepath =
                                    exts'
                                    ++ fmap Helper.cabalExtensionToHSEExtension (configExtensions config)
                                    ++ extensions mode' }
-        in case parseModuleWithComments mode'' (UTF8.toString code) of
+        in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
                    fmap
                        (S.lazyByteString . addPrefix prefix . S.toLazyByteString)
@@ -209,7 +216,7 @@ test =
 -- | Parse the source and annotate it with comments, yielding the resulting AST.
 testAst :: ByteString -> Either String (Module NodeInfo)
 testAst x =
-  case parseModuleWithComments parseMode (UTF8.toString x) of
+  case Exts.parseModuleWithComments parseMode (UTF8.toString x) of
     ParseOk (m,comments) ->
       Right
         (let ast =
@@ -298,7 +305,7 @@ collectAllComments =
        (collectCommentsBy
           CommentAfterLine
           (\nodeSpan commentSpan ->
-              fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan)))) <=<
+              fst (Exts.srcSpanStart commentSpan) >= fst (Exts.srcSpanEnd nodeSpan)))) <=<
   shortCircuit addCommentsToTopLevelWhereClauses <=<
   shortCircuit
     (traverse
@@ -308,7 +315,7 @@ collectAllComments =
        (collectCommentsBy
           CommentSameLine
           (\nodeSpan commentSpan ->
-              fst (srcSpanStart commentSpan) == fst (srcSpanEnd nodeSpan)))) <=<
+              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanEnd nodeSpan)))) <=<
   shortCircuit
     (traverseBackwards
      -- Collect backwards comments which are on the same line as a
@@ -317,8 +324,8 @@ collectAllComments =
        (collectCommentsBy
           CommentSameLine
           (\nodeSpan commentSpan ->
-              fst (srcSpanStart commentSpan) == fst (srcSpanStart nodeSpan) &&
-              fst (srcSpanStart commentSpan) == fst (srcSpanEnd nodeSpan)))) <=<
+              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanStart nodeSpan) &&
+              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanEnd nodeSpan)))) <=<
   shortCircuit
     (traverse
      -- First, collect forwards comments for declarations which both
@@ -326,16 +333,16 @@ collectAllComments =
        (collectCommentsBy
           CommentBeforeLine
           (\nodeSpan commentSpan ->
-              (snd (srcSpanStart nodeSpan) == 1 &&
-               snd (srcSpanStart commentSpan) == 1) &&
-              fst (srcSpanStart commentSpan) < fst (srcSpanStart nodeSpan)))) .
+              (snd (Exts.srcSpanStart nodeSpan) == 1 &&
+               snd (Exts.srcSpanStart commentSpan) == 1) &&
+              fst (Exts.srcSpanStart commentSpan) < fst (Exts.srcSpanStart nodeSpan)))) .
   fmap (nodify . Helper.fromHSESrcSpanInfo)
   where
     nodify s = NodeInfo s mempty
     -- Sort the comments by their end position.
     traverseBackwards =
       traverseInOrder
-        (\x y -> on (flip compare) (srcSpanEnd . Helper.srcInfoSpan . nodeInfoSpan) x y)
+        (\x y -> on (flip compare) (Exts.srcSpanEnd . Helper.srcInfoSpan . nodeInfoSpan) x y)
     -- Stop traversing if all comments have been consumed.
     shortCircuit m v = do
       comments <- get
@@ -348,7 +355,7 @@ collectAllComments =
 -- the State. This allows for a multiple pass approach.
 collectCommentsBy
   :: (Helper.SrcSpan -> SomeComment -> NodeComment)
-  -> (SrcSpan -> SrcSpan -> Bool)
+  -> (Exts.SrcSpan -> Exts.SrcSpan -> Bool)
   -> NodeInfo
   -> State [Comment] NodeInfo
 collectCommentsBy cons predicate nodeInfo@(NodeInfo (Helper.SrcSpanInfo nodeSpan _) _) = do
@@ -374,15 +381,15 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
   where
     addCommentsToWhereClauses ::
          Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-    addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
+    addCommentsToWhereClauses (Exts.PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
       newWhereDecls <- traverse addCommentsToPatBind whereDecls
-      return $ PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
+      return $ Exts.PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
     addCommentsToWhereClauses other = return other
     addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-    addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
+    addCommentsToPatBind (Exts.PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
       bindInfoWithComments <- addCommentsBeforeNode bindInfo
       return $
-        PatBind
+        Exts.PatBind
           bindInfoWithComments
           (PVar x (Ident declNodeInfo declString))
           x'
@@ -404,11 +411,11 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
              else ((comment : ls, rs), lastSpan))
         (([], []), nodeSpan)
         cs
-    isAbove :: Comment -> SrcSpan -> Bool
+    isAbove :: Comment -> Exts.SrcSpan -> Bool
     isAbove (Comment _ commentSpan _) span =
-      let (_, commentColStart) = srcSpanStart commentSpan
-          (commentLnEnd, _) = srcSpanEnd commentSpan
-          (lnStart, colStart) = srcSpanStart span
+      let (_, commentColStart) = Exts.srcSpanStart commentSpan
+          (commentLnEnd, _) = Exts.srcSpanEnd commentSpan
+          (lnStart, colStart) = Exts.srcSpanStart span
        in commentColStart == colStart && commentLnEnd + 1 == lnStart
 addCommentsToTopLevelWhereClauses other = return other
 
@@ -428,3 +435,15 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanIn
             then MultiLine
             else EndOfLine)
            commentString)
+
+parseModuleWithComments :: Maybe FilePath -> ParserOpts -> String -> ParseResult (HsModule, [LEpaComment])
+parseModuleWithComments filepath opts src =
+    case unP parseModule initState of
+        POk s m -> POk s (unLoc m, listify onlyComments $ unLoc m)
+        PFailed s -> PFailed s
+    where
+      onlyComments :: LEpaComment -> Bool
+      onlyComments _ = True
+      initState = initParserState opts buffer location
+      location = mkRealSrcLoc (mkFastString (fromMaybe "<interactive>" filepath)) 1 1
+      buffer = stringToStringBuffer src
