@@ -26,6 +26,7 @@ import qualified GHC.Driver.Session as GLP
 import GHC.Driver.Session (languageExtensions, impliedXFlags)
 import System.Directory
 import System.FilePath
+import qualified SwitchToGhcLibParserHelper as Helper
 
 data Stanza = MkStanza
   { _stanzaBuildInfo :: BuildInfo
@@ -156,142 +157,13 @@ getCabalExtensionsForSourcePath :: FilePath -> IO [GLP.Extension]
 getCabalExtensionsForSourcePath srcpath = do
   (lang, exts) <- getCabalExtensions srcpath
   let allExts = exts ++ implicitExtensions (convertLanguage lang)
-  return $ uniqueExtensions $ concatMap extensionImplies allExts
-
-uniqueExtensions :: [Extension] -> [GLP.Extension]
-uniqueExtensions [] = []
-uniqueExtensions ((EnableExtension e):xs) = convertExtension e:uniqueExtensions xs
-uniqueExtensions ((DisableExtension e):xs) = uniqueExtensions $ filter (/= read (show e)) xs
-uniqueExtensions ((UnknownExtension s):_) = error $ "Unknown extension: " ++ s
+  return $ Helper.uniqueExtensions $ concatMap extensionImplies allExts
 
 implicitExtensions :: GLP.Language -> [Extension]
 implicitExtensions = fmap (EnableExtension . read . show) . languageExtensions . Just
 
 extensionImplies :: Extension -> [Extension]
-extensionImplies (EnableExtension e) = toExtension <$> filter (\(a, _, _) -> a == convertExtension e) impliedXFlags
+extensionImplies (EnableExtension e) = toExtension <$> filter (\(a, _, _) -> a == Helper.convertExtension e) impliedXFlags
     where toExtension (_, True, e') = EnableExtension $ read $ show e'
           toExtension (_, False, e') = DisableExtension $ read $ show e'
 extensionImplies _ = []
-
--- `ghc-lib-parser`'s `Extension` does not implement `read`.
-convertExtension :: KnownExtension -> GLP.Extension
-convertExtension OverlappingInstances  = GLP.OverlappingInstances
-convertExtension UndecidableInstances  = GLP.UndecidableInstances
-convertExtension IncoherentInstances  = GLP.IncoherentInstances
-convertExtension UndecidableSuperClasses  = GLP.UndecidableSuperClasses
-convertExtension MonomorphismRestriction  = GLP.MonomorphismRestriction
-convertExtension MonoLocalBinds  = GLP.MonoLocalBinds
-convertExtension RelaxedPolyRec  = GLP.RelaxedPolyRec
-convertExtension ExtendedDefaultRules  = GLP.ExtendedDefaultRules
-convertExtension ForeignFunctionInterface  = GLP.ForeignFunctionInterface
-convertExtension UnliftedFFITypes  = GLP.UnliftedFFITypes
-convertExtension InterruptibleFFI  = GLP.InterruptibleFFI
-convertExtension CApiFFI  = GLP.CApiFFI
-convertExtension GHCForeignImportPrim  = GLP.GHCForeignImportPrim
-convertExtension JavaScriptFFI  = GLP.JavaScriptFFI
-convertExtension ParallelArrays  = GLP.ParallelArrays
-convertExtension Arrows  = GLP.Arrows
-convertExtension TemplateHaskell  = GLP.TemplateHaskell
-convertExtension TemplateHaskellQuotes  = GLP.TemplateHaskellQuotes
-convertExtension QualifiedDo  = GLP.QualifiedDo
-convertExtension QuasiQuotes  = GLP.QuasiQuotes
-convertExtension ImplicitParams  = GLP.ImplicitParams
-convertExtension ImplicitPrelude  = GLP.ImplicitPrelude
-convertExtension ScopedTypeVariables  = GLP.ScopedTypeVariables
-convertExtension AllowAmbiguousTypes  = GLP.AllowAmbiguousTypes
-convertExtension UnboxedTuples  = GLP.UnboxedTuples
-convertExtension UnboxedSums  = GLP.UnboxedSums
-convertExtension UnliftedNewtypes  = GLP.UnliftedNewtypes
-convertExtension UnliftedDatatypes  = GLP.UnliftedDatatypes
-convertExtension BangPatterns  = GLP.BangPatterns
-convertExtension TypeFamilies  = GLP.TypeFamilies
-convertExtension TypeFamilyDependencies  = GLP.TypeFamilyDependencies
-convertExtension TypeInType  = GLP.TypeInType
-convertExtension OverloadedStrings  = GLP.OverloadedStrings
-convertExtension OverloadedLists  = GLP.OverloadedLists
-convertExtension NumDecimals  = GLP.NumDecimals
-convertExtension DisambiguateRecordFields  = GLP.DisambiguateRecordFields
-convertExtension RecordWildCards  = GLP.RecordWildCards
-convertExtension RecordPuns  = GLP.RecordPuns
-convertExtension ViewPatterns  = GLP.ViewPatterns
-convertExtension GADTs  = GLP.GADTs
-convertExtension GADTSyntax  = GLP.GADTSyntax
-convertExtension NPlusKPatterns  = GLP.NPlusKPatterns
-convertExtension DoAndIfThenElse  = GLP.DoAndIfThenElse
-convertExtension BlockArguments  = GLP.BlockArguments
-convertExtension RebindableSyntax  = GLP.RebindableSyntax
-convertExtension ConstraintKinds  = GLP.ConstraintKinds
-convertExtension PolyKinds  = GLP.PolyKinds
-convertExtension DataKinds  = GLP.DataKinds
-convertExtension InstanceSigs  = GLP.InstanceSigs
-convertExtension ApplicativeDo  = GLP.ApplicativeDo
-convertExtension LinearTypes  = GLP.LinearTypes
-convertExtension StandaloneDeriving  = GLP.StandaloneDeriving
-convertExtension DeriveDataTypeable  = GLP.DeriveDataTypeable
-convertExtension AutoDeriveTypeable  = GLP.AutoDeriveTypeable
-convertExtension DeriveFunctor  = GLP.DeriveFunctor
-convertExtension DeriveTraversable  = GLP.DeriveTraversable
-convertExtension DeriveFoldable  = GLP.DeriveFoldable
-convertExtension DeriveGeneric  = GLP.DeriveGeneric
-convertExtension DefaultSignatures  = GLP.DefaultSignatures
-convertExtension DeriveAnyClass  = GLP.DeriveAnyClass
-convertExtension DeriveLift  = GLP.DeriveLift
-convertExtension DerivingStrategies  = GLP.DerivingStrategies
-convertExtension DerivingVia  = GLP.DerivingVia
-convertExtension TypeSynonymInstances  = GLP.TypeSynonymInstances
-convertExtension FlexibleContexts  = GLP.FlexibleContexts
-convertExtension FlexibleInstances  = GLP.FlexibleInstances
-convertExtension ConstrainedClassMethods  = GLP.ConstrainedClassMethods
-convertExtension MultiParamTypeClasses  = GLP.MultiParamTypeClasses
-convertExtension NullaryTypeClasses  = GLP.NullaryTypeClasses
-convertExtension FunctionalDependencies  = GLP.FunctionalDependencies
-convertExtension UnicodeSyntax  = GLP.UnicodeSyntax
-convertExtension ExistentialQuantification  = GLP.ExistentialQuantification
-convertExtension MagicHash  = GLP.MagicHash
-convertExtension EmptyDataDecls  = GLP.EmptyDataDecls
-convertExtension KindSignatures  = GLP.KindSignatures
-convertExtension RoleAnnotations  = GLP.RoleAnnotations
-convertExtension ParallelListComp  = GLP.ParallelListComp
-convertExtension TransformListComp  = GLP.TransformListComp
-convertExtension MonadComprehensions  = GLP.MonadComprehensions
-convertExtension GeneralizedNewtypeDeriving  = GLP.GeneralizedNewtypeDeriving
-convertExtension RecursiveDo  = GLP.RecursiveDo
-convertExtension PostfixOperators  = GLP.PostfixOperators
-convertExtension TupleSections  = GLP.TupleSections
-convertExtension PatternGuards  = GLP.PatternGuards
-convertExtension LiberalTypeSynonyms  = GLP.LiberalTypeSynonyms
-convertExtension RankNTypes  = GLP.RankNTypes
-convertExtension ImpredicativeTypes  = GLP.ImpredicativeTypes
-convertExtension TypeOperators  = GLP.TypeOperators
-convertExtension ExplicitNamespaces  = GLP.ExplicitNamespaces
-convertExtension PackageImports  = GLP.PackageImports
-convertExtension ExplicitForAll  = GLP.ExplicitForAll
-convertExtension DatatypeContexts  = GLP.DatatypeContexts
-convertExtension NondecreasingIndentation  = GLP.NondecreasingIndentation
-convertExtension TraditionalRecordSyntax  = GLP.TraditionalRecordSyntax
-convertExtension LambdaCase  = GLP.LambdaCase
-convertExtension MultiWayIf  = GLP.MultiWayIf
-convertExtension BinaryLiterals  = GLP.BinaryLiterals
-convertExtension NegativeLiterals  = GLP.NegativeLiterals
-convertExtension HexFloatLiterals  = GLP.HexFloatLiterals
-convertExtension DuplicateRecordFields  = GLP.DuplicateRecordFields
-convertExtension OverloadedLabels  = GLP.OverloadedLabels
-convertExtension EmptyCase  = GLP.EmptyCase
-convertExtension PatternSynonyms  = GLP.PatternSynonyms
-convertExtension PartialTypeSignatures  = GLP.PartialTypeSignatures
-convertExtension NamedWildCards  = GLP.NamedWildCards
-convertExtension StaticPointers  = GLP.StaticPointers
-convertExtension TypeApplications  = GLP.TypeApplications
-convertExtension Strict  = GLP.Strict
-convertExtension StrictData  = GLP.StrictData
-convertExtension EmptyDataDeriving  = GLP.EmptyDataDeriving
-convertExtension NumericUnderscores  = GLP.NumericUnderscores
-convertExtension QuantifiedConstraints  = GLP.QuantifiedConstraints
-convertExtension StarIsType  = GLP.StarIsType
-convertExtension ImportQualifiedPost  = GLP.ImportQualifiedPost
-convertExtension CUSKs  = GLP.CUSKs
-convertExtension StandaloneKindSignatures  = GLP.StandaloneKindSignatures
-convertExtension LexicalNegation  = GLP.LexicalNegation
-convertExtension FieldSelectors  = GLP.FieldSelectors
-convertExtension OverloadedRecordDot  = GLP.OverloadedRecordDot
-convertExtension e = error $ "This extension is not supported by `ghc-lib-parser`: " ++ show e
