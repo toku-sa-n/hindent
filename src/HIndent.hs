@@ -321,8 +321,8 @@ collectAllComments =
        (collectCommentsBy
           CommentSameLine
           (\nodeSpan commentSpan ->
-              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanStart nodeSpan) &&
-              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanEnd nodeSpan)))) <=<
+              Exts.srcSpanStartLine commentSpan == Exts.srcSpanStartLine nodeSpan &&
+              Exts.srcSpanStartLine commentSpan == Exts.srcSpanEndLine nodeSpan))) <=<
   shortCircuit
     (traverse
      -- First, collect forwards comments for declarations which both
