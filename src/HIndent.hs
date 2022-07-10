@@ -330,8 +330,8 @@ collectAllComments =
        (collectCommentsBy
           CommentBeforeLine
           (\nodeSpan commentSpan ->
-              (snd (Exts.srcSpanStart nodeSpan) == 1 &&
-               snd (Exts.srcSpanStart commentSpan) == 1) &&
+              (Exts.srcSpanStartColumn nodeSpan == 1 &&
+               Exts.srcSpanStartColumn commentSpan == 1) &&
               fst (Exts.srcSpanStart commentSpan) < fst (Exts.srcSpanStart nodeSpan)))) .
   fmap (nodify . Helper.fromHSESrcSpanInfo)
   where
