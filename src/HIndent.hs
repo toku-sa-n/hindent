@@ -312,7 +312,7 @@ collectAllComments =
        (collectCommentsBy
           CommentSameLine
           (\nodeSpan commentSpan ->
-              fst (Exts.srcSpanStart commentSpan) == fst (Exts.srcSpanEnd nodeSpan)))) <=<
+              Exts.srcSpanStartLine commentSpan == Exts.srcSpanEndLine nodeSpan))) <=<
   shortCircuit
     (traverseBackwards
      -- Collect backwards comments which are on the same line as a
