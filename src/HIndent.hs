@@ -302,7 +302,7 @@ collectAllComments =
        (collectCommentsBy
           CommentAfterLine
           (\nodeSpan commentSpan ->
-              fst (Exts.srcSpanStart commentSpan) >= fst (Exts.srcSpanEnd nodeSpan)))) <=<
+              Exts.srcSpanStartLine commentSpan >= Exts.srcSpanEndLine nodeSpan))) <=<
   shortCircuit addCommentsToTopLevelWhereClauses <=<
   shortCircuit
     (traverse
