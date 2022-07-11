@@ -420,7 +420,7 @@ addCommentsToNode :: (Helper.SrcSpan -> SomeComment -> NodeComment)
                   -> [Comment]
                   -> NodeInfo
                   -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanInfo _ _) existingComments) =
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo _ existingComments) =
   nodeInfo
     {nodeInfoComments = existingComments <> map mkBeforeNodeComment newComments}
   where
