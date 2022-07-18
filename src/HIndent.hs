@@ -355,7 +355,7 @@ collectCommentsBy
   -> (Exts.SrcSpan -> Exts.SrcSpan -> Bool)
   -> NodeInfo
   -> State [Comment] NodeInfo
-collectCommentsBy cons predicate nodeInfo@(NodeInfo (Helper.SrcSpanInfo nodeSpan _) _) = do
+collectCommentsBy cons predicate nodeInfo@(NodeInfo (Helper.SrcSpanInfo nodeSpan) _) = do
   comments <- get
   let (others, mine) =
         partitionEithers
@@ -399,7 +399,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
       put notAbove
       return $ addCommentsToNode CommentBeforeLine above nodeInfo
     partitionAboveNotAbove :: [Comment] -> NodeInfo -> ([Comment], [Comment])
-    partitionAboveNotAbove cs (NodeInfo (Helper.SrcSpanInfo nodeSpan _) _) =
+    partitionAboveNotAbove cs (NodeInfo (Helper.SrcSpanInfo nodeSpan) _) =
       fst $
       foldr'
         (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
@@ -420,7 +420,7 @@ addCommentsToNode :: (Helper.SrcSpan -> SomeComment -> NodeComment)
                   -> [Comment]
                   -> NodeInfo
                   -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanInfo _ _) existingComments) =
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (Helper.SrcSpanInfo _) existingComments) =
   nodeInfo
     {nodeInfoComments = existingComments <> map mkBeforeNodeComment newComments}
   where

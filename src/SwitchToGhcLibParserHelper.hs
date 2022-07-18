@@ -49,14 +49,13 @@ fromHSESrcSpan (HSE.SrcSpan name sl sc el ec) = SrcSpan name sl sc el ec
 toHSESrcSpan :: SrcSpan -> HSE.SrcSpan
 toHSESrcSpan (SrcSpan name sl sc el ec) = HSE.SrcSpan name sl sc el ec
 
-data SrcSpanInfo =
+newtype SrcSpanInfo =
   SrcSpanInfo
     { srcInfoSpan   :: HSE.SrcSpan
-    , srcInfoPoints :: [HSE.SrcSpan]
     }
 
 fromHSESrcSpanInfo :: HSE.SrcSpanInfo -> SrcSpanInfo
-fromHSESrcSpanInfo (HSE.SrcSpanInfo s p) = SrcSpanInfo s p
+fromHSESrcSpanInfo (HSE.SrcSpanInfo s _) = SrcSpanInfo s
 
 toExtension :: GLP.Extension -> HSE.Extension
 toExtension = HSE.EnableExtension . read . show
