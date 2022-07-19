@@ -13,7 +13,10 @@ module SwitchToGhcLibParserHelper
   ) where
 
 import           Data.Maybe
+import qualified GHC.Data.FastString             as GLP
+import qualified GHC.Hs                          as GLP hiding (UnicodeSyntax)
 import qualified GHC.LanguageExtensions          as GLP
+import qualified GHC.Types.SrcLoc                as GLP
 import qualified Language.Haskell.Extension      as Cabal
 import qualified Language.Haskell.Exts           as HSE
 import qualified Language.Haskell.Exts.Extension as HSE
@@ -71,6 +74,15 @@ uniqueExtensions ((Cabal.DisableExtension e):xs) =
   uniqueExtensions $ filter (/= read (show e)) xs
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
+
+convertAnchor :: GLP.Anchor -> HSE.SrcSpan
+convertAnchor (GLP.Anchor anchor _) =
+  HSE.SrcSpan
+    (GLP.unpackFS $ GLP.srcSpanFile anchor)
+    (GLP.srcSpanStartLine anchor)
+    (GLP.srcSpanStartCol anchor)
+    (GLP.srcSpanEndLine anchor)
+    (GLP.srcSpanEndCol anchor)
 
 -- `ghc-lib-parser`'s `Extension` does not implement `read`.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
