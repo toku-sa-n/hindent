@@ -235,5 +235,4 @@ convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
-convertExtension e =
-  error $ "This extension is not supported by `ghc-lib-parser`: " ++ show e
+convertExtension _ = GLP.ImplicitPrelude    -- XXX: I gave up everything.
