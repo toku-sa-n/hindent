@@ -57,7 +57,7 @@ toHSESrcSpan (SrcSpan name sl sc el ec) = HSE.SrcSpan name sl sc el ec
 
 convertSrcSpan :: GLP.SrcSpan -> HSE.SrcSpan
 convertSrcSpan (GLP.RealSrcSpan sp _) = convertSpan sp
-convertSrcSpan _ = error "Failed to convert a src span."
+convertSrcSpan _                      = error "Failed to convert a src span."
 
 newtype SrcSpanInfo =
   SrcSpanInfo
@@ -95,6 +95,9 @@ convertComment (GLP.L anchor (GLP.EpaComment token _)) =
 convertAnchor :: GLP.Anchor -> HSE.SrcSpan
 convertAnchor (GLP.Anchor anchor _) = convertSpan anchor
 
+-- | This code increments the span's end column by 1 because
+-- `haskell-src-exts`' span is exclusive while `ghc-lib-parser`s one is
+-- inclusive.
 convertSpan :: GLP.RealSrcSpan -> HSE.SrcSpan
 convertSpan sp =
   HSE.SrcSpan
@@ -102,7 +105,7 @@ convertSpan sp =
     (GLP.srcSpanStartLine sp)
     (GLP.srcSpanStartCol sp)
     (GLP.srcSpanEndLine sp)
-    (GLP.srcSpanEndCol sp)
+    (GLP.srcSpanEndCol sp + 1)
 
 -- `ghc-lib-parser`'s `Extension` does not implement `read`.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
