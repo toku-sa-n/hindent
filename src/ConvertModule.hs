@@ -12,4 +12,4 @@ import qualified GHC.Hs                     as GLP
 import qualified Language.Haskell.Exts      as HSE
 
 convertModule :: GLP.HsModule -> HSE.Module HSE.SrcSpanInfo
-convertModule=undefined
+convertModule _ = HSE.Module undefined undefined undefined undefined undefined
