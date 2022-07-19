@@ -8,8 +8,11 @@ module ConvertModule
   ( convertModule
   ) where
 
-import qualified GHC.Hs                     as GLP
-import qualified Language.Haskell.Exts      as HSE
+import qualified GHC.Hs                as GLP
+import qualified Language.Haskell.Exts as HSE
 
 convertModule :: GLP.HsModule -> HSE.Module HSE.SrcSpanInfo
-convertModule _ = HSE.Module undefined undefined undefined undefined undefined
+convertModule m = HSE.Module undefined undefined undefined undefined (decls m)
+
+decls :: GLP.HsModule -> [HSE.Decl HSE.SrcSpanInfo]
+decls _ = undefined
