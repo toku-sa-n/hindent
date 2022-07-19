@@ -47,7 +47,7 @@ import           HIndent.Pretty
 import           HIndent.Types
 import qualified Language.Haskell.Exts as Exts hiding (unLoc)
 import           Language.Haskell.Extension (Extension, Extension(..), KnownExtension(..))
-import           Language.Haskell.Exts hiding (unLoc, Style, prettyPrint, Pretty, style, parse, Extension(..), EnableExtension, KnownExtension(..), ParseResult, parseModule)
+import           Language.Haskell.Exts hiding (unLoc, Style, prettyPrint, Pretty, style, parse, Extension(..), EnableExtension, KnownExtension(..), ParseResult, parseModule, parseModuleWithComments)
 import           Prelude
 import qualified SwitchToGhcLibParserHelper as Helper
 import GHC.Hs
@@ -58,6 +58,7 @@ import GHC.Types.SrcLoc
 import GHC.Data.FastString
 import GHC.Data.StringBuffer
 import qualified GHC.Data.EnumSet as ES
+import qualified ConvertModule as Helper
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder
@@ -88,13 +89,12 @@ reformat config mexts mfilepath =
                                       , parseFilename = filename
                                       }
             opts = mkParserOpts ES.empty (ES.fromList $ Helper.uniqueExtensions $ fmap Helper.hseExtensionToCabalExtension allExts) False True True True
-        in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
-               ParseOk (m, comments) ->
+        in case parseModuleWithComments mfilepath opts (UTF8.toString code) of
+               POk _ (m, comments) ->
                    fmap
                        (S.lazyByteString . addPrefix prefix . S.toLazyByteString)
-                       (prettyPrint config m comments)
-               ParseFailed loc e ->
-                 Left (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++ ": " ++ e)
+                       (prettyPrint config (Helper.convertModule m) (mapMaybe Helper.convertComment comments))
+               PFailed _ -> Left "Parse failed." -- TODO: Improve this error message.
     unlines' = S.concat . intersperse "\n"
     unlines'' = L.concat . intersperse "\n"
     addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
