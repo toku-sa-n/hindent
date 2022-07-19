@@ -15,4 +15,7 @@ convertModule :: GLP.HsModule -> HSE.Module HSE.SrcSpanInfo
 convertModule m = HSE.Module undefined undefined undefined undefined (decls m)
 
 decls :: GLP.HsModule -> [HSE.Decl HSE.SrcSpanInfo]
-decls _ = undefined
+decls = fmap convertDecl . GLP.hsmodDecls
+
+convertDecl :: GLP.LHsDecl GLP.GhcPs -> HSE.Decl HSE.SrcSpanInfo
+convertDecl = undefined
