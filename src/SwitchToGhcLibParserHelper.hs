@@ -75,6 +75,14 @@ uniqueExtensions ((Cabal.DisableExtension e):xs) =
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
+convertComment :: GLP.LEpaComment -> Maybe HSE.Comment
+convertComment (GLP.L anchor (GLP.EpaComment token _)) =
+    case token of
+        GLP.EpaEofComment -> Nothing
+        GLP.EpaBlockComment comment -> Just $ HSE.Comment True (convertAnchor anchor) comment
+        GLP.EpaLineComment comment -> Just $ HSE.Comment False (convertAnchor anchor) comment
+        _ -> Nothing    -- Only these above comments appear.
+
 convertAnchor :: GLP.Anchor -> HSE.SrcSpan
 convertAnchor (GLP.Anchor anchor _) =
   HSE.SrcSpan
