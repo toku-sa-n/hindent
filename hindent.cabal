@@ -36,6 +36,7 @@ library
                      HIndent.CabalFile
                      HIndent.CodeBlock
                      SwitchToGhcLibParserHelper
+                     ConvertModule
   build-depends:     base >= 4.7 && <5
                    , containers
                    , Cabal
