@@ -11,6 +11,7 @@ module SwitchToGhcLibParserHelper
   , uniqueExtensions
   , convertExtension
   , convertComment
+  , convertSpan
   ) where
 
 import           Data.Maybe
@@ -85,13 +86,16 @@ convertComment (GLP.L anchor (GLP.EpaComment token _)) =
         _ -> Nothing    -- Only these above comments appear.
 
 convertAnchor :: GLP.Anchor -> HSE.SrcSpan
-convertAnchor (GLP.Anchor anchor _) =
+convertAnchor (GLP.Anchor anchor _) = convertSpan anchor
+
+convertSpan :: GLP.RealSrcSpan -> HSE.SrcSpan
+convertSpan sp =
   HSE.SrcSpan
-    (GLP.unpackFS $ GLP.srcSpanFile anchor)
-    (GLP.srcSpanStartLine anchor)
-    (GLP.srcSpanStartCol anchor)
-    (GLP.srcSpanEndLine anchor)
-    (GLP.srcSpanEndCol anchor)
+    (GLP.unpackFS $ GLP.srcSpanFile sp)
+    (GLP.srcSpanStartLine sp)
+    (GLP.srcSpanStartCol sp)
+    (GLP.srcSpanEndLine sp)
+    (GLP.srcSpanEndCol sp)
 
 -- `ghc-lib-parser`'s `Extension` does not implement `read`.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
