@@ -230,5 +230,6 @@ convertExtension Cabal.LexicalNegation = GLP.LexicalNegation
 convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
 convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
 convertExtension Cabal.Rank2Types = GLP.RankNTypes  -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
+convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes  -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
 convertExtension e =
   error $ "This extension is not supported by `ghc-lib-parser`: " ++ show e
