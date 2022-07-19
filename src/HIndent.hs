@@ -58,7 +58,6 @@ import GHC.Types.SrcLoc
 import GHC.Data.FastString
 import GHC.Data.StringBuffer
 import qualified GHC.Data.EnumSet as ES
-import qualified ConvertModule as Helper
 
 -- | Format the given source.
 reformat :: Config -> Maybe [Extension] -> Maybe FilePath -> ByteString -> Either String Builder

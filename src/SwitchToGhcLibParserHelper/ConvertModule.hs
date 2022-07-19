@@ -4,7 +4,7 @@
 --
 -- Note that `haskell-src-exts`' source span is exclusive while
 -- `ghc-lib-parser`s one is inclusive.
-module ConvertModule
+module SwitchToGhcLibParserHelper.ConvertModule
   ( convertModule
   ) where
 
