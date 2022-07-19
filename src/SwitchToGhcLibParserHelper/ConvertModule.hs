@@ -24,7 +24,7 @@ convertDecl (GLP.L (GLP.SrcSpanAnn _ loc) decl) =
     GLP.TyClD _ _      -> undefined
     GLP.InstD _ _      -> undefined
     GLP.DerivD _ _     -> undefined
-    GLP.ValD _ _       -> undefined
+    GLP.ValD _ bind    -> convertHsBind loc bind
     GLP.SigD _ _       -> undefined
     GLP.KindSigD _ _   -> undefined
     GLP.DefD _ _       -> undefined
@@ -35,3 +35,6 @@ convertDecl (GLP.L (GLP.SrcSpanAnn _ loc) decl) =
     GLP.SpliceD _ _    -> undefined
     GLP.DocD _ _       -> undefined
     GLP.RoleAnnotD _ _ -> undefined
+
+convertHsBind :: GLP.SrcSpan -> GLP.HsBind GLP.GhcPs -> HSE.Decl HSE.SrcSpanInfo
+convertHsBind = undefined
