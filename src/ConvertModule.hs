@@ -19,7 +19,10 @@ convertModule m = HSE.Module (fullSpan m) moduleHead pragmas imports decls
     decls = undefined
 
 fullSpan :: GLP.HsModule -> HSE.SrcSpanInfo
-fullSpan m = HSE.SrcSpanInfo eofPosition {HSE.srcSpanStartLine = 1, HSE.srcSpanStartColumn = 1} []
+fullSpan m =
+  HSE.SrcSpanInfo
+    eofPosition {HSE.srcSpanStartLine = 1, HSE.srcSpanStartColumn = 1}
+    []
   where
     eofPosition =
       Helper.convertSpan $ GLP.ac_prior_tok $ head $ listify isEofComment m
