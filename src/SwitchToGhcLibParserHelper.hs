@@ -12,6 +12,7 @@ module SwitchToGhcLibParserHelper
   , convertExtension
   , convertComment
   , convertSpan
+  , convertSrcSpan
   ) where
 
 import           Data.Maybe
@@ -54,6 +55,10 @@ fromHSESrcSpan (HSE.SrcSpan name sl sc el ec) = SrcSpan name sl sc el ec
 toHSESrcSpan :: SrcSpan -> HSE.SrcSpan
 toHSESrcSpan (SrcSpan name sl sc el ec) = HSE.SrcSpan name sl sc el ec
 
+convertSrcSpan :: GLP.SrcSpan -> HSE.SrcSpan
+convertSrcSpan (GLP.RealSrcSpan sp _) = convertSpan sp
+convertSrcSpan _ = error "Failed to convert a src span."
+
 newtype SrcSpanInfo =
   SrcSpanInfo
     { srcInfoSpan :: HSE.SrcSpan
@@ -79,11 +84,13 @@ uniqueExtensions ((Cabal.UnknownExtension s):_) =
 
 convertComment :: GLP.LEpaComment -> Maybe HSE.Comment
 convertComment (GLP.L anchor (GLP.EpaComment token _)) =
-    case token of
-        GLP.EpaEofComment -> Nothing
-        GLP.EpaBlockComment comment -> Just $ HSE.Comment True (convertAnchor anchor) comment
-        GLP.EpaLineComment comment -> Just $ HSE.Comment False (convertAnchor anchor) comment
-        _ -> Nothing    -- Only these above comments appear.
+  case token of
+    GLP.EpaEofComment -> Nothing
+    GLP.EpaBlockComment comment ->
+      Just $ HSE.Comment True (convertAnchor anchor) comment
+    GLP.EpaLineComment comment ->
+      Just $ HSE.Comment False (convertAnchor anchor) comment
+    _ -> Nothing -- Only these above comments appear.
 
 convertAnchor :: GLP.Anchor -> HSE.SrcSpan
 convertAnchor (GLP.Anchor anchor _) = convertSpan anchor
