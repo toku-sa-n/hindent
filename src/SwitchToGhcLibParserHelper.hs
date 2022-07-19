@@ -10,6 +10,7 @@ module SwitchToGhcLibParserHelper
   , gleExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
+  , convertComment
   ) where
 
 import           Data.Maybe
