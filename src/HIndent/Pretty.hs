@@ -9,29 +9,17 @@ module HIndent.Pretty
   ( pretty
   ) where
 
-import           Control.Applicative
 import           Control.Monad.State.Strict                          hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
-import           Data.Foldable                                       (forM_,
-                                                                      for_,
-                                                                      traverse_)
-import           Data.Int
 import           Data.List
-import           Data.Maybe
-import           Data.Monoid                                         ((<>))
-import           Data.Typeable
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
 import           HIndent.Types
-import qualified Language.Haskell.Exts                               as P
-import           Language.Haskell.Exts.SrcLoc
-import           Language.Haskell.Exts.Syntax
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 import           Prelude                                             hiding
                                                                      (exp)
-import qualified SwitchToGhcLibParserHelper                          as Helper
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
