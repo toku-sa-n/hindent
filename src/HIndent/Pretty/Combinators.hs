@@ -1,6 +1,7 @@
 module HIndent.Pretty.Combinators
   ( string
   , newline
+  , indentedBlock
   , printOutputableToPrinter
   ) where
 
@@ -8,6 +9,7 @@ import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
+import           Data.Int
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Utils.Outputable                                hiding
@@ -62,3 +64,19 @@ showOutputable = showPpr dynFlags
 
 dynFlags :: DynFlags
 dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
+
+indentedBlock :: Printer a -> Printer a
+indentedBlock p = do
+  indentSpaces <- getIndentSpaces
+  indented indentSpaces p
+
+indented :: Int64 -> Printer a -> Printer a
+indented i p = do
+  level <- gets psIndentLevel
+  modify (\s -> s {psIndentLevel = level + i})
+  m <- p
+  modify (\s -> s {psIndentLevel = level})
+  return m
+
+getIndentSpaces :: Printer Int64
+getIndentSpaces = gets (configIndentSpaces . psConfig)
