@@ -10,14 +10,10 @@ module HIndent.Pretty
   ) where
 
 import           Data.Generics.Schemes
-import           Data.Maybe                                          (mapMaybe)
-import           GHC.Driver.Ppr                                      (showPpr)
-import           GHC.Driver.Session
+import           Data.Maybe                 (mapMaybe)
 import           GHC.Hs
-import           GHC.Utils.Outputable                                (Outputable)
 import           HIndent.Pretty.Combinators
 import           HIndent.Types
-import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 import           Text.Regex.TDFA
 
 -- | Pretty print including comments.
@@ -25,9 +21,6 @@ pretty :: HsModule -> Printer ()
 pretty m = do
   printPragmasToPrinter m
   printOutputableToPrinter m
-
-dynFlags :: DynFlags
-dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 
 printPragmasToPrinter :: HsModule -> Printer ()
 printPragmasToPrinter m =
@@ -50,9 +43,3 @@ collectPragmas =
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ ("{-# +LANGUAGE +[a-zA-Z]+ +#-}" :: String)
 isPragma _                   = False
-
-printOutputableToPrinter :: Outputable a => a -> Printer ()
-printOutputableToPrinter = string . showOutputable
-
-showOutputable :: Outputable a => a -> String
-showOutputable = showPpr dynFlags

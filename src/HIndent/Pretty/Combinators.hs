@@ -1,12 +1,19 @@
 module HIndent.Pretty.Combinators
   ( string
   , newline
+  , printOutputableToPrinter
   ) where
 
 import           Control.Monad
-import           Control.Monad.RWS       hiding (state)
-import qualified Data.ByteString.Builder as S
+import           Control.Monad.RWS                                   hiding
+                                                                     (state)
+import qualified Data.ByteString.Builder                             as S
+import           GHC.Driver.Ppr
+import           GHC.Driver.Session
+import           GHC.Utils.Outputable                                hiding
+                                                                     ((<>))
 import           HIndent.Types
+import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
 string :: String -> Printer ()
 string x = do
@@ -46,3 +53,12 @@ newline :: Printer ()
 newline = do
   string "\n"
   modify (\s -> s {psNewline = True})
+
+printOutputableToPrinter :: Outputable a => a -> Printer ()
+printOutputableToPrinter = string . showOutputable
+
+showOutputable :: Outputable a => a -> String
+showOutputable = showPpr dynFlags
+
+dynFlags :: DynFlags
+dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
