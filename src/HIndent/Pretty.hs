@@ -18,9 +18,14 @@ import           GHC.Hs
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
+class PrettyPrint a where
+  prettyPrint :: a -> String
+  prettyPrintToPrinter :: a -> Printer ()
+  prettyPrintToPrinter = string . prettyPrint
+
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
-pretty = string . showPpr dynFlags
+pretty = prettyPrintToPrinter
 
 write :: String -> Printer ()
 write x = do
@@ -66,3 +71,6 @@ newline = do
 
 dynFlags :: DynFlags
 dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
+
+instance PrettyPrint HsModule where
+  prettyPrint = showPpr dynFlags
