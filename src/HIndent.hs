@@ -42,12 +42,10 @@ import           Data.Monoid
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Data.Traversable           hiding (mapM)
-import           Generics.SYB.Schemes
 import qualified GHC.Data.EnumSet           as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
 import           GHC.Hs
-import           GHC.Parser                 hiding (parseModule)
 import qualified GHC.Parser                 as GLP
 import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
