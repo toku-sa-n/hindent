@@ -13,6 +13,7 @@ import           Control.Monad.State.Strict                          hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
 import           Data.Generics.Schemes
+import           Data.Maybe                                          (mapMaybe)
 import           GHC.Driver.Ppr                                      (showPpr)
 import           GHC.Driver.Session
 import           GHC.Hs
@@ -89,12 +90,12 @@ printPragmasToPrinter m =
 
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  map unwrapComment . filter isPragma . listify matchToComment . hsmodAnn
+  mapMaybe unwrapComment . filter isPragma . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
-    unwrapComment (EpaBlockComment c) = c
-    unwrapComment _                   = undefined
+    unwrapComment (EpaBlockComment c) = Just c
+    unwrapComment _                   = Nothing
 
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ ("{-# +LANGUAGE +[a-zA-Z]+ +#-}" :: String)
