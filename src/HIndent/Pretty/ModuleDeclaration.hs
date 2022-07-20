@@ -17,7 +17,6 @@ printModuleDeclarationToPrinter HsModule { hsmodName = Just name
   printOutputableToPrinter name
   string " where"
   newline
-  newline
 printModuleDeclarationToPrinter HsModule { hsmodName = Just name
                                          , hsmodExports = Just (L _ [])
                                          } = do
@@ -28,7 +27,6 @@ printModuleDeclarationToPrinter HsModule { hsmodName = Just name
     string "("
     newline
     string ") where"
-    newline
     newline
 printModuleDeclarationToPrinter HsModule { hsmodName = Just name
                                          , hsmodExports = Just (L _ (x:xs))
@@ -45,5 +43,4 @@ printModuleDeclarationToPrinter HsModule { hsmodName = Just name
       printOutputableToPrinter e
       newline
     string ") where"
-    newline
     newline
