@@ -22,12 +22,11 @@ import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 import           Text.Regex.TDFA
 
-class PrettyPrint a where
-  prettyPrintToPrinter :: a -> Printer ()
-
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
-pretty = prettyPrintToPrinter
+pretty m = do
+  printPragmasToPrinter m
+  printOutputableToPrinter m
 
 write :: String -> Printer ()
 write x = do
@@ -73,11 +72,6 @@ newline = do
 
 dynFlags :: DynFlags
 dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
-
-instance PrettyPrint HsModule where
-  prettyPrintToPrinter m = do
-    printPragmasToPrinter m
-    printOutputableToPrinter m
 
 printPragmasToPrinter :: HsModule -> Printer ()
 printPragmasToPrinter m =
