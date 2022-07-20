@@ -34,6 +34,7 @@ library
                      HIndent.Types
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
+                     HIndent.Pretty.Pragma
                      HIndent.CabalFile
                      HIndent.CodeBlock
                      SwitchToGhcLibParserHelper
