@@ -77,12 +77,11 @@ reformat config mexts mfilepath =
     processBlock :: CodeBlock -> Either String Builder
     processBlock (Shebang text) = Right $ S.byteString text
     processBlock (CPPDirectives text) = Right $ S.byteString text
-    processBlock (HaskellSource line text) =
+    processBlock (HaskellSource _ text) =
       let ls = S8.lines text
           prefix = findPrefix ls
           code = unlines' (map (stripPrefix prefix) ls)
           exts = readExtensions (UTF8.toString code)
-          filename = fromMaybe "<interactive>" mfilepath
           allExts =
             maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts ++
             case exts of
@@ -92,21 +91,6 @@ reformat config mexts mfilepath =
                   (configExtensions config) ++
                 exts'
               _ -> []
-          mode'' =
-            case exts of
-              Just (Just lang, _) ->
-                parseMode
-                  { baseLanguage = lang
-                  , extensions = allExts
-                  , fixities = Nothing
-                  , parseFilename = filename
-                  }
-              _ ->
-                parseMode
-                  { extensions = allExts
-                  , fixities = Nothing
-                  , parseFilename = filename
-                  }
           opts =
             mkParserOpts
               ES.empty
