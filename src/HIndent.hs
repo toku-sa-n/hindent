@@ -48,6 +48,7 @@ import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
 import           GHC.Hs
 import           GHC.Parser
+import qualified GHC.Parser                 as GLP
 import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
@@ -464,18 +465,12 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo _ existingComment
             else EndOfLine)
            commentString)
 
-parseModuleWithComments ::
-     Maybe FilePath
-  -> ParserOpts
-  -> String
-  -> ParseResult (HsModule, [LEpaComment])
-parseModuleWithComments filepath opts src =
-  case unP parseModule initState of
-    POk s m   -> POk s (unLoc m, listify onlyComments $ unLoc m)
+parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
+parseModule filepath opts src =
+  case unP GLP.parseModule initState of
+    POk s m   -> POk s (unLoc m)
     PFailed s -> PFailed s
   where
-    onlyComments :: LEpaComment -> Bool
-    onlyComments _ = True
     initState = initParserState opts buffer location
     location =
       mkRealSrcLoc (mkFastString (fromMaybe "<interactive>" filepath)) 1 1
