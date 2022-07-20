@@ -37,4 +37,13 @@ convertDecl (GLP.L (GLP.SrcSpanAnn _ loc) decl) =
     GLP.RoleAnnotD _ _ -> undefined
 
 convertHsBind :: GLP.SrcSpan -> GLP.HsBind GLP.GhcPs -> HSE.Decl HSE.SrcSpanInfo
-convertHsBind = undefined
+convertHsBind sp bind =
+  case bind of
+    GLP.FunBind _ _ _ _        -> convertFunBind
+    GLP.PatBind _ _ _ _        -> undefined
+    GLP.VarBind _ _ _          -> undefined
+    GLP.AbsBinds _ _ _ _ _ _ _ -> undefined
+    GLP.PatSynBind _ _         -> undefined
+
+convertFunBind :: HSE.Decl HSE.SrcSpanInfo
+convertFunBind = undefined
