@@ -12,16 +12,17 @@ module HIndent.Pretty
 import           Control.Monad.State.Strict                          hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
-import           GHC.Driver.Ppr
+import           Data.Generics.Schemes
+import           GHC.Driver.Ppr                                      (showPpr)
 import           GHC.Driver.Session
 import           GHC.Hs
+import           GHC.Utils.Outputable                                (Outputable)
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
+import           Text.Regex.TDFA
 
 class PrettyPrint a where
-  prettyPrint :: a -> String
   prettyPrintToPrinter :: a -> Printer ()
-  prettyPrintToPrinter = string . prettyPrint
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
@@ -73,4 +74,34 @@ dynFlags :: DynFlags
 dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 
 instance PrettyPrint HsModule where
-  prettyPrint = showPpr dynFlags
+  prettyPrintToPrinter m = do
+    printPragmasToPrinter m
+    printOutputableToPrinter m
+
+printPragmasToPrinter :: HsModule -> Printer ()
+printPragmasToPrinter m =
+  case collectPragmas m of
+    [] -> return ()
+    xs -> do
+      mapM_ string xs
+      newline
+      newline
+
+collectPragmas :: HsModule -> [String]
+collectPragmas =
+  map unwrapComment . filter isPragma . listify matchToComment . hsmodAnn
+  where
+    matchToComment :: EpaCommentTok -> Bool
+    matchToComment = const True
+    unwrapComment (EpaBlockComment c) = c
+    unwrapComment _                   = undefined
+
+isPragma :: EpaCommentTok -> Bool
+isPragma (EpaBlockComment c) = c =~ ("{-# +LANGUAGE +[a-zA-Z]+ +#-}" :: String)
+isPragma _                   = False
+
+printOutputableToPrinter :: Outputable a => a -> Printer ()
+printOutputableToPrinter = string . showOutputable
+
+showOutputable :: Outputable a => a -> String
+showOutputable = showPpr dynFlags
