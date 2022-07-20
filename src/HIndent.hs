@@ -156,10 +156,7 @@ reformat config mexts mfilepath =
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
-hasTrailingLine xs =
-  if S8.null xs
-    then False
-    else S8.last xs == '\n'
+hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 
 -- | Print the module.
 prettyPrint :: Config -> HsModule -> Builder
