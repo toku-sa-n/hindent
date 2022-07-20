@@ -336,13 +336,7 @@ collectAllComments =
     -- Sort the comments by their end position.
     traverseBackwards =
       traverseInOrder
-        (\x y ->
-           on
-             (flip compare)
-             (Exts.srcSpanEnd . Helper.srcInfoSpan . nodeInfoSpan)
-             x
-             y -- Stop traversing if all comments have been consumed.
-         )
+        (on (flip compare) (Exts.srcSpanEnd . Helper.srcInfoSpan . nodeInfoSpan))
     shortCircuit m v = do
       comments <- get
       if null comments
