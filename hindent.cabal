@@ -33,6 +33,7 @@ library
   exposed-modules:   HIndent
                      HIndent.Types
                      HIndent.Pretty
+                     HIndent.Pretty.Combinators
                      HIndent.CabalFile
                      HIndent.CodeBlock
                      SwitchToGhcLibParserHelper
