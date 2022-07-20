@@ -43,6 +43,7 @@ library
                    , filepath
                    , directory
                    , ghc-lib-parser
+                   , ghc-lib-parser-ex
                    , haskell-src-exts >= 1.20
                    , monad-loops
                    , mtl

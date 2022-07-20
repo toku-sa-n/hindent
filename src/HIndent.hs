@@ -47,7 +47,7 @@ import qualified GHC.Data.EnumSet           as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
 import           GHC.Hs
-import           GHC.Parser
+import           GHC.Parser                 hiding (parseModule)
 import qualified GHC.Parser                 as GLP
 import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
@@ -119,16 +119,12 @@ reformat config mexts mfilepath =
               True
               True
               True
-       in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
-            ParseOk (m, comments) ->
+       in case parseModule mfilepath opts (UTF8.toString code) of
+            POk _ m ->
               Right $
               S.lazyByteString $
-              addPrefix prefix $
-              S.toLazyByteString $ prettyPrint config m comments
-            ParseFailed loc e ->
-              Left
-                (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
-                 ": " ++ e)
+              addPrefix prefix $ S.toLazyByteString $ prettyPrint config m
+            PFailed _ -> Left "Parse failed." -- TODO: Improve the error message.
     unlines' = S.concat . intersperse "\n"
     unlines'' = L.concat . intersperse "\n"
     addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
@@ -184,13 +180,8 @@ hasTrailingLine xs =
     else S8.last xs == '\n'
 
 -- | Print the module.
-prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Builder
-prettyPrint config m comments =
-  let ast =
-        evalState
-          (collectAllComments (fromMaybe m (applyFixities baseFixities m)))
-          comments
-   in runPrinterStyle config (pretty ast)
+prettyPrint :: Config -> HsModule -> Builder
+prettyPrint config m = runPrinterStyle config (pretty m)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
