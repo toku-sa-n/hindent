@@ -90,9 +90,7 @@ reformat config mexts mfilepath =
             opts = mkParserOpts ES.empty (ES.fromList $ Helper.uniqueExtensions $ fmap Helper.hseExtensionToCabalExtension allExts) False True True True
         in case Exts.parseModuleWithComments mode'' (UTF8.toString code) of
                ParseOk (m, comments) ->
-                   fmap
-                       (S.lazyByteString . addPrefix prefix . S.toLazyByteString)
-                       (prettyPrint config m comments)
+                       Right $ S.lazyByteString $ addPrefix prefix $ S.toLazyByteString $ prettyPrint config m comments
                ParseFailed loc e ->
                  Left (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++ ": " ++ e)
     unlines' = S.concat . intersperse "\n"
@@ -156,14 +154,14 @@ hasTrailingLine xs =
 prettyPrint :: Config
             -> Module SrcSpanInfo
             -> [Comment]
-            -> Either a Builder
+            -> Builder
 prettyPrint config m comments =
   let ast =
         evalState
           (collectAllComments
              (fromMaybe m (applyFixities baseFixities m)))
           comments
-  in Right (runPrinterStyle config (pretty ast))
+  in runPrinterStyle config (pretty ast)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
