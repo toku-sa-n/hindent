@@ -36,7 +36,7 @@ write x = do
       out :: String
       out =
         if psNewline state && not writingNewline
-          then (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
+          then replicate (fromIntegral (psIndentLevel state)) ' ' <> x
           else x
       psColumn' =
         if additionalLines > 0
@@ -45,7 +45,7 @@ write x = do
   when
     hardFail
     (guard
-       (additionalLines == 0 && (psColumn' <= configMaxColumns (psConfig state))))
+       (additionalLines == 0 && psColumn' <= configMaxColumns (psConfig state)))
   modify
     (\s ->
        s
