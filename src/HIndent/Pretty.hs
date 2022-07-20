@@ -12,14 +12,11 @@ module HIndent.Pretty
 import           Control.Monad.State.Strict                          hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
-import           Data.List
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-import           Prelude                                             hiding
-                                                                     (exp)
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
