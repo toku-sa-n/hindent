@@ -3,6 +3,7 @@ module HIndent.Pretty.Combinators
   , newline
   , indentedBlock
   , outputOutputable
+  , showOutputable
   ) where
 
 import           Control.Monad

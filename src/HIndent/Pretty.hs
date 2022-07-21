@@ -9,6 +9,7 @@ module HIndent.Pretty
   ) where
 
 import           GHC.Hs
+import           HIndent.Pretty.Imports
 import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
 import           HIndent.Types
@@ -18,3 +19,4 @@ pretty :: HsModule -> Printer ()
 pretty m = do
   outputPragmas m
   outputModuleDeclaration m
+  outputImports m
