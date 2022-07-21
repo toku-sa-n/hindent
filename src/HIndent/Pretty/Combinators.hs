@@ -2,7 +2,7 @@ module HIndent.Pretty.Combinators
   ( string
   , newline
   , indentedBlock
-  , printOutputableToPrinter
+  , outputOutputable
   ) where
 
 import           Control.Monad
@@ -56,8 +56,8 @@ newline = do
   string "\n"
   modify (\s -> s {psNewline = True})
 
-printOutputableToPrinter :: Outputable a => a -> Printer ()
-printOutputableToPrinter = string . showOutputable
+outputOutputable :: Outputable a => a -> Printer ()
+outputOutputable = string . showOutputable
 
 showOutputable :: Outputable a => a -> String
 showOutputable = showPpr dynFlags

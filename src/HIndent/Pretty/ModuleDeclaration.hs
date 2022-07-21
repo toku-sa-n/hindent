@@ -12,14 +12,14 @@ outputModuleDeclaration :: HsModule -> Printer ()
 outputModuleDeclaration HsModule {hsmodName = Nothing} = return ()
 outputModuleDeclaration HsModule {hsmodName = Just name, hsmodExports = Nothing} = do
   string "module "
-  printOutputableToPrinter name
+  outputOutputable name
   string " where"
   newline
 outputModuleDeclaration HsModule { hsmodName = Just name
                                  , hsmodExports = Just (L _ [])
                                  } = do
   string "module "
-  printOutputableToPrinter name
+  outputOutputable name
   newline
   indentedBlock $ do
     string "("
@@ -30,15 +30,15 @@ outputModuleDeclaration HsModule { hsmodName = Just name
                                  , hsmodExports = Just (L _ (x:xs))
                                  } = do
   string "module "
-  printOutputableToPrinter name
+  outputOutputable name
   newline
   indentedBlock $ do
     string "( "
-    printOutputableToPrinter x
+    outputOutputable x
     newline
     forM_ xs $ \e -> do
       string ", "
-      printOutputableToPrinter e
+      outputOutputable e
       newline
     string ") where"
     newline
