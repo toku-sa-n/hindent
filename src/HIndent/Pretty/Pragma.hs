@@ -1,5 +1,5 @@
 module HIndent.Pretty.Pragma
-  ( printPragmasToPrinter
+  ( outputPragmas
   ) where
 
 import           Data.Generics.Schemes
@@ -9,8 +9,8 @@ import           HIndent.Pretty.Combinators
 import           HIndent.Types
 import           Text.Regex.TDFA
 
-printPragmasToPrinter :: HsModule -> Printer ()
-printPragmasToPrinter m =
+outputPragmas :: HsModule -> Printer ()
+outputPragmas m =
   case collectPragmas m of
     [] -> return ()
     xs -> do

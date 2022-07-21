@@ -1,5 +1,5 @@
 module HIndent.Pretty.ModuleDeclaration
-  ( printModuleDeclarationToPrinter
+  ( outputModuleDeclaration
   ) where
 
 import           Control.Monad
@@ -8,18 +8,16 @@ import           GHC.Types.SrcLoc           (GenLocated (..))
 import           HIndent.Pretty.Combinators
 import           HIndent.Types
 
-printModuleDeclarationToPrinter :: HsModule -> Printer ()
-printModuleDeclarationToPrinter HsModule {hsmodName = Nothing} = return ()
-printModuleDeclarationToPrinter HsModule { hsmodName = Just name
-                                         , hsmodExports = Nothing
-                                         } = do
+outputModuleDeclaration :: HsModule -> Printer ()
+outputModuleDeclaration HsModule {hsmodName = Nothing} = return ()
+outputModuleDeclaration HsModule {hsmodName = Just name, hsmodExports = Nothing} = do
   string "module "
   printOutputableToPrinter name
   string " where"
   newline
-printModuleDeclarationToPrinter HsModule { hsmodName = Just name
-                                         , hsmodExports = Just (L _ [])
-                                         } = do
+outputModuleDeclaration HsModule { hsmodName = Just name
+                                 , hsmodExports = Just (L _ [])
+                                 } = do
   string "module "
   printOutputableToPrinter name
   newline
@@ -28,9 +26,9 @@ printModuleDeclarationToPrinter HsModule { hsmodName = Just name
     newline
     string ") where"
     newline
-printModuleDeclarationToPrinter HsModule { hsmodName = Just name
-                                         , hsmodExports = Just (L _ (x:xs))
-                                         } = do
+outputModuleDeclaration HsModule { hsmodName = Just name
+                                 , hsmodExports = Just (L _ (x:xs))
+                                 } = do
   string "module "
   printOutputableToPrinter name
   newline

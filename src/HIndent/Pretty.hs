@@ -16,5 +16,5 @@ import           HIndent.Types
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
 pretty m = do
-  printPragmasToPrinter m
-  printModuleDeclarationToPrinter m
+  outputPragmas m
+  outputModuleDeclaration m
