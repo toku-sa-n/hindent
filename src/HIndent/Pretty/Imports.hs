@@ -37,11 +37,12 @@ outputImport ImportDecl {..} = do
   case ideclHiding of
     Nothing -> return ()
     Just (x, _) -> do
-      string
-        (if x
-           then " hiding "
-           else " ")
-      horizontalOrVerticalTuple $ fmap outputOutputable explicitOrHidingImports
+      when x (string " hiding")
+      (string " " >>
+       horizontalTuple (fmap outputOutputable explicitOrHidingImports)) `ifFitsOnOneLineOrElse`
+        (newline >>
+         indentedBlock
+           (verticalTuple (fmap outputOutputable explicitOrHidingImports)))
   where
     explicitOrHidingImports = maybe [] (fmap unLoc . unLoc . snd) ideclHiding
 
@@ -54,7 +55,18 @@ sortModules = sortBy (compare `on` unLoc . ideclName)
 sortExplicitImportsInDecl :: ImportDecl GhcPs -> ImportDecl GhcPs
 sortExplicitImportsInDecl d@ImportDecl {ideclHiding = Nothing} = d
 sortExplicitImportsInDecl d@ImportDecl {ideclHiding = Just (x, imports)} =
-  d {ideclHiding = Just (x, fmap sortExplicitImports imports)}
+  d
+    { ideclHiding =
+        Just (x, fmap (fmap sortVariants . sortExplicitImports) imports)
+    }
+
+sortVariants :: LIE GhcPs -> LIE GhcPs
+sortVariants (L l (IEThingWith x x' x'' xs)) =
+  L l $ IEThingWith x x' x'' (sortWrappedNames xs)
+  where
+    sortWrappedNames =
+      sortBy (\a b -> compare (showOutputable a) (showOutputable b))
+sortVariants x = x
 
 sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
 sortExplicitImports = sortBy compareImportEntities

@@ -5,6 +5,7 @@ module HIndent.Pretty.Combinators
   , newline
   , inter
   , horizontalOrVerticalTuple
+  , horizontalTuple
   , verticalTuple
   , indentedBlock
   , ifFitsOnOneLineOrElse
