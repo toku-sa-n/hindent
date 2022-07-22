@@ -3,7 +3,6 @@ module HIndent.Pretty.ModuleDeclaration
   , moduleDeclarationExists
   ) where
 
-import           Control.Monad
 import           GHC.Hs
 import           GHC.Types.SrcLoc           (GenLocated (..))
 import           HIndent.Pretty.Combinators
@@ -16,30 +15,14 @@ outputModuleDeclaration HsModule {hsmodName = Just name, hsmodExports = Nothing}
   outputOutputable name
   string " where"
 outputModuleDeclaration HsModule { hsmodName = Just name
-                                 , hsmodExports = Just (L _ [])
+                                 , hsmodExports = Just (L _ xs)
                                  } = do
   string "module "
   outputOutputable name
   newline
   indentedBlock $ do
-    string "("
-    newline
-    string ") where"
-outputModuleDeclaration HsModule { hsmodName = Just name
-                                 , hsmodExports = Just (L _ (x:xs))
-                                 } = do
-  string "module "
-  outputOutputable name
-  newline
-  indentedBlock $ do
-    string "( "
-    outputOutputable x
-    newline
-    forM_ xs $ \e -> do
-      string ", "
-      outputOutputable e
-      newline
-    string ") where"
+    verticalTuple (fmap outputOutputable xs)
+    string " where"
 
 moduleDeclarationExists :: HsModule -> Bool
 moduleDeclarationExists HsModule {hsmodName = Nothing} = False

@@ -2,6 +2,7 @@ module HIndent.Pretty.Combinators
   ( string
   , newline
   , inter
+  , verticalTuple
   , indentedBlock
   , outputOutputable
   , showOutputable
@@ -61,6 +62,13 @@ newline = do
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
+
+verticalTuple :: [Printer ()] -> Printer ()
+verticalTuple ps = do
+  string "( "
+  inter (newline >> string ", ") ps
+  newline
+  string ")"
 
 outputOutputable :: Outputable a => a -> Printer ()
 outputOutputable = string . showOutputable
