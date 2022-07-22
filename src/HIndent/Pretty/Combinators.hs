@@ -1,13 +1,18 @@
+{-# LANGUAGE LambdaCase #-}
+
 module HIndent.Pretty.Combinators
   ( string
   , newline
   , inter
+  , horizontalOrVerticalTuple
   , verticalTuple
   , indentedBlock
+  , ifFitsOnOneLineOrElse
   , outputOutputable
   , showOutputable
   ) where
 
+import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
@@ -63,12 +68,36 @@ newline = do
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
 
+horizontalOrVerticalTuple :: [Printer ()] -> Printer ()
+horizontalOrVerticalTuple ps =
+  horizontalTuple ps `ifFitsOnOneLineOrElse`
+  (newline >> indentedBlock (verticalTuple ps))
+
+horizontalTuple :: [Printer ()] -> Printer ()
+horizontalTuple ps = do
+  string "("
+  inter (string ", ") ps
+  string ")"
+
 verticalTuple :: [Printer ()] -> Printer ()
 verticalTuple ps = do
   string "( "
   inter (newline >> string ", ") ps
   newline
   string ")"
+
+ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
+ifFitsOnOneLineOrElse fit notFit = do
+  before <- get
+  put before {psFitOnOneLine = True}
+  fmap Just fit <|> return Nothing >>= \case
+    Just r -> do
+      modify $ \st -> st {psFitOnOneLine = psFitOnOneLine before}
+      return r
+    Nothing -> do
+      put before
+      guard $ not $ psFitOnOneLine before
+      notFit
 
 outputOutputable :: Outputable a => a -> Printer ()
 outputOutputable = string . showOutputable

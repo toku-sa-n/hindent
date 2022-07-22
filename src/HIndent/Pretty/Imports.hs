@@ -37,12 +37,11 @@ outputImport ImportDecl {..} = do
     Nothing -> return ()
   case ideclHiding of
     Nothing -> return ()
-    Just (False, _) -> string $ " " ++ identifiersInParentheses
+    Just (False, _) -> do
+      string " "
+      horizontalOrVerticalTuple $ fmap outputOutputable explicitOrHidingImports
     Just (True, _) -> do
       string " hiding "
-      string identifiersInParentheses
+      horizontalOrVerticalTuple $ fmap outputOutputable explicitOrHidingImports
   where
-    identifiersInParentheses =
-      "(" ++
-      intercalate ", " (fmap showOutputable explicitOrHidingImports) ++ ")"
     explicitOrHidingImports = maybe [] (fmap unLoc . unLoc . snd) ideclHiding
