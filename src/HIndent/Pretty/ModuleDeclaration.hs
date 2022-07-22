@@ -1,5 +1,6 @@
 module HIndent.Pretty.ModuleDeclaration
   ( outputModuleDeclaration
+  , moduleDeclarationExists
   ) where
 
 import           Control.Monad
@@ -14,7 +15,6 @@ outputModuleDeclaration HsModule {hsmodName = Just name, hsmodExports = Nothing}
   string "module "
   outputOutputable name
   string " where"
-  newline
 outputModuleDeclaration HsModule { hsmodName = Just name
                                  , hsmodExports = Just (L _ [])
                                  } = do
@@ -25,7 +25,6 @@ outputModuleDeclaration HsModule { hsmodName = Just name
     string "("
     newline
     string ") where"
-    newline
 outputModuleDeclaration HsModule { hsmodName = Just name
                                  , hsmodExports = Just (L _ (x:xs))
                                  } = do
@@ -41,4 +40,7 @@ outputModuleDeclaration HsModule { hsmodName = Just name
       outputOutputable e
       newline
     string ") where"
-    newline
+
+moduleDeclarationExists :: HsModule -> Bool
+moduleDeclarationExists HsModule {hsmodName = Nothing} = False
+moduleDeclarationExists _                              = True

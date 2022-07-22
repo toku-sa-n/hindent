@@ -1,6 +1,7 @@
 module HIndent.Pretty.Combinators
   ( string
   , newline
+  , inter
   , indentedBlock
   , outputOutputable
   , showOutputable
@@ -11,6 +12,7 @@ import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
 import           Data.Int
+import           Data.List
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Utils.Outputable                                hiding
@@ -56,6 +58,9 @@ newline :: Printer ()
 newline = do
   string "\n"
   modify (\s -> s {psNewline = True})
+
+inter :: Printer () -> [Printer ()] -> Printer ()
+inter separator = sequence_ . intersperse separator
 
 outputOutputable :: Outputable a => a -> Printer ()
 outputOutputable = string . showOutputable

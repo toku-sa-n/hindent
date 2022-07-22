@@ -1,5 +1,6 @@
 module HIndent.Pretty.Pragma
   ( outputPragmas
+  , pragmaExists
   ) where
 
 import           Data.Generics.Schemes
@@ -10,13 +11,10 @@ import           HIndent.Types
 import           Text.Regex.TDFA
 
 outputPragmas :: HsModule -> Printer ()
-outputPragmas m =
-  case collectPragmas m of
-    [] -> return ()
-    xs -> do
-      mapM_ string xs
-      newline
-      newline
+outputPragmas = mapM_ string . collectPragmas
+
+pragmaExists :: HsModule -> Bool
+pragmaExists = not . null . collectPragmas
 
 collectPragmas :: HsModule -> [String]
 collectPragmas =

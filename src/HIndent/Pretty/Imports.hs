@@ -2,6 +2,7 @@
 
 module HIndent.Pretty.Imports
   ( outputImports
+  , importsExist
   ) where
 
 import           Control.Monad
@@ -17,6 +18,9 @@ outputImports m =
   forM_ (sortImports $ unLoc <$> hsmodImports m) $ \x -> do
     outputImport x
     newline
+
+importsExist :: HsModule -> Bool
+importsExist = not . null . hsmodImports
 
 sortImports :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
 sortImports = sortBy (compare `on` unLoc . ideclName)

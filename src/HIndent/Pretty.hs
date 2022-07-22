@@ -9,6 +9,7 @@ module HIndent.Pretty
   ) where
 
 import           GHC.Hs
+import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Decls
 import           HIndent.Pretty.Imports
 import           HIndent.Pretty.ModuleDeclaration
@@ -17,8 +18,14 @@ import           HIndent.Types
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
-pretty m = do
-  outputPragmas m
-  outputModuleDeclaration m
-  outputImports m
-  outputDecls m
+pretty = inter (newline >> newline) . printers
+
+printers :: HsModule -> [Printer ()]
+printers m = snd <$> filter fst pairs
+  where
+    pairs =
+      [ (pragmaExists m, outputPragmas m)
+      , (moduleDeclarationExists m, outputModuleDeclaration m)
+      , (importsExist m, outputImports m)
+      , (declsExist m, outputDecls m)
+      ]
