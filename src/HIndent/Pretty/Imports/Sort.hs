@@ -10,6 +10,12 @@ import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
 
+data LetterType
+  = Capital
+  | Symbol
+  | Lower
+  deriving (Eq, Ord)
+
 sortImports :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
 sortImports = fmap sortExplicitImportsInDecl . sortModules
 
@@ -47,12 +53,6 @@ moduleName (IEThingAbs _ wrapped)      = Just $ showOutputable wrapped
 moduleName (IEThingAll _ wrapped)      = Just $ showOutputable wrapped
 moduleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
 moduleName _                           = Nothing
-
-data LetterType
-  = Capital
-  | Symbol
-  | Lower
-  deriving (Eq, Ord)
 
 compareIdentifier :: String -> String -> Ordering
 compareIdentifier [] _ = LT
