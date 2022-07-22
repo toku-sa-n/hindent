@@ -26,19 +26,17 @@ outputImport ImportDecl {..} = do
   string "import "
   unless (ideclQualified == NotQualified) $ string "qualified "
   outputOutputable ideclName
-  case ideclAs of
-    Just x -> do
-      string " as "
-      outputOutputable x
-    Nothing -> return ()
-  case ideclHiding of
-    Nothing -> return ()
-    Just (x, _) -> do
-      when x (string " hiding")
-      (string " " >>
-       horizontalTuple (fmap outputOutputable explicitOrHidingImports)) `ifFitsOnOneLineOrElse`
-        (newline >>
-         indentedBlock
-           (verticalTuple (fmap outputOutputable explicitOrHidingImports)))
+  whenJust ideclAs $ \x -> do
+    string " as "
+    outputOutputable x
+  whenJust ideclHiding $ \(x, _) -> do
+    when x (string " hiding")
+    (string " " >> horizontalTuple explicitOrHidingImports) `ifFitsOnOneLineOrElse`
+      (newline >> indentedBlock (verticalTuple explicitOrHidingImports))
   where
-    explicitOrHidingImports = maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+    explicitOrHidingImports =
+      outputOutputable <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+
+whenJust :: (Applicative m) => Maybe a -> (a -> m ()) -> m ()
+whenJust Nothing _  = pure ()
+whenJust (Just x) f = f x
