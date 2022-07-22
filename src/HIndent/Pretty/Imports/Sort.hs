@@ -23,6 +23,9 @@ sortExplicitImportsInDecl d@ImportDecl {ideclHiding = Just (x, imports)} =
   where
     sorted = fmap (fmap sortVariants . sortExplicitImports) imports
 
+sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
+sortExplicitImports = sortBy compareImportEntities
+
 sortVariants :: LIE GhcPs -> LIE GhcPs
 sortVariants (L l (IEThingWith x x' x'' xs)) =
   L l $ IEThingWith x x' x'' (sortWrappedNames xs)
@@ -30,9 +33,6 @@ sortVariants (L l (IEThingWith x x' x'' xs)) =
     sortWrappedNames =
       sortBy (\a b -> compare (showOutputable a) (showOutputable b))
 sortVariants x = x
-
-sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
-sortExplicitImports = sortBy compareImportEntities
 
 compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
 compareImportEntities (L _ a) (L _ b) =
