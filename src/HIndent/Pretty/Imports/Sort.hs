@@ -19,10 +19,9 @@ sortModules = sortBy (compare `on` unLoc . ideclName)
 sortExplicitImportsInDecl :: ImportDecl GhcPs -> ImportDecl GhcPs
 sortExplicitImportsInDecl d@ImportDecl {ideclHiding = Nothing} = d
 sortExplicitImportsInDecl d@ImportDecl {ideclHiding = Just (x, imports)} =
-  d
-    { ideclHiding =
-        Just (x, fmap (fmap sortVariants . sortExplicitImports) imports)
-    }
+  d {ideclHiding = Just (x, sorted)}
+  where
+    sorted = fmap (fmap sortVariants . sortExplicitImports) imports
 
 sortVariants :: LIE GhcPs -> LIE GhcPs
 sortVariants (L l (IEThingWith x x' x'' xs)) =
