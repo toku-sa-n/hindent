@@ -34,6 +34,7 @@ library
                      HIndent.Types
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
+                     HIndent.Pretty.Decls
                      HIndent.Pretty.Imports
                      HIndent.Pretty.Pragma
                      HIndent.Pretty.ModuleDeclaration

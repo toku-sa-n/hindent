@@ -9,6 +9,7 @@ module HIndent.Pretty
   ) where
 
 import           GHC.Hs
+import           HIndent.Pretty.Decls
 import           HIndent.Pretty.Imports
 import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
@@ -20,3 +21,4 @@ pretty m = do
   outputPragmas m
   outputModuleDeclaration m
   outputImports m
+  outputDecls m
