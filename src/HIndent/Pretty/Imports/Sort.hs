@@ -39,7 +39,7 @@ compareImportEntities (L _ a) (L _ b) =
   fromMaybe LT $ do
     a' <- moduleName a
     b' <- moduleName b
-    return $ compareModuleName a' b'
+    return $ compareIdentifier a' b'
 
 moduleName :: IE GhcPs -> Maybe String
 moduleName (IEVar _ wrapped)           = Just $ showOutputable wrapped
@@ -54,12 +54,12 @@ data LetterType
   | Lower
   deriving (Eq, Ord)
 
-compareModuleName :: String -> String -> Ordering
-compareModuleName [] _ = LT
-compareModuleName _ [] = GT
-compareModuleName (a:as) (b:bs) =
+compareIdentifier :: String -> String -> Ordering
+compareIdentifier [] _ = LT
+compareIdentifier _ [] = GT
+compareIdentifier (a:as) (b:bs) =
   case compareChar a b of
-    EQ -> compareModuleName as bs
+    EQ -> compareIdentifier as bs
     x  -> x
 
 compareChar :: Char -> Char -> Ordering
