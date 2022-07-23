@@ -1,5 +1,5 @@
 module HIndent.Pretty.Imports.Sort
-  ( sortImports
+  ( sortImportsByName
   , sortImportsByLocation
   ) where
 
@@ -17,8 +17,8 @@ data LetterType
   | Lower
   deriving (Eq, Ord)
 
-sortImports :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
-sortImports = fmap sortExplicitImportsInDecl . sortModules
+sortImportsByName :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
+sortImportsByName = fmap sortExplicitImportsInDecl . sortModules
 
 sortImportsByLocation :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortImportsByLocation = sortBy (flip compare `on` lineIdx)
@@ -45,8 +45,7 @@ sortVariants :: LIE GhcPs -> LIE GhcPs
 sortVariants (L l (IEThingWith x x' x'' xs)) =
   L l $ IEThingWith x x' x'' (sortWrappedNames xs)
   where
-    sortWrappedNames =
-      sortBy (\a b -> compare (showOutputable a) (showOutputable b))
+    sortWrappedNames = sortBy (compare `on` showOutputable)
 sortVariants x = x
 
 compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
