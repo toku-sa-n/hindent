@@ -41,6 +41,7 @@ library
                      HIndent.Pretty.ModuleDeclaration
                      HIndent.CabalFile
                      HIndent.CodeBlock
+                     HIndent.SrcSpan
                      SwitchToGhcLibParserHelper
                      ConvertModule
   build-depends:     base >= 4.7 && <5

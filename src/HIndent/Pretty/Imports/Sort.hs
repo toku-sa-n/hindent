@@ -10,6 +10,7 @@ import           Data.Maybe
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
+import           HIndent.SrcSpan
 
 data LetterType
   = Capital
@@ -23,10 +24,7 @@ sortImportsByName = fmap sortExplicitImportsInDecl . sortModules
 sortImportsByLocation :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortImportsByLocation = sortBy (flip compare `on` lineIdx)
   where
-    lineIdx x =
-      case locA $ getLoc x of
-        RealSrcSpan x' _ -> srcSpanStartLine x'
-        _                -> error "Src span unavailable."
+    lineIdx = startLine . locA . getLoc
 
 sortModules :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
 sortModules = sortBy (compare `on` unLoc . ideclName)
