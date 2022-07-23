@@ -8,6 +8,7 @@ module HIndent.Pretty.Imports
 import           Control.Monad
 import           GHC.Hs
 import           GHC.Types.SrcLoc
+import           GHC.Unit
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Types
@@ -47,6 +48,7 @@ groupImports = groupImports' []
 outputImport :: ImportDecl GhcPs -> Printer ()
 outputImport ImportDecl {..} = do
   string "import "
+  when (ideclSource == IsBoot) $ string "{-# SOURCE #-} "
   when ideclSafe $ string "safe "
   unless (ideclQualified == NotQualified) $ string "qualified "
   outputOutputable ideclName
