@@ -1,5 +1,6 @@
 module HIndent.Pretty.Imports.Sort
   ( sortImports
+  , sortImportsByLocation
   ) where
 
 import           Data.Char
@@ -18,6 +19,14 @@ data LetterType
 
 sortImports :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
 sortImports = fmap sortExplicitImportsInDecl . sortModules
+
+sortImportsByLocation :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
+sortImportsByLocation = sortBy (flip compare `on` lineIdx)
+  where
+    lineIdx x =
+      case locA $ getLoc x of
+        RealSrcSpan x' _ -> srcSpanStartLine x'
+        _                -> error "Src span unavailable."
 
 sortModules :: [ImportDecl GhcPs] -> [ImportDecl GhcPs]
 sortModules = sortBy (compare `on` unLoc . ideclName)
