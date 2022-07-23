@@ -47,6 +47,7 @@ groupImports = groupImports' []
 outputImport :: ImportDecl GhcPs -> Printer ()
 outputImport ImportDecl {..} = do
   string "import "
+  when ideclSafe $ string "safe "
   unless (ideclQualified == NotQualified) $ string "qualified "
   outputOutputable ideclName
   whenJust ideclAs $ \x -> do
