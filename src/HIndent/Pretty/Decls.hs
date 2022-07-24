@@ -54,7 +54,7 @@ outputHsType HsSumTy {} = undefined
 outputHsType (HsOpTy _ l op r) = do
   outputHsType $ unLoc l
   string " "
-  outputRdrName $ unLoc op -- FIXME
+  outputRdrName $ unLoc op
   string " "
   outputHsType $ unLoc r
 outputHsType (HsParTy _ inside) = do
