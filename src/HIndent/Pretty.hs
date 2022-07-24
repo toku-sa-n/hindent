@@ -18,7 +18,7 @@ import           HIndent.Types
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
-pretty = inter (newline >> newline) . printers
+pretty = inter blankline . printers
 
 printers :: HsModule -> [Printer ()]
 printers m = snd <$> filter fst pairs

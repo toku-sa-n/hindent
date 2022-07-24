@@ -3,6 +3,7 @@
 module HIndent.Pretty.Combinators
   ( string
   , newline
+  , blankline
   , inter
   , horizontalOrVerticalTuple
   , horizontalTuple
@@ -65,6 +66,9 @@ newline :: Printer ()
 newline = do
   string "\n"
   modify (\s -> s {psNewline = True})
+
+blankline :: Printer ()
+blankline = newline >> newline
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator

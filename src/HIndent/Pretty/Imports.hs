@@ -15,7 +15,7 @@ import           HIndent.Types
 
 outputImports :: HsModule -> Printer ()
 outputImports =
-  inter (newline >> newline) .
+  inter blankline .
   fmap (outputImportGroup . sortImportsByName . fmap unLoc) .
   groupImports . sortImportsByLocation . hsmodImports
 
