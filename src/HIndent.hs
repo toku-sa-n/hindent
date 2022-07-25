@@ -46,6 +46,7 @@ import qualified GHC.Data.EnumSet           as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
 import           GHC.Hs
+import qualified GHC.LanguageExtensions     as GLP
 import qualified GHC.Parser                 as GLP
 import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
@@ -95,8 +96,9 @@ reformat config mexts mfilepath =
             mkParserOpts
               ES.empty
               (ES.fromList $
-               Helper.uniqueExtensions $
-               fmap Helper.hseExtensionToCabalExtension allExts)
+               GLP.StarIsType : -- Without this extension, `parseModule` cannot parse kinds like `* -> *`. The test "Declarations GADT declarations" fails.
+               Helper.uniqueExtensions
+                 (fmap Helper.hseExtensionToCabalExtension allExts))
               False
               True
               True
