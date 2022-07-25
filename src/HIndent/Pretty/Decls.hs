@@ -5,7 +5,9 @@ module HIndent.Pretty.Decls
   , declsExist
   ) where
 
+import           Control.Monad
 import           Data.Maybe
+import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
@@ -21,8 +23,52 @@ declsExist :: HsModule -> Bool
 declsExist = not . null . hsmodDecls
 
 outputDecl :: HsDecl GhcPs -> Printer ()
-outputDecl (SigD _ s) = outputSig s
-outputDecl x          = outputOutputable x
+outputDecl (InstD _ inst) = outputInst inst
+outputDecl (SigD _ s)     = outputSig s
+outputDecl x              = outputOutputable x
+
+outputInst :: InstDecl GhcPs -> Printer ()
+outputInst (ClsInstD _ cinst) = outputClassInstance cinst
+outputInst x                  = outputOutputable x
+
+outputClassInstance :: ClsInstDecl GhcPs -> Printer ()
+outputClassInstance ClsInstDecl {..} = do
+  string "instance "
+  outputOutputable cid_poly_ty
+  unless (isEmptyBag cid_binds) $ do
+    string " where"
+    newline
+    indentedBlock $ mapM_ (outputHsBind . unLoc) cid_binds
+
+outputHsBind :: HsBind GhcPs -> Printer ()
+outputHsBind FunBind {..} = outputMatchGroup fun_matches
+outputHsBind x            = outputOutputable x
+
+outputMatchGroup :: MatchGroup GhcPs (LHsExpr GhcPs) -> Printer ()
+outputMatchGroup MG {..} = mapM_ (outputMatch . unLoc) $ unLoc mg_alts
+
+outputMatch :: Match GhcPs (LHsExpr GhcPs) -> Printer ()
+outputMatch Match {..} = do
+  outputHsMatchContext m_ctxt
+  string " = "
+  outputGRHSs m_grhss
+
+outputHsMatchContext :: HsMatchContext GhcPs -> Printer ()
+outputHsMatchContext FunRhs {..} = outputOutputable mc_fun
+outputHsMatchContext x           = outputOutputable x
+
+outputGRHSs :: GRHSs GhcPs (LHsExpr GhcPs) -> Printer ()
+outputGRHSs GRHSs {..} = mapM_ (outputGRHS . unLoc) grhssGRHSs
+
+outputGRHS :: GRHS GhcPs (LHsExpr GhcPs) -> Printer ()
+outputGRHS (GRHS _ _ body) = outputHsExpr $ unLoc body
+
+outputHsExpr :: HsExpr GhcPs -> Printer ()
+outputHsExpr (HsDo _ _ xs) = do
+  string "do"
+  newline
+  indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
+outputHsExpr x = outputOutputable x
 
 outputSig :: Sig GhcPs -> Printer ()
 outputSig (TypeSig _ funName params) =
