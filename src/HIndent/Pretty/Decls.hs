@@ -28,11 +28,11 @@ outputDecl (SigD _ s)     = outputSig s
 outputDecl x              = outputOutputable x
 
 outputInst :: InstDecl GhcPs -> Printer ()
-outputInst (ClsInstD _ cinst) = outputClassInstance cinst
+outputInst (ClsInstD _ cinst) = outputClsInstDecl cinst
 outputInst x                  = outputOutputable x
 
-outputClassInstance :: ClsInstDecl GhcPs -> Printer ()
-outputClassInstance ClsInstDecl {..} = do
+outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
+outputClsInstDecl ClsInstDecl {..} = do
   string "instance "
   outputOutputable cid_poly_ty
   unless (isEmptyBag cid_binds) $ do
