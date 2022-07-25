@@ -16,16 +16,16 @@ import           HIndent.Types
 
 outputDecls :: HsModule -> Printer ()
 outputDecls =
-  mapM_ (\(x, sp) -> outputDecl x >> fromMaybe (return ()) sp) .
+  mapM_ (\(x, sp) -> outputHsDecl x >> fromMaybe (return ()) sp) .
   addSeparator . fmap unLoc . hsmodDecls
 
 declsExist :: HsModule -> Bool
 declsExist = not . null . hsmodDecls
 
-outputDecl :: HsDecl GhcPs -> Printer ()
-outputDecl (InstD _ inst) = outputInstDecl inst
-outputDecl (SigD _ s)     = outputSig s
-outputDecl x              = outputOutputable x
+outputHsDecl :: HsDecl GhcPs -> Printer ()
+outputHsDecl (InstD _ inst) = outputInstDecl inst
+outputHsDecl (SigD _ s)     = outputSig s
+outputHsDecl x              = outputOutputable x
 
 outputInstDecl :: InstDecl GhcPs -> Printer ()
 outputInstDecl (ClsInstD _ cinst) = outputClsInstDecl cinst
