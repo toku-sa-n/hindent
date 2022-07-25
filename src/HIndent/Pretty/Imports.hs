@@ -9,6 +9,7 @@ import           Control.Monad
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           GHC.Unit
+import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Types
@@ -62,7 +63,3 @@ outputImport ImportDecl {..} = do
   where
     explicitOrHidingImports =
       outputOutputable <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
-
-whenJust :: (Applicative m) => Maybe a -> (a -> m ()) -> m ()
-whenJust Nothing _  = pure ()
-whenJust (Just x) f = f x

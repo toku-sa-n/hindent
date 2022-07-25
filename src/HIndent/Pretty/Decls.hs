@@ -11,6 +11,7 @@ import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
+import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Types
 
@@ -23,13 +24,32 @@ declsExist :: HsModule -> Bool
 declsExist = not . null . hsmodDecls
 
 outputHsDecl :: HsDecl GhcPs -> Printer ()
+outputHsDecl (TyClD _ d)    = outputTyClDecl d
 outputHsDecl (InstD _ inst) = outputInstDecl inst
 outputHsDecl (SigD _ s)     = outputSig s
 outputHsDecl x              = outputOutputable x
 
+outputTyClDecl :: TyClDecl GhcPs -> Printer ()
+outputTyClDecl DataDecl {..} = do
+  string "data "
+  outputOutputable tcdLName
+  outputHsDataDefn tcdDataDefn
+outputTyClDecl x = outputOutputable x
+
 outputInstDecl :: InstDecl GhcPs -> Printer ()
 outputInstDecl ClsInstD {..} = outputClsInstDecl cid_inst
 outputInstDecl x             = outputOutputable x
+
+outputHsDataDefn :: HsDataDefn GhcPs -> Printer ()
+outputHsDataDefn HsDataDefn {..} = do
+  whenJust dd_kindSig $ \x -> do
+    string " :: "
+    outputOutputable x
+  string " where"
+  indentedBlock $
+    forM_ dd_cons $ \x -> do
+      newline
+      outputOutputable x
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
