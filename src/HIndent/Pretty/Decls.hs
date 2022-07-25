@@ -28,8 +28,8 @@ outputHsDecl (SigD _ s)     = outputSig s
 outputHsDecl x              = outputOutputable x
 
 outputInstDecl :: InstDecl GhcPs -> Printer ()
-outputInstDecl (ClsInstD _ cinst) = outputClsInstDecl cinst
-outputInstDecl x                  = outputOutputable x
+outputInstDecl ClsInstD {..} = outputClsInstDecl cid_inst
+outputInstDecl x             = outputOutputable x
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
