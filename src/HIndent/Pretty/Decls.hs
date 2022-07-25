@@ -23,13 +23,13 @@ declsExist :: HsModule -> Bool
 declsExist = not . null . hsmodDecls
 
 outputDecl :: HsDecl GhcPs -> Printer ()
-outputDecl (InstD _ inst) = outputInst inst
+outputDecl (InstD _ inst) = outputInstDecl inst
 outputDecl (SigD _ s)     = outputSig s
 outputDecl x              = outputOutputable x
 
-outputInst :: InstDecl GhcPs -> Printer ()
-outputInst (ClsInstD _ cinst) = outputClsInstDecl cinst
-outputInst x                  = outputOutputable x
+outputInstDecl :: InstDecl GhcPs -> Printer ()
+outputInstDecl (ClsInstD _ cinst) = outputClsInstDecl cinst
+outputInstDecl x                  = outputOutputable x
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
