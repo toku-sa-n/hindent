@@ -47,12 +47,6 @@ import           HIndent.CodeBlock
 import           HIndent.Pretty
 import           HIndent.Types
 import qualified Language.Haskell.Extension as Cabal
-import           Language.Haskell.Exts      hiding (EnableExtension,
-                                             Extension (..),
-                                             KnownExtension (..), ParseResult,
-                                             Pretty, Style, parse, parseModule,
-                                             prettyPrint, style, unLoc)
-import qualified Language.Haskell.Exts      as Exts hiding (unLoc)
 import           Prelude
 import qualified SwitchToGhcLibParserHelper as Helper
 
@@ -74,23 +68,13 @@ reformat config mexts mfilepath =
       let ls = S8.lines text
           prefix = findPrefix ls
           code = unlines' (map (stripPrefix prefix) ls)
-          exts = readExtensions (UTF8.toString code)
-          allExts =
-            maybe allExtensions (fmap Helper.cabalExtensionToHSEExtension) mexts ++
-            case exts of
-              Just (_, exts') ->
-                fmap
-                  Helper.cabalExtensionToHSEExtension
-                  (configExtensions config) ++
-                exts'
-              _ -> []
+          allExts = fromMaybe allExtensions mexts ++ configExtensions config
           opts =
             mkParserOpts
               ES.empty
               (ES.fromList $
                GLP.StarIsType : -- Without this extension, `parseModule` cannot parse kinds like `* -> *`. The test "Declarations GADT declarations" fails.
-               Helper.uniqueExtensions
-                 (fmap Helper.hseExtensionToCabalExtension allExts))
+               Helper.uniqueExtensions allExts)
               False
               True
               True
@@ -178,11 +162,8 @@ runPrinterStyle config m =
                 , psEolComment = False
                 }))))
 
-allExtensions :: [Exts.Extension]
-allExtensions =
-  fmap
-    (Helper.cabalExtensionToHSEExtension . Cabal.EnableExtension)
-    [minBound ..]
+allExtensions :: [Cabal.Extension]
+allExtensions = fmap Cabal.EnableExtension [minBound ..]
 
 -- | Default extensions.
 defaultExtensions :: [Cabal.Extension]
