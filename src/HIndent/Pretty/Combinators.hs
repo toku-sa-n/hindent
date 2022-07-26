@@ -9,6 +9,7 @@ module HIndent.Pretty.Combinators
   , horizontalTuple
   , verticalTuple
   , indentedBlock
+  , indentedDependingOnHead
   , ifFitsOnOneLineOrElse
   , outputOutputable
   , showOutputable
@@ -72,6 +73,20 @@ blankline = newline >> newline
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
+
+indentedDependingOnHead :: Printer () -> Printer a -> Printer a
+indentedDependingOnHead hd p = do
+  hd
+  col <- gets psColumn
+  indentedWithLevel col p
+
+indentedWithLevel :: Int64 -> Printer a -> Printer a
+indentedWithLevel i p = do
+  l <- gets psIndentLevel
+  modify (\s -> s {psIndentLevel = i})
+  m <- p
+  modify (\s -> s {psIndentLevel = l})
+  return m
 
 horizontalOrVerticalTuple :: [Printer ()] -> Printer ()
 horizontalOrVerticalTuple ps =

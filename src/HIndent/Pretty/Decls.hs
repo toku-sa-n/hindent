@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Pretty.Decls
@@ -49,7 +50,41 @@ outputHsDataDefn HsDataDefn {..} = do
   indentedBlock $
     forM_ dd_cons $ \x -> do
       newline
-      outputOutputable x
+      outputConDecl $ unLoc x
+
+outputConDecl :: ConDecl GhcPs -> Printer ()
+outputConDecl ConDeclGADT {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  where
+    horizontal = do
+      outputOutputable $ head con_names
+      string " :: "
+      outputHsConDeclGADTDetails con_g_args
+      string " -> "
+      outputOutputable con_res_ty
+    vertical = do
+      outputOutputable $ head con_names
+      newline
+      indentedBlock $ do
+        indentedDependingOnHead (string ":: ") $
+          outputHsConDeclGADTDetails con_g_args
+        newline
+        string "-> "
+        outputOutputable con_res_ty
+outputConDecl x = outputOutputable x
+
+outputHsConDeclGADTDetails :: HsConDeclGADTDetails GhcPs -> Printer ()
+outputHsConDeclGADTDetails (PrefixConGADT xs) =
+  inter (string " -> ") $
+  flip fmap xs $ \case
+    (HsScaled _ x) -> outputOutputable x
+outputHsConDeclGADTDetails (RecConGADT xs) = do
+  string "{ "
+  inter (newline >> string ", ") $
+    flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
+      outputOutputable $ head cd_fld_names
+      string " :: "
+      outputOutputable cd_fld_type
+  string "}"
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
