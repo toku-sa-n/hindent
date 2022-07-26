@@ -46,8 +46,7 @@ import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import           HIndent.Pretty
 import           HIndent.Types
-import           Language.Haskell.Extension (Extension (..),
-                                             KnownExtension (..))
+import qualified Language.Haskell.Extension as Cabal
 import           Language.Haskell.Exts      hiding (EnableExtension,
                                              Extension (..),
                                              KnownExtension (..), ParseResult,
@@ -60,7 +59,7 @@ import qualified SwitchToGhcLibParserHelper as Helper
 -- | Format the given source.
 reformat ::
      Config
-  -> Maybe [Extension]
+  -> Maybe [Cabal.Extension]
   -> Maybe FilePath
   -> ByteString
   -> Either String Builder
@@ -181,25 +180,27 @@ runPrinterStyle config m =
 
 allExtensions :: [Exts.Extension]
 allExtensions =
-  fmap (Helper.cabalExtensionToHSEExtension . EnableExtension) [minBound ..]
+  fmap
+    (Helper.cabalExtensionToHSEExtension . Cabal.EnableExtension)
+    [minBound ..]
 
 -- | Default extensions.
-defaultExtensions :: [Extension]
-defaultExtensions = fmap EnableExtension $ [minBound ..] \\ badExtensions
+defaultExtensions :: [Cabal.Extension]
+defaultExtensions = fmap Cabal.EnableExtension $ [minBound ..] \\ badExtensions
 
 -- | Extensions which steal too much syntax.
-badExtensions :: [KnownExtension]
+badExtensions :: [Cabal.KnownExtension]
 badExtensions =
-  [ Arrows -- steals proc
-  , TransformListComp -- steals the group keyword
-  , XmlSyntax
-  , RegularPatterns -- steals a-b
-  , UnboxedTuples -- breaks (#) lens operator
+  [ Cabal.Arrows -- steals proc
+  , Cabal.TransformListComp -- steals the group keyword
+  , Cabal.XmlSyntax
+  , Cabal.RegularPatterns -- steals a-b
+  , Cabal.UnboxedTuples -- breaks (#) lens operator
     -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
-  , PatternSynonyms -- steals the pattern keyword
-  , RecursiveDo -- steals the rec keyword
-  , DoRec -- same
-  , TypeApplications -- since GHC 8 and haskell-src-exts-1.19
+  , Cabal.PatternSynonyms -- steals the pattern keyword
+  , Cabal.RecursiveDo -- steals the rec keyword
+  , Cabal.DoRec -- same
+  , Cabal.TypeApplications -- since GHC 8 and haskell-src-exts-1.19
   ]
 
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
@@ -210,7 +211,7 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 --------------------------------------------------------------------------------
 -- Extensions stuff stolen from hlint
 -- | Consume an extensions list from arguments.
-getExtensions :: [Text] -> [Extension]
+getExtensions :: [Text] -> [Cabal.Extension]
 getExtensions = foldl f defaultExtensions . map T.unpack
   where
     f _ "Haskell98" = []
