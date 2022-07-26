@@ -21,9 +21,7 @@ import           HIndent.Types
 pretty :: HsModule -> Printer ()
 pretty m = do
   inter blankline $ printers m
-  inter newline $
-    fmap printComment $
-    filter (not . isPragma) $ listify (const True) $ hsmodAnn m
+  printCommentsAtTheEndOfModule m
 
 printers :: HsModule -> [Printer ()]
 printers m = snd <$> filter fst pairs
@@ -34,3 +32,8 @@ printers m = snd <$> filter fst pairs
       , (importsExist m, outputImports m)
       , (declsExist m, outputDecls m)
       ]
+
+printCommentsAtTheEndOfModule :: HsModule -> Printer ()
+printCommentsAtTheEndOfModule =
+  inter newline .
+  fmap printComment . filter (not . isPragma) . listify (const True) . hsmodAnn
