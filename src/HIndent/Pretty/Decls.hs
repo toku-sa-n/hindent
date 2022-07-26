@@ -27,6 +27,7 @@ declsExist = not . null . hsmodDecls
 outputHsDecl :: HsDecl GhcPs -> Printer ()
 outputHsDecl (TyClD _ d)    = outputTyClDecl d
 outputHsDecl (InstD _ inst) = outputInstDecl inst
+outputHsDecl (ValD _ bind)  = outputHsBind bind
 outputHsDecl (SigD _ s)     = outputSig s
 outputHsDecl x              = outputOutputable x
 
@@ -105,6 +106,10 @@ outputMatchGroup MG {..} = mapM_ (outputMatch . unLoc) $ unLoc mg_alts
 outputMatch :: Match GhcPs (LHsExpr GhcPs) -> Printer ()
 outputMatch Match {..} = do
   outputHsMatchContext m_ctxt
+  unless (null m_pats) $
+    forM_ m_pats $ \x -> do
+      string " "
+      outputOutputable x
   string " = "
   outputGRHSs m_grhss
 
@@ -119,7 +124,7 @@ outputGRHS :: GRHS GhcPs (LHsExpr GhcPs) -> Printer ()
 outputGRHS (GRHS _ _ body) = outputHsExpr $ unLoc body
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
-outputHsExpr (HsDo _ _ xs) = do
+outputHsExpr (HsDo _ (DoExpr _) xs) = do
   string "do"
   newline
   indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
