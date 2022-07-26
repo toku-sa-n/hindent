@@ -5,7 +5,6 @@ module HIndent.Pretty.Combinators
   , newline
   , blankline
   , inter
-  , horizontalOrVerticalTuple
   , horizontalTuple
   , verticalTuple
   , indentedBlock
@@ -72,11 +71,6 @@ blankline = newline >> newline
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
-
-horizontalOrVerticalTuple :: [Printer ()] -> Printer ()
-horizontalOrVerticalTuple ps =
-  horizontalTuple ps `ifFitsOnOneLineOrElse`
-  (newline >> indentedBlock (verticalTuple ps))
 
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do

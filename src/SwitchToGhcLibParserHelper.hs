@@ -2,27 +2,16 @@ module SwitchToGhcLibParserHelper
   ( cabalExtensionToHSEExtension
   , hseExtensionToCabalExtension
   , SrcSpanInfo(..)
-  , fromHSESrcSpanInfo
   , SrcSpan(..)
-  , fromHSESrcSpan
-  , toHSESrcSpan
-  , toExtension
   , gleExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
-  , convertComment
-  , convertSpan
-  , convertSrcSpan
   ) where
 
 import           Data.Maybe
-import qualified GHC.Data.FastString             as GLP
-import qualified GHC.Hs                          as GLP hiding (UnicodeSyntax)
-import qualified GHC.LanguageExtensions          as GLP
-import qualified GHC.Types.SrcLoc                as GLP
-import qualified Language.Haskell.Extension      as Cabal
-import qualified Language.Haskell.Exts           as HSE
-import qualified Language.Haskell.Exts.Extension as HSE
+import qualified GHC.LanguageExtensions     as GLP
+import qualified Language.Haskell.Extension as Cabal
+import qualified Language.Haskell.Exts      as HSE
 import           Text.Read
 
 cabalExtensionToHSEExtension :: Cabal.Extension -> HSE.Extension
@@ -49,26 +38,10 @@ data SrcSpan =
     }
   deriving (Show, Eq)
 
-fromHSESrcSpan :: HSE.SrcSpan -> SrcSpan
-fromHSESrcSpan (HSE.SrcSpan name sl sc el ec) = SrcSpan name sl sc el ec
-
-toHSESrcSpan :: SrcSpan -> HSE.SrcSpan
-toHSESrcSpan (SrcSpan name sl sc el ec) = HSE.SrcSpan name sl sc el ec
-
-convertSrcSpan :: GLP.SrcSpan -> HSE.SrcSpan
-convertSrcSpan (GLP.RealSrcSpan sp _) = convertSpan sp
-convertSrcSpan _                      = error "Failed to convert a src span."
-
 newtype SrcSpanInfo =
   SrcSpanInfo
     { srcInfoSpan :: HSE.SrcSpan
     }
-
-fromHSESrcSpanInfo :: HSE.SrcSpanInfo -> SrcSpanInfo
-fromHSESrcSpanInfo (HSE.SrcSpanInfo s _) = SrcSpanInfo s
-
-toExtension :: GLP.Extension -> HSE.Extension
-toExtension = HSE.EnableExtension . read . show
 
 gleExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
 gleExtensionToCabalExtension = read . show
@@ -81,31 +54,6 @@ uniqueExtensions ((Cabal.DisableExtension e):xs) =
   uniqueExtensions $ filter (/= read (show e)) xs
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
-
-convertComment :: GLP.LEpaComment -> Maybe HSE.Comment
-convertComment (GLP.L anchor (GLP.EpaComment token _)) =
-  case token of
-    GLP.EpaEofComment -> Nothing
-    GLP.EpaBlockComment comment ->
-      Just $ HSE.Comment True (convertAnchor anchor) comment
-    GLP.EpaLineComment comment ->
-      Just $ HSE.Comment False (convertAnchor anchor) comment
-    _ -> Nothing -- Only these above comments appear.
-
-convertAnchor :: GLP.Anchor -> HSE.SrcSpan
-convertAnchor (GLP.Anchor anchor _) = convertSpan anchor
-
--- | This code increments the span's end column by 1 because
--- `haskell-src-exts`' span is exclusive while `ghc-lib-parser`s one is
--- inclusive.
-convertSpan :: GLP.RealSrcSpan -> HSE.SrcSpan
-convertSpan sp =
-  HSE.SrcSpan
-    (GLP.unpackFS $ GLP.srcSpanFile sp)
-    (GLP.srcSpanStartLine sp)
-    (GLP.srcSpanStartCol sp)
-    (GLP.srcSpanEndLine sp)
-    (GLP.srcSpanEndCol sp + 1)
 
 -- `ghc-lib-parser`'s `Extension` does not implement `read`.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
@@ -235,4 +183,4 @@ convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
-convertExtension _ = GLP.ImplicitPrelude    -- XXX: I gave up everything.
+convertExtension _ = GLP.ImplicitPrelude -- XXX: I gave up everything.
