@@ -5,6 +5,7 @@ module HIndent.Pretty.Combinators
   , newline
   , blankline
   , inter
+  , printComment
   , horizontalOrVerticalTuple
   , horizontalTuple
   , verticalTuple
@@ -24,6 +25,7 @@ import           Data.Int
 import           Data.List
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
+import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
                                                                      ((<>))
 import           HIndent.Types
@@ -70,6 +72,11 @@ newline = do
 
 blankline :: Printer ()
 blankline = newline >> newline
+
+printComment :: EpaCommentTok -> Printer ()
+printComment (EpaLineComment c)  = newline >> string c
+printComment (EpaBlockComment c) = newline >> string c
+printComment _                   = return ()
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
