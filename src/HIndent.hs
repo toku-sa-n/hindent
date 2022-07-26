@@ -181,7 +181,7 @@ badExtensions =
   , Cabal.PatternSynonyms -- steals the pattern keyword
   , Cabal.RecursiveDo -- steals the rec keyword
   , Cabal.DoRec -- same
-  , Cabal.TypeApplications -- since GHC 8 and haskell-src-exts-1.19
+  , Cabal.TypeApplications -- since GHC
   ]
 
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
