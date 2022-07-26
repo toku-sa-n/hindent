@@ -1,29 +1,11 @@
 module SwitchToGhcLibParserHelper
-  ( SrcSpanInfo(..)
-  , SrcSpan(..)
-  , gleExtensionToCabalExtension
+  ( gleExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
   ) where
 
 import qualified GHC.LanguageExtensions     as GLP
 import qualified Language.Haskell.Extension as Cabal
-import qualified Language.Haskell.Exts      as HSE
-
-data SrcSpan =
-  SrcSpan
-    { srcSpanFilename    :: String
-    , srcSpanStartLine   :: Int
-    , srcSpanStartColumn :: Int
-    , srcSpanEndLine     :: Int
-    , srcSpanEndColumn   :: Int
-    }
-  deriving (Show, Eq)
-
-newtype SrcSpanInfo =
-  SrcSpanInfo
-    { srcInfoSpan :: HSE.SrcSpan
-    }
 
 gleExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
 gleExtensionToCabalExtension = read . show
