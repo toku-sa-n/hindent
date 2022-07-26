@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Pretty.Decls
@@ -26,6 +27,7 @@ declsExist = not . null . hsmodDecls
 outputHsDecl :: HsDecl GhcPs -> Printer ()
 outputHsDecl (TyClD _ d)    = outputTyClDecl d
 outputHsDecl (InstD _ inst) = outputInstDecl inst
+outputHsDecl (ValD _ bind)  = outputHsBind bind
 outputHsDecl (SigD _ s)     = outputSig s
 outputHsDecl x              = outputOutputable x
 
@@ -49,7 +51,41 @@ outputHsDataDefn HsDataDefn {..} = do
   indentedBlock $
     forM_ dd_cons $ \x -> do
       newline
-      outputOutputable x
+      outputConDecl $ unLoc x
+
+outputConDecl :: ConDecl GhcPs -> Printer ()
+outputConDecl ConDeclGADT {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  where
+    horizontal = do
+      outputOutputable $ head con_names
+      string " :: "
+      outputHsConDeclGADTDetails con_g_args
+      string " -> "
+      outputOutputable con_res_ty
+    vertical = do
+      outputOutputable $ head con_names
+      newline
+      indentedBlock $ do
+        indentedDependingOnHead (string ":: ") $
+          outputHsConDeclGADTDetails con_g_args
+        newline
+        string "-> "
+        outputOutputable con_res_ty
+outputConDecl x = outputOutputable x
+
+outputHsConDeclGADTDetails :: HsConDeclGADTDetails GhcPs -> Printer ()
+outputHsConDeclGADTDetails (PrefixConGADT xs) =
+  inter (string " -> ") $
+  flip fmap xs $ \case
+    (HsScaled _ x) -> outputOutputable x
+outputHsConDeclGADTDetails (RecConGADT xs) = do
+  string "{ "
+  inter (newline >> string ", ") $
+    flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
+      outputOutputable $ head cd_fld_names
+      string " :: "
+      outputOutputable cd_fld_type
+  string "}"
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
@@ -70,6 +106,10 @@ outputMatchGroup MG {..} = mapM_ (outputMatch . unLoc) $ unLoc mg_alts
 outputMatch :: Match GhcPs (LHsExpr GhcPs) -> Printer ()
 outputMatch Match {..} = do
   outputHsMatchContext m_ctxt
+  unless (null m_pats) $
+    forM_ m_pats $ \x -> do
+      string " "
+      outputOutputable x
   string " = "
   outputGRHSs m_grhss
 
@@ -84,7 +124,7 @@ outputGRHS :: GRHS GhcPs (LHsExpr GhcPs) -> Printer ()
 outputGRHS (GRHS _ _ body) = outputHsExpr $ unLoc body
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
-outputHsExpr (HsDo _ _ xs) = do
+outputHsExpr (HsDo _ (DoExpr _) xs) = do
   string "do"
   newline
   indentedBlock $ inter newline $ outputOutputable <$> unLoc xs

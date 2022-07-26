@@ -5,9 +5,11 @@ module HIndent.Pretty.Combinators
   , newline
   , blankline
   , inter
+  , printComment
   , horizontalTuple
   , verticalTuple
   , indentedBlock
+  , indentedDependingOnHead
   , ifFitsOnOneLineOrElse
   , outputOutputable
   , showOutputable
@@ -22,6 +24,7 @@ import           Data.Int
 import           Data.List
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
+import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
                                                                      ((<>))
 import           HIndent.Types
@@ -69,8 +72,27 @@ newline = do
 blankline :: Printer ()
 blankline = newline >> newline
 
+printComment :: EpaCommentTok -> Printer ()
+printComment (EpaLineComment c)  = newline >> string c
+printComment (EpaBlockComment c) = newline >> string c
+printComment _                   = return ()
+
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
+
+indentedDependingOnHead :: Printer () -> Printer a -> Printer a
+indentedDependingOnHead hd p = do
+  hd
+  col <- gets psColumn
+  indentedWithLevel col p
+
+indentedWithLevel :: Int64 -> Printer a -> Printer a
+indentedWithLevel i p = do
+  l <- gets psIndentLevel
+  modify (\s -> s {psIndentLevel = i})
+  m <- p
+  modify (\s -> s {psIndentLevel = l})
+  return m
 
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do

@@ -1,6 +1,7 @@
 module HIndent.Pretty.Pragma
   ( outputPragmas
   , pragmaExists
+  , isPragma
   ) where
 
 import           Data.Generics.Schemes

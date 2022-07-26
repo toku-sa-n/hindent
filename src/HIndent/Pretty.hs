@@ -8,6 +8,7 @@ module HIndent.Pretty
   ( pretty
   ) where
 
+import           Generics.SYB
 import           GHC.Hs
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Decls
@@ -18,7 +19,9 @@ import           HIndent.Types
 
 -- | Pretty print including comments.
 pretty :: HsModule -> Printer ()
-pretty = inter blankline . printers
+pretty m = do
+  inter blankline $ printers m
+  printCommentsAtTheEndOfModule m
 
 printers :: HsModule -> [Printer ()]
 printers m = snd <$> filter fst pairs
@@ -29,3 +32,8 @@ printers m = snd <$> filter fst pairs
       , (importsExist m, outputImports m)
       , (declsExist m, outputDecls m)
       ]
+
+printCommentsAtTheEndOfModule :: HsModule -> Printer ()
+printCommentsAtTheEndOfModule =
+  inter newline .
+  fmap printComment . filter (not . isPragma) . listify (const True) . hsmodAnn
