@@ -51,7 +51,6 @@ library
                    , directory
                    , ghc-lib-parser
                    , ghc-lib-parser-ex
-                   , haskell-src-exts >= 1.20
                    , monad-loops
                    , mtl
                    , bytestring
@@ -75,7 +74,6 @@ executable hindent
                    , bytestring
                    , Cabal
                    , utf8-string
-                   , haskell-src-exts
                    , ghc-prim
                    , directory
                    , text
@@ -96,7 +94,6 @@ test-suite hindent-test
   other-modules: Markdone
   build-depends:     base >= 4 && <5
                    , hindent
-                   , haskell-src-exts
                    , monad-loops
                    , mtl
                    , bytestring
@@ -119,7 +116,6 @@ benchmark hindent-bench
                    , hindent
                    , bytestring
                    , utf8-string
-                   , haskell-src-exts
                    , ghc-prim
                    , directory
                    , criterion
