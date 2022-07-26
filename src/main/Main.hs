@@ -15,7 +15,6 @@ import qualified Data.ByteString            as S
 import qualified Data.ByteString.Builder    as S
 import qualified Data.ByteString.Lazy.Char8 as L8
 import           Data.Maybe
-import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Data.Version               (showVersion)
 import qualified Data.Yaml                  as Y
@@ -25,7 +24,6 @@ import           HIndent
 import           HIndent.CabalFile
 import           HIndent.Types
 import           Language.Haskell.Extension
-import           Language.Haskell.Exts      hiding (Extension, Style, style)
 import           Options.Applicative        hiding (action, style)
 import           Path
 import qualified Path.Find                  as Path
