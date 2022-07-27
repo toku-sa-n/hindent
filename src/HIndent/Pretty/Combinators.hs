@@ -6,9 +6,11 @@ module HIndent.Pretty.Combinators
   , blankline
   , inter
   , printComment
+  , collectComments
   , horizontalTuple
   , verticalTuple
   , indentedBlock
+  , indentedWithSpace
   , indentedDependingOnHead
   , ifFitsOnOneLineOrElse
   , outputOutputable
@@ -20,8 +22,10 @@ import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
+import           Data.Data
 import           Data.Int
 import           Data.List
+import           Generics.SYB
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
@@ -76,6 +80,9 @@ printComment :: EpaCommentTok -> Printer ()
 printComment (EpaLineComment c)  = newline >> string c
 printComment (EpaBlockComment c) = newline >> string c
 printComment _                   = return ()
+
+collectComments :: Data a => a -> [EpaCommentTok]
+collectComments = listify (const True)
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
@@ -132,10 +139,10 @@ dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 indentedBlock :: Printer a -> Printer a
 indentedBlock p = do
   indentSpaces <- getIndentSpaces
-  indented indentSpaces p
+  indentedWithSpace indentSpaces p
 
-indented :: Int64 -> Printer a -> Printer a
-indented i p = do
+indentedWithSpace :: Int64 -> Printer a -> Printer a
+indentedWithSpace i p = do
   level <- gets psIndentLevel
   modify (\s -> s {psIndentLevel = level + i})
   m <- p

@@ -110,7 +110,7 @@ outputMatch Match {..} = do
     forM_ m_pats $ \x -> do
       string " "
       outputOutputable x
-  string " = "
+  string " ="
   outputGRHSs m_grhss
 
 outputHsMatchContext :: HsMatchContext GhcPs -> Printer ()
@@ -125,10 +125,35 @@ outputGRHS (GRHS _ _ body) = outputHsExpr $ unLoc body
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
 outputHsExpr (HsDo _ (DoExpr _) xs) = do
-  string "do"
+  string " do"
   newline
   indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
-outputHsExpr x = outputOutputable x
+-- While the name contains "Monad", this branch seems to be for list comprehensions.
+outputHsExpr full@(HsDo r MonadComp xs) = do
+  outputOutputable $ comments r
+  (string " " >> outputOutputable full) `ifFitsOnOneLineOrElse` do
+    newline
+    indentedBlock $ do
+      string "[ "
+      outputStmtLR $ unLoc $ last $ unLoc xs
+      newline
+      string "| "
+      inter (newline >> string ", ") $
+        fmap (outputStmtLR . unLoc) $ init $ unLoc xs
+      newline
+      string "]"
+outputHsExpr x = do
+  string " "
+  outputOutputable x
+
+outputStmtLR :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
+outputStmtLR full@(BindStmt _ pat body) =
+  outputOutputable full `ifFitsOnOneLineOrElse` do
+    outputOutputable pat
+    string " <-"
+    newline
+    indentedBlock $ indentedWithSpace 2 $ outputOutputable body -- 2 for "| "
+outputStmtLR x = outputOutputable x
 
 outputSig :: Sig GhcPs -> Printer ()
 outputSig (TypeSig _ funName params) =
