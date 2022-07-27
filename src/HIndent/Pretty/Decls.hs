@@ -113,8 +113,8 @@ outputMatch Match {..} = do
     forM_ m_pats $ \x -> do
       string " "
       outputOutputable x
-  string " ="
-  outputGRHSs m_grhss
+  (string " = " >> outputGRHSs m_grhss) `ifFitsOnOneLineOrElse`
+    (string " =" >> outputGRHSs m_grhss)
 
 outputHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 outputHsMatchContext FunRhs {..} = outputOutputable mc_fun
@@ -142,13 +142,14 @@ outputStmtOrComment (Stmt x)    = outputStmtLR $ unLoc x
 outputStmtOrComment (Comment x) = printComment $ ac_tok $ unLoc x
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
+outputHsExpr (HsVar _ v) = outputOutputable v
 outputHsExpr (HsDo _ (DoExpr _) xs) = do
   string " do"
   newline
   indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
 -- While the name contains "Monad", this branch seems to be for list comprehensions.
 outputHsExpr full@(HsDo r MonadComp xs) =
-  (string " " >> outputOutputable full) `ifFitsOnOneLineOrElse` do
+  outputOutputable full `ifFitsOnOneLineOrElse` do
     case firstStmtAndOthers stmts of
       Just (lastStmt, others) -> do
         newline
@@ -169,9 +170,16 @@ outputHsExpr full@(HsDo r MonadComp xs) =
     stmts =
       sortByLocation $
       fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
-outputHsExpr x = do
-  string " "
-  outputOutputable x
+outputHsExpr full@(OpApp _ l o r) =
+  outputOutputable full `ifFitsOnOneLineOrElse` do
+    newline
+    indentedBlock $ do
+      outputHsExpr $ unLoc l
+      string " "
+      outputHsExpr $ unLoc o
+      newline
+      outputHsExpr $ unLoc r
+outputHsExpr x = outputOutputable x
 
 firstStmtAndOthers ::
      [StmtOrComment]
