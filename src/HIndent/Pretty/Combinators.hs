@@ -77,8 +77,8 @@ blankline :: Printer ()
 blankline = newline >> newline
 
 printComment :: EpaCommentTok -> Printer ()
-printComment (EpaLineComment c)  = newline >> string c
-printComment (EpaBlockComment c) = newline >> string c
+printComment (EpaLineComment c)  = string c
+printComment (EpaBlockComment c) = string c
 printComment _                   = return ()
 
 collectComments :: Data a => a -> [EpaCommentTok]

@@ -7,7 +7,10 @@ module HIndent.Pretty.Decls
   ) where
 
 import           Control.Monad
+import           Data.Function
+import           Data.List
 import           Data.Maybe
+import           Generics.SYB
 import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.Name.Reader
@@ -123,28 +126,61 @@ outputGRHSs GRHSs {..} = mapM_ (outputGRHS . unLoc) grhssGRHSs
 outputGRHS :: GRHS GhcPs (LHsExpr GhcPs) -> Printer ()
 outputGRHS (GRHS _ _ body) = outputHsExpr $ unLoc body
 
+data StmtOrComment
+  = Stmt (LStmtLR GhcPs GhcPs (LHsExpr GhcPs))
+  | Comment LEpaComment
+
+sortByLocation :: [StmtOrComment] -> [StmtOrComment]
+sortByLocation = sortBy (compare `on` getLocation)
+
+getLocation :: StmtOrComment -> RealSrcSpan
+getLocation (Stmt x)    = realSrcSpan $ locA $ getLoc x
+getLocation (Comment x) = anchor $ getLoc x
+
+outputStmtOrComment :: StmtOrComment -> Printer ()
+outputStmtOrComment (Stmt x)    = outputStmtLR $ unLoc x
+outputStmtOrComment (Comment x) = printComment $ ac_tok $ unLoc x
+
 outputHsExpr :: HsExpr GhcPs -> Printer ()
 outputHsExpr (HsDo _ (DoExpr _) xs) = do
   string " do"
   newline
   indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
 -- While the name contains "Monad", this branch seems to be for list comprehensions.
-outputHsExpr full@(HsDo r MonadComp xs) = do
-  outputOutputable $ comments r
+outputHsExpr full@(HsDo r MonadComp xs) =
   (string " " >> outputOutputable full) `ifFitsOnOneLineOrElse` do
-    newline
-    indentedBlock $ do
-      string "[ "
-      outputStmtLR $ unLoc $ last $ unLoc xs
-      newline
-      string "| "
-      inter (newline >> string ", ") $
-        fmap (outputStmtLR . unLoc) $ init $ unLoc xs
-      newline
-      string "]"
+    case firstStmtAndOthers stmts of
+      Just (lastStmt, others) -> do
+        newline
+        indentedBlock $ do
+          string "[ "
+          outputStmtLR $ unLoc lastStmt
+          newline
+          forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+            string p
+            outputStmtOrComment x
+            newline
+          string "]"
+      Nothing -> string "[]"
+  where
+    stmtsAndPrefixes l = ("| ", head l) : fmap (\x -> (prefix x, x)) (tail l)
+    prefix Stmt {}    = ", "
+    prefix Comment {} = "  "
+    stmts =
+      sortByLocation $
+      fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
 outputHsExpr x = do
   string " "
   outputOutputable x
+
+firstStmtAndOthers ::
+     [StmtOrComment]
+  -> Maybe (LStmtLR GhcPs GhcPs (LHsExpr GhcPs), [StmtOrComment])
+firstStmtAndOthers = f []
+  where
+    f _ []                 = Nothing
+    f xs (Stmt y:ys)       = Just (y, xs ++ ys)
+    f xs (y@Comment {}:ys) = f (y : xs) ys
 
 outputStmtLR :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
 outputStmtLR full@(BindStmt _ pat body) =

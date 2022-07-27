@@ -35,5 +35,5 @@ printers m = snd <$> filter fst pairs
 
 printCommentsAtTheEndOfModule :: HsModule -> Printer ()
 printCommentsAtTheEndOfModule =
-  inter newline .
-  fmap printComment . filter (not . isPragma) . listify (const True) . hsmodAnn
+  mapM_ (\x -> newline >> printComment x) .
+  filter (not . isPragma) . listify (const True) . hsmodAnn
