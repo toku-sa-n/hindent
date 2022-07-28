@@ -10,6 +10,7 @@ module HIndent.Pretty
 
 import           Generics.SYB
 import           GHC.Hs
+import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Decls
 import           HIndent.Pretty.Imports
@@ -36,3 +37,6 @@ instance Pretty HsModule where
       printCommentsAtTheEndOfModule =
         mapM_ (\x -> newline >> printComment x) .
         filter (not . isPragma) . listify (const True) . hsmodAnn
+
+instance (Pretty e) => Pretty (GenLocated l e) where
+  pretty (L _ e) = pretty e
