@@ -233,6 +233,7 @@ firstStmtAndOthers = f []
     f xs (Stmt y:ys)       = Just (y, xs ++ ys)
     f xs (y@Comment {}:ys) = f (y : xs) ys
 
+-- TODO: This type can be removed by adding a field to `PrintState`.
 data IsVerticalOrHorizontal
   = Vertical
   | Horizontal
