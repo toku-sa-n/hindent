@@ -226,7 +226,7 @@ outputHsExpr (RecordCon _ name fields) =
       if head (showOutputable name) == ':'
         then "(" ++ showOutputable name ++ ")"
         else showOutputable name
-outputHsExpr RecordUpd {} = undefined
+outputHsExpr full@RecordUpd {} = output full
 outputHsExpr HsGetField {} = undefined
 outputHsExpr HsProjection {} = undefined
 outputHsExpr ExprWithTySig {} = undefined
