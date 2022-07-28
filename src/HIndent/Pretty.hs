@@ -23,20 +23,16 @@ class Pretty a where
 
 instance Pretty HsModule where
   pretty m = do
-    inter blankline $ printers m
+    inter blankline printers
     printCommentsAtTheEndOfModule m
-
-printers :: HsModule -> [Printer ()]
-printers m = snd <$> filter fst pairs
-  where
-    pairs =
-      [ (pragmaExists m, outputPragmas m)
-      , (moduleDeclarationExists m, outputModuleDeclaration m)
-      , (importsExist m, outputImports m)
-      , (declsExist m, outputDecls m)
-      ]
-
-printCommentsAtTheEndOfModule :: HsModule -> Printer ()
-printCommentsAtTheEndOfModule =
-  mapM_ (\x -> newline >> printComment x) .
-  filter (not . isPragma) . listify (const True) . hsmodAnn
+    where
+      printers = snd <$> filter fst pairs
+      pairs =
+        [ (pragmaExists m, outputPragmas m)
+        , (moduleDeclarationExists m, outputModuleDeclaration m)
+        , (importsExist m, outputImports m)
+        , (declsExist m, outputDecls m)
+        ]
+      printCommentsAtTheEndOfModule =
+        mapM_ (\x -> newline >> printComment x) .
+        filter (not . isPragma) . listify (const True) . hsmodAnn
