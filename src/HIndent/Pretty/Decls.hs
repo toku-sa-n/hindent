@@ -143,33 +143,17 @@ outputStmtOrComment (Comment x) = printComment $ ac_tok $ unLoc x
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
 outputHsExpr (HsVar _ v) = outputOutputable v
-outputHsExpr (HsDo _ (DoExpr _) xs) = do
-  string " do"
-  newline
-  indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
--- While the name contains "Monad", this branch seems to be for list comprehensions.
-outputHsExpr full@(HsDo r MonadComp xs) =
-  outputOutputable full `ifFitsOnOneLineOrElse` do
-    case firstStmtAndOthers stmts of
-      Just (lastStmt, others) -> do
-        newline
-        indentedBlock $ do
-          string "[ "
-          outputStmtLR $ unLoc lastStmt
-          newline
-          forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-            string p
-            outputStmtOrComment x
-            newline
-          string "]"
-      Nothing -> string "[]"
-  where
-    stmtsAndPrefixes l = ("| ", head l) : fmap (\x -> (prefix x, x)) (tail l)
-    prefix Stmt {}    = ", "
-    prefix Comment {} = "  "
-    stmts =
-      sortByLocation $
-      fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
+outputHsExpr HsUnboundVar {} = undefined
+outputHsExpr HsConLikeOut {} = undefined
+outputHsExpr HsRecFld {} = undefined
+outputHsExpr HsOverLabel {} = undefined
+outputHsExpr HsIPVar {} = undefined
+outputHsExpr full@HsOverLit {} = outputOutputable full
+outputHsExpr (HsLit _ l) = outputOutputable l
+outputHsExpr full@HsLam {} = outputOutputable full
+outputHsExpr HsLamCase {} = undefined
+outputHsExpr full@HsApp {} = outputOutputable full
+outputHsExpr HsAppType {} = undefined
 outputHsExpr full@(OpApp _ l o r) =
   outputOutputable full `ifFitsOnOneLineOrElse` do
     newline
@@ -179,7 +163,66 @@ outputHsExpr full@(OpApp _ l o r) =
       outputHsExpr $ unLoc o
       newline
       outputHsExpr $ unLoc r
-outputHsExpr x = outputOutputable x
+outputHsExpr NegApp {} = undefined
+outputHsExpr HsPar {} = undefined
+outputHsExpr SectionL {} = undefined
+outputHsExpr SectionR {} = undefined
+outputHsExpr ExplicitTuple {} = undefined
+outputHsExpr ExplicitSum {} = undefined
+outputHsExpr HsCase {} = undefined
+outputHsExpr HsIf {} = undefined
+outputHsExpr HsMultiIf {} = undefined
+outputHsExpr HsLet {} = undefined
+outputHsExpr (HsDo _ (DoExpr _) xs) = do
+  string " do"
+  newline
+  indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
+-- While the name contains "Monad", this branch seems to be for list comprehensions.
+outputHsExpr (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  where
+    horizontal = do
+      string "["
+      outputStmtLR $ unLoc $ last $ unLoc xs
+      string " | "
+      mapM_ (outputStmtLR . unLoc) $ init $ unLoc xs
+      string "]"
+    vertical =
+      case firstStmtAndOthers stmts of
+        Just (lastStmt, others) -> do
+          newline
+          indentedBlock $ do
+            string "[ "
+            outputStmtLR $ unLoc lastStmt
+            newline
+            forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+              string p
+              outputStmtOrComment x
+              newline
+            string "]"
+        Nothing -> string "[]"
+    stmtsAndPrefixes l = ("| ", head l) : fmap (\x -> (prefix x, x)) (tail l)
+    prefix Stmt {}    = ", "
+    prefix Comment {} = "  "
+    stmts =
+      sortByLocation $
+      fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
+outputHsExpr HsDo {} = undefined
+outputHsExpr ExplicitList {} = undefined
+outputHsExpr RecordCon {} = undefined
+outputHsExpr RecordUpd {} = undefined
+outputHsExpr HsGetField {} = undefined
+outputHsExpr HsProjection {} = undefined
+outputHsExpr ExprWithTySig {} = undefined
+outputHsExpr ArithSeq {} = undefined
+outputHsExpr HsBracket {} = undefined
+outputHsExpr HsRnBracketOut {} = undefined
+outputHsExpr HsTcBracketOut {} = undefined
+outputHsExpr HsSpliceE {} = undefined
+outputHsExpr HsProc {} = undefined
+outputHsExpr HsStatic {} = undefined
+outputHsExpr HsTick {} = undefined
+outputHsExpr HsBinTick {} = undefined
+outputHsExpr HsPragE {} = undefined
 
 firstStmtAndOthers ::
      [StmtOrComment]
@@ -191,13 +234,26 @@ firstStmtAndOthers = f []
     f xs (y@Comment {}:ys) = f (y : xs) ys
 
 outputStmtLR :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
+outputStmtLR l@LastStmt {} = outputOutputable l
 outputStmtLR full@(BindStmt _ pat body) =
   outputOutputable full `ifFitsOnOneLineOrElse` do
     outputOutputable pat
     string " <-"
     newline
     indentedBlock $ indentedWithSpace 2 $ outputOutputable body -- 2 for "| "
-outputStmtLR x = outputOutputable x
+outputStmtLR ApplicativeStmt {} = undefined
+outputStmtLR BodyStmt {} = undefined
+outputStmtLR l@LetStmt {} = outputOutputable l
+outputStmtLR (ParStmt _ xs _ _) =
+  horizontal `ifFitsOnOneLineOrElse` do
+    inter (newline >> string "| ") $ fmap outputParStmtBlock xs
+  where
+    horizontal = inter (string " | ") $ fmap outputOutputable xs
+outputStmtLR TransStmt {} = undefined
+outputStmtLR RecStmt {} = undefined
+
+outputParStmtBlock :: ParStmtBlock GhcPs GhcPs -> Printer ()
+outputParStmtBlock (ParStmtBlock _ xs _ _) = mapM_ outputOutputable xs
 
 outputSig :: Sig GhcPs -> Printer ()
 outputSig (TypeSig _ funName params) =
