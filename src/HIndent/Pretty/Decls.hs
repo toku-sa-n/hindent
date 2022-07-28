@@ -292,7 +292,7 @@ outputHsType (HsAppTy _ l r) = do
 outputHsType HsAppKindTy {} = undefined
 outputHsType HsFunTy {} = undefined
 outputHsType HsListTy {} = undefined
-outputHsType HsTupleTy {} = undefined
+outputHsType full@HsTupleTy {} = outputOutputable full
 outputHsType HsSumTy {} = undefined
 outputHsType (HsOpTy _ l op r) = do
   outputHsType $ unLoc l
