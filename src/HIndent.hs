@@ -161,6 +161,7 @@ runPrinterStyle config m =
                 , psFitOnOneLine = False
                 , psEolComment = False
                 , psInsideSignature = False
+                , psInsideVerticalList = False
                 }))))
 
 allExtensions :: [Cabal.Extension]

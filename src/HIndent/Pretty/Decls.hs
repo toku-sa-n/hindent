@@ -138,9 +138,9 @@ getLocation :: StmtOrComment -> RealSrcSpan
 getLocation (Stmt x)    = realSrcSpan $ locA $ getLoc x
 getLocation (Comment x) = anchor $ getLoc x
 
-outputStmtOrComment :: IsVerticalOrHorizontal -> StmtOrComment -> Printer ()
-outputStmtOrComment which (Stmt x) = outputStmtLR which $ unLoc x
-outputStmtOrComment _ (Comment x)  = printComment $ ac_tok $ unLoc x
+outputStmtOrComment :: StmtOrComment -> Printer ()
+outputStmtOrComment (Stmt x)    = outputStmtLR $ unLoc x
+outputStmtOrComment (Comment x) = printComment $ ac_tok $ unLoc x
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
 outputHsExpr (HsVar _ v) = outputOutputable v
@@ -183,21 +183,22 @@ outputHsExpr (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
   where
     horizontal = do
       string "["
-      outputStmtLR Horizontal $ unLoc $ last $ unLoc xs
+      outputStmtLR $ unLoc $ last $ unLoc xs
       string " | "
-      mapM_ (outputStmtLR Horizontal . unLoc) $ init $ unLoc xs
+      mapM_ (outputStmtLR . unLoc) $ init $ unLoc xs
       string "]"
     vertical =
+      insideVerticalList $
       case firstStmtAndOthers stmts of
         Just (lastStmt, others) -> do
           newline
           indentedBlock $ do
             string "[ "
-            outputStmtLR Vertical $ unLoc lastStmt
+            outputStmtLR $ unLoc lastStmt
             newline
             forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
               string p
-              outputStmtOrComment Vertical x
+              outputStmtOrComment x
               newline
             string "]"
         Nothing -> string "[]"
@@ -234,41 +235,34 @@ firstStmtAndOthers = f []
     f xs (Stmt y:ys)       = Just (y, xs ++ ys)
     f xs (y@Comment {}:ys) = f (y : xs) ys
 
--- TODO: This type can be removed by adding a field to `PrintState`.
-data IsVerticalOrHorizontal
-  = Vertical
-  | Horizontal
-  deriving (Ord, Eq)
-
-outputStmtLR ::
-     IsVerticalOrHorizontal -> StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
-outputStmtLR _ l@LastStmt {} = outputOutputable l
-outputStmtLR _ full@(BindStmt _ pat body) =
+outputStmtLR :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
+outputStmtLR l@LastStmt {} = outputOutputable l
+outputStmtLR full@(BindStmt _ pat body) =
   outputOutputable full `ifFitsOnOneLineOrElse` do
     outputOutputable pat
     string " <-"
     newline
     indentedBlock $ indentedWithSpace 2 $ outputOutputable body -- 2 for "| "
-outputStmtLR _ ApplicativeStmt {} = undefined
-outputStmtLR _ BodyStmt {} = undefined
-outputStmtLR _ l@LetStmt {} = outputOutputable l
-outputStmtLR which (ParStmt _ xs _ _) =
-  case which of
-    Horizontal -> horizontal `ifFitsOnOneLineOrElse` vertical
-    Vertical   -> vertical
+outputStmtLR ApplicativeStmt {} = undefined
+outputStmtLR BodyStmt {} = undefined
+outputStmtLR l@LetStmt {} = outputOutputable l
+outputStmtLR (ParStmt _ xs _ _) = do
+  inVertical <- gets psInsideVerticalList
+  if inVertical
+    then vertical
+    else horizontal `ifFitsOnOneLineOrElse` vertical
   where
     horizontal = inter (string " | ") $ fmap outputOutputable xs
-    vertical =
-      inter (newline >> string "| ") $ fmap (outputParStmtBlock which) xs
-outputStmtLR _ TransStmt {} = undefined
-outputStmtLR _ RecStmt {} = undefined
+    vertical = inter (newline >> string "| ") $ fmap outputParStmtBlock xs
+outputStmtLR TransStmt {} = undefined
+outputStmtLR RecStmt {} = undefined
 
-outputParStmtBlock ::
-     IsVerticalOrHorizontal -> ParStmtBlock GhcPs GhcPs -> Printer ()
-outputParStmtBlock which (ParStmtBlock _ xs _ _) =
-  case which of
-    Horizontal -> horizontal `ifFitsOnOneLineOrElse` vertical
-    Vertical   -> vertical
+outputParStmtBlock :: ParStmtBlock GhcPs GhcPs -> Printer ()
+outputParStmtBlock (ParStmtBlock _ xs _ _) = do
+  inVertical <- gets psInsideVerticalList
+  if inVertical
+    then vertical
+    else horizontal `ifFitsOnOneLineOrElse` vertical
   where
     horizontal = inter (string ", ") $ fmap outputOutputable xs
     vertical = inter (newline >> string ", ") $ fmap outputOutputable xs

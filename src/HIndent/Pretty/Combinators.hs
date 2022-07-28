@@ -13,6 +13,7 @@ module HIndent.Pretty.Combinators
   , indentedWithSpace
   , indentedDependingOnHead
   , insideSignature
+  , insideVerticalList
   , ifFitsOnOneLineOrElse
   , outputOutputable
   , showOutputable
@@ -94,6 +95,14 @@ insideSignature p = do
   modify (\s -> s {psInsideSignature = True})
   r <- p
   modify (\s -> s {psInsideSignature = before})
+  return r
+
+insideVerticalList :: Printer a -> Printer a
+insideVerticalList p = do
+  before <- gets psInsideVerticalList
+  modify (\s -> s {psInsideVerticalList = True})
+  r <- p
+  modify (\s -> s {psInsideVerticalList = before})
   return r
 
 indentedDependingOnHead :: Printer () -> Printer a -> Printer a
