@@ -210,16 +210,22 @@ outputHsExpr (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
       fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
 outputHsExpr HsDo {} = undefined
 outputHsExpr ExplicitList {} = undefined
-outputHsExpr full@(RecordCon _ name fields) = do
-  newline
+outputHsExpr (RecordCon _ name fields) =
   horizontal `ifFitsOnOneLineOrElse` vertical
   where
-    horizontal = indentedBlock $ output full
-    vertical =
+    horizontal = do
+      string $ name' ++ " "
+      indentedBlock $ outputHsRecordBinds fields
+    vertical = do
+      newline
       indentedBlock $ do
-        output name
-        newline
-        indentedBlock $ outputHsRecordBinds fields
+        string name'
+        (string " " >> outputHsRecordBinds fields) `ifFitsOnOneLineOrElse`
+          (newline >> indentedBlock (outputHsRecordBinds fields))
+    name' =
+      if head (showOutputable name) == ':'
+        then "(" ++ showOutputable name ++ ")"
+        else showOutputable name
 outputHsExpr RecordUpd {} = undefined
 outputHsExpr HsGetField {} = undefined
 outputHsExpr HsProjection {} = undefined
