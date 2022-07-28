@@ -236,10 +236,18 @@ outputHsExpr HsBinTick {} = undefined
 outputHsExpr HsPragE {} = undefined
 
 outputHsRecordBinds :: HsRecordBinds GhcPs -> Printer ()
-outputHsRecordBinds HsRecFields {..} = do
-  string "{"
-  inter (string ", ") $ fmap output rec_flds
-  string "}"
+outputHsRecordBinds HsRecFields {..} =
+  horizontal `ifFitsOnOneLineOrElse` vertical
+  where
+    horizontal = do
+      string "{"
+      inter (string ", ") $ fmap output rec_flds
+      string "}"
+    vertical = do
+      string "{ "
+      inter (newline >> string ", ") $ fmap output rec_flds
+      newline
+      string "}"
 
 firstStmtAndOthers ::
      [StmtOrComment]
