@@ -12,7 +12,6 @@ module HIndent.Types
   , Config(..)
   , readExtension
   , defaultConfig
-  , SomeComment(..)
   ) where
 
 import           Control.Applicative
@@ -115,9 +114,3 @@ defaultConfig =
     , configLineBreaks = []
     , configExtensions = []
     }
-
--- | Some comment to print.
-data SomeComment
-  = EndOfLine String
-  | MultiLine String
-  deriving (Show, Ord, Eq)
