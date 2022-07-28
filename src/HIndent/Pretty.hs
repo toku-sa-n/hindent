@@ -18,10 +18,13 @@ import           HIndent.Pretty.Pragma
 import           HIndent.Types
 
 -- | Pretty print including comments.
-pretty :: HsModule -> Printer ()
-pretty m = do
-  inter blankline $ printers m
-  printCommentsAtTheEndOfModule m
+class Pretty a where
+  pretty :: a -> Printer ()
+
+instance Pretty HsModule where
+  pretty m = do
+    inter blankline $ printers m
+    printCommentsAtTheEndOfModule m
 
 printers :: HsModule -> [Printer ()]
 printers m = snd <$> filter fst pairs
