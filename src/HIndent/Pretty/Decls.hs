@@ -33,24 +33,24 @@ outputHsDecl (TyClD _ d)    = outputTyClDecl d
 outputHsDecl (InstD _ inst) = outputInstDecl inst
 outputHsDecl (ValD _ bind)  = outputHsBind bind
 outputHsDecl (SigD _ s)     = insideSignature $ outputSig s
-outputHsDecl x              = outputOutputable x
+outputHsDecl x              = output x
 
 outputTyClDecl :: TyClDecl GhcPs -> Printer ()
 outputTyClDecl DataDecl {..} = do
   string "data "
-  outputOutputable tcdLName
+  output tcdLName
   outputHsDataDefn tcdDataDefn
-outputTyClDecl x = outputOutputable x
+outputTyClDecl x = output x
 
 outputInstDecl :: InstDecl GhcPs -> Printer ()
 outputInstDecl ClsInstD {..} = outputClsInstDecl cid_inst
-outputInstDecl x             = outputOutputable x
+outputInstDecl x             = output x
 
 outputHsDataDefn :: HsDataDefn GhcPs -> Printer ()
 outputHsDataDefn HsDataDefn {..} = do
   whenJust dd_kindSig $ \x -> do
     string " :: "
-    outputOutputable x
+    output x
   string " where"
   indentedBlock $
     forM_ dd_cons $ \x -> do
@@ -61,40 +61,40 @@ outputConDecl :: ConDecl GhcPs -> Printer ()
 outputConDecl ConDeclGADT {..} = horizontal `ifFitsOnOneLineOrElse` vertical
   where
     horizontal = do
-      outputOutputable $ head con_names
+      output $ head con_names
       string " :: "
       outputHsConDeclGADTDetails con_g_args
       string " -> "
-      outputOutputable con_res_ty
+      output con_res_ty
     vertical = do
-      outputOutputable $ head con_names
+      output $ head con_names
       newline
       indentedBlock $ do
         indentedDependingOnHead (string ":: ") $
           outputHsConDeclGADTDetails con_g_args
         newline
         string "-> "
-        outputOutputable con_res_ty
-outputConDecl x = outputOutputable x
+        output con_res_ty
+outputConDecl x = output x
 
 outputHsConDeclGADTDetails :: HsConDeclGADTDetails GhcPs -> Printer ()
 outputHsConDeclGADTDetails (PrefixConGADT xs) =
   inter (string " -> ") $
   flip fmap xs $ \case
-    (HsScaled _ x) -> outputOutputable x
+    (HsScaled _ x) -> output x
 outputHsConDeclGADTDetails (RecConGADT xs) = do
   string "{ "
   inter (newline >> string ", ") $
     flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
-      outputOutputable $ head cd_fld_names
+      output $ head cd_fld_names
       string " :: "
-      outputOutputable cd_fld_type
+      output cd_fld_type
   string "}"
 
 outputClsInstDecl :: ClsInstDecl GhcPs -> Printer ()
 outputClsInstDecl ClsInstDecl {..} = do
   string "instance "
-  outputOutputable cid_poly_ty
+  output cid_poly_ty
   unless (isEmptyBag cid_binds) $ do
     string " where"
     newline
@@ -102,7 +102,7 @@ outputClsInstDecl ClsInstDecl {..} = do
 
 outputHsBind :: HsBind GhcPs -> Printer ()
 outputHsBind FunBind {..} = outputMatchGroup fun_matches
-outputHsBind x            = outputOutputable x
+outputHsBind x            = output x
 
 outputMatchGroup :: MatchGroup GhcPs (LHsExpr GhcPs) -> Printer ()
 outputMatchGroup MG {..} = mapM_ (outputMatch . unLoc) $ unLoc mg_alts
@@ -113,13 +113,13 @@ outputMatch Match {..} = do
   unless (null m_pats) $
     forM_ m_pats $ \x -> do
       string " "
-      outputOutputable x
+      output x
   (string " = " >> outputGRHSs m_grhss) `ifFitsOnOneLineOrElse`
     (string " =" >> outputGRHSs m_grhss)
 
 outputHsMatchContext :: HsMatchContext GhcPs -> Printer ()
-outputHsMatchContext FunRhs {..} = outputOutputable mc_fun
-outputHsMatchContext x           = outputOutputable x
+outputHsMatchContext FunRhs {..} = output mc_fun
+outputHsMatchContext x           = output x
 
 outputGRHSs :: GRHSs GhcPs (LHsExpr GhcPs) -> Printer ()
 outputGRHSs GRHSs {..} = mapM_ (outputGRHS . unLoc) grhssGRHSs
@@ -143,20 +143,20 @@ outputStmtOrComment (Stmt x)    = outputStmtLR $ unLoc x
 outputStmtOrComment (Comment x) = printComment $ ac_tok $ unLoc x
 
 outputHsExpr :: HsExpr GhcPs -> Printer ()
-outputHsExpr (HsVar _ v) = outputOutputable v
+outputHsExpr (HsVar _ v) = output v
 outputHsExpr HsUnboundVar {} = undefined
 outputHsExpr HsConLikeOut {} = undefined
 outputHsExpr HsRecFld {} = undefined
 outputHsExpr HsOverLabel {} = undefined
 outputHsExpr HsIPVar {} = undefined
-outputHsExpr full@HsOverLit {} = outputOutputable full
-outputHsExpr (HsLit _ l) = outputOutputable l
-outputHsExpr full@HsLam {} = outputOutputable full
+outputHsExpr full@HsOverLit {} = output full
+outputHsExpr (HsLit _ l) = output l
+outputHsExpr full@HsLam {} = output full
 outputHsExpr HsLamCase {} = undefined
-outputHsExpr full@HsApp {} = outputOutputable full
+outputHsExpr full@HsApp {} = output full
 outputHsExpr HsAppType {} = undefined
 outputHsExpr full@(OpApp _ l o r) =
-  outputOutputable full `ifFitsOnOneLineOrElse` do
+  output full `ifFitsOnOneLineOrElse` do
     newline
     indentedBlock $ do
       outputHsExpr $ unLoc l
@@ -177,7 +177,7 @@ outputHsExpr HsLet {} = undefined
 outputHsExpr (HsDo _ (DoExpr _) xs) = do
   string " do"
   newline
-  indentedBlock $ inter newline $ outputOutputable <$> unLoc xs
+  indentedBlock $ inter newline $ output <$> unLoc xs
 -- While the name contains "Monad", this branch seems to be for list comprehensions.
 outputHsExpr (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
   where
@@ -212,7 +212,7 @@ outputHsExpr HsDo {} = undefined
 outputHsExpr ExplicitList {} = undefined
 outputHsExpr full@RecordCon {} = do
   newline
-  indentedBlock $ outputOutputable full
+  indentedBlock $ output full
 outputHsExpr RecordUpd {} = undefined
 outputHsExpr HsGetField {} = undefined
 outputHsExpr HsProjection {} = undefined
@@ -238,23 +238,23 @@ firstStmtAndOthers = f []
     f xs (y@Comment {}:ys) = f (y : xs) ys
 
 outputStmtLR :: StmtLR GhcPs GhcPs (LHsExpr GhcPs) -> Printer ()
-outputStmtLR l@LastStmt {} = outputOutputable l
+outputStmtLR l@LastStmt {} = output l
 outputStmtLR full@(BindStmt _ pat body) =
-  outputOutputable full `ifFitsOnOneLineOrElse` do
-    outputOutputable pat
+  output full `ifFitsOnOneLineOrElse` do
+    output pat
     string " <-"
     newline
-    indentedBlock $ indentedWithSpace 2 $ outputOutputable body -- 2 for "| "
+    indentedBlock $ indentedWithSpace 2 $ output body -- 2 for "| "
 outputStmtLR ApplicativeStmt {} = undefined
 outputStmtLR BodyStmt {} = undefined
-outputStmtLR l@LetStmt {} = outputOutputable l
+outputStmtLR l@LetStmt {} = output l
 outputStmtLR (ParStmt _ xs _ _) = do
   inVertical <- gets psInsideVerticalList
   if inVertical
     then vertical
     else horizontal `ifFitsOnOneLineOrElse` vertical
   where
-    horizontal = inter (string " | ") $ fmap outputOutputable xs
+    horizontal = inter (string " | ") $ fmap output xs
     vertical = inter (newline >> string "| ") $ fmap outputParStmtBlock xs
 outputStmtLR TransStmt {} = undefined
 outputStmtLR RecStmt {} = undefined
@@ -266,17 +266,17 @@ outputParStmtBlock (ParStmtBlock _ xs _ _) = do
     then vertical
     else horizontal `ifFitsOnOneLineOrElse` vertical
   where
-    horizontal = inter (string ", ") $ fmap outputOutputable xs
-    vertical = inter (newline >> string ", ") $ fmap outputOutputable xs
+    horizontal = inter (string ", ") $ fmap output xs
+    vertical = inter (newline >> string ", ") $ fmap output xs
 
 outputSig :: Sig GhcPs -> Printer ()
 outputSig (TypeSig _ funName params) =
   outputTypeSig (unLoc $ head funName) (unLoc $ hswc_body params)
-outputSig x = outputOutputable x
+outputSig x = output x
 
 outputTypeSig :: IdP GhcPs -> HsSigType GhcPs -> Printer ()
 outputTypeSig funName params = do
-  outputOutputable funName
+  output funName
   string " :: "
   outputSigType params
 
@@ -286,7 +286,7 @@ outputSigType HsSig {..} = outputHsType $ unLoc sig_body
 outputHsType :: HsType GhcPs -> Printer ()
 outputHsType HsForAllTy {} = undefined
 outputHsType HsQualTy {} = undefined
-outputHsType x@HsTyVar {} = outputOutputable x
+outputHsType x@HsTyVar {} = output x
 outputHsType (HsAppTy _ l r) = do
   outputHsType $ unLoc l
   string " "
@@ -294,7 +294,7 @@ outputHsType (HsAppTy _ l r) = do
 outputHsType HsAppKindTy {} = undefined
 outputHsType HsFunTy {} = undefined
 outputHsType HsListTy {} = undefined
-outputHsType full@HsTupleTy {} = outputOutputable full
+outputHsType full@HsTupleTy {} = output full
 outputHsType HsSumTy {} = undefined
 outputHsType (HsOpTy _ l op r) = do
   outputHsType $ unLoc l
@@ -325,7 +325,7 @@ outputHsType HsWildCardTy {} = undefined
 outputHsType XHsType {} = undefined
 
 outputRdrName :: RdrName -> Printer ()
-outputRdrName = outputOutputable
+outputRdrName = output
 
 addSeparator :: [HsDecl GhcPs] -> [(HsDecl GhcPs, Maybe (Printer ()))]
 addSeparator []     = []

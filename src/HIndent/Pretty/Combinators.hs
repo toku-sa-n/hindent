@@ -15,7 +15,7 @@ module HIndent.Pretty.Combinators
   , insideSignature
   , insideVerticalList
   , ifFitsOnOneLineOrElse
-  , outputOutputable
+  , output
   , showOutputable
   ) where
 
@@ -145,8 +145,8 @@ ifFitsOnOneLineOrElse fit notFit = do
       guard $ not $ psFitOnOneLine before
       notFit
 
-outputOutputable :: Outputable a => a -> Printer ()
-outputOutputable = string . showOutputable
+output :: Outputable a => a -> Printer ()
+output = string . showOutputable
 
 showOutputable :: Outputable a => a -> String
 showOutputable = showPpr dynFlags

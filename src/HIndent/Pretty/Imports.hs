@@ -52,14 +52,14 @@ outputImport ImportDecl {..} = do
   when (ideclSource == IsBoot) $ string "{-# SOURCE #-} "
   when ideclSafe $ string "safe "
   unless (ideclQualified == NotQualified) $ string "qualified "
-  outputOutputable ideclName
+  output ideclName
   whenJust ideclAs $ \x -> do
     string " as "
-    outputOutputable x
+    output x
   whenJust ideclHiding $ \(x, _) -> do
     when x (string " hiding")
     (string " " >> horizontalTuple explicitOrHidingImports) `ifFitsOnOneLineOrElse`
       (newline >> indentedBlock (verticalTuple explicitOrHidingImports))
   where
     explicitOrHidingImports =
-      outputOutputable <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+      output <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
