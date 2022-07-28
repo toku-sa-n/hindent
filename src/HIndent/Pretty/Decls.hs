@@ -7,6 +7,7 @@ module HIndent.Pretty.Decls
   ) where
 
 import           Control.Monad
+import           Control.Monad.RWS
 import           Data.Function
 import           Data.List
 import           Data.Maybe
@@ -31,7 +32,7 @@ outputHsDecl :: HsDecl GhcPs -> Printer ()
 outputHsDecl (TyClD _ d)    = outputTyClDecl d
 outputHsDecl (InstD _ inst) = outputInstDecl inst
 outputHsDecl (ValD _ bind)  = outputHsBind bind
-outputHsDecl (SigD _ s)     = outputSig s
+outputHsDecl (SigD _ s)     = insideSignature $ outputSig s
 outputHsDecl x              = outputOutputable x
 
 outputTyClDecl :: TyClDecl GhcPs -> Printer ()
@@ -302,6 +303,8 @@ outputHsType HsSumTy {} = undefined
 outputHsType (HsOpTy _ l op r) = do
   outputHsType $ unLoc l
   string " "
+  insideSig <- gets psInsideSignature
+  when insideSig $ string "'"
   outputRdrName $ unLoc op
   string " "
   outputHsType $ unLoc r

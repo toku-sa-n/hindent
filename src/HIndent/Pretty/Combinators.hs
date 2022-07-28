@@ -12,6 +12,7 @@ module HIndent.Pretty.Combinators
   , indentedBlock
   , indentedWithSpace
   , indentedDependingOnHead
+  , insideSignature
   , ifFitsOnOneLineOrElse
   , outputOutputable
   , showOutputable
@@ -86,6 +87,14 @@ collectComments = listify (const True)
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
+
+insideSignature :: Printer a -> Printer a
+insideSignature p = do
+  before <- gets psInsideSignature
+  modify (\s -> s {psInsideSignature = True})
+  r <- p
+  modify (\s -> s {psInsideSignature = before})
+  return r
 
 indentedDependingOnHead :: Printer () -> Printer a -> Printer a
 indentedDependingOnHead hd p = do
