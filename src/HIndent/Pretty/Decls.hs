@@ -320,7 +320,10 @@ outputHsType (HsExplicitListTy _ _ xs) = do
   string "'[ "
   inter (string ", ") $ fmap (outputHsType . unLoc) xs
   string "]"
-outputHsType x = outputOutputable x
+outputHsType HsExplicitTupleTy {} = undefined
+outputHsType HsTyLit {} = undefined
+outputHsType HsWildCardTy {} = undefined
+outputHsType XHsType {} = undefined
 
 outputRdrName :: RdrName -> Printer ()
 outputRdrName = outputOutputable
