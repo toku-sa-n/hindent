@@ -210,9 +210,16 @@ outputHsExpr (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
       fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
 outputHsExpr HsDo {} = undefined
 outputHsExpr ExplicitList {} = undefined
-outputHsExpr full@RecordCon {} = do
+outputHsExpr full@(RecordCon _ name fields) = do
   newline
-  indentedBlock $ output full
+  horizontal `ifFitsOnOneLineOrElse` vertical
+  where
+    horizontal = indentedBlock $ output full
+    vertical =
+      indentedBlock $ do
+        output name
+        newline
+        indentedBlock $ outputHsRecordBinds fields
 outputHsExpr RecordUpd {} = undefined
 outputHsExpr HsGetField {} = undefined
 outputHsExpr HsProjection {} = undefined
@@ -227,6 +234,12 @@ outputHsExpr HsStatic {} = undefined
 outputHsExpr HsTick {} = undefined
 outputHsExpr HsBinTick {} = undefined
 outputHsExpr HsPragE {} = undefined
+
+outputHsRecordBinds :: HsRecordBinds GhcPs -> Printer ()
+outputHsRecordBinds HsRecFields {..} = do
+  string "{"
+  inter (string ", ") $ fmap output rec_flds
+  string "}"
 
 firstStmtAndOthers ::
      [StmtOrComment]
@@ -292,7 +305,7 @@ outputHsType (HsAppTy _ l r) = do
   string " "
   outputHsType $ unLoc r
 outputHsType HsAppKindTy {} = undefined
-outputHsType HsFunTy {} = undefined
+outputHsType full@HsFunTy {} = output full
 outputHsType HsListTy {} = undefined
 outputHsType full@HsTupleTy {} = output full
 outputHsType HsSumTy {} = undefined
