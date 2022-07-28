@@ -105,20 +105,31 @@ outputHsBind FunBind {..} = outputMatchGroup fun_matches
 outputHsBind x            = output x
 
 outputMatchGroup :: MatchGroup GhcPs (LHsExpr GhcPs) -> Printer ()
-outputMatchGroup MG {..} = mapM_ (outputMatch . unLoc) $ unLoc mg_alts
+outputMatchGroup MG {..} = do
+  isInsideCase <- gets psInsideCase
+  inter (when isInsideCase newline) $ outputMatch . unLoc <$> unLoc mg_alts
 
 outputMatch :: Match GhcPs (LHsExpr GhcPs) -> Printer ()
 outputMatch Match {..} = do
-  outputHsMatchContext m_ctxt
-  unless (null m_pats) $
-    forM_ m_pats $ \x -> do
-      string " "
-      output x
-  (string " = " >> outputGRHSs m_grhss) `ifFitsOnOneLineOrElse`
-    (string " =" >> outputGRHSs m_grhss)
+  isInsideCase <- gets psInsideCase
+  if isInsideCase
+    then do
+      forM_ m_pats $ \x -> do
+        output x
+        string " -> "
+      outputGRHSs m_grhss
+    else do
+      outputHsMatchContext m_ctxt
+      unless (null m_pats) $
+        forM_ m_pats $ \x -> do
+          string " "
+          output x
+      (string " = " >> outputGRHSs m_grhss) `ifFitsOnOneLineOrElse`
+        (string " =" >> outputGRHSs m_grhss)
 
 outputHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 outputHsMatchContext FunRhs {..} = output mc_fun
+outputHsMatchContext CaseAlt     = return ()
 outputHsMatchContext x           = output x
 
 outputGRHSs :: GRHSs GhcPs (LHsExpr GhcPs) -> Printer ()
@@ -170,7 +181,15 @@ outputHsExpr SectionL {} = undefined
 outputHsExpr SectionR {} = undefined
 outputHsExpr ExplicitTuple {} = undefined
 outputHsExpr ExplicitSum {} = undefined
-outputHsExpr HsCase {} = undefined
+outputHsExpr (HsCase _ cond arms) =
+  insideCase $ do
+    newline
+    indentedBlock $ do
+      string "case "
+      output cond
+      string " of"
+      newline
+      indentedBlock $ outputMatchGroup arms
 outputHsExpr HsIf {} = undefined
 outputHsExpr HsMultiIf {} = undefined
 outputHsExpr HsLet {} = undefined
