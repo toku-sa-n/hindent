@@ -45,7 +45,6 @@ string x = do
   when addingNewline newline
   state <- get
   let writingNewline = x == "\n"
-      out :: String
       out =
         if psNewline state && not writingNewline
           then replicate (fromIntegral (psIndentLevel state)) ' ' <> x
