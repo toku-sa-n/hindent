@@ -47,7 +47,7 @@ string x = do
   let writingNewline = x == "\n"
       out =
         if psNewline state && not writingNewline
-          then replicate (fromIntegral (psIndentLevel state)) ' ' <> x
+          then replicate (fromIntegral $ psIndentLevel state) ' ' <> x
           else x
       psColumn' =
         if additionalLines > 0
