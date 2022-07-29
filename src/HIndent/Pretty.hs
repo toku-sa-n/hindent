@@ -143,12 +143,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsAppType {} = undefined
   pretty (OpApp _ l o r) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = do
-        pretty l
-        space
-        pretty o
-        space
-        pretty r
+      horizontal = spaced $ fmap pretty [l, o, r]
       vertical = do
         pretty l
         space

@@ -6,6 +6,7 @@ module HIndent.Pretty.Combinators
   , newline
   , blankline
   , inter
+  , spaced
   , collectComments
   , horizontalTuple
   , verticalTuple
@@ -94,6 +95,9 @@ collectComments = listify (const True)
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
+
+spaced :: [Printer ()] -> Printer ()
+spaced = inter space
 
 insideSignature :: Printer a -> Printer a
 insideSignature p = do
