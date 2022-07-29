@@ -68,7 +68,7 @@ string x = do
          })
   where
     srclines = lines x
-    additionalLines = length (filter (== '\n') x)
+    additionalLines = length $ filter (== '\n') x
 
 newline :: Printer ()
 newline = do
