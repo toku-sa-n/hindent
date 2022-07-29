@@ -250,7 +250,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     isInsideCase <- gets psInsideCase
     if isInsideCase
       then do
-        forM_ m_pats output
+        mapM_ output m_pats
         pretty m_grhss
       else do
         pretty m_ctxt
