@@ -89,7 +89,7 @@ instance Pretty (Sig GhcPs) where
   pretty (TypeSig _ funName params) = do
     output $ unLoc $ head funName
     string " :: "
-    pretty $ unLoc $ hswc_body params
+    pretty $ hswc_body params
   pretty x = output x
 
 instance Pretty (HsDataDefn GhcPs) where
@@ -101,7 +101,7 @@ instance Pretty (HsDataDefn GhcPs) where
     indentedBlock $
       forM_ dd_cons $ \x -> do
         newline
-        pretty $ unLoc x
+        pretty x
 
 instance Pretty (ClsInstDecl GhcPs) where
   pretty ClsInstDecl {..} = do
@@ -110,12 +110,12 @@ instance Pretty (ClsInstDecl GhcPs) where
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
-      indentedBlock $ mapM_ (pretty . unLoc) cid_binds
+      indentedBlock $ mapM_ pretty cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty MG {..} = do
     isInsideCase <- gets psInsideCase
-    inter (when isInsideCase newline) $ pretty . unLoc <$> unLoc mg_alts
+    inter (when isInsideCase newline) $ pretty <$> unLoc mg_alts
 
 instance Pretty (HsExpr GhcPs) where
   pretty (HsVar _ v) = output v
@@ -134,11 +134,11 @@ instance Pretty (HsExpr GhcPs) where
     output full `ifFitsOnOneLineOrElse` do
       newline
       indentedBlock $ do
-        pretty $ unLoc l
+        pretty l
         string " "
-        pretty $ unLoc o
+        pretty o
         newline
-        pretty $ unLoc r
+        pretty r
   pretty NegApp {} = undefined
   pretty HsPar {} = undefined
   pretty SectionL {} = undefined
@@ -166,9 +166,9 @@ instance Pretty (HsExpr GhcPs) where
     where
       horizontal = do
         string "["
-        pretty $ unLoc $ last $ unLoc xs
+        pretty $ last $ unLoc xs
         string " | "
-        mapM_ (pretty . unLoc) $ init $ unLoc xs
+        mapM_ pretty $ init $ unLoc xs
         string "]"
       vertical =
         insideVerticalList $
@@ -177,7 +177,7 @@ instance Pretty (HsExpr GhcPs) where
             newline
             indentedBlock $ do
               string "[ "
-              pretty $ unLoc lastStmt
+              pretty lastStmt
               newline
               forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
                 string p
@@ -315,25 +315,25 @@ instance Pretty (HsType GhcPs) where
   pretty HsQualTy {} = undefined
   pretty x@HsTyVar {} = output x
   pretty (HsAppTy _ l r) = do
-    pretty $ unLoc l
+    pretty l
     string " "
-    pretty $ unLoc r
+    pretty r
   pretty HsAppKindTy {} = undefined
   pretty full@HsFunTy {} = output full
   pretty HsListTy {} = undefined
   pretty full@HsTupleTy {} = output full
   pretty HsSumTy {} = undefined
   pretty (HsOpTy _ l op r) = do
-    pretty $ unLoc l
+    pretty l
     string " "
     insideSig <- gets psInsideSignature
     when insideSig $ string "'"
-    pretty $ unLoc op
+    pretty op
     string " "
-    pretty $ unLoc r
+    pretty r
   pretty (HsParTy _ inside) = do
     string "("
-    pretty $ unLoc inside
+    pretty inside
     string ")"
   pretty HsIParamTy {} = undefined
   pretty HsStarTy {} = undefined
@@ -344,7 +344,7 @@ instance Pretty (HsType GhcPs) where
   pretty HsRecTy {} = undefined
   pretty (HsExplicitListTy _ _ xs) = do
     string "'[ "
-    inter (string ", ") $ fmap (pretty . unLoc) xs
+    inter (string ", ") $ fmap pretty xs
     string "]"
   pretty HsExplicitTupleTy {} = undefined
   pretty HsTyLit {} = undefined
@@ -366,7 +366,7 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
     string "}"
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty GRHSs {..} = mapM_ (pretty . unLoc) grhssGRHSs
+  pretty GRHSs {..} = mapM_ pretty grhssGRHSs
 
 instance Pretty (HsMatchContext GhcPs) where
   pretty FunRhs {..} = output mc_fun
