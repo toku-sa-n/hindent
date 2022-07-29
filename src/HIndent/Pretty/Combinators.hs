@@ -15,6 +15,7 @@ module HIndent.Pretty.Combinators
   , insideSignature
   , insideVerticalList
   , insideCase
+  , insideLambda
   , ifFitsOnOneLineOrElse
   , output
   , showOutputable
@@ -114,6 +115,14 @@ insideCase p = do
   modify (\s -> s {psInsideCase = before})
   return r
 
+insideLambda :: Printer a -> Printer a
+insideLambda p = do
+  before <- gets psInsideLambda
+  modify (\s -> s {psInsideLambda = True})
+  r <- p
+  modify (\s -> s {psInsideLambda = before})
+  return r
+
 indentedDependingOnHead :: Printer () -> Printer a -> Printer a
 indentedDependingOnHead hd p = do
   hd
@@ -182,8 +191,9 @@ getIndentSpaces = gets (configIndentSpaces . psConfig)
 rhsSeparator :: Printer ()
 rhsSeparator = do
   isInsideCase <- gets psInsideCase
+  isInsideLambda <- gets psInsideLambda
   string $
-    if isInsideCase
+    if isInsideCase || isInsideLambda
       then "->"
       else "="
 

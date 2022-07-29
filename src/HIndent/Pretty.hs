@@ -135,7 +135,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsIPVar {} = undefined
   pretty full@HsOverLit {} = output full
   pretty (HsLit _ l) = output l
-  pretty full@HsLam {} = output full
+  pretty (HsLam _ body) = insideLambda $ pretty body
   pretty HsLamCase {} = undefined
   pretty full@HsApp {} = output full
   pretty HsAppType {} = undefined
@@ -146,6 +146,7 @@ instance Pretty (HsExpr GhcPs) where
       pretty o
       case unLoc r of
         (HsDo _ (DoExpr _) _) -> space
+        HsLam {}              -> space
         _                     -> newline
       pretty r
   pretty NegApp {} = undefined
@@ -258,11 +259,22 @@ instance Pretty (ConDecl GhcPs) where
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty Match {..} = do
     isInsideCase <- gets psInsideCase
-    if isInsideCase
-      then do
+    isInsideLambda <- gets psInsideLambda
+    when isInsideLambda $ string "\\"
+    case (isInsideCase, isInsideLambda) of
+      (True, _) -> do
         mapM_ output m_pats
         pretty m_grhss
-      else do
+      (_, True) -> do
+        unless (null m_pats) $
+          case unLoc $ head m_pats of
+            LazyPat {} -> space
+            BangPat {} -> space
+            _          -> return ()
+        mapM_ output m_pats
+        space
+        pretty m_grhss
+      _ -> do
         pretty m_ctxt
         unless (null m_pats) $
           forM_ m_pats $ \x -> do
@@ -370,6 +382,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 instance Pretty (HsMatchContext GhcPs) where
   pretty FunRhs {..} = output mc_fun
   pretty CaseAlt     = return ()
+  pretty LambdaExpr  = return ()
   pretty x           = output x
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
@@ -387,15 +400,27 @@ instance Pretty RdrName where
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty (GRHS _ _ (L _ (HsDo _ (DoExpr _) body))) = do
-    string " = do"
+    isInsideLambda <- gets psInsideLambda
+    unless isInsideLambda space
+    rhsSeparator
+    space
+    string "do"
     newline
     indentedBlock $ inter newline $ output <$> unLoc body
-  pretty (GRHS _ _ body) =
-    (space >> rhsSeparator >> space >> pretty body) `ifFitsOnOneLineOrElse` do
-      space
-      rhsSeparator
-      newline
-      indentedBlock $ pretty body
+  pretty (GRHS _ _ body) = horizontal `ifFitsOnOneLineOrElse` vertical
+    where
+      horizontal = do
+        isInsideLambda <- gets psInsideLambda
+        unless isInsideLambda space
+        rhsSeparator
+        space
+        pretty body
+      vertical = do
+        isInsideLambda <- gets psInsideLambda
+        unless isInsideLambda space
+        rhsSeparator
+        newline
+        indentedBlock $ pretty body
 
 instance Pretty EpaCommentTok where
   pretty (EpaLineComment c)  = string c

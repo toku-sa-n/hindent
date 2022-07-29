@@ -64,6 +64,7 @@ data PrintState =
     , psEolComment         :: !Bool
     , psInsideSignature    :: !Bool
     , psInsideVerticalList :: !Bool
+    , psInsideLambda       :: !Bool
     }
 
 -- | Configurations shared among the different styles. Styles may pay
