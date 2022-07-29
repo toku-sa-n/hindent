@@ -134,19 +134,31 @@ instance Pretty (HsExpr GhcPs) where
   pretty full@HsOverLit {} = output full
   pretty (HsLit _ l) = output l
   pretty (HsLam _ body) = insideLambda $ pretty body
-  pretty HsLamCase {} = undefined
+  pretty (HsLamCase _ matches) =
+    insideCase $ do
+      string "\\case"
+      newline
+      indentedBlock $ pretty matches
   pretty full@HsApp {} = output full
   pretty HsAppType {} = undefined
-  pretty full@(OpApp _ l o r) =
-    output full `ifFitsOnOneLineOrElse` do
-      pretty l
-      space
-      pretty o
-      case unLoc r of
-        (HsDo _ (DoExpr _) _) -> space
-        HsLam {}              -> space
-        _                     -> newline
-      pretty r
+  pretty (OpApp _ l o r) = horizontal `ifFitsOnOneLineOrElse` vertical
+    where
+      horizontal = do
+        pretty l
+        space
+        pretty o
+        space
+        pretty r
+      vertical = do
+        pretty l
+        space
+        pretty o
+        case unLoc r of
+          (HsDo _ (DoExpr _) _) -> space
+          HsLam {}              -> space
+          HsLamCase {}          -> space
+          _                     -> newline
+        pretty r
   pretty NegApp {} = undefined
   pretty HsPar {} = undefined
   pretty SectionL {} = undefined
