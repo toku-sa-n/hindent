@@ -232,7 +232,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsPragE {} = undefined
 
 instance Pretty (HsSigType GhcPs) where
-  pretty HsSig {..} = pretty $ unLoc sig_body
+  pretty HsSig {..} = pretty sig_body
 
 instance Pretty (ConDecl GhcPs) where
   pretty ConDeclGADT {..} = horizontal `ifFitsOnOneLineOrElse` vertical
@@ -294,7 +294,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   pretty RecStmt {} = undefined
 
 instance Pretty StmtOrComment where
-  pretty (Stmt x)    = pretty $ unLoc x
+  pretty (Stmt x)    = pretty x
   pretty (Comment x) = pretty $ ac_tok $ unLoc x
 
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -387,7 +387,7 @@ instance Pretty RdrName where
   pretty = output
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty (GRHS _ _ body) = pretty $ unLoc body
+  pretty (GRHS _ _ body) = pretty body
 
 instance Pretty EpaCommentTok where
   pretty (EpaLineComment c)  = string c
