@@ -145,9 +145,7 @@ instance Pretty (HsExpr GhcPs) where
     where
       horizontal = spaced $ fmap pretty [l, o, r]
       vertical = do
-        pretty l
-        space
-        pretty o
+        spaced $ fmap pretty [l, o]
         case unLoc r of
           (HsDo _ (DoExpr _) _) -> space
           HsLam {}              -> space
