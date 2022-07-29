@@ -103,7 +103,7 @@ instance FromJSON Config where
       (v Y..:? "force-trailing-newline") <*>
     fmap (fromMaybe (configSortImports defaultConfig)) (v Y..:? "sort-imports") <*>
     fmap (fromMaybe (configLineBreaks defaultConfig)) (v Y..:? "line-breaks") <*>
-    (traverse readExtension =<< fmap (fromMaybe []) (v Y..:? "extensions"))
+    (traverse readExtension . fromMaybe [] =<< v Y..:? "extensions")
   parseJSON _ = fail "Expected Object for Config value"
 
 -- | Default style configuration.
