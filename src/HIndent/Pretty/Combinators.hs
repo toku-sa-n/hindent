@@ -2,6 +2,7 @@
 
 module HIndent.Pretty.Combinators
   ( string
+  , space
   , newline
   , blankline
   , inter
@@ -33,7 +34,8 @@ import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
-                                                                     ((<>))
+                                                                     (space,
+                                                                      (<>))
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
@@ -68,6 +70,9 @@ string x = do
   where
     srclines = lines x
     additionalLines = length $ filter (== '\n') x
+
+space :: Printer ()
+space = string " "
 
 newline :: Printer ()
 newline = do

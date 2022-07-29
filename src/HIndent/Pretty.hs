@@ -133,7 +133,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty full@(OpApp _ l o r) =
     output full `ifFitsOnOneLineOrElse` do
       pretty l
-      string " "
+      space
       pretty o
       newline
       pretty r
@@ -202,7 +202,7 @@ instance Pretty (HsExpr GhcPs) where
         indentedBlock $ pretty fields
       vertical = do
         string name'
-        (string " " >> pretty fields) `ifFitsOnOneLineOrElse`
+        (space >> pretty fields) `ifFitsOnOneLineOrElse`
           (newline >> indentedBlock (pretty fields))
       name' =
         if head (showOutputable name) == ':'
@@ -256,7 +256,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         pretty m_ctxt
         unless (null m_pats) $
           forM_ m_pats $ \x -> do
-            string " "
+            space
             output x
         pretty m_grhss
 
@@ -305,7 +305,7 @@ instance Pretty (HsType GhcPs) where
   pretty x@HsTyVar {} = output x
   pretty (HsAppTy _ l r) = do
     pretty l
-    string " "
+    space
     pretty r
   pretty HsAppKindTy {} = undefined
   pretty full@HsFunTy {} = output full
@@ -314,11 +314,11 @@ instance Pretty (HsType GhcPs) where
   pretty HsSumTy {} = undefined
   pretty (HsOpTy _ l op r) = do
     pretty l
-    string " "
+    space
     insideSig <- gets psInsideSignature
     when insideSig $ string "'"
     pretty op
-    string " "
+    space
     pretty r
   pretty (HsParTy _ inside) = do
     string "("
@@ -381,8 +381,8 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     newline
     indentedBlock $ inter newline $ output <$> unLoc body
   pretty (GRHS _ _ body) =
-    (string " " >> rhsSeparator >> string " " >> pretty body) `ifFitsOnOneLineOrElse` do
-      string " "
+    (space >> rhsSeparator >> space >> pretty body) `ifFitsOnOneLineOrElse` do
+      space
       rhsSeparator
       newline
       indentedBlock $ pretty body
