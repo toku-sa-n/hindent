@@ -160,12 +160,11 @@ instance Pretty (HsExpr GhcPs) where
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = do
-        string "["
-        pretty $ last $ unLoc xs
-        string " | "
-        mapM_ pretty $ init $ unLoc xs
-        string "]"
+      horizontal =
+        brackets $ do
+          pretty $ last $ unLoc xs
+          string " | "
+          mapM_ pretty $ init $ unLoc xs
       vertical =
         insideVerticalList $
         case firstStmtAndOthers stmts of

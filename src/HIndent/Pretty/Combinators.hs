@@ -19,6 +19,7 @@ module HIndent.Pretty.Combinators
   , output
   , showOutputable
   , rhsSeparator
+  , brackets
   ) where
 
 import           Control.Applicative
@@ -34,7 +35,8 @@ import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
-                                                                     (space,
+                                                                     (brackets,
+                                                                      space,
                                                                       (<>))
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
@@ -184,3 +186,9 @@ rhsSeparator = do
     if isInsideCase
       then "->"
       else "="
+
+brackets :: Printer a -> Printer a
+brackets = wrap "[" "]"
+
+wrap :: String -> String -> Printer a -> Printer a
+wrap open close p = indentedDependingOnHead (string open) $ p <* string close
