@@ -35,7 +35,6 @@ library
                      HIndent.Types
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
-                     HIndent.Pretty.Decls
                      HIndent.Pretty.Imports
                      HIndent.Pretty.Imports.Sort
                      HIndent.Pretty.Pragma
