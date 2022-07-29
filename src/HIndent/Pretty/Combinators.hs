@@ -53,10 +53,9 @@ string x = do
         if additionalLines > 0
           then fromIntegral $ length $ concat $ take 1 $ reverse srclines
           else psColumn state + fromIntegral (length out)
-  when
-    hardFail
-    (guard
-       (additionalLines == 0 && psColumn' <= configMaxColumns (psConfig state)))
+  when hardFail $
+    guard $
+    additionalLines == 0 && psColumn' <= configMaxColumns (psConfig state)
   modify
     (\s ->
        s
