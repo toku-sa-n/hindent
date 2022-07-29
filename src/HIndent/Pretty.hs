@@ -66,9 +66,18 @@ instance Pretty e => Pretty (GenLocated l e) where
 instance Pretty (HsDecl GhcPs) where
   pretty (TyClD _ d)    = pretty d
   pretty (InstD _ inst) = pretty inst
+  pretty DerivD {}      = undefined
   pretty (ValD _ bind)  = pretty bind
   pretty (SigD _ s)     = insideSignature $ pretty s
-  pretty x              = output x
+  pretty KindSigD {}    = undefined
+  pretty DefD {}        = undefined
+  pretty ForD {}        = undefined
+  pretty WarningD {}    = undefined
+  pretty AnnD {}        = undefined
+  pretty RuleD {}       = undefined
+  pretty (SpliceD _ sp) = pretty sp
+  pretty DocD {}        = undefined
+  pretty RoleAnnotD {}  = undefined
 
 instance Pretty (TyClDecl GhcPs) where
   pretty DataDecl {..} = do
@@ -135,7 +144,9 @@ instance Pretty (HsExpr GhcPs) where
       pretty l
       space
       pretty o
-      newline
+      case unLoc r of
+        (HsDo _ (DoExpr _) _) -> space
+        _                     -> newline
       pretty r
   pretty NegApp {} = undefined
   pretty HsPar {} = undefined
@@ -154,7 +165,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsMultiIf {} = undefined
   pretty HsLet {} = undefined
   pretty (HsDo _ (DoExpr _) xs) = do
-    string " do"
+    string "do"
     newline
     indentedBlock $ inter newline $ output <$> unLoc xs
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
@@ -390,3 +401,12 @@ instance Pretty EpaCommentTok where
   pretty (EpaLineComment c)  = string c
   pretty (EpaBlockComment c) = string c
   pretty _                   = return ()
+
+instance Pretty (SpliceDecl GhcPs) where
+  pretty (SpliceDecl _ sp _) = pretty sp
+
+instance Pretty (HsSplice GhcPs) where
+  pretty HsTypedSplice {}             = undefined
+  pretty (HsUntypedSplice _ _ _ body) = pretty body
+  pretty HsQuasiQuote {}              = undefined
+  pretty HsSpliced {}                 = undefined
