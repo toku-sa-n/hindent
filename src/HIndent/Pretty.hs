@@ -132,13 +132,11 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsAppType {} = undefined
   pretty full@(OpApp _ l o r) =
     output full `ifFitsOnOneLineOrElse` do
+      pretty l
+      string " "
+      pretty o
       newline
-      indentedBlock $ do
-        pretty l
-        string " "
-        pretty o
-        newline
-        pretty r
+      pretty r
   pretty NegApp {} = undefined
   pretty HsPar {} = undefined
   pretty SectionL {} = undefined
@@ -147,13 +145,11 @@ instance Pretty (HsExpr GhcPs) where
   pretty ExplicitSum {} = undefined
   pretty (HsCase _ cond arms) =
     insideCase $ do
+      string "case "
+      output cond
+      string " of"
       newline
-      indentedBlock $ do
-        string "case "
-        output cond
-        string " of"
-        newline
-        indentedBlock $ pretty arms
+      indentedBlock $ pretty arms
   pretty HsIf {} = undefined
   pretty HsMultiIf {} = undefined
   pretty HsLet {} = undefined
@@ -174,16 +170,14 @@ instance Pretty (HsExpr GhcPs) where
         insideVerticalList $
         case firstStmtAndOthers stmts of
           Just (lastStmt, others) -> do
+            string "[ "
+            pretty lastStmt
             newline
-            indentedBlock $ do
-              string "[ "
-              pretty lastStmt
+            forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+              string p
+              pretty x
               newline
-              forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                string p
-                pretty x
-                newline
-              string "]"
+            string "]"
           Nothing -> string "[]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (\x -> (prefix x, x)) (tail l)
       prefix Stmt {}    = ", "
@@ -207,11 +201,9 @@ instance Pretty (HsExpr GhcPs) where
         string $ name' ++ " "
         indentedBlock $ pretty fields
       vertical = do
-        newline
-        indentedBlock $ do
-          string name'
-          (string " " >> pretty fields) `ifFitsOnOneLineOrElse`
-            (newline >> indentedBlock (pretty fields))
+        string name'
+        (string " " >> pretty fields) `ifFitsOnOneLineOrElse`
+          (newline >> indentedBlock (pretty fields))
       name' =
         if head (showOutputable name) == ':'
           then "(" ++ showOutputable name ++ ")"
@@ -258,9 +250,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     isInsideCase <- gets psInsideCase
     if isInsideCase
       then do
-        forM_ m_pats $ \x -> do
-          output x
-          string " -> "
+        forM_ m_pats output
         pretty m_grhss
       else do
         pretty m_ctxt
@@ -268,8 +258,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
           forM_ m_pats $ \x -> do
             string " "
             output x
-        (string " = " >> pretty m_grhss) `ifFitsOnOneLineOrElse`
-          (string " =" >> pretty m_grhss)
+        pretty m_grhss
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty l@LastStmt {} = output l
@@ -387,7 +376,16 @@ instance Pretty RdrName where
   pretty = output
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty (GRHS _ _ body) = pretty body
+  pretty (GRHS _ _ (L _ (HsDo _ (DoExpr _) body))) = do
+    string " = do"
+    newline
+    indentedBlock $ inter newline $ output <$> unLoc body
+  pretty (GRHS _ _ body) =
+    (string " " >> rhsSeparator >> string " " >> pretty body) `ifFitsOnOneLineOrElse` do
+      string " "
+      rhsSeparator
+      newline
+      indentedBlock $ pretty body
 
 instance Pretty EpaCommentTok where
   pretty (EpaLineComment c)  = string c

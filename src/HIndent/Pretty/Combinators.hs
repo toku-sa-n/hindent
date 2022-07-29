@@ -17,6 +17,7 @@ module HIndent.Pretty.Combinators
   , ifFitsOnOneLineOrElse
   , output
   , showOutputable
+  , rhsSeparator
   ) where
 
 import           Control.Applicative
@@ -170,3 +171,11 @@ indentedWithSpace i p = do
 
 getIndentSpaces :: Printer Int64
 getIndentSpaces = gets (configIndentSpaces . psConfig)
+
+rhsSeparator :: Printer ()
+rhsSeparator = do
+  isInsideCase <- gets psInsideCase
+  string $
+    if isInsideCase
+      then "->"
+      else "="
