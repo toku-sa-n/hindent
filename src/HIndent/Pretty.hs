@@ -48,7 +48,7 @@ instance Pretty HsModule where
         , (declsExist m, outputDecls)
         ]
       printCommentsAtTheEndOfModule =
-        mapM_ (\x -> newline >> printComment x) .
+        mapM_ (\x -> newline >> pretty x) .
         filter (not . isPragma) . listify (const True) . hsmodAnn
       outputDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
@@ -295,7 +295,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
 
 instance Pretty StmtOrComment where
   pretty (Stmt x)    = pretty $ unLoc x
-  pretty (Comment x) = printComment $ ac_tok $ unLoc x
+  pretty (Comment x) = pretty $ ac_tok $ unLoc x
 
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty HsRecFields {..} = horizontal `ifFitsOnOneLineOrElse` vertical
@@ -388,3 +388,8 @@ instance Pretty RdrName where
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty (GRHS _ _ body) = pretty $ unLoc body
+
+instance Pretty EpaCommentTok where
+  pretty (EpaLineComment c)  = string c
+  pretty (EpaBlockComment c) = string c
+  pretty _                   = return ()

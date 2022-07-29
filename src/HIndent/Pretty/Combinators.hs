@@ -5,7 +5,6 @@ module HIndent.Pretty.Combinators
   , newline
   , blankline
   , inter
-  , printComment
   , collectComments
   , horizontalTuple
   , verticalTuple
@@ -76,11 +75,6 @@ newline = do
 
 blankline :: Printer ()
 blankline = newline >> newline
-
-printComment :: EpaCommentTok -> Printer ()
-printComment (EpaLineComment c)  = string c
-printComment (EpaBlockComment c) = string c
-printComment _                   = return ()
 
 collectComments :: Data a => a -> [EpaCommentTok]
 collectComments = listify (const True)
