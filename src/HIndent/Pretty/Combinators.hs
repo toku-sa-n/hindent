@@ -21,6 +21,10 @@ module HIndent.Pretty.Combinators
   , showOutputable
   , rhsSeparator
   , brackets
+  , whenInsideCase
+  , whenInsideLambda
+  , whenInsideSignature
+  , unlessInsideLambda
   ) where
 
 import           Control.Applicative
@@ -122,6 +126,24 @@ insideLambda p = do
   r <- p
   modify (\s -> s {psInsideLambda = before})
   return r
+
+whenInsideCase :: Printer () -> Printer ()
+whenInsideCase = whenInside psInsideCase
+
+whenInsideLambda :: Printer () -> Printer ()
+whenInsideLambda = whenInside psInsideLambda
+
+whenInsideSignature :: Printer () -> Printer ()
+whenInsideSignature = whenInside psInsideSignature
+
+whenInside :: (PrintState -> Bool) -> Printer () -> Printer ()
+whenInside f p = gets f >>= flip when p
+
+unlessInsideLambda :: Printer () -> Printer ()
+unlessInsideLambda = unlessInside psInsideLambda
+
+unlessInside :: (PrintState -> Bool) -> Printer () -> Printer ()
+unlessInside f p = gets f >>= flip unless p
 
 indentedDependingOnHead :: Printer () -> Printer a -> Printer a
 indentedDependingOnHead hd p = do

@@ -122,9 +122,7 @@ instance Pretty (ClsInstDecl GhcPs) where
       indentedBlock $ mapM_ pretty cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty MG {..} = do
-    isInsideCase <- gets psInsideCase
-    inter (when isInsideCase newline) $ pretty <$> unLoc mg_alts
+  pretty MG {..} = inter (whenInsideCase newline) $ pretty <$> unLoc mg_alts
 
 instance Pretty (HsExpr GhcPs) where
   pretty (HsVar _ v) = output v
@@ -260,7 +258,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty Match {..} = do
     isInsideCase <- gets psInsideCase
     isInsideLambda <- gets psInsideLambda
-    when isInsideLambda $ string "\\"
+    whenInsideLambda $ string "\\"
     case (isInsideCase, isInsideLambda) of
       (True, _) -> do
         mapM_ output m_pats
@@ -337,8 +335,7 @@ instance Pretty (HsType GhcPs) where
   pretty (HsOpTy _ l op r) = do
     pretty l
     space
-    insideSig <- gets psInsideSignature
-    when insideSig $ string "'"
+    whenInsideSignature $ string "'"
     pretty op
     space
     pretty r
@@ -400,8 +397,7 @@ instance Pretty RdrName where
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty (GRHS _ _ (L _ (HsDo _ (DoExpr _) body))) = do
-    isInsideLambda <- gets psInsideLambda
-    unless isInsideLambda space
+    unlessInsideLambda space
     rhsSeparator
     space
     string "do"
@@ -410,14 +406,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty (GRHS _ _ body) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal = do
-        isInsideLambda <- gets psInsideLambda
-        unless isInsideLambda space
+        unlessInsideLambda space
         rhsSeparator
         space
         pretty body
       vertical = do
-        isInsideLambda <- gets psInsideLambda
-        unless isInsideLambda space
+        unlessInsideLambda space
         rhsSeparator
         newline
         indentedBlock $ pretty body
