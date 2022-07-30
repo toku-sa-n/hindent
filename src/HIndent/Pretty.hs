@@ -125,7 +125,7 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty MG {..} = inter (whenInsideCase newline) $ pretty <$> unLoc mg_alts
 
 instance Pretty (HsExpr GhcPs) where
-  pretty (HsVar _ v) = output v
+  pretty (HsVar _ v) = pretty v
   pretty HsUnboundVar {} = undefined
   pretty HsConLikeOut {} = undefined
   pretty HsRecFld {} = undefined
