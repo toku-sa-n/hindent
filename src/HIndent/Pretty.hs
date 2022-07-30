@@ -212,16 +212,17 @@ instance Pretty (HsExpr GhcPs) where
   pretty (RecordCon _ name fields) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal = do
-        string $ name' ++ " "
+        name'
+        space
         indentedBlock $ pretty fields
       vertical = do
-        string name'
+        name'
         (space >> pretty fields) `ifFitsOnOneLineOrElse`
           (newline >> indentedBlock (pretty fields))
       name' =
         if head (showOutputable name) == ':'
-          then "(" ++ showOutputable name ++ ")"
-          else showOutputable name
+          then parens $ output name
+          else output name
   pretty full@RecordUpd {} = output full
   pretty HsGetField {} = undefined
   pretty HsProjection {} = undefined

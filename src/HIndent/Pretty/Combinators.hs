@@ -21,6 +21,7 @@ module HIndent.Pretty.Combinators
   , output
   , showOutputable
   , rhsSeparator
+  , parens
   , brackets
   , whenInsideCase
   , whenInsideLambda
@@ -42,6 +43,7 @@ import           GHC.Driver.Session
 import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
                                                                      (brackets,
+                                                                      parens,
                                                                       space,
                                                                       (<>))
 import           HIndent.Types
@@ -222,6 +224,9 @@ rhsSeparator = do
     if isInsideCase || isInsideLambda
       then "->"
       else "="
+
+parens :: Printer a -> Printer a
+parens = wrap "(" ")"
 
 brackets :: Printer a -> Printer a
 brackets = wrap "[" "]"
