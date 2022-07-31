@@ -22,6 +22,8 @@ import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.Op
+import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Pretty.Imports
 import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
