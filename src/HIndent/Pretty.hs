@@ -454,7 +454,7 @@ instance Pretty (Pat GhcPs) where
   pretty (ParPat _ inner) = parens $ pretty inner
   pretty p@BangPat {} = output p
   pretty ListPat {} = undefined
-  pretty TuplePat {} = undefined
+  pretty (TuplePat _ pats _) = parens $ inter (string ", ") $ fmap pretty pats
   pretty SumPat {} = undefined
   pretty ConPat {..} =
     case pat_args of
