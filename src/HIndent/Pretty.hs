@@ -446,7 +446,6 @@ instance Pretty (HsSplice GhcPs) where
   pretty HsQuasiQuote {}              = undefined
   pretty HsSpliced {}                 = undefined
 
--- Expressions Binary symbol data constructor in pattern
 instance Pretty (Pat GhcPs) where
   pretty p@WildPat {} = output p
   pretty p@VarPat {} = output p
