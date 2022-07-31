@@ -35,6 +35,7 @@ library
                      HIndent.Types
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
+                     HIndent.Pretty.Combinators.Inside
                      HIndent.Pretty.Combinators.Op
                      HIndent.Pretty.Combinators.Wrap
                      HIndent.Pretty.Imports

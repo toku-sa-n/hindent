@@ -13,18 +13,10 @@ module HIndent.Pretty.Combinators
   , indentedBlock
   , indentedWithSpace
   , indentedDependingOnHead
-  , insideSignature
-  , insideVerticalList
-  , insideCase
-  , insideLambda
   , ifFitsOnOneLineOrElse
   , output
   , showOutputable
   , rhsSeparator
-  , whenInsideCase
-  , whenInsideLambda
-  , whenInsideSignature
-  , unlessInsideLambda
   ) where
 
 import           Control.Applicative
@@ -98,56 +90,6 @@ inter separator = sequence_ . intersperse separator
 
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space
-
-insideSignature :: Printer a -> Printer a
-insideSignature p = do
-  before <- gets psInsideSignature
-  modify (\s -> s {psInsideSignature = True})
-  r <- p
-  modify (\s -> s {psInsideSignature = before})
-  return r
-
-insideVerticalList :: Printer a -> Printer a
-insideVerticalList p = do
-  before <- gets psInsideVerticalList
-  modify (\s -> s {psInsideVerticalList = True})
-  r <- p
-  modify (\s -> s {psInsideVerticalList = before})
-  return r
-
-insideCase :: Printer a -> Printer a
-insideCase p = do
-  before <- gets psInsideCase
-  modify (\s -> s {psInsideCase = True})
-  r <- p
-  modify (\s -> s {psInsideCase = before})
-  return r
-
-insideLambda :: Printer a -> Printer a
-insideLambda p = do
-  before <- gets psInsideLambda
-  modify (\s -> s {psInsideLambda = True})
-  r <- p
-  modify (\s -> s {psInsideLambda = before})
-  return r
-
-whenInsideCase :: Printer () -> Printer ()
-whenInsideCase = whenInside psInsideCase
-
-whenInsideLambda :: Printer () -> Printer ()
-whenInsideLambda = whenInside psInsideLambda
-
-whenInsideSignature :: Printer () -> Printer ()
-whenInsideSignature = whenInside psInsideSignature
-
-whenInside :: (PrintState -> Bool) -> Printer () -> Printer ()
-whenInside f p = gets f >>= flip when p
-
-unlessInsideLambda :: Printer () -> Printer ()
-unlessInsideLambda = unlessInside psInsideLambda
-
-unlessInside :: (PrintState -> Bool) -> Printer () -> Printer ()
-unlessInside f p = gets f >>= flip unless p
 
 indentedDependingOnHead :: Printer () -> Printer a -> Printer a
 indentedDependingOnHead hd p = do
