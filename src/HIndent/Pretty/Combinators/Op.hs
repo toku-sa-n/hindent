@@ -27,4 +27,12 @@ prefixOp (Unqual name) =
       if isAlpha x
         then string s
         else parens $ string s
-prefixOp x = output x
+prefixOp Qual {} = undefined
+prefixOp Orig {} = undefined
+prefixOp (Exact name) =
+  case showOutputable name of
+    [] -> error "The name is empty."
+    s@(x:_) ->
+      if isAlpha x
+        then string s
+        else parens $ string s
