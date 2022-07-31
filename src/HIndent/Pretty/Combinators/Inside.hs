@@ -13,36 +13,18 @@ import           Control.Monad.RWS
 import           HIndent.Types
 
 insideCase :: Printer a -> Printer a
-insideCase p = do
-  before <- gets psInsideCase
-  modify (\s -> s {psInsideCase = True})
-  r <- p
-  modify (\s -> s {psInsideCase = before})
-  return r
+insideCase = inside psInsideCase (\a s -> s {psInsideCase = a}) True
 
 insideLambda :: Printer a -> Printer a
-insideLambda p = do
-  before <- gets psInsideLambda
-  modify (\s -> s {psInsideLambda = True})
-  r <- p
-  modify (\s -> s {psInsideLambda = before})
-  return r
+insideLambda = inside psInsideLambda (\a s -> s {psInsideLambda = a}) True
 
 insideSignature :: Printer a -> Printer a
-insideSignature p = do
-  before <- gets psInsideSignature
-  modify (\s -> s {psInsideSignature = True})
-  r <- p
-  modify (\s -> s {psInsideSignature = before})
-  return r
+insideSignature =
+  inside psInsideSignature (\a s -> s {psInsideSignature = a}) True
 
 insideVerticalList :: Printer a -> Printer a
-insideVerticalList p = do
-  before <- gets psInsideVerticalList
-  modify (\s -> s {psInsideVerticalList = True})
-  r <- p
-  modify (\s -> s {psInsideVerticalList = before})
-  return r
+insideVerticalList =
+  inside psInsideVerticalList (\a s -> s {psInsideVerticalList = a}) True
 
 whenInsideCase :: Printer () -> Printer ()
 whenInsideCase = whenInside psInsideCase
@@ -60,8 +42,8 @@ inside ::
      (PrintState -> a)
   -> (a -> PrintState -> PrintState)
   -> a
-  -> Printer a
-  -> Printer a
+  -> Printer b
+  -> Printer b
 inside getter setter v p = do
   before <- gets getter
   modify (setter v)
