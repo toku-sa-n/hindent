@@ -475,7 +475,7 @@ instance Pretty (Pat GhcPs) where
         spaced $ fmap output as
       _ -> undefined
   pretty ViewPat {} = undefined
-  pretty SplicePat {} = undefined
+  pretty p@SplicePat {} = output p
   pretty p@LitPat {} = output p
   pretty NPat {} = undefined
   pretty p@NPlusKPat {} = output p

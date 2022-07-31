@@ -36,7 +36,7 @@ unlessSpecialOp name = unless (isSpecialOp name)
 prefixOutput :: String -> Printer ()
 prefixOutput [] = error "The name is empty."
 prefixOutput s@(x:_) =
-  if isAlpha x
+  if isAlpha x || s `elem` ["()", "[]"]
     then string s
     else parens $ string s
 
