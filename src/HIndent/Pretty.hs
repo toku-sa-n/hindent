@@ -355,7 +355,7 @@ instance Pretty (HsType GhcPs) where
     pretty l
     space
     whenInsideSignature $ string "'"
-    pretty op
+    infixOp $ unLoc op
     space
     pretty r
   pretty (HsParTy _ inside) = do
@@ -414,7 +414,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       vertical = inter (newline >> string ", ") $ fmap output xs
 
 instance Pretty RdrName where
-  pretty = output
+  pretty = prefixOp
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty (GRHS _ _ (L _ (HsDo _ (DoExpr _) body))) = do
