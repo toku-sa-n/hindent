@@ -170,7 +170,12 @@ instance Pretty (HsExpr GhcPs) where
       indentedBlock $ pretty arms
   pretty HsIf {} = undefined
   pretty HsMultiIf {} = undefined
-  pretty HsLet {} = undefined
+  pretty (HsLet _ binds exprs) = do
+    string "let "
+    output binds
+    newline
+    string " in "
+    output exprs
   pretty (HsDo _ (DoExpr _) xs) = do
     string "do"
     newline
