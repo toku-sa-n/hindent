@@ -100,8 +100,16 @@ instance Pretty (HsBind GhcPs) where
 instance Pretty (Sig GhcPs) where
   pretty (TypeSig _ funName params) = do
     output $ unLoc $ head funName
-    string " :: "
-    pretty $ hswc_body params
+    horizontal `ifFitsOnOneLineOrElse` vertical
+    where
+      horizontal = do
+        string " :: "
+        pretty $ hswc_body params
+      vertical =
+        insideVerticalFunctionSignature $ do
+          string " ::"
+          newline
+          indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
   pretty x = output x
 
 instance Pretty (HsDataDefn GhcPs) where
@@ -345,9 +353,21 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty HsAppKindTy {} = undefined
   pretty (HsFunTy _ _ a b) = do
-    pretty a
-    string " -> "
-    pretty b
+    isVertical <- gets psInsideVerticalFunctionSignature
+    if isVertical
+      then vertical
+      else horizontal `ifFitsOnOneLineOrElse` vertical
+    where
+      horizontal = do
+        pretty a
+        string " -> "
+        pretty b
+      vertical = do
+        pretty a
+        newline
+        indentedWithSpace (-3) $ do
+          string "-> "
+          pretty b
   pretty HsListTy {} = undefined
   pretty full@HsTupleTy {} = output full
   pretty HsSumTy {} = undefined

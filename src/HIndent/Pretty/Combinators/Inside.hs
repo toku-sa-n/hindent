@@ -3,6 +3,7 @@ module HIndent.Pretty.Combinators.Inside
   , insideLambda
   , insideSignature
   , insideVerticalList
+  , insideVerticalFunctionSignature
   , whenInsideCase
   , whenInsideLambda
   , whenInsideSignature
@@ -25,6 +26,13 @@ insideSignature =
 insideVerticalList :: Printer a -> Printer a
 insideVerticalList =
   inside psInsideVerticalList (\a s -> s {psInsideVerticalList = a}) True
+
+insideVerticalFunctionSignature :: Printer a -> Printer a
+insideVerticalFunctionSignature =
+  inside
+    psInsideVerticalFunctionSignature
+    (\a s -> s {psInsideVerticalFunctionSignature = a})
+    True
 
 whenInsideCase :: Printer () -> Printer ()
 whenInsideCase = whenInside psInsideCase
