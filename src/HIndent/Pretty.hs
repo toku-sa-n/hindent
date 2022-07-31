@@ -493,7 +493,12 @@ instance Pretty (HsBracket GhcPs) where
     brackets $ do
       string "t"
       wrapWithBars $ pretty expr
-  pretty VarBr {} = undefined
+  pretty (VarBr _ True var) = do
+    string "'"
+    pretty var
+  pretty (VarBr _ False var) = do
+    string "''"
+    pretty var
   pretty TExpBr {} = undefined
 
 infixExpr :: HsExpr GhcPs -> Printer ()
