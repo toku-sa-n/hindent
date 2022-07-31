@@ -27,6 +27,8 @@ module HIndent.Pretty.Combinators
   , whenInsideLambda
   , whenInsideSignature
   , unlessInsideLambda
+  , infixOp
+  , prefixOp
   ) where
 
 import           Control.Applicative
@@ -34,6 +36,7 @@ import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
+import           Data.Char
 import           Data.Data
 import           Data.Int
 import           Data.List
@@ -41,6 +44,7 @@ import           Generics.SYB
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
 import           GHC.Hs
+import           GHC.Types.Name.Reader
 import           GHC.Utils.Outputable                                hiding
                                                                      (brackets,
                                                                       parens,
@@ -233,3 +237,26 @@ brackets = wrap "[" "]"
 
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p = indentedDependingOnHead (string open) $ p <* string close
+
+tick :: Printer a -> Printer a
+tick = wrap "`" "`"
+
+infixOp :: RdrName -> Printer ()
+infixOp (Unqual name) =
+  case showOutputable name of
+    [] -> error "The name is empty."
+    s@(x:_) ->
+      if isAlpha x
+        then tick $ string s
+        else string s
+infixOp x = output x
+
+prefixOp :: RdrName -> Printer ()
+prefixOp (Unqual name) =
+  case showOutputable name of
+    [] -> error "The name is empty."
+    s@(x:_) ->
+      if isAlpha x
+        then string s
+        else parens $ string s
+prefixOp x = output x

@@ -125,7 +125,7 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty MG {..} = inter (whenInsideCase newline) $ pretty <$> unLoc mg_alts
 
 instance Pretty (HsExpr GhcPs) where
-  pretty (HsVar _ v) = pretty v
+  pretty v@HsVar {} = prefixExpr v
   pretty HsUnboundVar {} = undefined
   pretty HsConLikeOut {} = undefined
   pretty HsRecFld {} = undefined
@@ -143,9 +143,9 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsAppType {} = undefined
   pretty (OpApp _ l o r) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = spaced $ fmap pretty [l, o, r]
+      horizontal = spaced [pretty l, infixExpr $ unLoc o, pretty r]
       vertical = do
-        spaced $ fmap pretty [l, o]
+        spaced [pretty l, infixExpr $ unLoc o]
         case unLoc r of
           (HsDo _ (DoExpr _) _) -> space
           HsLam {}              -> space
@@ -435,3 +435,11 @@ instance Pretty (HsSplice GhcPs) where
   pretty (HsUntypedSplice _ _ _ body) = pretty body
   pretty HsQuasiQuote {}              = undefined
   pretty HsSpliced {}                 = undefined
+
+infixExpr :: HsExpr GhcPs -> Printer ()
+infixExpr (HsVar _ bind) = infixOp $ unLoc bind
+infixExpr x              = pretty x
+
+prefixExpr :: HsExpr GhcPs -> Printer ()
+prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
+prefixExpr x              = pretty x
