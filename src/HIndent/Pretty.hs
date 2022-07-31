@@ -308,7 +308,9 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     where
       horizontal = inter (string " | ") $ fmap output xs
       vertical = inter (newline >> string "| ") $ fmap pretty xs
-  pretty TransStmt {} = undefined
+  pretty TransStmt {..} =
+    inter (newline >> string ", ") $
+    fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty RecStmt {} = undefined
 
 instance Pretty StmtOrComment where
