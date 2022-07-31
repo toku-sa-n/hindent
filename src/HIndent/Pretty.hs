@@ -236,7 +236,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty HsProjection {} = undefined
   pretty ExprWithTySig {} = undefined
   pretty ArithSeq {} = undefined
-  pretty HsBracket {} = undefined
+  pretty (HsBracket _ inner) = pretty inner
   pretty HsRnBracketOut {} = undefined
   pretty HsTcBracketOut {} = undefined
   pretty HsSpliceE {} = undefined
@@ -475,6 +475,23 @@ instance Pretty (Pat GhcPs) where
   pretty NPat {} = undefined
   pretty p@NPlusKPat {} = output p
   pretty SigPat {} = undefined
+
+instance Pretty (HsBracket GhcPs) where
+  pretty (ExpBr _ expr) =
+    brackets $ do
+      string "|"
+      pretty expr
+      string "|"
+  pretty (PatBr _ expr) =
+    brackets $ do
+      string "p|"
+      pretty expr
+      string "|"
+  pretty DecBrL {} = undefined
+  pretty DecBrG {} = undefined
+  pretty TypBr {} = undefined
+  pretty VarBr {} = undefined
+  pretty TExpBr {} = undefined
 
 infixExpr :: HsExpr GhcPs -> Printer ()
 infixExpr (HsVar _ bind) = infixOp $ unLoc bind
