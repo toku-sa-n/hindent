@@ -156,7 +156,7 @@ instance Pretty (HsExpr GhcPs) where
           _                     -> newline
         pretty r
   pretty NegApp {} = undefined
-  pretty HsPar {} = undefined
+  pretty (HsPar _ expr) = parens $ pretty expr
   pretty SectionL {} = undefined
   pretty SectionR {} = undefined
   pretty ExplicitTuple {} = undefined
@@ -344,7 +344,10 @@ instance Pretty (HsType GhcPs) where
     space
     pretty r
   pretty HsAppKindTy {} = undefined
-  pretty full@HsFunTy {} = output full
+  pretty (HsFunTy _ _ a b) = do
+    pretty a
+    string " -> "
+    pretty b
   pretty HsListTy {} = undefined
   pretty full@HsTupleTy {} = output full
   pretty HsSumTy {} = undefined
@@ -362,7 +365,9 @@ instance Pretty (HsType GhcPs) where
   pretty HsIParamTy {} = undefined
   pretty HsStarTy {} = undefined
   pretty HsKindSig {} = undefined
-  pretty HsSpliceTy {} = undefined
+  pretty (HsSpliceTy _ sp) = do
+    string "$"
+    pretty sp
   pretty HsDocTy {} = undefined
   pretty HsBangTy {} = undefined
   pretty HsRecTy {} = undefined
@@ -489,7 +494,11 @@ instance Pretty (HsBracket GhcPs) where
       string "|"
   pretty DecBrL {} = undefined
   pretty DecBrG {} = undefined
-  pretty TypBr {} = undefined
+  pretty (TypBr _ expr) =
+    brackets $ do
+      string "t|"
+      pretty expr
+      string "|"
   pretty VarBr {} = undefined
   pretty TExpBr {} = undefined
 
