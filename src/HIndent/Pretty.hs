@@ -270,7 +270,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     whenInsideLambda $ string "\\"
     case (isInsideCase, isInsideLambda) of
       (True, _) -> do
-        mapM_ output m_pats
+        mapM_ pretty m_pats
         pretty m_grhss
       (_, True) -> do
         unless (null m_pats) $
@@ -278,7 +278,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
             LazyPat {} -> space
             BangPat {} -> space
             _          -> return ()
-        mapM_ output m_pats
+        mapM_ pretty m_pats
         space
         pretty m_grhss
       _ -> do
@@ -286,7 +286,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         unless (null m_pats) $
           forM_ m_pats $ \x -> do
             space
-            output x
+            pretty x
         pretty m_grhss
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -438,6 +438,37 @@ instance Pretty (HsSplice GhcPs) where
   pretty (HsUntypedSplice _ _ _ body) = pretty body
   pretty HsQuasiQuote {}              = undefined
   pretty HsSpliced {}                 = undefined
+
+-- Expressions Binary symbol data constructor in pattern
+instance Pretty (Pat GhcPs) where
+  pretty p@WildPat {} = output p
+  pretty p@VarPat {} = output p
+  pretty p@LazyPat {} = output p
+  pretty AsPat {} = undefined
+  pretty (ParPat _ inner) = parens $ pretty inner
+  pretty p@BangPat {} = output p
+  pretty ListPat {} = undefined
+  pretty TuplePat {} = undefined
+  pretty SumPat {} = undefined
+  pretty ConPat {..} =
+    case pat_args of
+      InfixCon a b -> do
+        pretty a
+        unlessSpecialOp (unLoc pat_con) space
+        infixOp $ unLoc pat_con
+        unlessSpecialOp (unLoc pat_con) space
+        pretty b
+      PrefixCon _ as -> do
+        prefixOp $ unLoc pat_con
+        space
+        spaced $ fmap output as
+      _ -> undefined
+  pretty ViewPat {} = undefined
+  pretty SplicePat {} = undefined
+  pretty p@LitPat {} = output p
+  pretty NPat {} = undefined
+  pretty p@NPlusKPat {} = output p
+  pretty SigPat {} = undefined
 
 infixExpr :: HsExpr GhcPs -> Printer ()
 infixExpr (HsVar _ bind) = infixOp $ unLoc bind
