@@ -482,23 +482,17 @@ instance Pretty (Pat GhcPs) where
   pretty SigPat {} = undefined
 
 instance Pretty (HsBracket GhcPs) where
-  pretty (ExpBr _ expr) =
-    brackets $ do
-      string "|"
-      pretty expr
-      string "|"
+  pretty (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
   pretty (PatBr _ expr) =
     brackets $ do
-      string "p|"
-      pretty expr
-      string "|"
+      string "p"
+      wrapWithBars $ pretty expr
   pretty DecBrL {} = undefined
   pretty DecBrG {} = undefined
   pretty (TypBr _ expr) =
     brackets $ do
-      string "t|"
-      pretty expr
-      string "|"
+      string "t"
+      wrapWithBars $ pretty expr
   pretty VarBr {} = undefined
   pretty TExpBr {} = undefined
 
