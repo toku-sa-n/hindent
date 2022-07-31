@@ -5,6 +5,7 @@ module HIndent.Pretty.Combinators.Op
 
 import           Data.Char
 import           GHC.Types.Name.Reader
+import           GHC.Utils.Outputable            hiding (parens)
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
@@ -20,16 +21,13 @@ infixOp (Unqual name) =
 infixOp x = output x
 
 prefixOp :: RdrName -> Printer ()
-prefixOp (Unqual name) =
-  case showOutputable name of
-    [] -> error "The name is empty."
-    s@(x:_) ->
-      if isAlpha x
-        then string s
-        else parens $ string s
-prefixOp Qual {} = undefined
-prefixOp Orig {} = undefined
-prefixOp (Exact name) =
+prefixOp (Unqual name) = prefixOutput name
+prefixOp Qual {}       = undefined
+prefixOp Orig {}       = undefined
+prefixOp (Exact name)  = prefixOutput name
+
+prefixOutput :: Outputable a => a -> Printer ()
+prefixOutput name =
   case showOutputable name of
     [] -> error "The name is empty."
     s@(x:_) ->
