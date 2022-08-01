@@ -412,9 +412,7 @@ instance Pretty (HsType GhcPs) where
   pretty HsIParamTy {} = undefined
   pretty HsStarTy {} = undefined
   pretty HsKindSig {} = undefined
-  pretty (HsSpliceTy _ sp) = do
-    string "$"
-    pretty sp
+  pretty (HsSpliceTy _ sp) = pretty sp
   pretty HsDocTy {} = undefined
   pretty HsBangTy {} = undefined
   pretty HsRecTy {} = undefined
@@ -493,10 +491,17 @@ instance Pretty (SpliceDecl GhcPs) where
   pretty (SpliceDecl _ sp _) = pretty sp
 
 instance Pretty (HsSplice GhcPs) where
-  pretty HsTypedSplice {}             = undefined
-  pretty (HsUntypedSplice _ _ _ body) = pretty body
-  pretty HsQuasiQuote {}              = undefined
-  pretty HsSpliced {}                 = undefined
+  pretty HsTypedSplice {} = undefined
+  pretty (HsUntypedSplice _ decoration _ body) = do
+    string prefix
+    pretty body
+    where
+      prefix =
+        case decoration of
+          DollarSplice -> "$"
+          BareSplice   -> ""
+  pretty p@HsQuasiQuote {} = output p
+  pretty HsSpliced {} = undefined
 
 instance Pretty (Pat GhcPs) where
   pretty p@WildPat {} = output p
