@@ -365,7 +365,14 @@ instance Pretty (HsType GhcPs) where
         indentedWithSpace (-3) $ string "=> "
         pretty hst_body
       constraints =
-        parens $ mapM_ (inter (string ", ") . fmap pretty . unLoc) hst_ctxt
+        constraintsParens $
+        mapM_ (inter (string ", ") . fmap pretty . unLoc) hst_ctxt
+      constraintsParens =
+        case hst_ctxt of
+          Nothing        -> id
+          Just (L _ [])  -> parens
+          Just (L _ [_]) -> id
+          Just _         -> parens
   pretty x@HsTyVar {} = output x
   pretty (HsAppTy _ l r) = do
     pretty l
