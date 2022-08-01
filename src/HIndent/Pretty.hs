@@ -397,10 +397,14 @@ instance Pretty (HsType GhcPs) where
   pretty HsListTy {} = undefined
   pretty full@HsTupleTy {} = output full
   pretty HsSumTy {} = undefined
+  -- For `HsOpTy`, we do not need a single quote for the infix operator. An
+  -- explicit promotion is necessary if there is a data constructor and
+  -- a type with the same name. However, infix data constructors never
+  -- share their names with types because types cannot contain symbols.
+  -- Thus there is no ambiguity.
   pretty (HsOpTy _ l op r) = do
     pretty l
     space
-    whenInsideSignature $ string "'"
     infixOp $ unLoc op
     space
     pretty r
