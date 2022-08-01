@@ -345,7 +345,19 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
 
 instance Pretty (HsType GhcPs) where
   pretty HsForAllTy {} = undefined
-  pretty HsQualTy {} = undefined
+  pretty HsQualTy {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+    where
+      horizontal = do
+        constraints
+        string " => "
+        pretty hst_body
+      vertical = do
+        constraints
+        newline
+        indentedWithSpace (-3) $ string "=> "
+        pretty hst_body
+      constraints =
+        parens $ mapM_ (inter (string ", ") . fmap pretty . unLoc) hst_ctxt
   pretty x@HsTyVar {} = output x
   pretty (HsAppTy _ l r) = do
     pretty l
@@ -365,9 +377,8 @@ instance Pretty (HsType GhcPs) where
       vertical = do
         pretty a
         newline
-        indentedWithSpace (-3) $ do
-          string "-> "
-          pretty b
+        indentedWithSpace (-3) $ string "-> "
+        pretty b
   pretty HsListTy {} = undefined
   pretty full@HsTupleTy {} = output full
   pretty HsSumTy {} = undefined
