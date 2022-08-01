@@ -397,10 +397,7 @@ instance Pretty (HsType GhcPs) where
     infixOp $ unLoc op
     space
     pretty r
-  pretty (HsParTy _ inside) = do
-    string "("
-    pretty inside
-    string ")"
+  pretty (HsParTy _ inside) = parens $ pretty inside
   pretty HsIParamTy {} = undefined
   pretty HsStarTy {} = undefined
   pretty HsKindSig {} = undefined
