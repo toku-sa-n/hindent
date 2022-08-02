@@ -441,7 +441,7 @@ instance Pretty (HsType GhcPs) where
     space
     pretty r
   pretty (HsParTy _ inside) = parens $ pretty inside
-  pretty HsIParamTy {} = undefined
+  pretty t@HsIParamTy {} = output t
   pretty HsStarTy {} = undefined
   pretty HsKindSig {} = undefined
   pretty (HsSpliceTy _ sp) = pretty sp
