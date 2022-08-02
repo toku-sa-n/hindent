@@ -17,6 +17,7 @@ module HIndent.Pretty.Combinators
   , output
   , showOutputable
   , rhsSeparator
+  , commentsArePrinted
   ) where
 
 import           Control.Applicative
@@ -164,3 +165,6 @@ rhsSeparator = do
     if isInsideCase || isInsideLambda
       then "->"
       else "="
+
+commentsArePrinted :: Printer ()
+commentsArePrinted = modify (\s -> s {psEolComment = True})

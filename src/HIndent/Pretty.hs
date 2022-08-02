@@ -41,7 +41,21 @@ data SigOrMethods
 -- | Pretty print including comments.
 class Pretty a where
   pretty :: a -> Printer ()
-  pretty = pretty'
+  pretty p = do
+    printCommentsBefore
+    pretty' p
+    printCommentsSameLine
+    printCommentsAfter
+    where
+      printCommentsBefore = mapM_ pretty $ commentsBefore p
+      printCommentsSameLine = mapM_ pretty $ commentsSameLine p
+      printCommentsAfter =
+        case commentsAfter p of
+          [] -> return ()
+          xs -> do
+            isThereCommentsOnSameLine <- gets psEolComment
+            unless isThereCommentsOnSameLine newline
+            mapM_ pretty xs
   pretty' :: a -> Printer ()
   -- These functions must return comments that only this node can fetch. In
   -- other words, these functions must not return comments that child nodes
@@ -54,9 +68,7 @@ class Pretty a where
   commentsAfter = const []
 
 instance Pretty HsModule where
-  pretty' m = do
-    inter blankline printers
-    printCommentsAtTheEndOfModule m
+  pretty' m = inter blankline printers
     where
       printers = snd <$> filter fst pairs
       pairs =
@@ -65,10 +77,6 @@ instance Pretty HsModule where
         , (importsExist m, outputImports m)
         , (declsExist m, outputDecls)
         ]
-      printCommentsAtTheEndOfModule =
-        mapM_ (\x -> newline >> pretty x) .
-        filter (not . isPragma) .
-        listify (const True) . followingComments . comments . hsmodAnn
       outputDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
         addSeparator $ unLoc <$> hsmodDecls m
@@ -529,8 +537,8 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         indentedBlock $ pretty body
 
 instance Pretty EpaCommentTok where
-  pretty' (EpaLineComment c)  = string c
-  pretty' (EpaBlockComment c) = string c
+  pretty' (EpaLineComment c)  = string c >> commentsArePrinted
+  pretty' (EpaBlockComment c) = string c >> commentsArePrinted
   pretty' _                   = return ()
 
 instance Pretty (SpliceDecl GhcPs) where
@@ -602,6 +610,9 @@ instance Pretty (HsBracket GhcPs) where
 instance Pretty SigOrMethods where
   pretty' (Sig x)    = pretty x
   pretty' (Method x) = pretty x
+
+instance Pretty EpaComment where
+  pretty' EpaComment {..} = pretty ac_tok
 
 infixExpr :: HsExpr GhcPs -> Printer ()
 infixExpr (HsVar _ bind) = infixOp $ unLoc bind
