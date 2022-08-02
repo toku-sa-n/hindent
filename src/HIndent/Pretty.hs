@@ -43,6 +43,12 @@ class Pretty a where
   pretty :: a -> Printer ()
   pretty = pretty'
   pretty' :: a -> Printer ()
+  -- These functions must return comments that only this node can fetch. In
+  -- other words, these functions must not return comments that child nodes
+  -- can fetch.
+  commentsBefore :: a -> [LEpaComment]
+  commentsSameLine :: a -> Maybe LEpaComment
+  commentsAfter :: a -> [LEpaComment]
 
 instance Pretty HsModule where
   pretty' m = do
