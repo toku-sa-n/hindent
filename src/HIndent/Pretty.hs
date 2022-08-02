@@ -47,8 +47,11 @@ class Pretty a where
   -- other words, these functions must not return comments that child nodes
   -- can fetch.
   commentsBefore :: a -> [LEpaComment]
+  commentsBefore = const []
   commentsSameLine :: a -> Maybe LEpaComment
+  commentsSameLine = const Nothing
   commentsAfter :: a -> [LEpaComment]
+  commentsAfter = const []
 
 instance Pretty HsModule where
   pretty' m = do
