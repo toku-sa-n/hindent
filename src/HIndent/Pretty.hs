@@ -34,6 +34,10 @@ data StmtOrComment
   = Stmt (LStmtLR GhcPs GhcPs (LHsExpr GhcPs))
   | Comment LEpaComment
 
+data SigOrMethods
+  = Sig (LSig GhcPs)
+  | Method (LHsBindLR GhcPs GhcPs)
+
 -- | Pretty print including comments.
 class Pretty a where
   pretty :: a -> Printer ()
@@ -95,6 +99,20 @@ instance Pretty (TyClDecl GhcPs) where
     string "data "
     output tcdLName
     pretty tcdDataDefn
+  pretty ClassDecl {..} = do
+    string "class "
+    pretty tcdLName
+    space
+    output tcdTyVars
+    string " where"
+    newline
+    indentedBlock $ inter newline $ fmap pretty sigsAndMethods
+    where
+      sigsAndMethods =
+        sortByLocation $ fmap Sig tcdSigs ++ fmap Method (bagToList tcdMeths)
+      sortByLocation = sortBy (compare `on` getLocation)
+      getLocation (Sig x)    = realSrcSpan $ locA $ getLoc x
+      getLocation (Method x) = realSrcSpan $ locA $ getLoc x
   pretty x = output x
 
 instance Pretty (InstDecl GhcPs) where
@@ -118,6 +136,11 @@ instance Pretty (Sig GhcPs) where
           string " ::"
           newline
           indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
+  pretty (ClassOpSig _ isDefault funName params) = do
+    when isDefault $ string "default "
+    output $ unLoc $ head funName
+    string " :: "
+    pretty $ sig_body $ unLoc params
   pretty x = output x
 
 instance Pretty (HsDataDefn GhcPs) where
@@ -353,17 +376,26 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
 
 instance Pretty (HsType GhcPs) where
   pretty HsForAllTy {} = undefined
-  pretty HsQualTy {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty HsQualTy {..} = do
+    isInSig <- gets psInsideSignature
+    if isInSig
+      then sigHor `ifFitsOnOneLineOrElse` sigVer
+      else notInSig
     where
-      horizontal = do
+      sigHor = do
         constraints
         string " => "
         pretty hst_body
-      vertical = do
+      sigVer = do
         constraints
         newline
         indentedWithSpace (-3) $ string "=> "
         pretty hst_body
+      notInSig = do
+        constraints
+        string " =>"
+        newline
+        indentedBlock $ pretty hst_body
       constraints =
         constraintsParens $
         mapM_ (inter (string ", ") . fmap pretty . unLoc) hst_ctxt
@@ -552,6 +584,10 @@ instance Pretty (HsBracket GhcPs) where
     string "''"
     pretty var
   pretty TExpBr {} = undefined
+
+instance Pretty SigOrMethods where
+  pretty (Sig x)    = pretty x
+  pretty (Method x) = pretty x
 
 infixExpr :: HsExpr GhcPs -> Printer ()
 infixExpr (HsVar _ bind) = infixOp $ unLoc bind
