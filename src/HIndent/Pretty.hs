@@ -52,7 +52,6 @@ class Pretty a where
 
 instance Pretty HsModule where
   pretty' m = do
-    printCommentsAtTheTopOfModule m
     inter blankline printers
     printCommentsAtTheEndOfModule m
     where
@@ -63,10 +62,6 @@ instance Pretty HsModule where
         , (importsExist m, outputImports m)
         , (declsExist m, outputDecls)
         ]
-      printCommentsAtTheTopOfModule =
-        mapM_ (\x -> pretty x >> newline) .
-        filter (not . isPragma) .
-        listify (not . isEofComment) . priorComments . comments . hsmodAnn
       printCommentsAtTheEndOfModule =
         mapM_ (\x -> newline >> pretty x) .
         filter (not . isPragma) .
@@ -80,8 +75,15 @@ instance Pretty HsModule where
       separator SigD {} = newline
       separator _       = blankline
       declsExist = not . null . hsmodDecls
-      isEofComment EpaEofComment = True
-      isEofComment _             = False
+  commentsBefore =
+    filter (not . isPragma . ac_tok . unLoc) .
+    listify (not . isEofComment) . priorComments . comments . hsmodAnn
+    where
+      isEofComment (L _ (EpaComment EpaEofComment _)) = True
+      isEofComment _                                  = False
+  commentsAfter =
+    filter (not . isPragma . ac_tok . unLoc) .
+    followingComments . comments . hsmodAnn
 
 instance Pretty e => Pretty (GenLocated l e) where
   pretty' (L _ e) = pretty e
