@@ -24,6 +24,7 @@ import           Data.Int                   (Int64)
 import           Data.Maybe
 import           Data.Yaml                  (FromJSON (..))
 import qualified Data.Yaml                  as Y
+import           GHC.Hs
 import           Language.Haskell.Extension (Extension (UnknownExtension),
                                              classifyExtension)
 
@@ -66,6 +67,7 @@ data PrintState =
     , psInsideVerticalList              :: !Bool
     , psInsideVerticalFunctionSignature :: !Bool
     , psInsideLambda                    :: !Bool
+    , psComments                        :: ![LEpaComment]
     }
 
 -- | Configurations shared among the different styles. Styles may pay
