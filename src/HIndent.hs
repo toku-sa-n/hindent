@@ -142,14 +142,14 @@ prettyPrint config m = runPrinterStyle config (pretty m)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
-runPrinterStyle config m =
+runPrinterStyle config p =
   maybe
     (error "Printer failed with mzero call.")
     psOutput
     (runIdentity
        (runMaybeT
           (execStateT
-             (runPrinter m)
+             (runPrinter p)
              (PrintState
                 { psIndentLevel = 0
                 , psOutput = mempty
