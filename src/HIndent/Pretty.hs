@@ -47,10 +47,10 @@ class Pretty a where
     printCommentsSameLine
     printCommentsAfter
     where
-      printCommentsBefore = mapM_ pretty $ drainCommentsBefore p
-      printCommentsSameLine = mapM_ pretty $ drainCommentsSameLine p
+      printCommentsBefore = drainCommentsBefore p >>= mapM_ pretty
+      printCommentsSameLine = drainCommentsSameLine p >>= mapM_ pretty
       printCommentsAfter =
-        case drainCommentsAfter p of
+        drainCommentsAfter p >>= \case
           [] -> return ()
           xs -> do
             isThereCommentsOnSameLine <- gets psEolComment
@@ -60,12 +60,12 @@ class Pretty a where
   -- These functions must return comments that only this node can fetch. In
   -- other words, these functions must not return comments that child nodes
   -- can fetch.
-  drainCommentsBefore :: a -> [LEpaComment]
-  drainCommentsBefore = const []
-  drainCommentsSameLine :: a -> Maybe LEpaComment
-  drainCommentsSameLine = const Nothing
-  drainCommentsAfter :: a -> [LEpaComment]
-  drainCommentsAfter = const []
+  drainCommentsBefore :: a -> Printer [LEpaComment]
+  drainCommentsBefore _ = return []
+  drainCommentsSameLine :: a -> Printer (Maybe LEpaComment)
+  drainCommentsSameLine _ = return Nothing
+  drainCommentsAfter :: a -> Printer [LEpaComment]
+  drainCommentsAfter _ = return []
 
 instance Pretty HsModule where
   pretty' m = inter blankline printers
@@ -87,12 +87,14 @@ instance Pretty HsModule where
       separator _       = blankline
       declsExist = not . null . hsmodDecls
   drainCommentsBefore =
+    return .
     filter (not . isPragma . ac_tok . unLoc) .
     listify (not . isEofComment) . priorComments . comments . hsmodAnn
     where
       isEofComment (L _ (EpaComment EpaEofComment _)) = True
       isEofComment _                                  = False
   drainCommentsAfter =
+    return .
     filter (not . isPragma . ac_tok . unLoc) .
     followingComments . comments . hsmodAnn
 
