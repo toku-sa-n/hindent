@@ -35,6 +35,7 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
+import           Generics.SYB
 import qualified GHC.Data.EnumSet           as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
@@ -138,11 +139,13 @@ hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 
 -- | Print the module.
 prettyPrint :: Config -> HsModule -> Builder
-prettyPrint config m = runPrinterStyle config (pretty m)
+prettyPrint config m = runPrinterStyle config (pretty m) comments
+  where
+    comments = listify (const True) m
 
 -- | Pretty print the given printable thing.
-runPrinterStyle :: Config -> Printer () -> Builder
-runPrinterStyle config p =
+runPrinterStyle :: Config -> Printer () -> [LEpaComment] -> Builder
+runPrinterStyle config p cs =
   maybe
     (error "Printer failed with mzero call.")
     psOutput
@@ -164,7 +167,7 @@ runPrinterStyle config p =
                 , psInsideVerticalList = False
                 , psInsideLambda = False
                 , psInsideVerticalFunctionSignature = False
-                , psComments = []
+                , psComments = cs
                 }))))
 
 allExtensions :: [Cabal.Extension]
