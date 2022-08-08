@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 -- | Pretty printing.
 module HIndent.Pretty
@@ -29,10 +30,6 @@ import           HIndent.Pretty.Imports
 import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
 import           HIndent.Types
-
-data StmtOrComment
-  = Stmt (LStmtLR GhcPs GhcPs (LHsExpr GhcPs))
-  | Comment LEpaComment
 
 data SigOrMethods
   = Sig (LSig GhcPs)
@@ -241,7 +238,7 @@ instance Pretty (HsExpr GhcPs) where
     newline
     indentedBlock $ inter newline $ output <$> unLoc xs
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
-  pretty' (HsDo r MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (HsDo _ MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal =
         brackets $ do
@@ -250,31 +247,18 @@ instance Pretty (HsExpr GhcPs) where
           mapM_ pretty $ init $ unLoc xs
       vertical =
         insideVerticalList $
-        case firstStmtAndOthers stmts of
-          Just (lastStmt, others) -> do
-            string "[ "
-            pretty lastStmt
-            newline
-            forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-              string p
-              pretty x
-              newline
-            string "]"
-          Nothing -> string "[]"
-      stmtsAndPrefixes l = ("| ", head l) : fmap (\x -> (prefix x, x)) (tail l)
-      prefix Stmt {}    = ", "
-      prefix Comment {} = "  "
-      stmts =
-        sortByLocation $
-        fmap Comment (listify (const True) r) ++ fmap Stmt (unLoc xs)
-      firstStmtAndOthers = f []
-        where
-          f _ []                 = Nothing
-          f zs (Stmt y:ys)       = Just (y, zs ++ ys)
-          f zs (y@Comment {}:ys) = f (y : zs) ys
-      sortByLocation = sortBy (compare `on` getLocation)
-      getLocation (Stmt x)    = realSrcSpan $ locA $ getLoc x
-      getLocation (Comment x) = anchor $ getLoc x
+        if null $ unLoc xs
+          then string "[]"
+          else let (lastStmt, others) = (last $ unLoc xs, init $ unLoc xs)
+                in do string "[ "
+                      pretty lastStmt
+                      newline
+                      forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                        string p
+                        pretty x
+                        newline
+                      string "]"
+      stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
   pretty' HsDo {} = undefined
   pretty' ExplicitList {} = undefined
   pretty' (RecordCon _ name fields) =
@@ -378,10 +362,6 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     inter (newline >> string ", ") $
     fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
-
-instance Pretty StmtOrComment where
-  pretty' (Stmt x)    = pretty x
-  pretty' (Comment x) = pretty $ ac_tok $ unLoc x
 
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecFields {..} = horizontal `ifFitsOnOneLineOrElse` vertical
