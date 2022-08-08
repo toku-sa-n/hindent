@@ -80,8 +80,10 @@ resetSrcSpan HsModule {hsmodAnn = EpAnnNotUsed} =
 relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM' (applyM f)
   where
-    f epa@EpAnn {..} = insertComments (< anchor entry) insertPriorComments epa
-    f EpAnnNotUsed   = pure EpAnnNotUsed
+    f epa@EpAnn {..} =
+      insertComments (isBefore $ anchor entry) insertPriorComments epa
+    f EpAnnNotUsed = pure EpAnnNotUsed
+    isBefore anc comAnc = srcSpanEndLine comAnc < srcSpanStartLine anc
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool above each node on it. Comments are
@@ -100,8 +102,9 @@ relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (> anchor entry) insertFollowingComments epa
+      insertComments (isAfter $ anchor entry) insertFollowingComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
+    isAfter anc comAnc = srcSpanEndLine anc < srcSpanStartLine comAnc
 
 -- | This function drains comments whose positions satisfy the given
 -- predicate and inserts them to the given node using the given inserter.
