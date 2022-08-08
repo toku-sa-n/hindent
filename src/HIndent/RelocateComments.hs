@@ -45,11 +45,11 @@ relocateComments = everywhere (apply id)
 
 -- | This function applies the given function to all 'EpAnn's.
 apply ::
-     forall b. (Typeable b)
-  => (forall a. EpAnn a -> EpAnn a)
-  -> (b -> b)
+     forall a. (Typeable a)
+  => (forall b. EpAnn b -> EpAnn b)
+  -> (a -> a)
 apply f =
-  case typeRep @b of
+  case typeRep @a of
     App g _ ->
       case eqTypeRep g (typeRep @EpAnn) of
         Just HRefl -> f
