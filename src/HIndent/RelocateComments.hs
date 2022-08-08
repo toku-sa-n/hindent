@@ -80,7 +80,7 @@ resetSrcSpan HsModule {hsmodAnn = EpAnnNotUsed} =
 relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM' (applyM f)
   where
-    f epa@EpAnn {..} = insertComments (< entry) insertPriorComments epa
+    f epa@EpAnn {..} = insertComments (< anchor entry) insertPriorComments epa
     f EpAnnNotUsed   = pure EpAnnNotUsed
 
 -- | This function scans the given AST from top to bottom and locates
@@ -90,23 +90,23 @@ relocateCommentsSameLine :: HsModule -> WithComments HsModule
 relocateCommentsSameLine = everywhereM' (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (isOnSameLine entry) insertFollowingComments epa
+      insertComments (isOnSameLine $ anchor entry) insertFollowingComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
-    isOnSameLine anc comAnc =
-      srcSpanStartLine (anchor anc) == srcSpanStartLine (anchor comAnc)
+    isOnSameLine anc comAnc = srcSpanStartLine anc == srcSpanStartLine comAnc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = everywhereM (applyM f)
   where
-    f epa@EpAnn {..} = insertComments (> entry) insertFollowingComments epa
-    f EpAnnNotUsed   = pure EpAnnNotUsed
+    f epa@EpAnn {..} =
+      insertComments (> anchor entry) insertFollowingComments epa
+    f EpAnnNotUsed = pure EpAnnNotUsed
 
 -- | This function drains comments whose positions satisfy the given
 -- predicate and inserts them to the given node using the given inserter.
 insertComments ::
-     (Anchor -> Bool)
+     (RealSrcSpan -> Bool)
   -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
   -> EpAnn a
   -> WithComments (EpAnn a)
@@ -135,10 +135,11 @@ removeComments = everywhere (mkT remover)
     remover (EpaCommentsBalanced _ _) = emptyComments
 
 -- | This function drains comments that satisfy the given predicate.
-drainComments :: (Anchor -> Bool) -> WithComments [LEpaComment]
+drainComments :: (RealSrcSpan -> Bool) -> WithComments [LEpaComment]
 drainComments cond = do
   coms <- get
-  let (others, xs) = partition (\(L commentAnchor _) -> cond commentAnchor) coms
+  let (others, xs) =
+        partition (\(L commentAnchor _) -> cond $ anchor commentAnchor) coms
   put others
   pure xs
 
