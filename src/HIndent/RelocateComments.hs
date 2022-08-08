@@ -47,19 +47,6 @@ relocateComments m = evalState (st m) allComments
       relocateCommentsSameLine >=> relocateCommentsAfter
     allComments = listify (const True) m
 
--- | This function applies the given function to all 'EpAnn's.
-applyM ::
-     forall a m. (Monad m, Typeable a)
-  => (forall b. EpAnn b -> m (EpAnn b))
-  -> (a -> m a)
-applyM f =
-  case typeRep @a of
-    App g _ ->
-      case eqTypeRep g (typeRep @EpAnn) of
-        Just HRefl -> f
-        Nothing    -> pure
-    _ -> pure
-
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> State [LEpaComment] HsModule
@@ -75,3 +62,16 @@ relocateCommentsSameLine = pure
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> State [LEpaComment] HsModule
 relocateCommentsAfter = pure
+
+-- | This function applies the given function to all 'EpAnn's.
+applyM ::
+     forall a m. (Monad m, Typeable a)
+  => (forall b. EpAnn b -> m (EpAnn b))
+  -> (a -> m a)
+applyM f =
+  case typeRep @a of
+    App g _ ->
+      case eqTypeRep g (typeRep @EpAnn) of
+        Just HRefl -> f
+        Nothing    -> pure
+    _ -> pure
