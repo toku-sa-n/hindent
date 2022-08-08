@@ -46,9 +46,9 @@ type WithComments = State [LEpaComment]
 --
 -- This function solves the problem by collecting all 'LEpaComment's with 'listify', and iterates all nodes from top to bottom a few times. During the first iteration, this function adds comments above each node from the collected ones to the node. On the next iteration, it adds a comment on the same line. On the last iteration, it adds comments below them.
 relocateComments :: HsModule -> HsModule
-relocateComments m = evalState (st m) allComments
+relocateComments m = evalState (relocate (removeComments m)) allComments
   where
-    st =
+    relocate =
       relocateCommentsBefore >=>
       relocateCommentsSameLine >=> relocateCommentsAfter
     allComments = listify (const True) m
@@ -89,6 +89,13 @@ insertFollowingComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
 insertFollowingComments (EpaComments prior) cs = EpaCommentsBalanced prior cs
 insertFollowingComments (EpaCommentsBalanced prior following) cs =
   EpaCommentsBalanced prior (following ++ cs)
+
+-- | This function removes all comments from the given module. It is necessary not to duplicate comments.
+removeComments :: HsModule -> HsModule
+removeComments = everywhere (mkT remover)
+  where
+    remover (EpaComments _)           = emptyComments
+    remover (EpaCommentsBalanced _ _) = emptyComments
 
 -- | This function drains comments that satisfy the given predicate.
 drainComments :: (Anchor -> Bool) -> WithComments [LEpaComment]
