@@ -141,7 +141,7 @@ removeComments = everywhere (mkT remover)
 drainComments :: (RealSrcSpan -> Bool) -> WithComments [LEpaComment]
 drainComments cond = do
   coms <- get
-  let (others, xs) =
+  let (xs, others) =
         partition (\(L commentAnchor _) -> cond $ anchor commentAnchor) coms
   put others
   pure xs
