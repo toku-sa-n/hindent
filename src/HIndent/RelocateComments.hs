@@ -98,6 +98,10 @@ relocateCommentsSameLine = everywhereM' (applyM f)
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
+-- TODO: Do we need to create an original `everywhereM`? I guess
+-- `everywhereM` iterates from the beginning of a data structure to the
+-- bottom because it calls `gfoldl` that iterates from top to bottom.
+-- However, this function must iterate from the bottom to the top.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = everywhereM (applyM f)
   where
