@@ -65,7 +65,13 @@ relocateCommentsBefore = everywhereM' (applyM f)
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
 relocateCommentsSameLine :: HsModule -> WithComments HsModule
-relocateCommentsSameLine = pure
+relocateCommentsSameLine = everywhereM' (applyM f)
+  where
+    f epa@EpAnn {..} =
+      insertComments (isOnSameLine entry) insertFollowingComments epa
+    f EpAnnNotUsed = pure EpAnnNotUsed
+    isOnSameLine anc comAnc =
+      srcSpanStartLine (anchor anc) == srcSpanStartLine (anchor comAnc)
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
