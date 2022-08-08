@@ -60,11 +60,8 @@ relocateCommentsBefore = everywhereM (applyM f)
   where
     f :: EpAnn a -> State [LEpaComment] (EpAnn a)
     f epa@EpAnn {..} = do
-      coms <- get
-      let (others, xs) =
-            partition (\(L commentAnchor _) -> entry < commentAnchor) coms
-      put others
-      pure $ epa {comments = setFollowingComments comments xs}
+      coms <- drainComments (< entry)
+      pure $ epa {comments = setFollowingComments comments coms}
     f EpAnnNotUsed = pure EpAnnNotUsed
 
 -- | This function scans the given AST from top to bottom and locates
@@ -77,6 +74,14 @@ relocateCommentsSameLine = pure
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = pure
+
+-- | This function drains comments that satisfy the given predicate.
+drainComments :: (Anchor -> Bool) -> WithComments [LEpaComment]
+drainComments cond = do
+  coms <- get
+  let (others, xs) = partition (\(L commentAnchor _) -> cond commentAnchor) coms
+  put others
+  pure xs
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
