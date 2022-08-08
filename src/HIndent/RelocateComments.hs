@@ -58,7 +58,7 @@ relocateComments m = evalState (relocate (removeComments m)) allComments
 relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM' (applyM f)
   where
-    f epa@EpAnn {..} = insertComments (< entry) insertFollowingComments epa
+    f epa@EpAnn {..} = insertComments (< entry) insertPriorComments epa
     f EpAnnNotUsed   = pure EpAnnNotUsed
 
 -- | This function scans the given AST from top to bottom and locates
@@ -83,6 +83,12 @@ insertComments cond inserter epa@EpAnn {..} = do
   coms <- drainComments cond
   pure $ epa {comments = inserter comments coms}
 insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
+
+-- | This function inserts comments to `priorComments`.
+insertPriorComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
+insertPriorComments (EpaComments prior) cs = EpaComments (prior ++ cs)
+insertPriorComments (EpaCommentsBalanced prior following) cs =
+  EpaCommentsBalanced (prior ++ cs) following
 
 -- | This function inserts comments to `followingComments`.
 insertFollowingComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
