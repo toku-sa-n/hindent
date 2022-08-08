@@ -45,6 +45,7 @@ import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import           HIndent.Pretty
+import           HIndent.RelocateComments
 import           HIndent.Types
 import qualified Language.Haskell.Extension as Cabal
 import           Prelude
@@ -138,7 +139,7 @@ hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 
 -- | Print the module.
 prettyPrint :: Config -> HsModule -> Builder
-prettyPrint config m = runPrinterStyle config (pretty m)
+prettyPrint config m = runPrinterStyle config (pretty $ relocateComments m)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
