@@ -17,9 +17,11 @@ outputPragmas = mapM_ string . collectPragmas
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
 
+-- TODO: This function collects pragmas from the entire module, and it
+-- should be slow. Limit the range to search for them.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  mapMaybe unwrapComment . filter isPragma . listify matchToComment . hsmodAnn
+  mapMaybe unwrapComment . filter isPragma . listify matchToComment
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
