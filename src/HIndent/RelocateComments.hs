@@ -56,7 +56,7 @@ relocateComments m = evalState (st m) allComments
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> WithComments HsModule
-relocateCommentsBefore = everywhereM (applyM f)
+relocateCommentsBefore = everywhereM' (applyM f)
   where
     f epa@EpAnn {..} = insertComments (< entry) insertFollowingComments epa
     f EpAnnNotUsed   = pure EpAnnNotUsed
@@ -97,6 +97,16 @@ drainComments cond = do
   let (others, xs) = partition (\(L commentAnchor _) -> cond commentAnchor) coms
   put others
   pure xs
+
+-- | Monadic variation on 'everywhere''.
+everywhereM' ::
+     forall m. Monad m
+  => GenericM m
+  -> GenericM m
+everywhereM' f = go
+  where
+    go :: GenericM m
+    go = f >=> go
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
