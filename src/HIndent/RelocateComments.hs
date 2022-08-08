@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -8,8 +9,10 @@ module HIndent.RelocateComments
   ) where
 
 import           Control.Monad.State
+import           Data.List
 import           Generics.SYB        hiding (typeRep)
 import           GHC.Hs
+import           GHC.Types.SrcLoc
 import           Type.Reflection
 
 -- | This function collects all comments from the passed 'HsModule', and modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
@@ -50,7 +53,16 @@ relocateComments m = evalState (st m) allComments
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> State [LEpaComment] HsModule
-relocateCommentsBefore = pure
+relocateCommentsBefore = everywhereM (applyM f)
+  where
+    f :: EpAnn a -> State [LEpaComment] (EpAnn a)
+    f epa@EpAnn {..} = do
+      coms <- get
+      let (others, xs) =
+            partition (\(L commentAnchor _) -> entry < commentAnchor) coms
+      put others
+      pure $ epa {comments = setFollowingComments comments xs}
+    f EpAnnNotUsed = pure EpAnnNotUsed
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool above each node on it. Comments are
