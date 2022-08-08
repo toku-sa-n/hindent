@@ -15,6 +15,9 @@ import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           Type.Reflection
 
+-- | A state type with comments.
+type WithComments = State [LEpaComment]
+
 -- | This function collects all comments from the passed 'HsModule', and modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
 --
 -- HIndent gathers all comments above a function, an import, a module declaration, etc. For example, HIndent formats the following code
@@ -52,7 +55,7 @@ relocateComments m = evalState (st m) allComments
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
-relocateCommentsBefore :: HsModule -> State [LEpaComment] HsModule
+relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM (applyM f)
   where
     f :: EpAnn a -> State [LEpaComment] (EpAnn a)
@@ -67,19 +70,19 @@ relocateCommentsBefore = everywhereM (applyM f)
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
-relocateCommentsSameLine :: HsModule -> State [LEpaComment] HsModule
+relocateCommentsSameLine :: HsModule -> WithComments HsModule
 relocateCommentsSameLine = pure
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
-relocateCommentsAfter :: HsModule -> State [LEpaComment] HsModule
+relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = pure
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
-     forall a m. (Monad m, Typeable a)
-  => (forall b. EpAnn b -> m (EpAnn b))
-  -> (a -> m a)
+     forall a. Typeable a
+  => (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> (a -> WithComments a)
 applyM f =
   case typeRep @a of
     App g _ ->
