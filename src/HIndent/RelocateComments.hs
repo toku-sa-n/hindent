@@ -46,12 +46,34 @@ type WithComments = State [LEpaComment]
 --
 -- This function solves the problem by collecting all 'LEpaComment's with 'listify', and iterates all nodes from top to bottom a few times. During the first iteration, this function adds comments above each node from the collected ones to the node. On the next iteration, it adds a comment on the same line. On the last iteration, it adds comments below them.
 relocateComments :: HsModule -> HsModule
-relocateComments m = evalState (relocate (removeComments m)) allComments
+relocateComments m =
+  evalState (relocate (removeComments $ resetSrcSpan m)) allComments
   where
     relocate =
       relocateCommentsBefore >=>
       relocateCommentsSameLine >=> relocateCommentsAfter
     allComments = listify (const True) m
+
+-- | This function resets the source span of the given module by searching
+-- an 'EpaEofComment'.
+--
+-- This process is necessary because the module obtained by parsing
+-- a source code with 'parseModule' only contains its start position.
+resetSrcSpan :: HsModule -> HsModule
+resetSrcSpan m@HsModule {hsmodAnn = ea@EpAnn {..}} = m {hsmodAnn = newAnn}
+  where
+    newAnn = ea {entry = entry {anchor = newSp}}
+    newSp =
+      mkRealSrcSpan
+        (realSrcSpanStart $ anchor entry)
+        (realSrcSpanEnd $ anchor $ getLoc eofComment)
+    eofComment =
+      head $
+      filter (isEofComment . ac_tok . unLoc) $ getFollowingComments comments
+    isEofComment EpaEofComment = True
+    isEofComment _             = False
+resetSrcSpan HsModule {hsmodAnn = EpAnnNotUsed} =
+  error "The given `hsModule` does not have its source span information."
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
