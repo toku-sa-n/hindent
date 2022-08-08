@@ -128,7 +128,7 @@ everywhereM' ::
 everywhereM' f = go
   where
     go :: GenericM m
-    go = f >=> go
+    go = f >=> gmapM go
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
