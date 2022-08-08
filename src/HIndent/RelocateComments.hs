@@ -60,10 +60,10 @@ relocateComments m =
 -- This process is necessary because the module obtained by parsing
 -- a source code with 'parseModule' only contains its start position.
 resetSrcSpan :: HsModule -> HsModule
-resetSrcSpan m@HsModule {hsmodAnn = ea@EpAnn {..}} = m {hsmodAnn = newAnn}
+resetSrcSpan m@HsModule {hsmodAnn = ea@EpAnn {..}} =
+  m {hsmodAnn = ea {entry = entry {anchor = newAnchor}}}
   where
-    newAnn = ea {entry = entry {anchor = newSp}}
-    newSp =
+    newAnchor =
       mkRealSrcSpan
         (realSrcSpanStart $ anchor entry)
         (realSrcSpanEnd $ anchor $ getLoc eofComment)
