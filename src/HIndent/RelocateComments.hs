@@ -94,7 +94,7 @@ relocateCommentsSameLine = everywhereM' (applyM f)
     f epa@EpAnn {..} =
       insertComments (isOnSameLine $ anchor entry) insertFollowingComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
-    isOnSameLine anc comAnc = srcSpanStartLine anc == srcSpanStartLine comAnc
+    isOnSameLine anc comAnc = srcSpanEndLine anc == srcSpanStartLine comAnc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
