@@ -58,11 +58,8 @@ relocateComments m = evalState (st m) allComments
 relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM (applyM f)
   where
-    f :: EpAnn a -> State [LEpaComment] (EpAnn a)
-    f epa@EpAnn {..} = do
-      coms <- drainComments (< entry)
-      pure $ epa {comments = setFollowingComments comments coms}
-    f EpAnnNotUsed = pure EpAnnNotUsed
+    f epa@EpAnn {..} = insertComments (< entry) insertFollowingComments epa
+    f EpAnnNotUsed   = pure EpAnnNotUsed
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool above each node on it. Comments are
@@ -74,6 +71,24 @@ relocateCommentsSameLine = pure
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = pure
+
+-- | This function drains comments whose positions satisfy the given
+-- predicate and inserts them to the given node using the given inserter.
+insertComments ::
+     (Anchor -> Bool)
+  -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
+  -> EpAnn a
+  -> WithComments (EpAnn a)
+insertComments cond inserter epa@EpAnn {..} = do
+  coms <- drainComments cond
+  pure $ epa {comments = inserter comments coms}
+insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
+
+-- | This function inserts comments to `followingComments`.
+insertFollowingComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
+insertFollowingComments (EpaComments prior) cs = EpaCommentsBalanced prior cs
+insertFollowingComments (EpaCommentsBalanced prior following) cs =
+  EpaCommentsBalanced prior (following ++ cs)
 
 -- | This function drains comments that satisfy the given predicate.
 drainComments :: (Anchor -> Bool) -> WithComments [LEpaComment]
