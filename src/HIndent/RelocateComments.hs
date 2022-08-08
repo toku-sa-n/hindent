@@ -76,7 +76,10 @@ relocateCommentsSameLine = everywhereM' (applyM f)
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
-relocateCommentsAfter = pure
+relocateCommentsAfter = everywhereM (applyM f)
+  where
+    f epa@EpAnn {..} = insertComments (> entry) insertFollowingComments epa
+    f EpAnnNotUsed   = pure EpAnnNotUsed
 
 -- | This function drains comments whose positions satisfy the given
 -- predicate and inserts them to the given node using the given inserter.
