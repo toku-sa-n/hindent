@@ -78,7 +78,7 @@ resetSrcSpan HsModule {hsmodAnn = EpAnnNotUsed} =
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> WithComments HsModule
-relocateCommentsBefore = everywhereM' (applyM f)
+relocateCommentsBefore = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
       insertComments (isBefore $ anchor entry) insertPriorComments epa
@@ -89,7 +89,7 @@ relocateCommentsBefore = everywhereM' (applyM f)
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
 relocateCommentsSameLine :: HsModule -> WithComments HsModule
-relocateCommentsSameLine = everywhereM' (applyM f)
+relocateCommentsSameLine = everywhereMr (applyM f)
   where
     f epa@EpAnn {..} =
       insertComments (isOnSameLine $ anchor entry) insertFollowingComments epa
@@ -103,7 +103,7 @@ relocateCommentsSameLine = everywhereM' (applyM f)
 -- bottom because it calls `gfoldl` that iterates from top to bottom.
 -- However, this function must iterate from the bottom to the top.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
-relocateCommentsAfter = everywhereM (applyM f)
+relocateCommentsAfter = everywhereMr (applyM f)
   where
     f epa@EpAnn {..} =
       insertComments (isAfter $ anchor entry) insertFollowingComments epa
@@ -150,15 +150,30 @@ drainComments cond = do
   put others
   pure xs
 
--- | Monadic variation on 'everywhere''.
-everywhereM' ::
+-- | Right-associative `everywhereM`
+everywhereMr ::
      forall m. Monad m
   => GenericM m
   -> GenericM m
-everywhereM' f = go
+everywhereMr f = go
   where
     go :: GenericM m
-    go = f >=> gmapM go
+    go = gmapMr go >=> f
+
+-- | Right-associative `gmapM`.
+gmapMr ::
+     forall a m. (Data a, Monad m)
+  => (forall d. Data d =>
+                  d -> m d)
+  -> a
+  -> m a
+gmapMr f = gfoldl k return
+  where
+    k :: Data d => m (d -> b) -> d -> m b
+    k c x = do
+      x' <- f x
+      c' <- c
+      return (c' x')
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
