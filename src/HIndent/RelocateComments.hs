@@ -147,7 +147,7 @@ insertComments ::
   -> EpAnn a
   -> WithComments (EpAnn a)
 insertComments cond inserter epa@EpAnn {..} = do
-  coms <- drainComments cond
+  coms <- drainCommentsByPos cond
   pure $ epa {comments = inserter comments coms}
 insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
 
@@ -170,14 +170,19 @@ removeComments = everywhere (mkT remover)
     remover (EpaComments _)           = emptyComments
     remover (EpaCommentsBalanced _ _) = emptyComments
 
--- | This function drains comments that satisfy the given predicate.
-drainComments :: (RealSrcSpan -> Bool) -> WithComments [LEpaComment]
+-- | This function drains comments that satisfy the given predicate
+drainComments :: (LEpaComment -> Bool) -> WithComments [LEpaComment]
 drainComments cond = do
   coms <- get
-  let (xs, others) =
-        partition (\(L commentAnchor _) -> cond $ anchor commentAnchor) coms
+  let (xs, others) = partition cond coms
   put others
-  pure xs
+  return xs
+
+-- | This function drains comments that satisfy the given predicate about
+-- their positions.
+drainCommentsByPos :: (RealSrcSpan -> Bool) -> WithComments [LEpaComment]
+drainCommentsByPos cond =
+  drainComments (\(L commentAnchor _) -> cond $ anchor commentAnchor)
 
 -- | Right-associative `everywhereM`
 everywhereMr ::
