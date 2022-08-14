@@ -18,6 +18,7 @@ module HIndent.Pretty.Combinators
   , showOutputable
   , rhsSeparator
   , commentsArePrinted
+  , prefixedLined
   ) where
 
 import           Control.Applicative
@@ -168,3 +169,12 @@ rhsSeparator = do
 
 commentsArePrinted :: Printer ()
 commentsArePrinted = modify (\s -> s {psEolComment = True})
+
+prefixedLined :: String -> [Printer ()] -> Printer ()
+prefixedLined _ [] = return ()
+prefixedLined pref (x:xs) = do
+  x
+  indentedWithSpace (fromIntegral (length pref * (-1))) $
+    forM_ xs $ \p -> do
+      newline
+      indentedDependingOnHead (string pref) p

@@ -52,21 +52,23 @@ data SigOrMethods
 class Pretty a where
   pretty :: a -> Printer ()
   pretty p = do
-    printCommentsBefore
+    printCommentsBefore p
     pretty' p
-    printCommentsSameLine
-    printCommentsAfter
-    where
-      printCommentsBefore = mapM_ pretty $ commentsBefore p
-      printCommentsSameLine = mapM_ pretty $ commentsSameLine p
-      printCommentsAfter =
-        case commentsAfter p of
-          [] -> return ()
-          xs -> do
-            isThereCommentsOnSameLine <- gets psEolComment
-            unless isThereCommentsOnSameLine newline
-            mapM_ pretty xs
+    printCommentsSameLine p
+    printCommentsAfter p
   pretty' :: a -> Printer ()
+  printCommentsBefore :: a -> Printer ()
+  printCommentsBefore = mapM_ pretty . commentsBefore
+  printCommentsSameLine :: a -> Printer ()
+  printCommentsSameLine = mapM_ pretty . commentsSameLine
+  printCommentsAfter :: a -> Printer ()
+  printCommentsAfter p =
+    case commentsAfter p of
+      [] -> return ()
+      xs -> do
+        isThereCommentsOnSameLine <- gets psEolComment
+        unless isThereCommentsOnSameLine newline
+        mapM_ pretty xs
   -- These functions must return comments that only this node can fetch. In
   -- other words, these functions must not return comments that child nodes
   -- can fetch.
@@ -77,7 +79,9 @@ class Pretty a where
   commentsAfter :: a -> [LEpaComment]
   commentsAfter = const []
 
-instance Pretty HsModule where
+instance Pretty HsModule
+  -- pretty = output . showAstData NoBlankSrcSpan NoBlankEpAnnotations
+                                                                       where
   pretty' m = inter blankline printers
     where
       printers = snd <$> filter fst pairs
@@ -106,8 +110,15 @@ instance Pretty HsModule where
     filter (not . isPragma . ac_tok . unLoc) .
     followingComments . comments . hsmodAnn
 
-instance Pretty e => Pretty (GenLocated l e) where
-  pretty' (L _ e) = pretty e
+-- FIXME: Requiring 'l' to implement 'Pretty' is wrong because some types
+-- (e.g., 'EpAnn') cannot pretty-print. The restriction exists only for
+-- extracting comments. Remove the restriction.
+instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
+  pretty' (L l e) = do
+    printCommentsBefore l
+    pretty e
+    printCommentsSameLine l
+    printCommentsAfter l
 
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d)    = pretty d
@@ -255,20 +266,19 @@ instance Pretty (HsExpr GhcPs) where
     where
       horizontal =
         brackets $ do
-          pretty $ last $ unLoc xs
+          pretty $ head $ unLoc xs
           string " | "
-          mapM_ pretty $ init $ unLoc xs
+          mapM_ pretty $ tail $ unLoc xs
       vertical =
         insideVerticalList $
         if null $ unLoc xs
           then string "[]"
-          else let (lastStmt, others) = (last $ unLoc xs, init $ unLoc xs)
+          else let (lastStmt, others) = (head $ unLoc xs, tail $ unLoc xs)
                 in do string "[ "
                       pretty lastStmt
                       newline
                       forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        string p
-                        pretty x
+                        indentedDependingOnHead (string p) $ pretty x
                         newline
                       string "]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
@@ -359,10 +369,10 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       output pat
       string " <-"
       newline
-      indentedBlock $ indentedWithSpace 2 $ output body -- 2 for "| "
+      indentedBlock $ output body
   pretty' ApplicativeStmt {} = undefined
-  pretty' BodyStmt {} = undefined
-  pretty' l@LetStmt {} = output l
+  pretty' b@BodyStmt {} = output b
+  pretty' (LetStmt _ l) = pretty l
   pretty' (ParStmt _ xs _ _) = do
     inVertical <- gets psInsideVerticalList
     if inVertical
@@ -370,11 +380,15 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       else horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal = inter (string " | ") $ fmap output xs
-      vertical = inter (newline >> string "| ") $ fmap pretty xs
+      vertical = prefixedLined "| " $ fmap pretty xs
   pretty' TransStmt {..} =
-    inter (newline >> string ", ") $
+    prefixedLined ", " $
     fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
+  commentsBefore (LetStmt l _) = commentsBefore l
+  commentsBefore _             = []
+  commentsAfter (LetStmt l _) = commentsAfter l
+  commentsAfter _             = []
 
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecFields {..} = horizontal `ifFitsOnOneLineOrElse` vertical
@@ -502,8 +516,8 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       then vertical
       else horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = inter (string ", ") $ fmap output xs
-      vertical = inter (newline >> string ", ") $ fmap output xs
+      horizontal = inter (string ", ") $ fmap pretty xs
+      vertical = prefixedLined ", " $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = prefixOp
@@ -528,6 +542,9 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         rhsSeparator
         newline
         indentedBlock $ pretty body
+  commentsBefore (GRHS x _ _) = commentsBefore x
+  commentsSameLine (GRHS x _ _) = commentsSameLine x
+  commentsAfter (GRHS x _ _) = commentsAfter x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c)  = string c >> commentsArePrinted
@@ -606,6 +623,42 @@ instance Pretty SigOrMethods where
 
 instance Pretty EpaComment where
   pretty' EpaComment {..} = pretty ac_tok
+
+-- FIXME: This instance declaration is wrong. The declaration exists only
+-- for satisfying the 'GenLocated' one. We can't pretty-print 'Anchor'.
+instance Pretty Anchor where
+  pretty' _ = return ()
+
+-- FIXME: This instance declaration is wrong. The declaration exists only
+-- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcAnn'.
+instance Pretty (SrcAnn a) where
+  pretty' _ = return ()
+  commentsBefore (SrcSpanAnn ep _) = commentsBefore ep
+  commentsAfter (SrcSpanAnn ep _) = commentsAfter ep
+
+-- FIXME: This instance declaration is wrong. The declaration exists only
+-- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcSpan'.
+instance Pretty SrcSpan where
+  pretty' _ = return ()
+
+-- FIXME: This instance declaration is wrong. The declaration exists only
+-- for satisfying the 'GenLocated' one. We can't pretty-print 'EpAnn'.
+instance Pretty (EpAnn a) where
+  pretty' _ = return ()
+  commentsBefore (EpAnn _ _ cs) = priorComments cs
+  commentsBefore EpAnnNotUsed   = []
+  commentsAfter (EpAnn _ _ cs) = getFollowingComments cs
+  commentsAfter EpAnnNotUsed   = []
+
+instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
+  pretty' (HsValBinds _ lr) = do
+    string "let "
+    pretty lr
+  pretty' x = output x
+
+instance Pretty (HsValBindsLR GhcPs GhcPs) where
+  pretty' (ValBinds _ ls _) = mapM_ pretty ls
+  pretty' x                 = output x
 
 infixExpr :: HsExpr GhcPs -> Printer ()
 infixExpr (HsVar _ bind) = infixOp $ unLoc bind
