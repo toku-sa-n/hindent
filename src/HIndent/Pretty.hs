@@ -19,6 +19,7 @@ import           Data.Maybe
 import           Generics.SYB
 import           GHC.Data.Bag
 import           GHC.Hs
+import           GHC.Hs.Dump
 import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
 import           HIndent.Applicative
@@ -79,9 +80,7 @@ class Pretty a where
   commentsAfter :: a -> [LEpaComment]
   commentsAfter = const []
 
-instance Pretty HsModule
-  -- pretty = output . showAstData NoBlankSrcSpan NoBlankEpAnnotations
-                                                                       where
+instance Pretty HsModule where
   pretty' m = inter blankline printers
     where
       printers = snd <$> filter fst pairs

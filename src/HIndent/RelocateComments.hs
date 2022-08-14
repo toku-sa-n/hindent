@@ -59,7 +59,7 @@ relocateComments m =
       relocateCommentsBefore >=>
       relocateCommentsSameLineRev >=>
       relocateCommentsSameLine >=> relocateCommentsAfter
-    allComments = listify (const True) m
+    allComments = listify (not . isEofComment . ac_tok . unLoc) m
 
 -- | This function resets the source span of the given module by searching
 -- an 'EpaEofComment'.
@@ -77,8 +77,6 @@ resetSrcSpan m@HsModule {hsmodAnn = ea@EpAnn {..}} =
     eofComment =
       head $
       filter (isEofComment . ac_tok . unLoc) $ getFollowingComments comments
-    isEofComment EpaEofComment = True
-    isEofComment _             = False
 resetSrcSpan HsModule {hsmodAnn = EpAnnNotUsed} =
   error "The given `hsModule` does not have its source span information."
 
@@ -218,3 +216,9 @@ applyM f =
         Just HRefl -> f
         Nothing    -> pure
     _ -> pure
+
+-- | This functions returns 'True' if the given token is an Eof comment,
+-- and 'False' otherwise.
+isEofComment :: EpaCommentTok -> Bool
+isEofComment EpaEofComment = True
+isEofComment _             = False
