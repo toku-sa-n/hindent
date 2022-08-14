@@ -19,7 +19,6 @@ import           Data.Maybe
 import           Generics.SYB
 import           GHC.Data.Bag
 import           GHC.Hs
-import           GHC.Hs.Dump
 import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
 import           HIndent.Applicative
@@ -92,10 +91,10 @@ instance Pretty HsModule where
         ]
       outputDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
-        addSeparator $ unLoc <$> hsmodDecls m
+        addSeparator $ hsmodDecls m
       addSeparator []     = []
       addSeparator [x]    = [(x, Nothing)]
-      addSeparator (x:xs) = (x, Just $ separator x) : addSeparator xs
+      addSeparator (x:xs) = (x, Just $ separator $ unLoc x) : addSeparator xs
       separator SigD {} = newline
       separator _       = blankline
       declsExist = not . null . hsmodDecls
