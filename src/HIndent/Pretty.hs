@@ -475,11 +475,17 @@ instance Pretty (HsType GhcPs) where
   pretty' HsDocTy {} = undefined
   pretty' HsBangTy {} = undefined
   pretty' HsRecTy {} = undefined
-  pretty' (HsExplicitListTy _ _ xs) = do
-    string "'[ "
+  pretty' (HsExplicitListTy _ _ xs) =
+    case xs of
+      [] -> string "'[]"
+      _ -> do
+        string "'[ "
+        inter (string ", ") $ fmap pretty xs
+        string "]"
+  pretty' (HsExplicitTupleTy _ xs) = do
+    string "'( "
     inter (string ", ") $ fmap pretty xs
-    string "]"
-  pretty' HsExplicitTupleTy {} = undefined
+    string ")"
   pretty' HsTyLit {} = undefined
   pretty' HsWildCardTy {} = undefined
   pretty' XHsType {} = undefined
