@@ -370,7 +370,9 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       indentedBlock $ output body
   pretty' ApplicativeStmt {} = undefined
   pretty' b@BodyStmt {} = output b
-  pretty' (LetStmt _ l) = pretty l
+  pretty' (LetStmt _ l) = do
+    string "let "
+    pretty l
   pretty' (ParStmt _ xs _ _) = do
     inVertical <- gets psInsideVerticalList
     if inVertical
@@ -505,7 +507,16 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
     string "}"
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' GRHSs {..} = mapM_ pretty grhssGRHSs
+  pretty' GRHSs {..} = do
+    mapM_ pretty grhssGRHSs
+    case grhssLocalBinds of
+      (HsValBinds _ lr) ->
+        indentedBlock $ do
+          newline
+          string "where"
+          newline
+          indentedBlock $ pretty lr
+      _ -> return ()
 
 instance Pretty (HsMatchContext GhcPs) where
   pretty' FunRhs {..} = pretty mc_fun
@@ -655,10 +666,8 @@ instance Pretty (EpAnn a) where
   commentsAfter EpAnnNotUsed   = []
 
 instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
-  pretty' (HsValBinds _ lr) = do
-    string "let "
-    pretty lr
-  pretty' x = output x
+  pretty' (HsValBinds _ lr) = pretty lr
+  pretty' x                 = output x
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ ls _) = mapM_ pretty ls
