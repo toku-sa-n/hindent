@@ -11,9 +11,10 @@ module HIndent.RelocateComments
 import           Control.Monad.State
 import           Data.Function
 import           Data.List
-import           Generics.SYB        hiding (typeRep)
+import           Generics.SYB          hiding (typeRep)
 import           GHC.Hs
 import           GHC.Types.SrcLoc
+import           HIndent.Pretty.Pragma
 import           Type.Reflection
 
 -- | A state type with comments.
@@ -56,6 +57,7 @@ relocateComments m =
     -- Examine what it does, and change `relocate` properly.
   where
     relocate =
+      relocatePragmas >=>
       relocateCommentsBefore >=>
       relocateCommentsSameLineRev >=>
       relocateCommentsSameLine >=> relocateCommentsAfter
@@ -92,13 +94,22 @@ sortExprLStmt m@HsModule {hsmodDecls = xs} = m {hsmodDecls = sorted}
     sortByLoc :: [ExprLStmt GhcPs] -> [ExprLStmt GhcPs]
     sortByLoc = sortBy (compare `on` srcSpanToRealSrcSpan . locA . getLoc)
 
+relocatePragmas :: HsModule -> WithComments HsModule
+relocatePragmas m@HsModule {hsmodAnn = hsmodAnn} = do
+  newAnn <- everywhereM (applyM f) hsmodAnn
+  return m {hsmodAnn = newAnn}
+  where
+    f epa@EpAnn {} =
+      insertComments (isPragma . ac_tok . unLoc) insertPriorComments epa
+    f EpAnnNotUsed = pure EpAnnNotUsed
+
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> WithComments HsModule
 relocateCommentsBefore = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (isBefore $ anchor entry) insertPriorComments epa
+      insertCommentsByPos (isBefore $ anchor entry) insertPriorComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
     isBefore anc comAnc =
       srcSpanStartCol anc == 1 &&
@@ -112,7 +123,10 @@ relocateCommentsSameLine :: HsModule -> WithComments HsModule
 relocateCommentsSameLine = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (isOnSameLine $ anchor entry) insertFollowingComments epa
+      insertCommentsByPos
+        (isOnSameLine $ anchor entry)
+        insertFollowingComments
+        epa
     f EpAnnNotUsed = pure EpAnnNotUsed
     isOnSameLine anc comAnc = srcSpanStartLine comAnc == srcSpanEndLine anc
 
@@ -123,7 +137,10 @@ relocateCommentsSameLineRev :: HsModule -> WithComments HsModule
 relocateCommentsSameLineRev = everywhereMr (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (isOnSameLine $ anchor entry) insertFollowingComments epa
+      insertCommentsByPos
+        (isOnSameLine $ anchor entry)
+        insertFollowingComments
+        epa
     f EpAnnNotUsed = pure EpAnnNotUsed
     isOnSameLine anc comAnc =
       srcSpanStartLine comAnc == srcSpanStartLine anc &&
@@ -135,21 +152,32 @@ relocateCommentsAfter :: HsModule -> WithComments HsModule
 relocateCommentsAfter = everywhereMr (applyM f)
   where
     f epa@EpAnn {..} =
-      insertComments (isAfter $ anchor entry) insertFollowingComments epa
+      insertCommentsByPos (isAfter $ anchor entry) insertFollowingComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
     isAfter anc comAnc = srcSpanEndLine anc <= srcSpanStartLine comAnc
 
--- | This function drains comments whose positions satisfy the given
--- predicate and inserts them to the given node using the given inserter.
 insertComments ::
-     (RealSrcSpan -> Bool)
+     (LEpaComment -> Bool)
   -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
   -> EpAnn a
   -> WithComments (EpAnn a)
 insertComments cond inserter epa@EpAnn {..} = do
-  coms <- drainCommentsByPos cond
+  coms <- drainComments cond
   pure $ epa {comments = inserter comments coms}
 insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
+
+-- | This function drains comments whose positions satisfy the given
+-- predicate and inserts them to the given node using the given inserter.
+-- TODO: Remove duplications with 'insertComments'
+insertCommentsByPos ::
+     (RealSrcSpan -> Bool)
+  -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
+  -> EpAnn a
+  -> WithComments (EpAnn a)
+insertCommentsByPos cond inserter epa@EpAnn {..} = do
+  coms <- drainCommentsByPos cond
+  pure $ epa {comments = inserter comments coms}
+insertCommentsByPos _ _ EpAnnNotUsed = pure EpAnnNotUsed
 
 -- | This function inserts comments to `priorComments`.
 insertPriorComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
