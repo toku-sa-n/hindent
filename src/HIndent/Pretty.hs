@@ -508,7 +508,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = mapM_ pretty grhssGRHSs
 
 instance Pretty (HsMatchContext GhcPs) where
-  pretty' FunRhs {..} = output mc_fun
+  pretty' FunRhs {..} = pretty mc_fun
   pretty' CaseAlt     = return ()
   pretty' LambdaExpr  = return ()
   pretty' x           = output x
