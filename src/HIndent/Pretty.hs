@@ -36,6 +36,9 @@ data SigOrMethods
   | Method (LHsBindLR GhcPs GhcPs)
 
 -- | Pretty print including comments.
+--
+-- TODO: Define `pretty` as a top-level function. It should have only one
+-- definition, and it must not be changed in an instance declaration.
 class Pretty a where
   pretty :: a -> Printer ()
   pretty p = do
