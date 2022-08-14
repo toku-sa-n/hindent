@@ -49,7 +49,7 @@ type WithComments = State [LEpaComment]
 relocateComments :: HsModule -> HsModule
 relocateComments m =
   evalState
-    (relocate (removeComments $ sortExprLStmt $ resetSrcSpan m))
+    (relocate $ removeComments $ sortExprLStmt $ resetSrcSpan m)
     allComments
     -- TODO: I don't fully understand how does `collectAllComments` of the
     -- original source code do, and this `relocate` is just a copy of it.
