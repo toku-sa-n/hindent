@@ -39,6 +39,16 @@ data SigOrMethods
 --
 -- TODO: Define `pretty` as a top-level function. It should have only one
 -- definition, and it must not be changed in an instance declaration.
+--
+-- FIXME: 'Pretty' has a problem. It has two responsibilities; one is to
+-- print a given node pretty, and the other is to collect comments from the
+-- node.
+--
+-- Note that there are three types of nodes:
+-- * A node that can pretty-print and has comments (e.g., 'HsModule')
+-- * A node that can pretty-print but has no comments (e.g., almost all
+-- nodes)
+-- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
 class Pretty a where
   pretty :: a -> Printer ()
   pretty p = do
