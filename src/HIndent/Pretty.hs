@@ -165,7 +165,7 @@ instance Pretty (HsBind GhcPs) where
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
-    output $ unLoc $ head funName
+    pretty $ unLoc $ head funName
     horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal = do
