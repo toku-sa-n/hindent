@@ -132,13 +132,13 @@ Type declaration
 type EventSource a = (AddHandler a, a -> IO ())
 ```
 
-Type declaration with infix promoted type constructor
+Type declaration with promoted lists
 
 ```haskell
-fun1 :: Def ('[ Ref s (Stored Uint32), IBool] 'T.:-> IBool)
+fun1 :: Def ('[ Ref s (Stored Uint32), IBool] T.:-> IBool)
 fun1 = undefined
 
-fun2 :: Def ('[ Ref s (Stored Uint32), IBool] ':-> IBool)
+fun2 :: Def ('[ Ref s (Stored Uint32), IBool] :-> IBool)
 fun2 = undefined
 ```
 
@@ -1594,8 +1594,9 @@ class Foo a b c d e f
 
 utdemir Hindent breaks TH name captures of operators #412
 
-```haskell
+```haskell pending
 -- https://github.com/commercialhaskell/hindent/issues/412
+-- This code compile on GHC 8.0.2 but does not from 8.2.2.
 data T =
   (-)
 

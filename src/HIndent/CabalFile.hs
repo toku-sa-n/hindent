@@ -21,10 +21,12 @@ import Distribution.PackageDescription.Parsec
 import Distribution.PackageDescription.Parse
 #endif
 import Language.Haskell.Extension
-import qualified Language.Haskell.Exts.Extension as HSE
+import qualified GHC.LanguageExtensions.Type as GLP
+import qualified GHC.Driver.Session as GLP
+import GHC.Driver.Session (languageExtensions, impliedXFlags)
 import System.Directory
 import System.FilePath
-import Text.Read
+import qualified SwitchToGhcLibParserHelper as Helper
 
 data Stanza = MkStanza
   { _stanzaBuildInfo :: BuildInfo
@@ -144,26 +146,24 @@ getCabalExtensions srcpath = do
       Just (MkStanza bi _) -> do
         (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
-convertLanguage :: Language -> HSE.Language
-convertLanguage lang = read $ show lang
-
-convertKnownExtension :: KnownExtension -> Maybe HSE.KnownExtension
-convertKnownExtension ext =
-  case readEither $ show ext of
-    Left _ -> Nothing
-    Right hext -> Just hext
-
-convertExtension :: Extension -> Maybe HSE.Extension
-convertExtension (EnableExtension ke) =
-  fmap HSE.EnableExtension $ convertKnownExtension ke
-convertExtension (DisableExtension ke) =
-  fmap HSE.DisableExtension $ convertKnownExtension ke
-convertExtension (UnknownExtension s) = Just $ HSE.UnknownExtension s
+convertLanguage :: Language -> GLP.Language
+convertLanguage Haskell98 = GLP.Haskell98
+convertLanguage Haskell2010 = GLP.Haskell2010
+convertLanguage GHC2021 = GLP.GHC2021
+convertLanguage (UnknownLanguage s) = error $ "Unknown language: " ++ s
 
 -- | Get extensions from the cabal file for this source path
-getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]
+getCabalExtensionsForSourcePath :: FilePath -> IO [GLP.Extension]
 getCabalExtensionsForSourcePath srcpath = do
   (lang, exts) <- getCabalExtensions srcpath
-  return $
-    fmap HSE.EnableExtension $
-    HSE.toExtensionList (convertLanguage lang) $ mapMaybe convertExtension exts
+  let allExts = exts ++ implicitExtensions (convertLanguage lang)
+  return $ Helper.uniqueExtensions $ concatMap extensionImplies allExts
+
+implicitExtensions :: GLP.Language -> [Extension]
+implicitExtensions = fmap (EnableExtension . read . show) . languageExtensions . Just
+
+extensionImplies :: Extension -> [Extension]
+extensionImplies (EnableExtension e) = toExtension <$> filter (\(a, _, _) -> a == Helper.convertExtension e) impliedXFlags
+    where toExtension (_, True, e') = EnableExtension $ read $ show e'
+          toExtension (_, False, e') = DisableExtension $ read $ show e'
+extensionImplies _ = []
