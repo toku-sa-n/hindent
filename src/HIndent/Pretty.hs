@@ -326,9 +326,9 @@ instance Pretty (Sig GhcPs) where
         case sig_bndrs (unLoc $ hswc_body params) of
           HsOuterExplicit {} -> True
           _                  -> False
-  pretty' (ClassOpSig _ isDefault funName params) = do
+  pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
-    output $ unLoc $ head funName
+    inter (string ", ") $ fmap pretty funNames
     string " :: "
     pretty $ sig_body $ unLoc params
   pretty' (MinimalSig _ _ xs) =
