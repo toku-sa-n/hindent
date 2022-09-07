@@ -350,12 +350,13 @@ instance Pretty (HsDataDefn GhcPs) where
             pretty x
       Nothing ->
         indentedBlock $ do
-          if length dd_cons == 1
-            then do
+          case length dd_cons of
+            0 -> pure ()
+            1 -> do
               string " ="
               newline
               pretty $ head dd_cons
-            else do
+            _ -> do
               newline
               indentedDependingOnHead (string "= ") $
                 prefixedLined "| " $ fmap pretty dd_cons
