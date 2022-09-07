@@ -23,6 +23,7 @@ import           Generics.SYB                      hiding (Infix, Prefix)
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Hs
+import           GHC.Hs.Dump
 import           GHC.Types.Fixity
 import           GHC.Types.Name.Reader
 import           GHC.Types.SrcLoc
@@ -647,11 +648,11 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     isInsideCase <- gets psInsideCase
     isInsideLambda <- gets psInsideLambda
     whenInsideLambda $ string "\\"
-    case (isInsideCase, isInsideLambda) of
-      (True, _) -> do
+    case (isInsideCase, isInsideLambda, mc_fixity m_ctxt) of
+      (True, _, _) -> do
         mapM_ pretty m_pats
         pretty m_grhss
-      (_, True) -> do
+      (_, True, _) -> do
         unless (null m_pats) $
           case unLoc $ head m_pats of
             LazyPat {} -> space
@@ -660,13 +661,26 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         spaced $ fmap pretty m_pats
         space
         pretty m_grhss
-      _ -> do
+      (_, _, Prefix) -> do
         pretty m_ctxt
         unless (null m_pats) $
           forM_ m_pats $ \x -> do
             space
             pretty x
         pretty m_grhss
+      (_, _, Infix) -> do
+        case (m_pats, m_ctxt) of
+          ((l:r:xs), FunRhs {..}) -> do
+            pretty l
+            space
+            infixOp $ unLoc mc_fun
+            space
+            pretty r
+            forM_ xs $ \x -> do
+              space
+              pretty x
+            pretty m_grhss
+          _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
   commentsSameLine Match {..} = commentsSameLine m_ext
   commentsAfter Match {..} = commentsAfter m_ext
