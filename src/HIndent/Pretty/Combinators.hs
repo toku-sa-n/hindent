@@ -17,6 +17,7 @@ module HIndent.Pretty.Combinators
   , rhsSeparator
   , eolCommentsArePrinted
   , prefixedLined
+  , startingColumn
   ) where
 
 import           Control.Applicative
@@ -25,6 +26,7 @@ import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
 import           Data.Data
+import           Data.Int
 import           Data.List
 import           Generics.SYB
 import           GHC.Driver.Ppr
@@ -151,3 +153,11 @@ prefixedLined pref (x:xs) = do
     forM_ xs $ \p -> do
       newline
       indentedDependingOnHead (string pref) p
+
+startingColumn :: Printer Int64
+startingColumn = do
+  before <- get
+  string ""
+  after <- get
+  put before
+  return $ psColumn after

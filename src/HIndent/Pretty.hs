@@ -1238,7 +1238,11 @@ instance Pretty InfixApp where
               pretty rhs
             _ -> do
               beforeRhs
-              pretty rhs
+              col <- startingColumn
+              (if col == 0
+                 then indentedBlock
+                 else id) $
+                pretty rhs
       lhsVer =
         case lhs of
           (L loc (OpApp _ l o r)) ->
