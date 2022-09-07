@@ -231,7 +231,9 @@ instance Pretty (TyClDecl GhcPs) where
       output x
     pretty tcdDataDefn
   pretty' ClassDecl {..} = do
-    horHead `ifFitsOnOneLineOrElse` verHead
+    if isJust tcdCtxt
+      then verHead
+      else horHead `ifFitsOnOneLineOrElse` verHead
     newline
     indentedBlock $ inter newline $ fmap pretty sigsAndMethods
     where
@@ -258,20 +260,32 @@ instance Pretty (TyClDecl GhcPs) where
             spaced $ fmap pretty to
         unless (null sigsAndMethods) $ string " where"
       verHead = do
-        string "class "
-        case tcdFixity of
-          Prefix ->
-            spaced $ (pretty tcdLName) : fmap output (hsq_explicit tcdTyVars)
-          Infix ->
-            case hsq_explicit tcdTyVars of
-              (l:r:xs)
-                -- TODO: Handle comments around 'tcdLName'.
-               -> do
-                parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
-                forM_ xs $ \x -> do
-                  space
-                  output x
-              _ -> error "Not enough parameters are given."
+        indentedDependingOnHead (string "class ") $ do
+          whenJust tcdCtxt $ \(L _ xs) ->
+            case xs -- TODO: Handle comments.
+                  of
+              [] -> undefined
+              [x] -> do
+                pretty x
+                string " =>"
+                newline
+              _ -> do
+                parens $ inter (string ", ") $ fmap pretty xs
+                string " =>"
+                newline
+          case tcdFixity of
+            Prefix ->
+              spaced $ (pretty tcdLName) : fmap output (hsq_explicit tcdTyVars)
+            Infix ->
+              case hsq_explicit tcdTyVars of
+                (l:r:xs)
+                  -- TODO: Handle comments around 'tcdLName'.
+                 -> do
+                  parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
+                  forM_ xs $ \x -> do
+                    space
+                    output x
+                _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
           newline
           indentedBlock $ do
@@ -283,7 +297,10 @@ instance Pretty (TyClDecl GhcPs) where
                 spaced $ fmap pretty to
           newline
           indentedBlock $ string "where"
-        when (not (null sigsAndMethods) && null tcdFDs) $
+        when (isJust tcdCtxt) $ do
+          newline
+          indentedBlock $ string "where"
+        when (not (null sigsAndMethods) && null tcdFDs && isNothing tcdCtxt) $
           indentedBlock $ string " where"
       sigsAndMethods =
         sortByLocation $ fmap Sig tcdSigs ++ fmap Method (bagToList tcdMeths)
