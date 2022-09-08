@@ -27,6 +27,7 @@ import           GHC.Hs
 import           GHC.Hs.Dump
 import           GHC.Types.Fixity
 import           GHC.Types.Name.Reader
+import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
 import           GHC.Unit
 import           HIndent.Applicative
@@ -1279,6 +1280,9 @@ instance Pretty (ImportDecl GhcPs) where
     when (ideclSource == IsBoot) $ string "{-# SOURCE #-} "
     when ideclSafe $ string "safe "
     unless (ideclQualified == NotQualified) $ string "qualified "
+    whenJust ideclPkgQual $ \x -> do
+      pretty x
+      space
     output ideclName
     whenJust ideclAs $ \x -> do
       string " as "
@@ -1318,6 +1322,9 @@ instance Pretty OverlapMode where
   pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
   pretty' Overlaps {}     = undefined
   pretty' Incoherent {}   = undefined
+
+instance Pretty StringLiteral where
+  pretty' = output
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
