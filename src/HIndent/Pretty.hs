@@ -912,17 +912,21 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
     mapM_ pretty grhssGRHSs
     case grhssLocalBinds of
-      (HsValBinds _ lr) ->
+      (HsValBinds epa lr) ->
         indentedBlock $ do
           newline
           isCase <- gets psInsideCase
           if isCase
-            then indentedDependingOnHead (string "where ") $
-                 exitCase $ pretty lr
+            then indentedDependingOnHead (string "where ") $ do
+                   printCommentsBefore epa
+                   exitCase $ pretty lr
             else do
               string "where"
               newline
+              printCommentsBefore epa
               indentedBlock $ pretty lr
+          printCommentsSameLine epa
+          printCommentsAfter epa
       _ -> return ()
 
 instance Pretty (HsMatchContext GhcPs) where

@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ImpredicativeTypes  #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -17,10 +18,16 @@ import           Control.Monad.State
 import           Data.Function
 import           Data.List
 import           Generics.SYB          hiding (GT, typeOf, typeRep)
+import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           Type.Reflection
+
+-- TODO: Merge this type with the same one in HIndent.Pretty'.
+data SigMethod
+  = Sig (LSig GhcPs)
+  | Method (LHsBindLR GhcPs GhcPs)
 
 -- | A state type with comments.
 type WithComments = State [LEpaComment]
@@ -69,10 +76,9 @@ relocateComments m = evalState (relocate $ preprocessing m) allComments
       relocateCommentsBeforePragmas >=>
       relocateCommentsBefore >=>
       relocateCommentsSameLineRev >=>
-      relocateCommentsSameLine >=> relocateCommentsAfter
-    allComments =
-      concatMap splitMultipleLineComments $
-      listify (not . isEofComment . ac_tok . unLoc) m
+      relocateCommentsSameLine >=>
+      relocateCommentsTopLevelWhereClause >=> relocateCommentsAfter
+    allComments = listify (not . isEofComment . ac_tok . unLoc) m
 
 -- | This function resets the source span of the given module by searching
 -- an 'EpaEofComment'.
@@ -179,6 +185,65 @@ relocateCommentsSameLineRev = everywhereMr f
     isOnSameLine anc comAnc =
       srcSpanStartLine comAnc == srcSpanStartLine anc &&
       srcSpanStartLine comAnc == srcSpanEndLine anc
+
+relocateCommentsTopLevelWhereClause :: HsModule -> WithComments HsModule
+relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
+  where
+    f :: GRHSs GhcPs (LHsExpr GhcPs)
+      -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
+    f g@GRHSs {grhssLocalBinds = (HsValBinds x (ValBinds x'' methods sigs))} =
+      let sigsMethods =
+            sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
+          sortByLocation = sortBy (compare `on` getLocation)
+          getLocation (Sig x)    = realSrcSpan $ locA $ getLoc x
+          getLocation (Method x) = realSrcSpan $ locA $ getLoc x
+          newSigs =
+            concatMap
+              (\case
+                 Sig x    -> [x]
+                 Method _ -> [])
+          newMethods =
+            concatMap
+              (\case
+                 Sig _    -> []
+                 Method x -> [x])
+       in do newSigMethods <- mapM locateCommentsForSigMethod sigsMethods
+             pure
+               g
+                 { grhssLocalBinds =
+                     (HsValBinds
+                        x
+                        (ValBinds
+                           x''
+                           (listToBag $ newMethods newSigMethods)
+                           (newSigs newSigMethods)))
+                 }
+    f x = pure x
+    locateCommentsForSigMethod :: SigMethod -> WithComments SigMethod
+    locateCommentsForSigMethod (Sig (L (SrcSpanAnn epa loc) sig)) = do
+      cs <- get
+      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
+          newEpa = epa {comments = insertPriorComments (comments epa) above}
+      put notAbove
+      pure (Sig (L (SrcSpanAnn newEpa loc) sig))
+    locateCommentsForSigMethod (Method (L (SrcSpanAnn epa loc) method)) = do
+      cs <- get
+      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
+          newEpa = epa {comments = insertPriorComments (comments epa) above}
+      put notAbove
+      pure (Method (L (SrcSpanAnn newEpa loc) method))
+    partitionAboveNotAbove cs sp =
+      fst $
+      foldr
+        (\c@(L comSp _) ((ls, rs), lastSpan) ->
+           if anchor comSp `isAbove` anchor lastSpan
+             then ((ls, c : rs), comSp)
+             else ((c : ls, rs), lastSpan))
+        (([], []), sp) $
+      sortBy (compare `on` getLoc) cs
+    isAbove comAnc anc =
+      srcSpanStartCol comAnc == srcSpanStartCol anc &&
+      srcSpanEndLine comAnc + 1 == srcSpanStartLine anc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
@@ -316,44 +381,6 @@ replaceAllNotUsedAnns = everywhere app
     emptyNameAnn = NameAnnTrailing []
     emptyAddEpAnn = AddEpAnn AnnAnyclass emptyEpaLocation
     emptyEpaLocation = EpaDelta (SameLine 0) []
-
--- | This function splits a comment with multiple lines with multiple
--- comments.
---
--- The `ghc-lib-parser`'s parser parses the following comment
---
--- > --- foo
--- > --- bar
---
--- into " foo\n bar". Without splitting them, we cannot keep multiple line
--- comments as-is.
-splitMultipleLineComments :: LEpaComment -> [LEpaComment]
-splitMultipleLineComments c@(L a _) =
-  evalState (mapM assignNewSpan $ splitCommentWithSameAnc c) a
-  where
-    assignNewSpan (L _ c') = do
-      anc <- get
-      modify incrementAnchorLine
-      pure (L anc c')
-    incrementAnchorLine (Anchor sp op) = Anchor (incrementLineNumber sp) op
-    incrementLineNumber s =
-      mkRealSrcSpan
-        (mkRealSrcLoc
-           (srcSpanFile s)
-           (srcSpanStartLine s + 1)
-           (srcSpanStartCol s))
-        (mkRealSrcLoc (srcSpanFile s) (srcSpanEndLine s + 1) (srcSpanEndCol s))
-    splitCommentWithSameAnc (L anc c') = L anc <$> splitComment c'
-    splitComment EpaComment {..} =
-      (`EpaComment` ac_prior_tok) <$> splitToken ac_tok
-    splitToken (EpaDocCommentNext c')  = EpaDocCommentNext <$> lines c'
-    splitToken (EpaDocCommentPrev c')  = EpaDocCommentPrev <$> lines c'
-    splitToken (EpaDocCommentNamed c') = EpaDocCommentNamed <$> lines c'
-    splitToken (EpaDocSection n c')    = EpaDocSection n <$> lines c'
-    splitToken (EpaDocOptions c')      = EpaDocOptions <$> lines c'
-    splitToken (EpaLineComment c')     = EpaLineComment <$> lines c'
-    splitToken (EpaBlockComment c')    = EpaBlockComment <$> lines c'
-    splitToken EpaEofComment           = [EpaEofComment]
 
 -- | This function replaces the 'EpAnn' of 'fun_id' in 'FunBind' with
 -- 'EpAnnNotUsed'.
