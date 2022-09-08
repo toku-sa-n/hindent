@@ -1,7 +1,6 @@
 module HIndent.Pretty.Combinators.Op
   ( infixOp
   , prefixOp
-  , infixOutput
   , unlessSpecialOp
   ) where
 
@@ -23,13 +22,6 @@ infixOp (Unqual name) =
         then tick $ string s
         else string s
 infixOp x = output x
-
-infixOutput :: String -> Printer ()
-infixOutput [] = error "The name is empty."
-infixOutput s@(x:_) =
-  if isAlpha x || s `elem` ["()", "[]"]
-    then tick $ string s
-    else string s
 
 prefixOp :: RdrName -> Printer ()
 prefixOp (Unqual name) = prefixOutput $ occNameString name

@@ -8,7 +8,6 @@ module HIndent.Pretty.Combinators
   , comma
   , inter
   , spaced
-  , collectComments
   , horizontalTuple
   , verticalTuple
   , ifFitsOnOneLineOrElse
@@ -25,13 +24,10 @@ import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import qualified Data.ByteString.Builder                             as S
-import           Data.Data
 import           Data.Int
 import           Data.List
-import           Generics.SYB
 import           GHC.Driver.Ppr
 import           GHC.Driver.Session
-import           GHC.Hs
 import           GHC.Utils.Outputable                                hiding
                                                                      (brackets,
                                                                       comma,
@@ -87,9 +83,6 @@ blankline = newline >> newline
 
 comma :: Printer ()
 comma = string ","
-
-collectComments :: Data a => a -> [EpaCommentTok]
-collectComments = listify (const True)
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator

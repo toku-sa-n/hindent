@@ -3,8 +3,6 @@ module HIndent.Pretty.Combinators.Indent
   , indentedWithSpace
   , indentedDependingOnHead
   , indentedWithLevel
-  , increaseIndentLevel
-  , decreaseIndentLevel
   , getIndentSpaces
   ) where
 
@@ -38,16 +36,6 @@ indentedWithLevel i p = do
   m <- p
   modify (\s -> s {psIndentLevel = l})
   return m
-
-increaseIndentLevel :: Printer ()
-increaseIndentLevel = do
-  n <- getIndentSpaces
-  modify (\s -> s {psIndentLevel = psIndentLevel s + n})
-
-decreaseIndentLevel :: Printer ()
-decreaseIndentLevel = do
-  n <- getIndentSpaces
-  modify (\s -> s {psIndentLevel = psIndentLevel s - n})
 
 getIndentSpaces :: Printer Int64
 getIndentSpaces = gets (configIndentSpaces . psConfig)

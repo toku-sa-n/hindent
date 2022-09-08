@@ -5,14 +5,11 @@ module HIndent.Pretty.Combinators.Inside
   , insideMultiwayIf
   , insideSignature
   , insideVerticalList
-  , insideVerticalFunctionHsApp
   , insideVerticalFunctionSignature
   , exitCase
   , exitLambda
   , exitVerticalFunctionSignature
-  , whenInsideCase
   , whenInsideLambda
-  , whenInsideSignature
   , unlessInsideLambda
   ) where
 
@@ -40,10 +37,6 @@ insideVerticalList :: Printer a -> Printer a
 insideVerticalList =
   inside psInsideVerticalList (\a s -> s {psInsideVerticalList = a}) True
 
-insideVerticalFunctionHsApp :: Printer a -> Printer a
-insideVerticalFunctionHsApp =
-  inside psInsideVerticalHsApp (\a s -> s {psInsideVerticalHsApp = a}) True
-
 insideVerticalFunctionSignature :: Printer a -> Printer a
 insideVerticalFunctionSignature =
   inside
@@ -64,14 +57,8 @@ exitVerticalFunctionSignature =
     (\a s -> s {psInsideVerticalFunctionSignature = a})
     False
 
-whenInsideCase :: Printer () -> Printer ()
-whenInsideCase = whenInside psInsideCase
-
 whenInsideLambda :: Printer () -> Printer ()
 whenInsideLambda = whenInside psInsideLambda
-
-whenInsideSignature :: Printer () -> Printer ()
-whenInsideSignature = whenInside psInsideSignature
 
 unlessInsideLambda :: Printer () -> Printer ()
 unlessInsideLambda = unlessInside psInsideLambda
