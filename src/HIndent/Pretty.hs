@@ -41,9 +41,10 @@ import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
 import           HIndent.Types
 
-data SigOrMethods
+data SigMethodsFamily
   = Sig (LSig GhcPs)
   | Method (LHsBindLR GhcPs GhcPs)
+  | TypeFamily (LFamilyDecl GhcPs)
 
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
@@ -237,7 +238,7 @@ instance Pretty (TyClDecl GhcPs) where
       then verHead
       else horHead `ifFitsOnOneLineOrElse` verHead
     newline
-    indentedBlock $ inter newline $ fmap pretty sigsAndMethods
+    indentedBlock $ inter newline $ fmap pretty sigsMethodsFamilies
     where
       horHead = do
         string "class "
@@ -260,7 +261,7 @@ instance Pretty (TyClDecl GhcPs) where
             spaced $ fmap pretty from
             string " -> "
             spaced $ fmap pretty to
-        unless (null sigsAndMethods) $ string " where"
+        unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
         indentedDependingOnHead (string "class ") $ do
           whenJust tcdCtxt $ \(L _ xs) ->
@@ -302,13 +303,17 @@ instance Pretty (TyClDecl GhcPs) where
         when (isJust tcdCtxt) $ do
           newline
           indentedBlock $ string "where"
-        when (not (null sigsAndMethods) && null tcdFDs && isNothing tcdCtxt) $
+        when
+          (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
           indentedBlock $ string " where"
-      sigsAndMethods =
-        sortByLocation $ fmap Sig tcdSigs ++ fmap Method (bagToList tcdMeths)
+      sigsMethodsFamilies =
+        sortByLocation $
+        fmap Sig tcdSigs ++
+        fmap Method (bagToList tcdMeths) ++ fmap TypeFamily tcdATs
       sortByLocation = sortBy (compare `on` getLocation)
-      getLocation (Sig x)    = realSrcSpan $ locA $ getLoc x
-      getLocation (Method x) = realSrcSpan $ locA $ getLoc x
+      getLocation (Sig x)        = realSrcSpan $ locA $ getLoc x
+      getLocation (Method x)     = realSrcSpan $ locA $ getLoc x
+      getLocation (TypeFamily x) = realSrcSpan $ locA $ getLoc x
   pretty' x = output x
 
 instance Pretty (InstDecl GhcPs) where
@@ -1084,9 +1089,10 @@ instance Pretty (HsBracket GhcPs) where
     pretty var
   pretty' TExpBr {} = undefined
 
-instance Pretty SigOrMethods where
-  pretty' (Sig x)    = pretty x
-  pretty' (Method x) = pretty x
+instance Pretty SigMethodsFamily where
+  pretty' (Sig x)        = pretty x
+  pretty' (Method x)     = pretty x
+  pretty' (TypeFamily x) = pretty x
 
 instance Pretty EpaComment where
   pretty' EpaComment {..} = pretty ac_tok
@@ -1325,6 +1331,34 @@ instance Pretty OverlapMode where
 
 instance Pretty StringLiteral where
   pretty' = output
+
+instance Pretty (FamilyDecl GhcPs) where
+  pretty' FamilyDecl {..} = do
+    string "type "
+    pretty fdLName
+    forM_ (hsq_explicit fdTyVars) $ \x -> do
+      space
+      output x
+    string " = "
+    pretty fdResultSig
+    whenJust fdInjectivityAnn $ \x -> do
+      string " | "
+      pretty x
+
+instance Pretty (FamilyResultSig GhcPs) where
+  pretty' NoSig {}       = undefined
+  pretty' KindSig {}     = undefined
+  pretty' (TyVarSig _ x) = pretty x
+
+instance Pretty (HsTyVarBndr a GhcPs) where
+  pretty' (UserTyVar _ _ x) = pretty x
+  pretty' KindedTyVar {}    = undefined
+
+instance Pretty (InjectivityAnn GhcPs) where
+  pretty' (InjectivityAnn _ from to) = do
+    pretty from
+    string " -> "
+    spaced $ fmap pretty to
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
