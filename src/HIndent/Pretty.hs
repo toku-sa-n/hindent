@@ -1067,7 +1067,7 @@ instance Pretty (Pat GhcPs) where
   pretty' p@LitPat {} = output p
   pretty' NPat {} = undefined
   pretty' p@NPlusKPat {} = output p
-  pretty' SigPat {} = undefined
+  pretty' p@SigPat {} = output p
 
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
