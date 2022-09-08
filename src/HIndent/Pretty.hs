@@ -20,6 +20,7 @@ import           Data.Maybe
 import           Data.Void
 import           Debug.Trace
 import           Generics.SYB                      hiding (Infix, Prefix)
+import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Hs
@@ -186,7 +187,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (SigD _ s)     = insideSignature $ pretty s
   pretty' KindSigD {}    = undefined
   pretty' DefD {}        = undefined
-  pretty' ForD {}        = undefined
+  pretty' x@ForD {}      = output x
   pretty' WarningD {}    = undefined
   pretty' AnnD {}        = undefined
   pretty' RuleD {}       = undefined
@@ -384,7 +385,11 @@ instance Pretty (HsDataDefn GhcPs) where
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
     indentedDependingOnHead (string "instance ") $
-      insideInstDecl $ pretty cid_poly_ty
+      insideInstDecl $ do
+        whenJust cid_overlap_mode $ \x -> do
+          pretty x
+          space
+        pretty cid_poly_ty
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
@@ -1306,6 +1311,13 @@ instance Pretty (DerivClauseTys GhcPs) where
           prefixedLined ", " $ fmap pretty ts
           newline
           indentedWithSpace (-2) $ string ")"
+
+instance Pretty OverlapMode where
+  pretty' NoOverlap {}    = undefined
+  pretty' Overlappable {} = undefined
+  pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
+  pretty' Overlaps {}     = undefined
+  pretty' Incoherent {}   = undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
