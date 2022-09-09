@@ -9,6 +9,7 @@ module HIndent.Pretty.Combinators
   , comma
   , inter
   , spaced
+  , lined
   , horizontalTuple
   , verticalTuple
   , ifFitsOnOneLineOrElse
@@ -92,6 +93,9 @@ inter separator = sequence_ . intersperse separator
 
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space
+
+lined :: [Printer ()] -> Printer ()
+lined = inter newline
 
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do

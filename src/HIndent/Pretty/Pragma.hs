@@ -12,7 +12,7 @@ import           HIndent.Types
 import           Text.Regex.TDFA
 
 outputPragmas :: HsModule -> Printer ()
-outputPragmas = inter newline . fmap string . collectPragmas
+outputPragmas = lined . fmap string . collectPragmas
 
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
