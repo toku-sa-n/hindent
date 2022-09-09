@@ -8,6 +8,7 @@ import           GHC.Types.SrcLoc                  (GenLocated (..))
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
+import           HIndent.Pretty.Combinators.Tuple
 import           HIndent.Types
 
 outputModuleDeclaration :: HsModule -> Printer ()
@@ -23,7 +24,7 @@ outputModuleDeclaration HsModule { hsmodName = Just name
   output name
   newline
   indentedBlock $ do
-    verticalTuple (fmap output xs)
+    vTuple $ fmap output xs
     string " where"
 
 moduleDeclarationExists :: HsModule -> Bool

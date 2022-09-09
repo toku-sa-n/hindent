@@ -41,6 +41,7 @@ library
                      HIndent.Pretty.Combinators.Inter
                      HIndent.Pretty.Combinators.Op
                      HIndent.Pretty.Combinators.String
+                     HIndent.Pretty.Combinators.Tuple
                      HIndent.Pretty.Combinators.Wrap
                      HIndent.Pretty.Imports.Sort
                      HIndent.Pretty.Pragma

@@ -35,6 +35,7 @@ import           HIndent.Pretty.Combinators.Inside
 import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.Op
 import           HIndent.Pretty.Combinators.String
+import           HIndent.Pretty.Combinators.Tuple
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Pretty.ModuleDeclaration
@@ -1302,8 +1303,8 @@ instance Pretty (ImportDecl GhcPs) where
       output x
     whenJust ideclHiding $ \(x, _) -> do
       when x (string " hiding")
-      (string " " >> horizontalTuple explicitOrHidingImports) `ifFitsOnOneLineOrElse`
-        (newline >> indentedBlock (verticalTuple explicitOrHidingImports))
+      (string " " >> hTuple explicitOrHidingImports) `ifFitsOnOneLineOrElse`
+        (newline >> indentedBlock (vTuple explicitOrHidingImports))
     where
       explicitOrHidingImports =
         output <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding

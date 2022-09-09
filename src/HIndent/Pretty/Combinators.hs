@@ -2,9 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module HIndent.Pretty.Combinators
-  ( horizontalTuple
-  , verticalTuple
-  , ifFitsOnOneLineOrElse
+  ( ifFitsOnOneLineOrElse
   , output
   , showOutputable
   , rhsSeparator
@@ -29,23 +27,9 @@ import           GHC.Utils.Outputable                                hiding
                                                                       space,
                                                                       (<>))
 import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-
-horizontalTuple :: [Printer ()] -> Printer ()
-horizontalTuple ps = do
-  string "("
-  commaSeparated ps
-  string ")"
-
-verticalTuple :: [Printer ()] -> Printer ()
-verticalTuple ps = do
-  string "( "
-  inter (newline >> string ", ") ps
-  newline
-  string ")"
 
 ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
 ifFitsOnOneLineOrElse fit notFit = do
