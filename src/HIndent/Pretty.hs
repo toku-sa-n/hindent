@@ -835,9 +835,7 @@ instance Pretty (HsType GhcPs) where
   pretty' (HsTupleTy _ _ xs) = hor <-|> ver
     where
       hor = hTuple $ fmap pretty xs
-      ver = do
-        indentedDependingOnHead (string "( ") $ vCommaSep $ fmap pretty xs
-        string ")"
+      ver = vTuple' $ fmap pretty xs
   pretty' HsSumTy {} = undefined
   -- For `HsOpTy`, we do not need a single quote for the infix operator. An
   -- explicit promotion is necessary if there is a data constructor and

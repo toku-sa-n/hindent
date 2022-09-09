@@ -3,6 +3,7 @@ module HIndent.Pretty.Combinators.Lineup
   , hTuple
   , hFields
   , vTuple
+  , vTuple'
   , vList
   , vFields
   , spaced
@@ -45,6 +46,12 @@ hFields = braces . hCommaSep
 vTuple :: [Printer ()] -> Printer ()
 vTuple = vLineup ('(', ')')
 
+-- | Prints like ( a
+--               , b
+--               , c)
+vTuple' :: [Printer ()] -> Printer ()
+vTuple' = vLineup' ('(', ')')
+
 -- | Prints like [ a
 --               , b
 --               , c
@@ -66,6 +73,14 @@ vLineup (prefix, suffix) ps =
     vCommaSep ps
     newline
     indentedWithSpace (-2) $ string [suffix]
+
+-- | Similar to 'vLineup' but the suffix is on the same line as the last
+-- element.
+vLineup' :: (Char, Char) -> [Printer ()] -> Printer ()
+vLineup' (prefix, suffix) ps =
+  indentedDependingOnHead (string $ prefix : " ") $ do
+    vCommaSep ps
+    string [suffix]
 
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space
