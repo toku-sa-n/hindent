@@ -425,7 +425,10 @@ instance Pretty (HsExpr GhcPs) where
     where
       horizontal = spaced [pretty l, pretty r]
       vertical = do
-        let (f:args) = flatten l ++ [r]
+        let (f, args) =
+              case flatten l ++ [r] of
+                (f':args') -> (f', args')
+                _          -> error "Invalid function application."
         col <- gets psColumn
         spaces <- getIndentSpaces
         pretty f
@@ -1147,8 +1150,9 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
       sigsAndMethods =
         sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
       sortByLocation = sortBy (compare `on` getLocation)
-      getLocation (Sig x)    = realSrcSpan $ locA $ getLoc x
-      getLocation (Method x) = realSrcSpan $ locA $ getLoc x
+      getLocation (Sig x)       = realSrcSpan $ locA $ getLoc x
+      getLocation (Method x)    = realSrcSpan $ locA $ getLoc x
+      getLocation TypeFamily {} = undefined
   pretty' x = output x
 
 instance Pretty (HsTupArg GhcPs) where
