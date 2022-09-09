@@ -1,5 +1,6 @@
 module HIndent.Pretty.Combinators.Lineup
   ( tuple
+  , tuple'
   , hTuple
   , hFields
   , vTuple
@@ -30,6 +31,10 @@ import           HIndent.Types
 -- | Apply 'hTuple' or 'vTuple' appropriately.
 tuple :: [Printer ()] -> Printer ()
 tuple = (<-|>) <$> hTuple <*> vTuple
+
+-- | Apply 'hTuple' or 'vTuple'' appropriately.
+tuple' :: [Printer ()] -> Printer ()
+tuple' = (<-|>) <$> hTuple <*> vTuple'
 
 -- | Prints like (a, b, c).
 hTuple :: [Printer ()] -> Printer ()
