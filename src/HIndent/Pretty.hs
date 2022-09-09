@@ -1246,12 +1246,9 @@ instance Pretty InfixApp where
           _ -> pretty lhs
 
 instance Pretty a => Pretty (BooleanFormula a) where
-  pretty' (Var x) = pretty x
-  pretty' (And xs) = commaSep $ fmap pretty xs
-  pretty' (Or xs) = horizontal <-|> vertical
-    where
-      horizontal = hBarSep $ fmap pretty xs
-      vertical = vBarSep $ fmap pretty xs
+  pretty' (Var x)    = pretty x
+  pretty' (And xs)   = commaSep $ fmap pretty xs
+  pretty' (Or xs)    = barSep $ fmap pretty xs
   pretty' (Parens x) = parens $ pretty x
 
 instance Pretty (FieldLabelStrings GhcPs) where

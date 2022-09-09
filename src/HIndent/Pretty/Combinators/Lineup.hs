@@ -7,6 +7,7 @@ module HIndent.Pretty.Combinators.Lineup
   , vFields
   , spaced
   , lined
+  , barSep
   , hBarSep
   , vBarSep
   , commaSep
@@ -68,6 +69,10 @@ spaced = inter space
 
 lined :: [Printer ()] -> Printer ()
 lined = inter newline
+
+-- | Apply 'hBarSep' or 'vBarSep' appropriately.
+barSep :: [Printer ()] -> Printer ()
+barSep = (<-|>) <$> hBarSep <*> vBarSep
 
 -- | Prints like 'a | b | c'.
 hBarSep :: [Printer ()] -> Printer ()
