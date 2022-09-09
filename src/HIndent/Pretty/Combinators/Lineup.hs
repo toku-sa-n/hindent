@@ -18,15 +18,19 @@ hTuple = parens . commaSeparated
 --               , c
 --               )
 vTuple :: [Printer ()] -> Printer ()
-vTuple ps = do
-  string "( "
-  inter (newline >> string ", ") ps
-  newline
-  string ")"
+vTuple = vLineup ("( ", ")")
 
+-- | Prints like [ a
+--               , b
+--               , c
+--               ]
 vList :: [Printer ()] -> Printer ()
-vList ps = do
-  string "[ "
+vList = vLineup ("[ ", "]")
+
+-- | Prints elements in vertical with the given prefix and suffix.
+vLineup :: (String, String) -> [Printer ()] -> Printer ()
+vLineup (prefix, suffix) ps = do
+  string prefix
   inter (newline >> string ", ") ps
   newline
-  string "]"
+  string suffix
