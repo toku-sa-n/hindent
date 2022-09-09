@@ -58,7 +58,7 @@ vFields = vLineup ('{', '}')
 vLineup :: (Char, Char) -> [Printer ()] -> Printer ()
 vLineup (prefix, suffix) ps =
   indentedDependingOnHead (string $ prefix : " ") $ do
-    prefixedLined ", " ps
+    vCommaSep ps
     newline
     indentedWithSpace (-2) $ string [suffix]
 
