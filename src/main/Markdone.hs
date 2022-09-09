@@ -8,7 +8,12 @@
 --
 -- All content must be in section headings with proper hierarchy,
 -- anything else is rejected.
-module Markdone where
+module Markdone
+  ( Token(..)
+  , Markdone(..)
+  , tokenize
+  , parse
+  ) where
 
 import           Control.DeepSeq
 import           Control.Monad.Catch
