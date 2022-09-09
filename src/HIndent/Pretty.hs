@@ -1166,9 +1166,11 @@ instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (Bang
         forM_ xs $ \x -> do
           space
           pretty x
-      vertical = do
-        newline
-        indentedBlock $ lined $ fmap pretty xs
+      vertical =
+        indentedBlock $
+        forM_ xs $ \x -> do
+          newline
+          pretty x
   pretty' (RecCon (L _ rec)) = do
     newline
     indentedBlock $ vFields $ fmap pretty rec
