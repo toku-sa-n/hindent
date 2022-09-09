@@ -3,12 +3,12 @@ module HIndent.Pretty.Combinators.Lineup
   , tuple'
   , hTuple
   , hFields
+  , vFields
   , vTuple
   , vTuple'
   , vList
   , hPromotedTuple
   , hPromotedList
-  , vFields
   , spaced
   , lined
   , blanklined
@@ -42,6 +42,13 @@ tuple' = (<-|>) <$> hTuple <*> vTuple'
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . hCommaSep
 
+-- | Prints like { a
+--               , b
+--               , c
+--               }
+vFields :: [Printer ()] -> Printer ()
+vFields = vLineup ("{", "}")
+
 -- | Print like {a, b, c}.
 hFields :: [Printer ()] -> Printer ()
 hFields = braces . hCommaSep
@@ -73,13 +80,6 @@ hPromotedTuple = promotedTupleParens . hCommaSep
 -- | Prints like '[ a, b, c]
 hPromotedList :: [Printer ()] -> Printer ()
 hPromotedList = promotedListBrackets . hCommaSep
-
--- | Prints like { a
---               , b
---               , c
---               }
-vFields :: [Printer ()] -> Printer ()
-vFields = vLineup ("{", "}")
 
 -- | Prints elements in vertical with the given prefix and suffix.
 vLineup :: (String, String) -> [Printer ()] -> Printer ()
