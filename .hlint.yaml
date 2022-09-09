@@ -1,4 +1,5 @@
 - error: {lhs: inter newline, rhs: lined}
+- error: {lhs: inter blankline, rhs: blanklined}
 - error: {lhs: 'inter (string ", ")', rhs: hCommaSep}
 - error: {lhs: 'prefixedLined ", "', rhs: vCommaSep}
 - error: {lhs: 'inter (string " | ")', rhs: hBarSep}

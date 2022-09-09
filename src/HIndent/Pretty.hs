@@ -117,7 +117,7 @@ class Pretty a where
   commentsAfter = const []
 
 instance Pretty HsModule where
-  pretty' m = inter blankline printers
+  pretty' m = blanklined printers
     -- TODO: Refactor this 'where' clause.
     where
       printers = snd <$> filter fst pairs
@@ -137,7 +137,7 @@ instance Pretty HsModule where
       separator _       = blankline
       declsExist = not . null . hsmodDecls
       outputImports =
-        inter blankline .
+        blanklined .
         fmap (outputImportGroup . sortImportsByName) .
         groupImports . sortImportsByLocation . hsmodImports
       outputImportGroup = lined . fmap pretty
