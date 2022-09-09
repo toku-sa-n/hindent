@@ -900,11 +900,8 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = do
     inVertical <- gets psInsideVerticalList
     if inVertical
-      then vertical
-      else horizontal <-|> vertical
-    where
-      horizontal = hCommaSep $ fmap pretty xs
-      vertical = vCommaSep $ fmap pretty xs
+      then vCommaSep $ fmap pretty xs
+      else commaSep $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = prefixOp
