@@ -2,11 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module HIndent.Pretty.Combinators
-  ( inter
-  , spaced
-  , lined
-  , commaSeparated
-  , horizontalTuple
+  ( horizontalTuple
   , verticalTuple
   , ifFitsOnOneLineOrElse
   , output
@@ -22,7 +18,6 @@ import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import           Data.Int
-import           Data.List
 #if MIN_VERSION_ghc_lib_parser(9,2,2)
 import           GHC.Driver.Ppr
 #endif
@@ -34,21 +29,10 @@ import           GHC.Utils.Outputable                                hiding
                                                                       space,
                                                                       (<>))
 import           HIndent.Pretty.Combinators.Indent
+import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-
-inter :: Printer () -> [Printer ()] -> Printer ()
-inter separator = sequence_ . intersperse separator
-
-spaced :: [Printer ()] -> Printer ()
-spaced = inter space
-
-lined :: [Printer ()] -> Printer ()
-lined = inter newline
-
-commaSeparated :: [Printer ()] -> Printer ()
-commaSeparated = inter (string ", ")
 
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do
