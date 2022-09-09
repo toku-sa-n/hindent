@@ -1298,10 +1298,7 @@ instance Pretty (HsDerivingClause GhcPs) where
 
 instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
-  pretty' (DctMulti _ ts) = horizontal <-|> vertical
-    where
-      horizontal = hTuple $ fmap pretty ts
-      vertical = vTuple $ fmap pretty ts
+  pretty' (DctMulti _ ts)  = tuple $ fmap pretty ts
 
 instance Pretty OverlapMode where
   pretty' NoOverlap {}    = undefined
