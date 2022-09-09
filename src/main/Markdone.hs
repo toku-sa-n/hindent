@@ -100,11 +100,11 @@ parse = go (0 :: Int)
         (BeginFence label:rest)
           | level > 0 ->
             let (content, rest') =
-                  (span
-                     (\case
-                        PlainLine {} -> True
-                        _            -> False)
-                     rest)
+                  span
+                    (\case
+                       PlainLine {} -> True
+                       _            -> False)
+                    rest
              in case rest' of
                   (EndFence:rest'') ->
                     fmap
@@ -116,11 +116,11 @@ parse = go (0 :: Int)
         PlainLine p:rest
           | level > 0 ->
             let (content, rest') =
-                  (span
-                     (\case
-                        PlainLine {} -> True
-                        _            -> False)
-                     (PlainLine p : rest))
+                  span
+                    (\case
+                       PlainLine {} -> True
+                       _            -> False)
+                    (PlainLine p : rest)
              in fmap
                   (PlainText
                      (S8.intercalate
