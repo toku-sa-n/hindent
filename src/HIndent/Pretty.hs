@@ -138,7 +138,7 @@ instance Pretty HsModule where
         inter blankline .
         fmap (outputImportGroup . sortImportsByName) .
         groupImports . sortImportsByLocation . hsmodImports
-      outputImportGroup = inter newline . fmap pretty
+      outputImportGroup = lined . fmap pretty
       importsExist = not . null . hsmodImports
       groupImports = groupImports' []
         where
@@ -200,8 +200,7 @@ instance Pretty (TyClDecl GhcPs) where
     string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
     case tcdFixity of
-      Prefix ->
-        spaced $ (pretty tcdLName) : fmap output (hsq_explicit tcdTyVars)
+      Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
       Infix ->
         case hsq_explicit tcdTyVars of
           (l:r:xs)
@@ -236,13 +235,13 @@ instance Pretty (TyClDecl GhcPs) where
       then verHead
       else horHead `ifFitsOnOneLineOrElse` verHead
     newline
-    indentedBlock $ inter newline $ fmap pretty sigsMethodsFamilies
+    indentedBlock $ lined $ fmap pretty sigsMethodsFamilies
     where
       horHead = do
         string "class "
         case tcdFixity of
           Prefix ->
-            spaced $ (pretty tcdLName) : fmap output (hsq_explicit tcdTyVars)
+            spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
           Infix ->
             case hsq_explicit tcdTyVars of
               (l:r:xs)
@@ -276,7 +275,7 @@ instance Pretty (TyClDecl GhcPs) where
                 newline
           case tcdFixity of
             Prefix ->
-              spaced $ (pretty tcdLName) : fmap output (hsq_explicit tcdTyVars)
+              spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
             Infix ->
               case hsq_explicit tcdTyVars of
                 (l:r:xs)
@@ -289,13 +288,13 @@ instance Pretty (TyClDecl GhcPs) where
                 _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
           newline
-          indentedBlock $ do
+          indentedBlock $
             indentedDependingOnHead (string "| ") $
-              prefixedLined ", " $
-              flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
-                spaced $ fmap pretty from
-                string " -> "
-                spaced $ fmap pretty to
+            prefixedLined ", " $
+            flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
+              spaced $ fmap pretty from
+              string " -> "
+              spaced $ fmap pretty to
           newline
           indentedBlock $ string "where"
         when (isJust tcdCtxt) $ do
@@ -384,7 +383,7 @@ instance Pretty (HsDataDefn GhcPs) where
                 prefixedLined "| " $ fmap pretty dd_cons
           unless (null dd_derivs) $ do
             newline
-            inter newline $ fmap pretty dd_derivs
+            lined $ fmap pretty dd_derivs
 
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
@@ -400,7 +399,7 @@ instance Pretty (ClsInstDecl GhcPs) where
       indentedBlock $ mapM_ pretty cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' MG {..} = (inter newline $ pretty <$> unLoc mg_alts)
+  pretty' MG {..} = lined $ pretty <$> unLoc mg_alts
 
 instance Pretty (HsExpr GhcPs) where
   pretty' v@HsVar {} = prefixExpr v
@@ -440,13 +439,13 @@ instance Pretty (HsExpr GhcPs) where
           then space
           else newline
         spaces' <- getIndentSpaces
-        indentedWithSpace spaces' (inter newline $ fmap pretty args)
+        indentedWithSpace spaces' $ lined $ fmap pretty args
       flatten :: LHsExpr GhcPs -> [LHsExpr GhcPs]
       flatten (L (SrcSpanAnn (EpAnn _ _ cs) _) (HsApp _ l' r')) =
         flatten l' ++ [insertComments cs r']
       flatten x = [x]
       insertComments :: EpAnnComments -> LHsExpr GhcPs -> LHsExpr GhcPs
-      insertComments cs (L (s@SrcSpanAnn {ann = e@EpAnn {comments = cs'}}) r') =
+      insertComments cs (L s@SrcSpanAnn {ann = e@EpAnn {comments = cs'}} r') =
         L (s {ann = e {comments = cs <> cs'}}) r'
       insertComments _ x = x
   pretty' t@HsAppType {} = output t
@@ -504,17 +503,17 @@ instance Pretty (HsExpr GhcPs) where
             string str
             string "do"
             newline
-            indentedBlock $ inter newline $ fmap pretty $ unLoc xs -- TODO: Handle comments.
+            indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
           _ -> indentedDependingOnHead (string str) $ pretty e
   pretty' (HsMultiIf _ guards) =
     indentedDependingOnHead (string "if ") $
-    insideMultiwayIf $ inter newline $ fmap pretty guards
+    insideMultiwayIf $ lined $ fmap pretty guards
   pretty' (HsLet _ binds exprs) = do
     indentedDependingOnHead (string "let ") $ pretty binds
     newline
     indentedDependingOnHead (string " in ") $ pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    indentedDependingOnHead (string "do ") $ inter newline $ output <$> unLoc xs -- TODO: Handle comments.
+    indentedDependingOnHead (string "do ") $ lined $ output <$> unLoc xs -- TODO: Handle comments.
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
@@ -566,7 +565,7 @@ instance Pretty (HsExpr GhcPs) where
     braces $
       -- TODO: Refactor this case.
       case fields of
-        Right xs -> do
+        Right xs ->
           forM_ xs $ \(L l HsRecField {..}) -> do
             printCommentsBefore l
             pretty hsRecFieldLbl
@@ -574,7 +573,7 @@ instance Pretty (HsExpr GhcPs) where
             pretty hsRecFieldArg
             printCommentsSameLine l
             printCommentsAfter l
-        Left xs -> do
+        Left xs ->
           forM_ xs $ \(L l HsRecField {..}) -> do
             printCommentsBefore l
             pretty hsRecFieldLbl
@@ -642,7 +641,7 @@ instance Pretty (ConDecl GhcPs) where
           output con_res_ty
   pretty' ConDeclH98 {..}
     -- TODO: Refactor.
-   = do
+   =
     if con_forall
       then indentedDependingOnHead
              (do string "forall "
@@ -697,7 +696,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         pretty m_grhss
       (_, _, Infix) -> do
         case (m_pats, m_ctxt) of
-          ((l:r:xs), FunRhs {..}) -> do
+          (l:r:xs, FunRhs {..}) -> do
             pretty l
             space
             infixOp $ unLoc mc_fun
@@ -955,7 +954,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     newline
     indentedBlock $ do
       printCommentsBefore $ getLoc body
-      inter newline $ pretty <$> unLoc body
+      lined $ pretty <$> unLoc body
       printCommentsSameLine $ getLoc body
       printCommentsAfter $ getLoc body
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
@@ -1141,7 +1140,7 @@ instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
   pretty' x                 = output x
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
-  pretty' (ValBinds _ methods sigs) = inter newline $ fmap pretty sigsAndMethods
+  pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
       -- TODO: Merge this where clause with the one in the 'ClassDecl' of
       -- 'TyClDecl'.
     where
@@ -1238,12 +1237,12 @@ instance Pretty InfixApp where
               return newline
         (if immediatelyAfterDo
            then indentedBlock
-           else id) $ do
+           else id) $
           case unLoc rhs of
             (HsDo _ (DoExpr _) xs) -> do
               string " do"
               newline
-              indentedBlock $ inter newline $ fmap pretty $ unLoc xs -- TODO: Handle comments.
+              indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
             HsLam {} -> do
               space
               pretty rhs
@@ -1312,13 +1311,11 @@ instance Pretty (HsDerivingClause GhcPs) where
     pretty deriv_clause_tys
 
 instance Pretty (DerivClauseTys GhcPs) where
-  pretty' (DctSingle _ ty) = do
-    parens $ pretty ty
+  pretty' (DctSingle _ ty) = parens $ pretty ty
   pretty' (DctMulti _ ts) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = do
-        parens $ inter (string ", ") $ fmap pretty ts
-      vertical = do
+      horizontal = parens $ inter (string ", ") $ fmap pretty ts
+      vertical =
         indentedDependingOnHead (string "( ") $ do
           prefixedLined ", " $ fmap pretty ts
           newline
