@@ -273,7 +273,7 @@ instance Pretty (TyClDecl GhcPs) where
                 string " =>"
                 newline
               _ -> do
-                parens $ commaSeparated $ fmap pretty xs
+                hTuple $ fmap pretty xs
                 string " =>"
                 newline
           case tcdFixity of
@@ -463,7 +463,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (ExplicitTuple _ [] _) = string "()"
   pretty' (ExplicitTuple _ full _) = horizontal <-|> vertical
     where
-      horizontal = parens $ commaSeparated $ fmap pretty full
+      horizontal = hTuple $ fmap pretty full
       vertical =
         parens $
         prefixedLined "," $
@@ -646,7 +646,7 @@ instance Pretty (ConDecl GhcPs) where
                      string " =>"
                      newline
                    Just (L _ xs) -> do
-                     parens $ commaSeparated $ fmap pretty xs
+                     hTuple $ fmap pretty xs
                      string " =>"
                      newline
                  pretty con_name
@@ -836,7 +836,7 @@ instance Pretty (HsType GhcPs) where
   pretty' (HsListTy _ xs) = brackets $ pretty xs
   pretty' (HsTupleTy _ _ xs) = hor <-|> ver
     where
-      hor = parens $ commaSeparated $ fmap pretty xs
+      hor = hTuple $ fmap pretty xs
       ver = do
         indentedDependingOnHead (string "( ") $
           prefixedLined ", " $ fmap pretty xs
@@ -1033,7 +1033,7 @@ instance Pretty (Pat GhcPs) where
   pretty' (ParPat _ inner) = parens $ pretty inner
   pretty' p@BangPat {} = output p
   pretty' ListPat {} = undefined
-  pretty' (TuplePat _ pats _) = parens $ commaSeparated $ fmap pretty pats
+  pretty' (TuplePat _ pats _) = hTuple $ fmap pretty pats
   pretty' SumPat {} = undefined
   pretty' ConPat {..} =
     case pat_args of
@@ -1300,7 +1300,7 @@ instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
   pretty' (DctMulti _ ts) = horizontal <-|> vertical
     where
-      horizontal = parens $ commaSeparated $ fmap pretty ts
+      horizontal = hTuple $ fmap pretty ts
       vertical = vTuple $ fmap pretty ts
 
 instance Pretty OverlapMode where
