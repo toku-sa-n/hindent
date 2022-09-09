@@ -839,12 +839,7 @@ instance Pretty (HsType GhcPs) where
   -- a type with the same name. However, infix data constructors never
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
-  pretty' (HsOpTy _ l op r) = do
-    pretty l
-    space
-    infixOp $ unLoc op
-    space
-    pretty r
+  pretty' (HsOpTy _ l op r) = spaced [pretty l, infixOp $ unLoc op, pretty r]
   pretty' (HsParTy _ inside) = parens $ pretty inside
   pretty' t@HsIParamTy {} = output t
   pretty' HsStarTy {} = undefined
