@@ -1,3 +1,4 @@
 - error: {lhs: inter newline, rhs: lined}
 - error: {lhs: 'inter (string ", ")', rhs: commaSeparated}
+- error: {lhs: 'inter (string " | ")', rhs: barSeparated}
 - error: {lhs: parens (commaSeparated x), rhs: hTuple x}
