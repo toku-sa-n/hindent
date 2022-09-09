@@ -382,7 +382,7 @@ instance Pretty (HsDataDefn GhcPs) where
             _ -> do
               newline
               indentedDependingOnHead (string "= ") $
-                prefixedLined "| " $ fmap pretty dd_cons
+                vBarSep $ fmap pretty dd_cons
           unless (null dd_derivs) $ do
             newline
             lined $ fmap pretty dd_derivs
@@ -722,7 +722,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       else horizontal <-|> vertical
     where
       horizontal = hBarSep $ fmap output xs
-      vertical = prefixedLined "| " $ fmap pretty xs
+      vertical = vBarSep $ fmap pretty xs
   pretty' TransStmt {..} =
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
@@ -1251,7 +1251,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Or xs) = horizontal <-|> vertical
     where
       horizontal = hBarSep $ fmap pretty xs
-      vertical = prefixedLined "| " $ fmap pretty xs
+      vertical = vBarSep $ fmap pretty xs
   pretty' (Parens x) = parens $ pretty x
 
 instance Pretty (FieldLabelStrings GhcPs) where
