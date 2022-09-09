@@ -13,9 +13,11 @@ module HIndent.Pretty.Combinators.Lineup
   , commaSep
   , hCommaSep
   , vCommaSep
+  , prefixedLined
   , inter
   ) where
 
+import           Control.Monad
 import           Data.List
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
@@ -97,6 +99,15 @@ hCommaSep = inter (string ", ")
 --             , c.
 vCommaSep :: [Printer ()] -> Printer ()
 vCommaSep = prefixedLined ", "
+
+prefixedLined :: String -> [Printer ()] -> Printer ()
+prefixedLined _ [] = return ()
+prefixedLined pref (x:xs) = do
+  x
+  indentedWithSpace (fromIntegral (length pref * (-1))) $
+    forM_ xs $ \p -> do
+      newline
+      indentedDependingOnHead (string pref) p
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator

@@ -7,7 +7,6 @@ module HIndent.Pretty.Combinators
   , showOutputable
   , rhsSeparator
   , eolCommentsArePrinted
-  , prefixedLined
   , startingColumn
   ) where
 
@@ -26,7 +25,6 @@ import           GHC.Utils.Outputable                                hiding
                                                                       parens,
                                                                       space,
                                                                       (<>))
-import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
@@ -65,15 +63,6 @@ rhsSeparator = do
 
 eolCommentsArePrinted :: Printer ()
 eolCommentsArePrinted = modify (\s -> s {psEolComment = True})
-
-prefixedLined :: String -> [Printer ()] -> Printer ()
-prefixedLined _ [] = return ()
-prefixedLined pref (x:xs) = do
-  x
-  indentedWithSpace (fromIntegral (length pref * (-1))) $
-    forM_ xs $ \p -> do
-      newline
-      indentedDependingOnHead (string pref) p
 
 startingColumn :: Printer Int64
 startingColumn = do
