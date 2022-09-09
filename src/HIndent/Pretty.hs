@@ -1301,11 +1301,7 @@ instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctMulti _ ts) = horizontal <-|> vertical
     where
       horizontal = parens $ commaSeparated $ fmap pretty ts
-      vertical =
-        indentedDependingOnHead (string "( ") $ do
-          prefixedLined ", " $ fmap pretty ts
-          newline
-          indentedWithSpace (-2) $ string ")"
+      vertical = vTuple $ fmap pretty ts
 
 instance Pretty OverlapMode where
   pretty' NoOverlap {}    = undefined
