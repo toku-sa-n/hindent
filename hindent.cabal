@@ -38,7 +38,6 @@ library
                      HIndent.Pretty.Combinators
                      HIndent.Pretty.Combinators.Indent
                      HIndent.Pretty.Combinators.Inside
-                     HIndent.Pretty.Combinators.Inter
                      HIndent.Pretty.Combinators.Lineup
                      HIndent.Pretty.Combinators.Op
                      HIndent.Pretty.Combinators.String

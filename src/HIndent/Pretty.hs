@@ -32,7 +32,6 @@ import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Inside
-import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.Op
 import           HIndent.Pretty.Combinators.String

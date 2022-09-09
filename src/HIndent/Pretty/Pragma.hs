@@ -7,7 +7,7 @@ module HIndent.Pretty.Pragma
 import           Data.Generics.Schemes
 import           Data.Maybe
 import           GHC.Hs
-import           HIndent.Pretty.Combinators.Inter
+import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA

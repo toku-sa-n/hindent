@@ -5,11 +5,16 @@ module HIndent.Pretty.Combinators.Lineup
   , vTuple
   , vList
   , vFields
+  , spaced
+  , lined
+  , barSeparated
+  , commaSeparated
+  , inter
   ) where
 
+import           Data.List
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
@@ -54,3 +59,19 @@ vLineup (prefix, suffix) ps =
     prefixedLined ", " ps
     newline
     indentedWithSpace (-2) $ string [suffix]
+
+spaced :: [Printer ()] -> Printer ()
+spaced = inter space
+
+lined :: [Printer ()] -> Printer ()
+lined = inter newline
+
+-- | Prints like 'a | b | c'.
+barSeparated :: [Printer ()] -> Printer ()
+barSeparated = inter (string " | ")
+
+commaSeparated :: [Printer ()] -> Printer ()
+commaSeparated = inter (string ", ")
+
+inter :: Printer () -> [Printer ()] -> Printer ()
+inter separator = sequence_ . intersperse separator
