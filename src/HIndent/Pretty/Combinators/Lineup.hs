@@ -1,5 +1,6 @@
 module HIndent.Pretty.Combinators.Lineup
   ( hTuple
+  , hFields
   , vTuple
   , vList
   , vFields
@@ -15,6 +16,10 @@ import           HIndent.Types
 -- | Prints like (a, b, c).
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . commaSeparated
+
+-- | Print like {a, b, c}.
+hFields :: [Printer ()] -> Printer ()
+hFields = braces . commaSeparated
 
 -- | Prints like ( a
 --               , b

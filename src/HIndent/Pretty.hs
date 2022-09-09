@@ -741,10 +741,9 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
   pretty' HsRecFields {..} = horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal =
-        braces $
         case rec_dotdot of
-          Just _  -> string ".."
-          Nothing -> commaSeparated $ fmap pretty rec_flds
+          Just _  -> braces $ string ".."
+          Nothing -> hFields $ fmap pretty rec_flds
       vertical = vFields $ fmap pretty rec_flds
 
 instance Pretty (HsType GhcPs) where
