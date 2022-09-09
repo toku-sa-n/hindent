@@ -745,11 +745,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
         case rec_dotdot of
           Just _  -> string ".."
           Nothing -> commaSeparated $ fmap pretty rec_flds
-      vertical = do
-        indentedDependingOnHead (string "{ ") $ do
-          prefixedLined ", " $ fmap pretty rec_flds
-          newline
-        string "}"
+      vertical = vFields $ fmap pretty rec_flds
 
 instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined

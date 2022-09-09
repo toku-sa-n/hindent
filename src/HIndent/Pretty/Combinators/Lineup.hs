@@ -2,8 +2,11 @@ module HIndent.Pretty.Combinators.Lineup
   ( hTuple
   , vTuple
   , vList
+  , vFields
   ) where
 
+import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Inter
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
@@ -27,10 +30,16 @@ vTuple = vLineup ("( ", ")")
 vList :: [Printer ()] -> Printer ()
 vList = vLineup ("[ ", "]")
 
+-- | Prints like { a
+--               , b
+--               , c
+--               }
+vFields :: [Printer ()] -> Printer ()
+vFields = vLineup ("{ ", "}")
+
 -- | Prints elements in vertical with the given prefix and suffix.
 vLineup :: (String, String) -> [Printer ()] -> Printer ()
 vLineup (prefix, suffix) ps = do
-  string prefix
-  inter (newline >> string ", ") ps
+  indentedDependingOnHead (string prefix) $ prefixedLined ", " ps
   newline
   string suffix
