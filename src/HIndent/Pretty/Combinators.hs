@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP        #-}
 {-# LANGUAGE LambdaCase #-}
 
 module HIndent.Pretty.Combinators
@@ -26,7 +27,9 @@ import           Control.Monad.RWS                                   hiding
 import qualified Data.ByteString.Builder                             as S
 import           Data.Int
 import           Data.List
+#if MIN_VERSION_ghc_lib_parser(9,2,2)
 import           GHC.Driver.Ppr
+#endif
 import           GHC.Driver.Session
 import           GHC.Utils.Outputable                                hiding
                                                                      (brackets,
