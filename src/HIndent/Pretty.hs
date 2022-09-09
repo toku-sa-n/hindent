@@ -1171,10 +1171,9 @@ instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (Bang
         forM_ xs $ \x -> do
           newline
           pretty x
-  pretty' (RecCon (L _ rec)) =
-    indentedBlock $ do
-      newline
-      vFields $ fmap pretty rec
+  pretty' (RecCon (L _ rec)) = do
+    newline
+    indentedBlock $ vFields $ fmap pretty rec
   pretty' InfixCon {} =
     error
       "Cannot handle here because 'InfixCon' does not have the information of its constructor."
