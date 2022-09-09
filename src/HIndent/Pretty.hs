@@ -535,11 +535,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (ExplicitList _ xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
       horizontal = brackets $ commaSeparated $ fmap pretty xs
-      vertical = do
-        string "[ "
-        inter (newline >> string ", ") $ fmap pretty xs
-        newline
-        string "]"
+      vertical = vList $ fmap pretty xs
   pretty' (RecordCon _ name fields) =
     horizontal `ifFitsOnOneLineOrElse` vertical
     where

@@ -1,6 +1,7 @@
 module HIndent.Pretty.Combinators.Lineup
   ( hTuple
   , vTuple
+  , vList
   ) where
 
 import           HIndent.Pretty.Combinators.Inter
@@ -22,3 +23,10 @@ vTuple ps = do
   inter (newline >> string ", ") ps
   newline
   string ")"
+
+vList :: [Printer ()] -> Printer ()
+vList ps = do
+  string "[ "
+  inter (newline >> string ", ") ps
+  newline
+  string "]"
