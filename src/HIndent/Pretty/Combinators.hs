@@ -10,6 +10,7 @@ module HIndent.Pretty.Combinators
   , inter
   , spaced
   , lined
+  , commaSeparated
   , horizontalTuple
   , verticalTuple
   , ifFitsOnOneLineOrElse
@@ -96,6 +97,9 @@ spaced = inter space
 
 lined :: [Printer ()] -> Printer ()
 lined = inter newline
+
+commaSeparated :: [Printer ()] -> Printer ()
+commaSeparated = inter (string ", ")
 
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do

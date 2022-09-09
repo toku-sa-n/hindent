@@ -270,7 +270,7 @@ instance Pretty (TyClDecl GhcPs) where
                 string " =>"
                 newline
               _ -> do
-                parens $ inter (string ", ") $ fmap pretty xs
+                parens $ commaSeparated $ fmap pretty xs
                 string " =>"
                 newline
           case tcdFixity of
@@ -349,7 +349,7 @@ instance Pretty (Sig GhcPs) where
           _                  -> False
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
-    inter (string ", ") $ fmap pretty funNames
+    commaSeparated $ fmap pretty funNames
     string " :: "
     pretty $ sig_body $ unLoc params
   pretty' (MinimalSig _ _ xs) =
@@ -460,7 +460,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (ExplicitTuple _ [] _) = string "()"
   pretty' (ExplicitTuple _ full _) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = parens $ inter (string ", ") $ fmap pretty full
+      horizontal = parens $ commaSeparated $ fmap pretty full
       vertical =
         parens $
         prefixedLined "," $
@@ -524,7 +524,7 @@ instance Pretty (HsExpr GhcPs) where
         brackets $ do
           pretty $ head $ unLoc xs
           string " | "
-          inter (string ", ") $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          commaSeparated $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
       vertical =
         insideVerticalList $
         if null $ unLoc xs
@@ -541,7 +541,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' HsDo {} = undefined
   pretty' (ExplicitList _ xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = brackets $ inter (string ", ") $ fmap pretty xs
+      horizontal = brackets $ commaSeparated $ fmap pretty xs
       vertical = do
         string "[ "
         inter (newline >> string ", ") $ fmap pretty xs
@@ -659,7 +659,7 @@ instance Pretty (ConDecl GhcPs) where
                      string " =>"
                      newline
                    Just (L _ xs) -> do
-                     parens $ inter (string ", ") $ fmap pretty xs
+                     parens $ commaSeparated $ fmap pretty xs
                      string " =>"
                      newline
                  pretty con_name
@@ -755,7 +755,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
         braces $
         case rec_dotdot of
           Just _  -> string ".."
-          Nothing -> inter (string ", ") $ fmap pretty rec_flds
+          Nothing -> commaSeparated $ fmap pretty rec_flds
       vertical = do
         indentedDependingOnHead (string "{ ") $ do
           prefixedLined ", " $ fmap pretty rec_flds
@@ -800,7 +800,7 @@ instance Pretty (HsType GhcPs) where
       constraints = hCon `ifFitsOnOneLineOrElse` vCon
       hCon =
         constraintsParens $
-        mapM_ (inter (string ", ") . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (commaSeparated . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
       vCon = do
         string constraintsParensL
         space
@@ -854,7 +854,7 @@ instance Pretty (HsType GhcPs) where
   pretty' (HsListTy _ xs) = brackets $ pretty xs
   pretty' (HsTupleTy _ _ xs) = hor `ifFitsOnOneLineOrElse` ver
     where
-      hor = parens $ inter (string ", ") $ fmap pretty xs
+      hor = parens $ commaSeparated $ fmap pretty xs
       ver = do
         indentedDependingOnHead (string "( ") $
           prefixedLined ", " $ fmap pretty xs
@@ -884,11 +884,11 @@ instance Pretty (HsType GhcPs) where
       [] -> string "'[]"
       _ -> do
         string "'[ "
-        inter (string ", ") $ fmap pretty xs
+        commaSeparated $ fmap pretty xs
         string "]"
   pretty' (HsExplicitTupleTy _ xs) = do
     string "'( "
-    inter (string ", ") $ fmap pretty xs
+    commaSeparated $ fmap pretty xs
     string ")"
   pretty' (HsTyLit _ x) = output x
   pretty' HsWildCardTy {} = undefined
@@ -942,7 +942,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       then vertical
       else horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = inter (string ", ") $ fmap pretty xs
+      horizontal = commaSeparated $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
 
 instance Pretty RdrName where
@@ -1051,7 +1051,7 @@ instance Pretty (Pat GhcPs) where
   pretty' (ParPat _ inner) = parens $ pretty inner
   pretty' p@BangPat {} = output p
   pretty' ListPat {} = undefined
-  pretty' (TuplePat _ pats _) = parens $ inter (string ", ") $ fmap pretty pats
+  pretty' (TuplePat _ pats _) = parens $ commaSeparated $ fmap pretty pats
   pretty' SumPat {} = undefined
   pretty' ConPat {..} =
     case pat_args of
@@ -1270,7 +1270,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x) = pretty x
   pretty' (And xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = inter (string ", ") $ fmap pretty xs
+      horizontal = commaSeparated $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
   pretty' (Or xs) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
@@ -1318,7 +1318,7 @@ instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
   pretty' (DctMulti _ ts) = horizontal `ifFitsOnOneLineOrElse` vertical
     where
-      horizontal = parens $ inter (string ", ") $ fmap pretty ts
+      horizontal = parens $ commaSeparated $ fmap pretty ts
       vertical =
         indentedDependingOnHead (string "( ") $ do
           prefixedLined ", " $ fmap pretty ts

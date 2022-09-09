@@ -1,1 +1,2 @@
 - error: {lhs: inter newline, rhs: lined}
+- error: {lhs: 'inter (string ", ")', rhs: commaSeparated}
