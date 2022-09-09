@@ -292,7 +292,7 @@ instance Pretty (TyClDecl GhcPs) where
           newline
           indentedBlock $
             indentedDependingOnHead (string "| ") $
-            prefixedLined ", " $
+            vCommaSep $
             flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
               spaced $ fmap pretty from
               string " -> "
@@ -724,8 +724,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       horizontal = barSeparated $ fmap output xs
       vertical = prefixedLined "| " $ fmap pretty xs
   pretty' TransStmt {..} =
-    prefixedLined ", " $
-    fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
+    vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
   commentsBefore (LetStmt l _) = commentsBefore l
   commentsBefore _             = []
@@ -837,8 +836,7 @@ instance Pretty (HsType GhcPs) where
     where
       hor = hTuple $ fmap pretty xs
       ver = do
-        indentedDependingOnHead (string "( ") $
-          prefixedLined ", " $ fmap pretty xs
+        indentedDependingOnHead (string "( ") $ vCommaSep $ fmap pretty xs
         string ")"
   pretty' HsSumTy {} = undefined
   -- For `HsOpTy`, we do not need a single quote for the infix operator. An
@@ -924,7 +922,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       else horizontal <-|> vertical
     where
       horizontal = hCommaSep $ fmap pretty xs
-      vertical = prefixedLined ", " $ fmap pretty xs
+      vertical = vCommaSep $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = prefixOp
@@ -1252,7 +1250,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (And xs) = horizontal <-|> vertical
     where
       horizontal = hCommaSep $ fmap pretty xs
-      vertical = prefixedLined ", " $ fmap pretty xs
+      vertical = vCommaSep $ fmap pretty xs
   pretty' (Or xs) = horizontal <-|> vertical
     where
       horizontal = barSeparated $ fmap pretty xs

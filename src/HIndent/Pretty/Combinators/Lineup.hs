@@ -9,6 +9,7 @@ module HIndent.Pretty.Combinators.Lineup
   , lined
   , barSeparated
   , hCommaSep
+  , vCommaSep
   , inter
   ) where
 
@@ -72,6 +73,9 @@ barSeparated = inter (string " | ")
 
 hCommaSep :: [Printer ()] -> Printer ()
 hCommaSep = inter (string ", ")
+
+vCommaSep :: [Printer ()] -> Printer ()
+vCommaSep = prefixedLined ", "
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
