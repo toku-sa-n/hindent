@@ -18,13 +18,11 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Debug.Trace
 import           Generics.SYB                      hiding (Infix, Prefix)
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Hs
-import           GHC.Hs.Dump
 import           GHC.Types.Fixity
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
