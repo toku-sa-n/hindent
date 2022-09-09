@@ -104,7 +104,7 @@ commaSeparated = inter (string ", ")
 horizontalTuple :: [Printer ()] -> Printer ()
 horizontalTuple ps = do
   string "("
-  inter (string ", ") ps
+  commaSeparated ps
   string ")"
 
 verticalTuple :: [Printer ()] -> Printer ()
