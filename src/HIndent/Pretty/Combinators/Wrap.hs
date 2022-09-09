@@ -6,8 +6,8 @@ module HIndent.Pretty.Combinators.Wrap
   , wrapWithBars
   ) where
 
-import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 
 parens :: Printer a -> Printer a

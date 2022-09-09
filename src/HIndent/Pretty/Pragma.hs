@@ -8,6 +8,7 @@ import           Data.Generics.Schemes
 import           Data.Maybe
 import           GHC.Hs
 import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA
 

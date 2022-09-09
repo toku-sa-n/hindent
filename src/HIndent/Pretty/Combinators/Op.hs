@@ -10,6 +10,7 @@ import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Unit
 import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
 

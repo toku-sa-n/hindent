@@ -7,6 +7,7 @@ import           GHC.Hs
 import           GHC.Types.SrcLoc                  (GenLocated (..))
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 
 outputModuleDeclaration :: HsModule -> Printer ()

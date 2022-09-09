@@ -33,6 +33,7 @@ import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Inside
 import           HIndent.Pretty.Combinators.Op
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Pretty.ModuleDeclaration

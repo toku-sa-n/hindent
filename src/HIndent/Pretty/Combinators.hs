@@ -2,12 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module HIndent.Pretty.Combinators
-  ( string
-  , space
-  , newline
-  , blankline
-  , comma
-  , inter
+  ( inter
   , spaced
   , lined
   , commaSeparated
@@ -26,7 +21,6 @@ import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
-import qualified Data.ByteString.Builder                             as S
 import           Data.Int
 import           Data.List
 #if MIN_VERSION_ghc_lib_parser(9,2,2)
@@ -40,54 +34,9 @@ import           GHC.Utils.Outputable                                hiding
                                                                       space,
                                                                       (<>))
 import           HIndent.Pretty.Combinators.Indent
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-
-string :: String -> Printer ()
-string x = do
-  eol <- gets psEolComment
-  hardFail <- gets psFitOnOneLine
-  let addingNewline = eol && x /= "\n"
-  when addingNewline newline
-  state <- get
-  let writingNewline = x == "\n"
-      out =
-        if psNewline state && not writingNewline
-          then replicate (fromIntegral $ psIndentLevel state) ' ' <> x
-          else x
-      psColumn' =
-        if additionalLines > 0
-          then fromIntegral $ length $ concat $ take 1 $ reverse srclines
-          else psColumn state + fromIntegral (length out)
-  when hardFail $
-    guard $
-    additionalLines == 0 && psColumn' <= configMaxColumns (psConfig state)
-  modify
-    (\s ->
-       s
-         { psOutput = psOutput state <> S.stringUtf8 out
-         , psNewline = False
-         , psLine = psLine state + fromIntegral additionalLines
-         , psEolComment = False
-         , psColumn = psColumn'
-         })
-  where
-    srclines = lines x
-    additionalLines = length $ filter (== '\n') x
-
-space :: Printer ()
-space = string " "
-
-newline :: Printer ()
-newline = do
-  string "\n"
-  modify (\s -> s {psNewline = True})
-
-blankline :: Printer ()
-blankline = newline >> newline
-
-comma :: Printer ()
-comma = string ","
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
