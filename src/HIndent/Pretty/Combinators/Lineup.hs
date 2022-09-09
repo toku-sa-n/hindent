@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.Tuple
+module HIndent.Pretty.Combinators.Lineup
   ( hTuple
   , vTuple
   ) where
