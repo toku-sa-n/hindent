@@ -721,7 +721,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
       then vertical
       else horizontal <-|> vertical
     where
-      horizontal = barSeparated $ fmap output xs
+      horizontal = hBarSep $ fmap output xs
       vertical = prefixedLined "| " $ fmap pretty xs
   pretty' TransStmt {..} =
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
@@ -1250,7 +1250,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (And xs) = commaSep $ fmap pretty xs
   pretty' (Or xs) = horizontal <-|> vertical
     where
-      horizontal = barSeparated $ fmap pretty xs
+      horizontal = hBarSep $ fmap pretty xs
       vertical = prefixedLined "| " $ fmap pretty xs
   pretty' (Parens x) = parens $ pretty x
 
