@@ -470,16 +470,6 @@ instance Pretty (HsExpr GhcPs) where
         fmap
           (\e -> unless (isMissing e) (indentedDependingOnHead space $ pretty e))
           full
-      -- vertical = do
-      --   string "("
-      --   unless (isMissing x) space
-      --   pretty x
-      --   forM_ xs $ \e -> do
-      --     newline
-      --     comma
-      --     unless (isMissing e) space
-      --     pretty e
-      --   string ")"
       isMissing Missing {} = True
       isMissing _          = False
   pretty' ExplicitSum {} = undefined
