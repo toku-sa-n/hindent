@@ -8,6 +8,7 @@ module HIndent.Pretty.Combinators.Lineup
   , spaced
   , lined
   , barSeparated
+  , commaSep
   , hCommaSep
   , vCommaSep
   , inter
@@ -71,9 +72,17 @@ lined = inter newline
 barSeparated :: [Printer ()] -> Printer ()
 barSeparated = inter (string " | ")
 
+-- | Apply 'hCommaSep' or 'vCommaSep'.
+commaSep :: [Printer ()] -> Printer ()
+commaSep = (<-|>) <$> hCommaSep <*> vCommaSep
+
+-- | Prints like 'a, b, c'.
 hCommaSep :: [Printer ()] -> Printer ()
 hCommaSep = inter (string ", ")
 
+-- | Prints like a
+--             , b
+--             , c.
 vCommaSep :: [Printer ()] -> Printer ()
 vCommaSep = prefixedLined ", "
 

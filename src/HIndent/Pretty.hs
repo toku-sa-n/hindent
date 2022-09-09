@@ -1247,10 +1247,7 @@ instance Pretty InfixApp where
 
 instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x) = pretty x
-  pretty' (And xs) = horizontal <-|> vertical
-    where
-      horizontal = hCommaSep $ fmap pretty xs
-      vertical = vCommaSep $ fmap pretty xs
+  pretty' (And xs) = commaSep $ fmap pretty xs
   pretty' (Or xs) = horizontal <-|> vertical
     where
       horizontal = barSeparated $ fmap pretty xs
