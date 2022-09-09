@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module HIndent.Pretty.Combinators
-  ( ifFitsOnOneLineOrElse
+  ( (<-|>)
   , output
   , showOutputable
   , rhsSeparator
@@ -31,8 +31,8 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
-ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
-ifFitsOnOneLineOrElse fit notFit = do
+(<-|>) :: Printer a -> Printer a -> Printer a
+fit <-|> notFit = do
   before <- get
   put before {psFitOnOneLine = True}
   fmap Just fit <|> return Nothing >>= \case

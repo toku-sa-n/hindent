@@ -214,7 +214,7 @@ instance Pretty (TyClDecl GhcPs) where
               space
               output x
           _ -> error "Not enough parameters are given."
-    hor `ifFitsOnOneLineOrElse` ver
+    hor <-|> ver
     where
       hor = do
         string " = "
@@ -236,7 +236,7 @@ instance Pretty (TyClDecl GhcPs) where
   pretty' ClassDecl {..} = do
     if isJust tcdCtxt
       then verHead
-      else horHead `ifFitsOnOneLineOrElse` verHead
+      else horHead <-|> verHead
     newline
     indentedBlock $ lined $ fmap pretty sigsMethodsFamilies
     where
@@ -333,7 +333,7 @@ instance Pretty (HsBind GhcPs) where
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
     pretty $ head funName
-    horizontal `ifFitsOnOneLineOrElse` vertical
+    horizontal <-|> vertical
     where
       horizontal = do
         string " :: "
@@ -424,7 +424,7 @@ instance Pretty (HsExpr GhcPs) where
         else do
           newline
           indentedBlock $ pretty matches
-  pretty' (HsApp _ l r) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (HsApp _ l r) = horizontal <-|> vertical
     where
       horizontal = spaced [pretty l, pretty r]
       vertical = do
@@ -461,7 +461,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' SectionL {} = undefined
   pretty' SectionR {} = undefined
   pretty' (ExplicitTuple _ [] _) = string "()"
-  pretty' (ExplicitTuple _ full _) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (ExplicitTuple _ full _) = horizontal <-|> vertical
     where
       horizontal = parens $ commaSeparated $ fmap pretty full
       vertical =
@@ -511,7 +511,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (HsDo _ (DoExpr _) xs) =
     indentedDependingOnHead (string "do ") $ lined $ output <$> unLoc xs -- TODO: Handle comments.
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
-  pretty' (HsDo _ MonadComp xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
       horizontal =
         brackets $ do
@@ -532,12 +532,11 @@ instance Pretty (HsExpr GhcPs) where
                       string "]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
   pretty' HsDo {} = undefined
-  pretty' (ExplicitList _ xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (ExplicitList _ xs) = horizontal <-|> vertical
     where
       horizontal = brackets $ commaSeparated $ fmap pretty xs
       vertical = vList $ fmap pretty xs
-  pretty' (RecordCon _ name fields) =
-    horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (RecordCon _ name fields) = horizontal <-|> vertical
     where
       horizontal = do
         name'
@@ -545,8 +544,7 @@ instance Pretty (HsExpr GhcPs) where
         pretty fields
       vertical = do
         name'
-        (space >> pretty fields) `ifFitsOnOneLineOrElse`
-          (newline >> indentedBlock (pretty fields))
+        (space >> pretty fields) <-|> (newline >> indentedBlock (pretty fields))
       name' =
         if head (showOutputable name) == ':'
           then parens $ output name
@@ -615,7 +613,7 @@ instance Pretty (HsSigType GhcPs) where
     pretty sig_body
 
 instance Pretty (ConDecl GhcPs) where
-  pretty' ConDeclGADT {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' ConDeclGADT {..} = horizontal <-|> vertical
     where
       horizontal = do
         output $ head con_names
@@ -706,7 +704,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
   pretty' full@(BindStmt _ pat body) =
-    output full `ifFitsOnOneLineOrElse` do
+    output full <-|> do
       output pat
       string " <-"
       newline
@@ -722,7 +720,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     inVertical <- gets psInsideVerticalList
     if inVertical
       then vertical
-      else horizontal `ifFitsOnOneLineOrElse` vertical
+      else horizontal <-|> vertical
     where
       horizontal = inter (string " | ") $ fmap output xs
       vertical = prefixedLined "| " $ fmap pretty xs
@@ -738,7 +736,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance Pretty a => Pretty (HsRecFields GhcPs a) where
-  pretty' HsRecFields {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' HsRecFields {..} = horizontal <-|> vertical
     where
       horizontal =
         case rec_dotdot of
@@ -751,7 +749,7 @@ instance Pretty (HsType GhcPs) where
   pretty' HsQualTy {..} = do
     isInSig <- gets psInsideSignature
     if isInSig
-      then sigHor `ifFitsOnOneLineOrElse` sigVer
+      then sigHor <-|> sigVer
       else notInSig
     where
       sigHor = do
@@ -766,7 +764,7 @@ instance Pretty (HsType GhcPs) where
       notInSig = do
         isInst <- gets psInsideInstDecl
         if isInst
-          then notHor `ifFitsOnOneLineOrElse` notVer
+          then notHor <-|> notVer
           else notVer
       notHor = do
         constraints
@@ -781,7 +779,7 @@ instance Pretty (HsType GhcPs) where
            then id
            else indentedBlock) $
           pretty hst_body
-      constraints = hCon `ifFitsOnOneLineOrElse` vCon
+      constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
         mapM_ (commaSeparated . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
@@ -824,7 +822,7 @@ instance Pretty (HsType GhcPs) where
     isVertical <- gets psInsideVerticalFunctionSignature
     if isVertical
       then vertical
-      else horizontal `ifFitsOnOneLineOrElse` vertical
+      else horizontal <-|> vertical
     where
       horizontal = do
         pretty a
@@ -836,7 +834,7 @@ instance Pretty (HsType GhcPs) where
         indentedWithSpace (-3) $ string "-> "
         pretty b
   pretty' (HsListTy _ xs) = brackets $ pretty xs
-  pretty' (HsTupleTy _ _ xs) = hor `ifFitsOnOneLineOrElse` ver
+  pretty' (HsTupleTy _ _ xs) = hor <-|> ver
     where
       hor = parens $ commaSeparated $ fmap pretty xs
       ver = do
@@ -924,7 +922,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
     inVertical <- gets psInsideVerticalList
     if inVertical
       then vertical
-      else horizontal `ifFitsOnOneLineOrElse` vertical
+      else horizontal <-|> vertical
     where
       horizontal = commaSeparated $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
@@ -958,7 +956,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       rhsSeparator
       string " do "
       mapM_ pretty $ unLoc body
-  pretty' (GRHS _ [] body) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
         unlessInsideLambda space
@@ -984,7 +982,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
              then comma >> newline
              else newline >> string ", ") $
           fmap pretty guards
-        horizontal `ifFitsOnOneLineOrElse` vertical
+        horizontal <-|> vertical
     where
       horizontal = do
         space
@@ -1146,7 +1144,7 @@ instance Pretty (HsTupArg GhcPs) where
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance (Pretty a, Pretty b) => Pretty (HsRecField' a b) where
-  pretty' HsRecField {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' HsRecField {..} = horizontal <-|> vertical
     where
       horizontal = do
         pretty hsRecFieldLbl
@@ -1165,7 +1163,7 @@ instance Pretty (FieldOcc GhcPs) where
 
 -- HsConDeclH98Details
 instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (BangType GhcPs))) (GenLocated SrcSpanAnnL [GenLocated SrcSpanAnnA (ConDeclField GhcPs)])) where
-  pretty' (PrefixCon _ xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (PrefixCon _ xs) = horizontal <-|> vertical
     where
       horizontal =
         forM_ xs $ \x -> do
@@ -1209,7 +1207,7 @@ instance Pretty InfixExpr where
   commentsAfter (InfixExpr x) = commentsAfter x
 
 instance Pretty InfixApp where
-  pretty' InfixApp {..} = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' InfixApp {..} = horizontal <-|> vertical
     where
       horizontal = spaced [pretty lhs, pretty (InfixExpr op), pretty rhs]
       vertical = do
@@ -1252,11 +1250,11 @@ instance Pretty InfixApp where
 
 instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x) = pretty x
-  pretty' (And xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (And xs) = horizontal <-|> vertical
     where
       horizontal = commaSeparated $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
-  pretty' (Or xs) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (Or xs) = horizontal <-|> vertical
     where
       horizontal = inter (string " | ") $ fmap pretty xs
       vertical = prefixedLined "| " $ fmap pretty xs
@@ -1284,7 +1282,7 @@ instance Pretty (ImportDecl GhcPs) where
       output x
     whenJust ideclHiding $ \(x, _) -> do
       when x (string " hiding")
-      (string " " >> hTuple explicitOrHidingImports) `ifFitsOnOneLineOrElse`
+      (string " " >> hTuple explicitOrHidingImports) <-|>
         (newline >> indentedBlock (vTuple explicitOrHidingImports))
     where
       explicitOrHidingImports =
@@ -1300,7 +1298,7 @@ instance Pretty (HsDerivingClause GhcPs) where
 
 instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
-  pretty' (DctMulti _ ts) = horizontal `ifFitsOnOneLineOrElse` vertical
+  pretty' (DctMulti _ ts) = horizontal <-|> vertical
     where
       horizontal = parens $ commaSeparated $ fmap pretty ts
       vertical =
