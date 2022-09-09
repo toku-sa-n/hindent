@@ -852,10 +852,7 @@ instance Pretty (HsType GhcPs) where
     case xs of
       [] -> string "'[]"
       _  -> hPromotedList $ fmap pretty xs
-  pretty' (HsExplicitTupleTy _ xs) = do
-    string "'( "
-    hCommaSep $ fmap pretty xs
-    string ")"
+  pretty' (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
   pretty' (HsTyLit _ x) = output x
   pretty' HsWildCardTy {} = undefined
   pretty' XHsType {} = undefined

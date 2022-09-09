@@ -6,6 +6,7 @@ module HIndent.Pretty.Combinators.Lineup
   , vTuple
   , vTuple'
   , vList
+  , hPromotedTuple
   , hPromotedList
   , vFields
   , spaced
@@ -64,6 +65,10 @@ vTuple' = vLineup' ("(", ")")
 --               ]
 vList :: [Printer ()] -> Printer ()
 vList = vLineup ("[", "]")
+
+-- | Prints like '( a, b, c).
+hPromotedTuple :: [Printer ()] -> Printer ()
+hPromotedTuple = promotedTupleParens . hCommaSep
 
 -- | Prints like '[ a, b, c]
 hPromotedList :: [Printer ()] -> Printer ()
