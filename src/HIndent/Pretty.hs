@@ -678,10 +678,9 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         pretty m_grhss
       (_, _, Prefix) -> do
         pretty m_ctxt
-        unless (null m_pats) $
-          forM_ m_pats $ \x -> do
-            space
-            pretty x
+        unless (null m_pats) $ do
+          space
+          spaced $ fmap pretty m_pats
         pretty m_grhss
       (_, _, Infix) -> do
         case (m_pats, m_ctxt) of
