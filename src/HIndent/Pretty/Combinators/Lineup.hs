@@ -4,6 +4,7 @@ module HIndent.Pretty.Combinators.Lineup
   , hTuple
   , hFields
   , vFields
+  , vFields'
   , vTuple
   , vTuple'
   , vList
@@ -48,6 +49,12 @@ hTuple = parens . hCommaSep
 --               }
 vFields :: [Printer ()] -> Printer ()
 vFields = vLineup ("{", "}")
+
+-- | Prints like { a
+--               , b
+--               , c}
+vFields' :: [Printer ()] -> Printer ()
+vFields' = vLineup' ("{", "}")
 
 -- | Print like {a, b, c}.
 hFields :: [Printer ()] -> Printer ()
