@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module SwitchToGhcLibParserHelper
   ( gleExtensionToCabalExtension
   , uniqueExtensions
@@ -39,7 +41,6 @@ convertExtension Cabal.ParallelArrays = GLP.ParallelArrays
 convertExtension Cabal.Arrows = GLP.Arrows
 convertExtension Cabal.TemplateHaskell = GLP.TemplateHaskell
 convertExtension Cabal.TemplateHaskellQuotes = GLP.TemplateHaskellQuotes
-convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
 convertExtension Cabal.QuasiQuotes = GLP.QuasiQuotes
 convertExtension Cabal.ImplicitParams = GLP.ImplicitParams
 convertExtension Cabal.ImplicitPrelude = GLP.ImplicitPrelude
@@ -48,7 +49,6 @@ convertExtension Cabal.AllowAmbiguousTypes = GLP.AllowAmbiguousTypes
 convertExtension Cabal.UnboxedTuples = GLP.UnboxedTuples
 convertExtension Cabal.UnboxedSums = GLP.UnboxedSums
 convertExtension Cabal.UnliftedNewtypes = GLP.UnliftedNewtypes
-convertExtension Cabal.UnliftedDatatypes = GLP.UnliftedDatatypes
 convertExtension Cabal.BangPatterns = GLP.BangPatterns
 convertExtension Cabal.TypeFamilies = GLP.TypeFamilies
 convertExtension Cabal.TypeFamilyDependencies = GLP.TypeFamilyDependencies
@@ -71,7 +71,6 @@ convertExtension Cabal.PolyKinds = GLP.PolyKinds
 convertExtension Cabal.DataKinds = GLP.DataKinds
 convertExtension Cabal.InstanceSigs = GLP.InstanceSigs
 convertExtension Cabal.ApplicativeDo = GLP.ApplicativeDo
-convertExtension Cabal.LinearTypes = GLP.LinearTypes
 convertExtension Cabal.StandaloneDeriving = GLP.StandaloneDeriving
 convertExtension Cabal.DeriveDataTypeable = GLP.DeriveDataTypeable
 convertExtension Cabal.AutoDeriveTypeable = GLP.AutoDeriveTypeable
@@ -138,13 +137,19 @@ convertExtension Cabal.StarIsType = GLP.StarIsType
 convertExtension Cabal.ImportQualifiedPost = GLP.ImportQualifiedPost
 convertExtension Cabal.CUSKs = GLP.CUSKs
 convertExtension Cabal.StandaloneKindSignatures = GLP.StandaloneKindSignatures
-convertExtension Cabal.LexicalNegation = GLP.LexicalNegation
-convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
-convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
 convertExtension Cabal.Rank2Types = GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
 convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
 convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
-convertExtension _ = GLP.ImplicitPrelude -- XXX: I gave up everything.
+#if MIN_VERSION_Cabal(3,6,0)
+convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
+convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
+convertExtension Cabal.LexicalNegation = GLP.LexicalNegation
+convertExtension Cabal.LinearTypes = GLP.LinearTypes
+convertExtension Cabal.UnliftedDatatypes = GLP.UnliftedDatatypes
+convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
+#endif
+convertExtension _ = GLP.ImplicitPrelude
+                                         -- XXX: I gave up everything.

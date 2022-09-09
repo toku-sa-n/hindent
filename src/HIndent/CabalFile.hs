@@ -150,7 +150,9 @@ getCabalExtensions srcpath = do
 convertLanguage :: Language -> GLP.Language
 convertLanguage Haskell98           = GLP.Haskell98
 convertLanguage Haskell2010         = GLP.Haskell2010
+#if MIN_VERSION_Cabal(3,6,0)
 convertLanguage GHC2021             = GLP.GHC2021
+#endif
 convertLanguage (UnknownLanguage s) = error $ "Unknown language: " ++ s
 
 -- | Get extensions from the cabal file for this source path
