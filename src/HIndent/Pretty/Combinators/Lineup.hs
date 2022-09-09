@@ -26,25 +26,26 @@ hFields = braces . commaSeparated
 --               , c
 --               )
 vTuple :: [Printer ()] -> Printer ()
-vTuple = vLineup ("( ", ")")
+vTuple = vLineup ('(', ')')
 
 -- | Prints like [ a
 --               , b
 --               , c
 --               ]
 vList :: [Printer ()] -> Printer ()
-vList = vLineup ("[ ", "]")
+vList = vLineup ('[', ']')
 
 -- | Prints like { a
 --               , b
 --               , c
 --               }
 vFields :: [Printer ()] -> Printer ()
-vFields = vLineup ("{ ", "}")
+vFields = vLineup ('{', '}')
 
 -- | Prints elements in vertical with the given prefix and suffix.
-vLineup :: (String, String) -> [Printer ()] -> Printer ()
-vLineup (prefix, suffix) ps = do
-  indentedDependingOnHead (string prefix) $ prefixedLined ", " ps
-  newline
-  string suffix
+vLineup :: (Char, Char) -> [Printer ()] -> Printer ()
+vLineup (prefix, suffix) ps =
+  indentedDependingOnHead (string $ prefix : " ") $ do
+    prefixedLined ", " ps
+    newline
+    indentedWithSpace (-2) $ string [suffix]
