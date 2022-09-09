@@ -6,6 +6,7 @@ module HIndent.Pretty.Combinators.Lineup
   , vTuple
   , vTuple'
   , vList
+  , hPromotedList
   , vFields
   , spaced
   , lined
@@ -49,43 +50,47 @@ hFields = braces . hCommaSep
 --               , c
 --               )
 vTuple :: [Printer ()] -> Printer ()
-vTuple = vLineup ('(', ')')
+vTuple = vLineup ("(", ")")
 
 -- | Prints like ( a
 --               , b
 --               , c)
 vTuple' :: [Printer ()] -> Printer ()
-vTuple' = vLineup' ('(', ')')
+vTuple' = vLineup' ("(", ")")
 
 -- | Prints like [ a
 --               , b
 --               , c
 --               ]
 vList :: [Printer ()] -> Printer ()
-vList = vLineup ('[', ']')
+vList = vLineup ("[", "]")
+
+-- | Prints like '[ a, b, c]
+hPromotedList :: [Printer ()] -> Printer ()
+hPromotedList = promotedListBrackets . hCommaSep
 
 -- | Prints like { a
 --               , b
 --               , c
 --               }
 vFields :: [Printer ()] -> Printer ()
-vFields = vLineup ('{', '}')
+vFields = vLineup ("{", "}")
 
 -- | Prints elements in vertical with the given prefix and suffix.
-vLineup :: (Char, Char) -> [Printer ()] -> Printer ()
+vLineup :: (String, String) -> [Printer ()] -> Printer ()
 vLineup (prefix, suffix) ps =
-  indentedDependingOnHead (string $ prefix : " ") $ do
+  indentedDependingOnHead (string prefix >> space) $ do
     vCommaSep ps
     newline
-    indentedWithSpace (-2) $ string [suffix]
+    indentedWithSpace (-(fromIntegral (length prefix) + 1)) $ string suffix
 
 -- | Similar to 'vLineup' but the suffix is on the same line as the last
 -- element.
-vLineup' :: (Char, Char) -> [Printer ()] -> Printer ()
+vLineup' :: (String, String) -> [Printer ()] -> Printer ()
 vLineup' (prefix, suffix) ps =
-  indentedDependingOnHead (string $ prefix : " ") $ do
+  indentedDependingOnHead (string prefix >> space) $ do
     vCommaSep ps
-    string [suffix]
+    string suffix
 
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space

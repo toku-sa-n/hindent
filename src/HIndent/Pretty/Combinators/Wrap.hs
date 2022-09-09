@@ -4,6 +4,7 @@ module HIndent.Pretty.Combinators.Wrap
   , brackets
   , tick
   , wrapWithBars
+  , promotedListBrackets
   ) where
 
 import           HIndent.Pretty.Combinators.Indent
@@ -24,6 +25,9 @@ tick = wrap "`" "`"
 
 wrapWithBars :: Printer a -> Printer a
 wrapWithBars = wrap "|" "|"
+
+promotedListBrackets :: Printer a -> Printer a
+promotedListBrackets = wrap "'[ " "]"
 
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p = indentedDependingOnHead (string open) $ p <* string close
