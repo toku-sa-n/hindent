@@ -351,7 +351,7 @@ instance Pretty (Sig GhcPs) where
           _                  -> False
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
-    commaSeparated $ fmap pretty funNames
+    hCommaSep $ fmap pretty funNames
     string " :: "
     pretty $ sig_body $ unLoc params
   pretty' (MinimalSig _ _ xs) =
@@ -516,7 +516,7 @@ instance Pretty (HsExpr GhcPs) where
         brackets $ do
           pretty $ head $ unLoc xs
           string " | "
-          commaSeparated $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
       vertical =
         insideVerticalList $
         if null $ unLoc xs
@@ -533,7 +533,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' HsDo {} = undefined
   pretty' (ExplicitList _ xs) = horizontal <-|> vertical
     where
-      horizontal = brackets $ commaSeparated $ fmap pretty xs
+      horizontal = brackets $ hCommaSep $ fmap pretty xs
       vertical = vList $ fmap pretty xs
   pretty' (RecordCon _ name fields) = horizontal <-|> vertical
     where
@@ -781,7 +781,7 @@ instance Pretty (HsType GhcPs) where
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
-        mapM_ (commaSeparated . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (hCommaSep . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
       vCon = do
         string constraintsParensL
         space
@@ -865,11 +865,11 @@ instance Pretty (HsType GhcPs) where
       [] -> string "'[]"
       _ -> do
         string "'[ "
-        commaSeparated $ fmap pretty xs
+        hCommaSep $ fmap pretty xs
         string "]"
   pretty' (HsExplicitTupleTy _ xs) = do
     string "'( "
-    commaSeparated $ fmap pretty xs
+    hCommaSep $ fmap pretty xs
     string ")"
   pretty' (HsTyLit _ x) = output x
   pretty' HsWildCardTy {} = undefined
@@ -923,7 +923,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       then vertical
       else horizontal <-|> vertical
     where
-      horizontal = commaSeparated $ fmap pretty xs
+      horizontal = hCommaSep $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
 
 instance Pretty RdrName where
@@ -1251,7 +1251,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x) = pretty x
   pretty' (And xs) = horizontal <-|> vertical
     where
-      horizontal = commaSeparated $ fmap pretty xs
+      horizontal = hCommaSep $ fmap pretty xs
       vertical = prefixedLined ", " $ fmap pretty xs
   pretty' (Or xs) = horizontal <-|> vertical
     where

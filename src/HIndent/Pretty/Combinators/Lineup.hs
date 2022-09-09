@@ -8,7 +8,7 @@ module HIndent.Pretty.Combinators.Lineup
   , spaced
   , lined
   , barSeparated
-  , commaSeparated
+  , hCommaSep
   , inter
   ) where
 
@@ -25,11 +25,11 @@ tuple = (<-|>) <$> hTuple <*> vTuple
 
 -- | Prints like (a, b, c).
 hTuple :: [Printer ()] -> Printer ()
-hTuple = parens . commaSeparated
+hTuple = parens . hCommaSep
 
 -- | Print like {a, b, c}.
 hFields :: [Printer ()] -> Printer ()
-hFields = braces . commaSeparated
+hFields = braces . hCommaSep
 
 -- | Prints like ( a
 --               , b
@@ -70,8 +70,8 @@ lined = inter newline
 barSeparated :: [Printer ()] -> Printer ()
 barSeparated = inter (string " | ")
 
-commaSeparated :: [Printer ()] -> Printer ()
-commaSeparated = inter (string ", ")
+hCommaSep :: [Printer ()] -> Printer ()
+hCommaSep = inter (string ", ")
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
