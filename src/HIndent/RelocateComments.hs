@@ -313,65 +313,62 @@ replaceAllNotUsedAnns = everywhere app
       => (a -> a)
     app sp =
       case typeRep @a of
-        App g h ->
+        App g (App y z) ->
           case eqTypeRep g (typeRep @SrcSpanAnn') of
             Just HRefl ->
-              case h of
-                App y z ->
-                  case eqTypeRep y (typeRep @EpAnn) of
+              case eqTypeRep y (typeRep @EpAnn) of
+                Just HRefl ->
+                  case eqTypeRep (typeOf emptyListItem) z of
                     Just HRefl ->
-                      case eqTypeRep (typeOf emptyListItem) z of
+                      sp
+                        { ann =
+                            EpAnn
+                              (spanAsAnchor (locA sp))
+                              emptyListItem
+                              emptyComments
+                        }
+                    Nothing ->
+                      case eqTypeRep (typeOf emptyList) z of
                         Just HRefl ->
                           sp
                             { ann =
                                 EpAnn
                                   (spanAsAnchor (locA sp))
-                                  emptyListItem
+                                  emptyList
                                   emptyComments
                             }
                         Nothing ->
-                          case eqTypeRep (typeOf emptyList) z of
+                          case eqTypeRep (typeOf emptyPragma) z of
                             Just HRefl ->
                               sp
                                 { ann =
                                     EpAnn
                                       (spanAsAnchor (locA sp))
-                                      emptyList
+                                      emptyPragma
                                       emptyComments
                                 }
                             Nothing ->
-                              case eqTypeRep (typeOf emptyPragma) z of
+                              case eqTypeRep (typeOf emptyContext) z of
                                 Just HRefl ->
                                   sp
                                     { ann =
                                         EpAnn
                                           (spanAsAnchor (locA sp))
-                                          emptyPragma
+                                          emptyContext
                                           emptyComments
                                     }
                                 Nothing ->
-                                  case eqTypeRep (typeOf emptyContext) z of
+                                  case eqTypeRep (typeOf emptyNameAnn) z of
                                     Just HRefl ->
                                       sp
                                         { ann =
                                             EpAnn
                                               (spanAsAnchor (locA sp))
-                                              emptyContext
+                                              emptyNameAnn
                                               emptyComments
                                         }
-                                    Nothing ->
-                                      case eqTypeRep (typeOf emptyNameAnn) z of
-                                        Just HRefl ->
-                                          sp
-                                            { ann =
-                                                EpAnn
-                                                  (spanAsAnchor (locA sp))
-                                                  emptyNameAnn
-                                                  emptyComments
-                                            }
-                                        Nothing -> sp
-                    Nothing -> sp
-                _ -> sp
+                                    Nothing -> sp
+                Nothing -> sp
             Nothing -> sp
         _ -> sp
     emptyListItem = AnnListItem []
