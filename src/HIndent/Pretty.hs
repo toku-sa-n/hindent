@@ -683,14 +683,8 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       (_, _, Infix) -> do
         case (m_pats, m_ctxt) of
           (l:r:xs, FunRhs {..}) -> do
-            pretty l
-            space
-            infixOp $ unLoc mc_fun
-            space
-            pretty r
-            forM_ xs $ \x -> do
-              space
-              pretty x
+            spaced $
+              [pretty l, infixOp $ unLoc mc_fun, pretty r] ++ fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
