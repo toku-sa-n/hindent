@@ -673,9 +673,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
             LazyPat {} -> space
             BangPat {} -> space
             _          -> return ()
-        spaced $ fmap pretty m_pats
-        space
-        pretty m_grhss
+        spaced $ fmap pretty m_pats ++ [pretty m_grhss]
       (_, _, Prefix) -> do
         pretty m_ctxt
         unless (null m_pats) $ do
