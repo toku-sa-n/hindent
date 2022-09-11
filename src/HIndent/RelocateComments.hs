@@ -319,48 +319,14 @@ replaceAllNotUsedAnns = everywhere app
           fromMaybe sp $ do
             HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
             HRefl <- eqTypeRep y (typeRep @EpAnn)
-            (do HRefl <- eqTypeRep (typeOf emptyListItem) z
-                pure
-                  sp
-                    { ann =
-                        EpAnn
-                          (spanAsAnchor (locA sp))
-                          emptyListItem
-                          emptyComments
-                    }) <|>
-              (do HRefl <- eqTypeRep (typeOf emptyList) z
+            let try :: Typeable b => b -> Maybe a
+                try ann = do
+                  HRefl <- eqTypeRep (typeOf ann) z
                   pure
-                    sp
-                      { ann =
-                          EpAnn (spanAsAnchor (locA sp)) emptyList emptyComments
-                      }) <|>
-              (do HRefl <- eqTypeRep (typeOf emptyPragma) z
-                  pure
-                    sp
-                      { ann =
-                          EpAnn
-                            (spanAsAnchor (locA sp))
-                            emptyPragma
-                            emptyComments
-                      }) <|>
-              (do HRefl <- eqTypeRep (typeOf emptyContext) z
-                  pure
-                    sp
-                      { ann =
-                          EpAnn
-                            (spanAsAnchor (locA sp))
-                            emptyContext
-                            emptyComments
-                      }) <|>
-              (do HRefl <- eqTypeRep (typeOf emptyNameAnn) z
-                  pure
-                    sp
-                      { ann =
-                          EpAnn
-                            (spanAsAnchor (locA sp))
-                            emptyNameAnn
-                            emptyComments
-                      })
+                    sp {ann = EpAnn (spanAsAnchor (locA sp)) ann emptyComments}
+            try emptyListItem <|> try emptyList <|> try emptyPragma <|>
+              try emptyContext <|>
+              try emptyNameAnn
         _ -> sp
     emptyListItem = AnnListItem []
     emptyList = AnnList Nothing Nothing Nothing [] []
