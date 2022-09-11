@@ -17,6 +17,7 @@ module HIndent.RelocateComments
 import           Control.Monad.State
 import           Data.Function
 import           Data.List
+import           Data.Maybe
 import           Generics.SYB          hiding (GT, typeOf, typeRep)
 import           GHC.Data.Bag
 import           GHC.Hs
@@ -314,62 +315,64 @@ replaceAllNotUsedAnns = everywhere app
     app sp =
       case typeRep @a of
         App g (App y z) ->
-          case eqTypeRep g (typeRep @SrcSpanAnn') of
-            Just HRefl ->
-              case eqTypeRep y (typeRep @EpAnn) of
-                Just HRefl ->
-                  case eqTypeRep (typeOf emptyListItem) z of
-                    Just HRefl ->
+          fromMaybe sp $ do
+            HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
+            HRefl <- eqTypeRep y (typeRep @EpAnn)
+            case eqTypeRep (typeOf emptyListItem) z of
+              Just HRefl ->
+                pure
+                  sp
+                    { ann =
+                        EpAnn
+                          (spanAsAnchor (locA sp))
+                          emptyListItem
+                          emptyComments
+                    }
+              Nothing ->
+                case eqTypeRep (typeOf emptyList) z of
+                  Just HRefl ->
+                    pure
                       sp
                         { ann =
                             EpAnn
                               (spanAsAnchor (locA sp))
-                              emptyListItem
+                              emptyList
                               emptyComments
                         }
-                    Nothing ->
-                      case eqTypeRep (typeOf emptyList) z of
-                        Just HRefl ->
+                  Nothing ->
+                    case eqTypeRep (typeOf emptyPragma) z of
+                      Just HRefl ->
+                        pure
                           sp
                             { ann =
                                 EpAnn
                                   (spanAsAnchor (locA sp))
-                                  emptyList
+                                  emptyPragma
                                   emptyComments
                             }
-                        Nothing ->
-                          case eqTypeRep (typeOf emptyPragma) z of
-                            Just HRefl ->
+                      Nothing ->
+                        case eqTypeRep (typeOf emptyContext) z of
+                          Just HRefl ->
+                            pure
                               sp
                                 { ann =
                                     EpAnn
                                       (spanAsAnchor (locA sp))
-                                      emptyPragma
+                                      emptyContext
                                       emptyComments
                                 }
-                            Nothing ->
-                              case eqTypeRep (typeOf emptyContext) z of
-                                Just HRefl ->
+                          Nothing ->
+                            case eqTypeRep (typeOf emptyNameAnn) z of
+                              Just HRefl ->
+                                pure
                                   sp
                                     { ann =
                                         EpAnn
                                           (spanAsAnchor (locA sp))
-                                          emptyContext
+                                          emptyNameAnn
                                           emptyComments
                                     }
-                                Nothing ->
-                                  case eqTypeRep (typeOf emptyNameAnn) z of
-                                    Just HRefl ->
-                                      sp
-                                        { ann =
-                                            EpAnn
-                                              (spanAsAnchor (locA sp))
-                                              emptyNameAnn
-                                              emptyComments
-                                        }
-                                    Nothing -> sp
-                Nothing -> sp
-            Nothing -> sp
+                              Nothing -> Nothing
         _ -> sp
     emptyListItem = AnnListItem []
     emptyList = AnnList Nothing Nothing Nothing [] []
