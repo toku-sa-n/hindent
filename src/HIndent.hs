@@ -71,17 +71,7 @@ reformat config mexts mfilepath =
           prefix = findPrefix ls
           code = unlines' (map (stripPrefix prefix) ls)
           allExts = fromMaybe allExtensions mexts ++ configExtensions config
-          -- TODO: Merge this option with the one in 'testAst'.
-          opts =
-            mkParserOpts
-              ES.empty
-              (ES.fromList $
-               GLP.StarIsType : -- Without this extension, `parseModule` cannot parse kinds like `* -> *`. The test "Declarations GADT declarations" fails.
-               Helper.uniqueExtensions allExts)
-              False
-              False
-              True
-              True
+          opts = parserOptsFromExtensions $ Helper.uniqueExtensions allExts
        in case parseModule mfilepath opts (UTF8.toString code) of
             POk _ m ->
               Right $
@@ -142,16 +132,7 @@ testAst x =
     POk _ m   -> Right $ relocateComments m
     PFailed _ -> Left "Parse failed."
   where
-    opts =
-      mkParserOpts
-        ES.empty
-        (ES.fromList $
-         GLP.StarIsType : -- Without this extension, `parseModule` cannot parse kinds like `* -> *`. The test "Declarations GADT declarations" fails.
-         Helper.uniqueExtensions allExtensions)
-        False
-        False
-        True
-        True
+    opts = parserOptsFromExtensions $ Helper.uniqueExtensions allExtensions
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
@@ -229,6 +210,21 @@ getExtensions = foldl f defaultExtensions . map T.unpack
     f a x
       | Just x' <- readExtension x = x' : delete x' a
     f _ x = error $ "Unknown extension: " ++ x
+
+-- | This function generates a 'ParserOpts' from te given extension. The
+-- 'StarIsType' extension is always enabled to compile a code using kinds
+-- like '* -> *'.
+parserOptsFromExtensions :: [GLP.Extension] -> ParserOpts
+parserOptsFromExtensions opts =
+  mkParserOpts
+    ES.empty -- No compiler warnings are enabled.
+    opts'
+    False -- Safe imports are off.
+    False -- Haddock comments are treated as normal comments.
+    True -- Comments are kept in an AST.
+    False -- Do not update the internal position of a comment.
+  where
+    opts' = ES.fromList $ GLP.StarIsType : opts
 
 -- TODO: Use `ghc-lib-parser-ex`'s one. That should reduce the number of
 -- lines.
