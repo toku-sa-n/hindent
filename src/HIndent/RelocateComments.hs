@@ -14,6 +14,7 @@ module HIndent.RelocateComments
   ( relocateComments
   ) where
 
+import           Control.Applicative
 import           Control.Monad.State
 import           Data.Function
 import           Data.List
@@ -318,8 +319,7 @@ replaceAllNotUsedAnns = everywhere app
           fromMaybe sp $ do
             HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
             HRefl <- eqTypeRep y (typeRep @EpAnn)
-            case eqTypeRep (typeOf emptyListItem) z of
-              Just HRefl ->
+            (do HRefl <- eqTypeRep (typeOf emptyListItem) z
                 pure
                   sp
                     { ann =
@@ -327,52 +327,40 @@ replaceAllNotUsedAnns = everywhere app
                           (spanAsAnchor (locA sp))
                           emptyListItem
                           emptyComments
-                    }
-              Nothing ->
-                case eqTypeRep (typeOf emptyList) z of
-                  Just HRefl ->
-                    pure
-                      sp
-                        { ann =
-                            EpAnn
-                              (spanAsAnchor (locA sp))
-                              emptyList
-                              emptyComments
-                        }
-                  Nothing ->
-                    case eqTypeRep (typeOf emptyPragma) z of
-                      Just HRefl ->
-                        pure
-                          sp
-                            { ann =
-                                EpAnn
-                                  (spanAsAnchor (locA sp))
-                                  emptyPragma
-                                  emptyComments
-                            }
-                      Nothing ->
-                        case eqTypeRep (typeOf emptyContext) z of
-                          Just HRefl ->
-                            pure
-                              sp
-                                { ann =
-                                    EpAnn
-                                      (spanAsAnchor (locA sp))
-                                      emptyContext
-                                      emptyComments
-                                }
-                          Nothing ->
-                            case eqTypeRep (typeOf emptyNameAnn) z of
-                              Just HRefl ->
-                                pure
-                                  sp
-                                    { ann =
-                                        EpAnn
-                                          (spanAsAnchor (locA sp))
-                                          emptyNameAnn
-                                          emptyComments
-                                    }
-                              Nothing -> Nothing
+                    }) <|>
+              (do HRefl <- eqTypeRep (typeOf emptyList) z
+                  pure
+                    sp
+                      { ann =
+                          EpAnn (spanAsAnchor (locA sp)) emptyList emptyComments
+                      }) <|>
+              (do HRefl <- eqTypeRep (typeOf emptyPragma) z
+                  pure
+                    sp
+                      { ann =
+                          EpAnn
+                            (spanAsAnchor (locA sp))
+                            emptyPragma
+                            emptyComments
+                      }) <|>
+              (do HRefl <- eqTypeRep (typeOf emptyContext) z
+                  pure
+                    sp
+                      { ann =
+                          EpAnn
+                            (spanAsAnchor (locA sp))
+                            emptyContext
+                            emptyComments
+                      }) <|>
+              (do HRefl <- eqTypeRep (typeOf emptyNameAnn) z
+                  pure
+                    sp
+                      { ann =
+                          EpAnn
+                            (spanAsAnchor (locA sp))
+                            emptyNameAnn
+                            emptyComments
+                      })
         _ -> sp
     emptyListItem = AnnListItem []
     emptyList = AnnList Nothing Nothing Nothing [] []
