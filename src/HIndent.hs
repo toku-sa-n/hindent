@@ -226,8 +226,6 @@ parserOptsFromExtensions opts =
   where
     opts' = ES.fromList $ GLP.StarIsType : opts
 
--- TODO: Use `ghc-lib-parser-ex`'s one. That should reduce the number of
--- lines.
 parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
 parseModule filepath opts src =
   case unP GLP.parseModule initState of
