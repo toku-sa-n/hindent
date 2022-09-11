@@ -230,6 +230,8 @@ getExtensions = foldl f defaultExtensions . map T.unpack
       | Just x' <- readExtension x = x' : delete x' a
     f _ x = error $ "Unknown extension: " ++ x
 
+-- TODO: Use `ghc-lib-parser-ex`'s one. That should reduce the number of
+-- lines.
 parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
 parseModule filepath opts src =
   case unP GLP.parseModule initState of
