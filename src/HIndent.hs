@@ -135,6 +135,7 @@ reformat config mexts mfilepath =
                  (f x)
           else f x
 
+-- | Generate an AST from the given module for debugging.
 testAst :: ByteString -> Either String HsModule
 testAst x =
   case parseModule Nothing opts (UTF8.toString x) of
