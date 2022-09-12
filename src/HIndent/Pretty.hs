@@ -994,7 +994,10 @@ instance Pretty (Pat GhcPs) where
   pretty' p@WildPat {} = output p
   pretty' p@VarPat {} = output p
   pretty' p@LazyPat {} = output p
-  pretty' AsPat {} = undefined
+  pretty' (AsPat _ a b) = do
+    pretty a
+    string "@"
+    pretty b
   pretty' (ParPat _ inner) = parens $ pretty inner
   pretty' p@BangPat {} = output p
   pretty' ListPat {} = undefined

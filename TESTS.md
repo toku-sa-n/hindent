@@ -591,6 +591,12 @@ Prefix notation for operators
 (+) a b = a
 ```
 
+As pattern
+
+```haskell
+f all@(x:xs) = all
+```
+
 Where clause
 
 ``` haskell
