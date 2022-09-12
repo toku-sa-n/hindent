@@ -229,6 +229,8 @@ parserOptsFromExtensions opts =
   where
     opts' = ES.fromList $ GLP.StarIsType : opts
 
+-- | This function parses the given Haskell source code with the given file
+-- path (if any) and parse options.
 parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
 parseModule filepath opts src =
   case unP GLP.parseModule initState of
