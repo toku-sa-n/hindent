@@ -431,6 +431,13 @@ type family Closed (a :: k) :: Bool where
   Closed x = 'True
 ```
 
+Sections
+```haskell
+double = (2 *)
+
+halve = (/ 2)
+```
+
 # Template Haskell
 
 Expression brackets
