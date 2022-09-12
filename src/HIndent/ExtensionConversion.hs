@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module SwitchToGhcLibParserHelper
+module HIndent.ExtensionConversion
   ( gleExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension

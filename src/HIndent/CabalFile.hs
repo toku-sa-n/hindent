@@ -24,8 +24,8 @@ import           GHC.Driver.Session                            (impliedXFlags,
                                                                 languageExtensions)
 import qualified GHC.Driver.Session                            as GLP
 import qualified GHC.LanguageExtensions.Type                   as GLP
+import qualified HIndent.ExtensionConversion                   as EC
 import           Language.Haskell.Extension
-import qualified SwitchToGhcLibParserHelper                    as Helper
 import           System.Directory
 import           System.FilePath
 
@@ -160,7 +160,7 @@ getCabalExtensionsForSourcePath :: FilePath -> IO [GLP.Extension]
 getCabalExtensionsForSourcePath srcpath = do
   (lang, exts) <- getCabalExtensions srcpath
   let allExts = exts ++ implicitExtensions (convertLanguage lang)
-  return $ Helper.uniqueExtensions $ concatMap extensionImplies allExts
+  return $ EC.uniqueExtensions $ concatMap extensionImplies allExts
 
 implicitExtensions :: GLP.Language -> [Extension]
 implicitExtensions =
@@ -169,7 +169,7 @@ implicitExtensions =
 extensionImplies :: Extension -> [Extension]
 extensionImplies (EnableExtension e) =
   toExtension <$>
-  filter (\(a, _, _) -> a == Helper.convertExtension e) impliedXFlags
+  filter (\(a, _, _) -> a == EC.convertExtension e) impliedXFlags
   where
     toExtension (_, True, e')  = EnableExtension $ read $ show e'
     toExtension (_, False, e') = DisableExtension $ read $ show e'
