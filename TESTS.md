@@ -850,6 +850,16 @@ data Expression a
       }
 ```
 
+Data declaration with underscore
+
+```haskell
+data Stanza =
+  MkStanza
+    { _stanzaBuildInfo :: BuildInfo
+    , stanzaIsSourceFilePath :: FilePath -> Bool
+    }
+```
+
 Spaces between deriving classes
 
 ``` haskell

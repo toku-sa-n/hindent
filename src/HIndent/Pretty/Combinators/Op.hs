@@ -1,3 +1,6 @@
+-- TODO: Read the official Haskell documentation and check when
+-- an infix operator needs to be enclosed by backticks and a prefix
+-- operator by parentheses.
 module HIndent.Pretty.Combinators.Op
   ( infixOp
   , prefixOp
@@ -41,7 +44,7 @@ infixOutput s@(x:_) =
 prefixOutput :: String -> Printer ()
 prefixOutput [] = error "The name is empty."
 prefixOutput s@(x:_) =
-  if isAlpha x || s `elem` ["()", "[]"]
+  if isAlpha x || s `elem` ["()", "[]"] || x == '_'
     then string s
     else parens $ string s
 
