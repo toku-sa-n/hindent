@@ -458,7 +458,6 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (HsPar _ expr) = parens $ pretty expr
   pretty' (SectionL _ l o) = spaced [pretty l, pretty (InfixExpr o)]
   pretty' (SectionR _ o r) = spaced [pretty (InfixExpr o), pretty r]
-  pretty' (ExplicitTuple _ [] _) = string "()"
   pretty' (ExplicitTuple _ full _) = horizontal <-|> vertical
     where
       horizontal = hTuple $ fmap pretty full
