@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -31,7 +30,7 @@ import           Data.Char
 import           Data.Either
 import           Data.Function
 import           Data.Functor.Identity
-import           Data.List
+import           Data.List                   hiding (stripPrefix)
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Text                   (Text)
@@ -42,7 +41,7 @@ import           GHC.Data.StringBuffer
 import           GHC.Hs
 import qualified GHC.LanguageExtensions      as GLP
 import qualified GHC.Parser                  as GLP
-import           GHC.Parser.Lexer
+import           GHC.Parser.Lexer            hiding (buffer)
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import qualified HIndent.ExtensionConversion as CE
