@@ -57,10 +57,15 @@ data InfixApp =
     , immediatelyAfterDo :: Bool
     }
 
+-- | This function pretty-prints the given AST node with comments.
+pretty :: Pretty a => a -> Printer ()
+pretty p = do
+  printCommentsBefore p
+  pretty' p
+  printCommentsSameLine p
+  printCommentsAfter p
+
 -- | Pretty print including comments.
---
--- TODO: Define `pretty` as a top-level function. It should have only one
--- definition, and it must not be changed in an instance declaration.
 --
 -- FIXME: 'Pretty' has a problem. It has two responsibilities; one is to
 -- print a given node pretty, and the other is to collect comments from the
@@ -72,12 +77,6 @@ data InfixApp =
 -- nodes)
 -- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
 class Pretty a where
-  pretty :: a -> Printer ()
-  pretty p = do
-    printCommentsBefore p
-    pretty' p
-    printCommentsSameLine p
-    printCommentsAfter p
   pretty' :: a -> Printer ()
   printCommentsBefore :: a -> Printer ()
   printCommentsBefore p =
