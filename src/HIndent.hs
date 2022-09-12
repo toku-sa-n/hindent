@@ -77,7 +77,10 @@ reformat config mexts mfilepath =
               Right $
               S.lazyByteString $
               addPrefix prefix $ S.toLazyByteString $ prettyPrint config m
-            PFailed _ -> Left "Parse failed." -- TODO: Improve the error message.
+            PFailed st ->
+              Left $
+              "Parse failed near " ++
+              show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st)
     unlines' = S.concat . intersperse "\n"
     unlines'' = L.concat . intersperse "\n"
     addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
