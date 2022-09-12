@@ -620,6 +620,13 @@ f x
     x = y
 ```
 
+Guard and infix operator
+```haskell
+s8_stripPrefix bs1@(S.PS _ _ l1) bs2
+  | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
+  | otherwise = Nothing
+```
+
 Multi-way if
 
 ``` haskell
