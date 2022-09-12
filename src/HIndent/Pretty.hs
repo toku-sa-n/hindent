@@ -574,7 +574,7 @@ instance Pretty (HsExpr GhcPs) where
     pretty e
     string " :: "
     pretty $ hswc_body sig
-  pretty' ArithSeq {} = undefined
+  pretty' (ArithSeq _ _ x) = pretty x
   pretty' (HsBracket _ inner) = pretty inner
   pretty' HsRnBracketOut {} = undefined
   pretty' HsTcBracketOut {} = undefined
@@ -1292,6 +1292,15 @@ instance Pretty (InjectivityAnn GhcPs) where
     pretty from
     string " -> "
     spaced $ fmap pretty to
+
+instance Pretty (ArithSeqInfo GhcPs) where
+  pretty' (From from) =
+    brackets $ do
+      pretty from
+      string " .."
+  pretty' FromThen {} = undefined
+  pretty' FromTo {} = undefined
+  pretty' FromThenTo {} = undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind

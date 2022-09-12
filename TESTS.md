@@ -556,6 +556,12 @@ b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
 b = undefined
 ```
 
+Range
+
+```haskell
+a = [1 ..]
+```
+
 Promoted list with a tuple (issue #348)
 
 ```haskell
