@@ -8,10 +8,8 @@ module HIndent.Pretty.Combinators.Op
   ) where
 
 import           Control.Monad
-import           Data.Char
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
-import           GHC.Unit
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
@@ -30,34 +28,29 @@ infixOp (Exact name) = tickIfNotSymbol occ $ output occ
     occ = occName name
 
 prefixOp :: RdrName -> Printer ()
-prefixOp (Unqual name) = prefixOutput $ occNameString name
+prefixOp (Unqual name) = parensIfSymbol name $ output name
 prefixOp (Qual modName name) =
-  prefixOutputWithModuleName (moduleNameString modName) (occNameString name)
+  parensIfSymbol name $ do
+    output modName
+    string "."
+    output name
 prefixOp Orig {} = undefined
-prefixOp (Exact name) = prefixOutput $ showOutputable name
+prefixOp (Exact name) = parensIfSymbol occ $ output occ
+  where
+    occ = occName name
 
 unlessSpecialOp :: RdrName -> Printer () -> Printer ()
 unlessSpecialOp name = unless (isSpecialOp name)
-
-prefixOutput :: String -> Printer ()
-prefixOutput [] = error "The name is empty."
-prefixOutput s@(x:_) =
-  if isAlpha x || s `elem` ["()", "[]"] || x == '_'
-    then string s
-    else parens $ string s
-
-prefixOutputWithModuleName :: String -> String -> Printer ()
-prefixOutputWithModuleName [] _ = error "The module name is empty."
-prefixOutputWithModuleName _ [] = error "The name is empty."
-prefixOutputWithModuleName m s@(x:_) =
-  if isAlpha x
-    then string $ m ++ "." ++ s
-    else parens $ string $ m ++ "." ++ s
 
 tickIfNotSymbol :: OccName -> Printer a -> Printer a
 tickIfNotSymbol name
   | isSymOcc name = id
   | otherwise = tick
+
+parensIfSymbol :: OccName -> Printer a -> Printer a
+parensIfSymbol name
+  | isSymOcc name = parens
+  | otherwise = id
 
 isSpecialOp :: RdrName -> Bool
 isSpecialOp (Unqual name) = isSpecialOpString $ occNameString name
