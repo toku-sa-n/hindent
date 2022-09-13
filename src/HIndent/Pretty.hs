@@ -935,17 +935,14 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     isInsideMultiwayIf <- gets psInsideMultiwayIf
     unless isInsideMultiwayIf newline
     (if isInsideMultiwayIf
-       then id
-       else indentedBlock) $
-      (if isInsideMultiwayIf
-         then indentedDependingOnHead (string "| ")
-         else (string "| " >>)) $ do
-        inter
-          (if isInsideMultiwayIf
-             then comma >> newline
-             else newline >> string ", ") $
-          fmap pretty guards
-        horizontal <-|> vertical
+       then indentedDependingOnHead (string "| ")
+       else indentedBlock . (string "| " >>)) $ do
+      inter
+        (if isInsideMultiwayIf
+           then comma >> newline
+           else newline >> string ", ") $
+        fmap pretty guards
+      horizontal <-|> vertical
     where
       horizontal = do
         space
