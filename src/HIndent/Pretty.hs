@@ -1002,7 +1002,7 @@ instance Pretty (Pat GhcPs) where
     case pat_args of
       PrefixCon _ as -> do
         prefixOp $ unLoc pat_con
-        mapM_ (\x -> space >> pretty x) as
+        spacePrefixed $ fmap pretty as
       RecCon rec ->
         indentedDependingOnHead (pretty pat_con >> space) $ pretty rec
       InfixCon a b -> do
