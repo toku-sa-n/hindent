@@ -1,8 +1,10 @@
-resolver: lts-19.19
+resolver: lts-19.23
+compiler: ghc-9.2.2
 packages:
 - '.'
 extra-deps:
-- path-0.5.9
-- path-io-1.2.0
+- base-compat-0.12.2
+- base-compat-batteries-0.12.2
+- ghc-lib-parser-9.2.3.20220527
 
 allow-newer: True
