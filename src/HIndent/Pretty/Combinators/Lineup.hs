@@ -19,6 +19,7 @@ module HIndent.Pretty.Combinators.Lineup
   , commaSep
   , hCommaSep
   , vCommaSep
+  , spacePrefixed
   , prefixedLined
   , inter
   ) where
@@ -140,6 +141,10 @@ hCommaSep = inter (string ", ")
 --             , c.
 vCommaSep :: [Printer ()] -> Printer ()
 vCommaSep = prefixedLined ", "
+
+-- | Prints each element after a space like ' a b c'
+spacePrefixed :: [Printer ()] -> Printer ()
+spacePrefixed = mapM_ (space >>)
 
 prefixedLined :: String -> [Printer ()] -> Printer ()
 prefixedLined _ [] = return ()

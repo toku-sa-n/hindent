@@ -1133,10 +1133,7 @@ instance Pretty (FieldOcc GhcPs) where
 instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (BangType GhcPs))) (GenLocated SrcSpanAnnL [GenLocated SrcSpanAnnA (ConDeclField GhcPs)])) where
   pretty' (PrefixCon _ xs) = horizontal <-|> vertical
     where
-      horizontal =
-        forM_ xs $ \x -> do
-          space
-          pretty x
+      horizontal = spacePrefixed $ fmap pretty xs
       vertical =
         indentedBlock $
         forM_ xs $ \x -> do
@@ -1272,9 +1269,7 @@ instance Pretty (FamilyDecl GhcPs) where
   pretty' FamilyDecl {..} = do
     string "type "
     pretty fdLName
-    forM_ (hsq_explicit fdTyVars) $ \x -> do
-      space
-      output x
+    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
     string " = "
     pretty fdResultSig
     whenJust fdInjectivityAnn $ \x -> do
