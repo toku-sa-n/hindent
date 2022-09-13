@@ -889,6 +889,16 @@ foo =
       cFunction fooo barrr muuu (fooo barrr muuu) (fooo barrr muuu)
 ```
 
+Case inside `do` and lambda
+
+```haskell
+foo =
+  \x -> do
+    case x of
+      Just _ -> 1
+      Nothing -> 2
+```
+
 # Comments
 
 Comments within a declaration

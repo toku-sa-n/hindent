@@ -899,11 +899,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     space
     string "do"
     newline
-    indentedBlock $ do
-      printCommentsBefore $ getLoc body
-      lined $ pretty <$> unLoc body
-      printCommentsSameLine $ getLoc body
-      printCommentsAfter $ getLoc body
+    exitLambda $
+      indentedBlock $ do
+        printCommentsBefore $ getLoc body
+        lined $ pretty <$> unLoc body
+        printCommentsSameLine $ getLoc body
+        printCommentsAfter $ getLoc body
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     isInsideMultiwayIf <- gets psInsideMultiwayIf
     unless isInsideMultiwayIf newline
