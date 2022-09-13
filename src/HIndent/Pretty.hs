@@ -944,11 +944,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         fmap pretty guards
       horizontal <-|> vertical
     where
-      horizontal = do
-        space
-        rhsSeparator
-        space
-        pretty body
+      horizontal = spacePrefixed [rhsSeparator, pretty body]
       vertical = do
         isInsideMultiwayIf <- gets psInsideMultiwayIf
         space
