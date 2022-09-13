@@ -1,3 +1,4 @@
+-- TODO: Hide `prefixedLined` and `inter`.
 module HIndent.Pretty.Combinators.Lineup
   ( tuple
   , tuple'
@@ -20,6 +21,7 @@ module HIndent.Pretty.Combinators.Lineup
   , hCommaSep
   , vCommaSep
   , spacePrefixed
+  , newlinePrefixed
   , prefixedLined
   , inter
   ) where
@@ -145,6 +147,10 @@ vCommaSep = prefixedLined ", "
 -- | Prints each element after a space like ' a b c'
 spacePrefixed :: [Printer ()] -> Printer ()
 spacePrefixed = mapM_ (space >>)
+
+-- | Prints each element after a new line.
+newlinePrefixed :: [Printer ()] -> Printer ()
+newlinePrefixed = mapM_ (newline >>)
 
 prefixedLined :: String -> [Printer ()] -> Printer ()
 prefixedLined _ [] = return ()

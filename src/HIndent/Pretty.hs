@@ -366,10 +366,7 @@ instance Pretty (HsDataDefn GhcPs) where
         string " :: "
         output kindSig
         string " where"
-        indentedBlock $
-          forM_ dd_cons $ \x -> do
-            newline
-            pretty x
+        indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
       Nothing ->
         indentedBlock $ do
           case length dd_cons of
@@ -1134,11 +1131,7 @@ instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (Bang
   pretty' (PrefixCon _ xs) = horizontal <-|> vertical
     where
       horizontal = spacePrefixed $ fmap pretty xs
-      vertical =
-        indentedBlock $
-        forM_ xs $ \x -> do
-          newline
-          pretty x
+      vertical = indentedBlock $ newlinePrefixed $ fmap pretty xs
   pretty' (RecCon (L _ rec)) = do
     newline
     indentedBlock $ vFields $ fmap pretty rec
