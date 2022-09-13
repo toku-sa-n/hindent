@@ -959,11 +959,9 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   commentsAfter (GRHS x _ _) = commentsAfter x
 
 instance Pretty EpaCommentTok where
-  pretty' (EpaLineComment c)    = string c
-  pretty' (EpaBlockComment c)   = string c
-  pretty' (EpaDocCommentPrev c) = string ("-- ^" ++ c)
-  pretty' (EpaDocCommentNext c) = string ("-- |" ++ c)
-  pretty' _                     = undefined
+  pretty' (EpaLineComment c)  = string c
+  pretty' (EpaBlockComment c) = string c
+  pretty' _                   = undefined
 
 instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
