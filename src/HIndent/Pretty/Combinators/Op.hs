@@ -54,7 +54,7 @@ parensIfSymbol name
 
 isSpecialOp :: RdrName -> Bool
 isSpecialOp (Unqual name) = isSpecialOpString $ occNameString name
-isSpecialOp (Qual _ _)    = undefined
+isSpecialOp Qual {}       = undefined
 isSpecialOp Orig {}       = undefined
 isSpecialOp (Exact name)  = isSpecialOpString $ occNameString $ nameOccName name
 
