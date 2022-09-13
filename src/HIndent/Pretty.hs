@@ -1017,7 +1017,7 @@ instance Pretty (Pat GhcPs) where
     pretty r
   pretty' p@SplicePat {} = output p
   pretty' p@LitPat {} = output p
-  pretty' NPat {} = undefined
+  pretty' (NPat _ x _ _) = output x
   pretty' p@NPlusKPat {} = output p
   pretty' p@SigPat {} = output p
 

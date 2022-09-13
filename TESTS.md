@@ -654,6 +654,15 @@ g x =
         y = 2
 ```
 
+Case with natural pattern (See NPat of https://hackage.haskell.org/package/ghc-lib-parser-9.2.3.20220527/docs/Language-Haskell-Syntax-Pat.html#t:Pat)
+
+```haskell
+foo =
+  case x of
+    0 -> pure ()
+    _ -> undefined
+```
+
 Let inside a `where`
 
 ``` haskell
