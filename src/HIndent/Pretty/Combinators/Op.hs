@@ -1,6 +1,3 @@
--- TODO: Read the official Haskell documentation and check when
--- an infix operator needs to be enclosed by backticks and a prefix
--- operator by parentheses.
 module HIndent.Pretty.Combinators.Op
   ( infixOp
   , prefixOp
