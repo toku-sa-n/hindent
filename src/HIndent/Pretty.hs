@@ -995,7 +995,7 @@ instance Pretty (Pat GhcPs) where
     pretty b
   pretty' (ParPat _ inner) = parens $ pretty inner
   pretty' p@BangPat {} = output p
-  pretty' ListPat {} = undefined
+  pretty' (ListPat _ xs) = hList $ fmap pretty xs
   pretty' (TuplePat _ pats _) = hTuple $ fmap pretty pats
   pretty' SumPat {} = undefined
   pretty' ConPat {..} =

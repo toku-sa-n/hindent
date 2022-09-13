@@ -727,6 +727,14 @@ test
   ,)
 ```
 
+Match against a list
+
+```haskell
+head [] = undefined
+head [x] = x
+head xs = head $ init xs
+```
+
 # Record syntax
 
 Pattern matching, short
