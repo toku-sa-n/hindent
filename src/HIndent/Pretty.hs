@@ -1011,7 +1011,10 @@ instance Pretty (Pat GhcPs) where
         infixOp $ unLoc pat_con
         unlessSpecialOp (unLoc pat_con) space
         pretty b
-  pretty' ViewPat {} = undefined
+  pretty' (ViewPat _ l r) = do
+    pretty l
+    string " -> "
+    pretty r
   pretty' p@SplicePat {} = output p
   pretty' p@LitPat {} = output p
   pretty' NPat {} = undefined

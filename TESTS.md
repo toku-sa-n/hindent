@@ -735,6 +735,13 @@ head [x] = x
 head xs = head $ init xs
 ```
 
+View pattern
+
+```haskell
+foo (f -> Just x) = print x
+foo _ = Nothing
+```
+
 # Record syntax
 
 Pattern matching, short
