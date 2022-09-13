@@ -5,15 +5,14 @@ module Main where
 
 import           Data.Algorithm.Diff
 import           Data.Algorithm.DiffOutput
-import qualified Data.ByteString as S
-import qualified Data.ByteString.Builder as S
-import           Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString            as S
+import qualified Data.ByteString.Builder    as S
+import           Data.ByteString.Lazy       (ByteString)
+import qualified Data.ByteString.Lazy       as L
 import qualified Data.ByteString.Lazy.Char8 as L8
-import qualified Data.ByteString.Lazy.UTF8 as LUTF8
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Data.ByteString.Lazy.UTF8  as LUTF8
+import qualified Data.ByteString.UTF8       as UTF8
 import           Data.Function
-import           Data.Monoid
 import qualified HIndent
 import           HIndent.CodeBlock
 import           HIndent.Types
@@ -23,12 +22,12 @@ import           Test.Hspec
 -- | Main benchmarks.
 main :: IO ()
 main = do
-    bytes <- S.readFile "TESTS.md"
-    forest <- parse (tokenize bytes)
-    hspec $ do
-      codeBlocksSpec
-      markdoneSpec
-      toSpec forest
+  bytes <- S.readFile "TESTS.md"
+  forest <- parse (tokenize bytes)
+  hspec $ do
+    codeBlocksSpec
+    markdoneSpec
+    toSpec forest
 
 reformat :: Config -> S.ByteString -> ByteString
 reformat cfg code =
@@ -78,10 +77,11 @@ shouldBeReadable x y =
   shouldBe (Readable x (Just (diff y x))) (Readable y Nothing)
 
 -- | Prints a string without quoting and escaping.
-data Readable = Readable
-  { readableString :: ByteString
-  , readableDiff :: Maybe String
-  }
+data Readable =
+  Readable
+    { readableString :: ByteString
+    , readableDiff   :: Maybe String
+    }
 
 instance Eq Readable where
   (==) = on (==) readableString
@@ -91,7 +91,7 @@ instance Show Readable where
     "\n" ++
     LUTF8.toString x ++
     (case d' of
-       Just d -> "\nThe diff:\n" ++ d
+       Just d  -> "\nThe diff:\n" ++ d
        Nothing -> "")
 
 -- | A diff display.
@@ -100,7 +100,7 @@ diff x y = ppDiff (on getGroupedDiff (lines . LUTF8.toString) x y)
 
 skipEmptyLines :: [Markdone] -> [Markdone]
 skipEmptyLines (PlainText "":rest) = rest
-skipEmptyLines other = other
+skipEmptyLines other               = other
 
 codeBlocksSpec :: Spec
 codeBlocksSpec =

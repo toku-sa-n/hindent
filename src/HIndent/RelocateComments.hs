@@ -197,18 +197,18 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
       let sigsMethods =
             sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
           sortByLocation = sortBy (compare `on` getLocation)
-          getLocation (Sig x)    = realSrcSpan $ locA $ getLoc x
-          getLocation (Method x) = realSrcSpan $ locA $ getLoc x
+          getLocation (Sig x')    = realSrcSpan $ locA $ getLoc x'
+          getLocation (Method x') = realSrcSpan $ locA $ getLoc x'
           newSigs =
             concatMap
               (\case
-                 Sig x    -> [x]
+                 Sig x'   -> [x']
                  Method _ -> [])
           newMethods =
             concatMap
               (\case
-                 Sig _    -> []
-                 Method x -> [x])
+                 Sig _     -> []
+                 Method x' -> [x'])
        in do newSigMethods <- mapM locateCommentsForSigMethod sigsMethods
              pure
                g
@@ -225,13 +225,21 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
     locateCommentsForSigMethod (Sig (L (SrcSpanAnn epa loc) sig)) = do
       cs <- get
       let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa = epa {comments = insertPriorComments (comments epa) above}
+          newEpa =
+            case epa of
+              EpAnn {} ->
+                epa {comments = insertPriorComments (comments epa) above}
+              _ -> undefined
       put notAbove
       pure (Sig (L (SrcSpanAnn newEpa loc) sig))
     locateCommentsForSigMethod (Method (L (SrcSpanAnn epa loc) method)) = do
       cs <- get
       let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa = epa {comments = insertPriorComments (comments epa) above}
+          newEpa =
+            case epa of
+              EpAnn {} ->
+                epa {comments = insertPriorComments (comments epa) above}
+              _ -> undefined
       put notAbove
       pure (Method (L (SrcSpanAnn newEpa loc) method))
     partitionAboveNotAbove cs sp =
