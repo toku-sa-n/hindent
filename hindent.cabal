@@ -46,6 +46,7 @@ library
                      HIndent.Pretty.Imports.Sort
                      HIndent.Pretty.ModuleDeclaration
                      HIndent.Pretty.Pragma
+                     HIndent.Read
                      HIndent.RelocateComments
                      HIndent.SrcSpan
                      HIndent.Types

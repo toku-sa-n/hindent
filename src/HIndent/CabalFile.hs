@@ -25,10 +25,10 @@ import           GHC.Driver.Session                            (impliedXFlags,
 import qualified GHC.Driver.Session                            as GLP
 import qualified GHC.LanguageExtensions.Type                   as GLP
 import qualified HIndent.ExtensionConversion                   as EC
+import           HIndent.Read
 import           Language.Haskell.Extension
 import           System.Directory
 import           System.FilePath
-import           Text.Read
 
 data Stanza =
   MkStanza
@@ -166,9 +166,6 @@ getCabalExtensionsForSourcePath srcpath = do
 implicitExtensions :: GLP.Language -> [Extension]
 implicitExtensions =
   fmap (EnableExtension . readOrFail . show) . languageExtensions . Just
-  where
-    readOrFail x =
-      fromMaybe (error $ "Unsupported extension: " ++ show x) $ readMaybe x
 
 extensionImplies :: Extension -> [Extension]
 extensionImplies (EnableExtension e) =
