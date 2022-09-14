@@ -35,6 +35,7 @@ library
                      HIndent.CabalFile
                      HIndent.CodeBlock
                      HIndent.ExtensionConversion
+                     HIndent.HavingComments
                      HIndent.PrettyPrint
                      HIndent.PrettyPrint.Combinators
                      HIndent.PrettyPrint.Combinators.Indent
