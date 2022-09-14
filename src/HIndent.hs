@@ -33,6 +33,7 @@ import           Data.Functor.Identity
 import           Data.List                   hiding (stripPrefix)
 import           Data.Maybe
 import           Data.Monoid
+import qualified Data.Set                    as Set
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import qualified GHC.Data.EnumSet            as ES
@@ -161,16 +162,9 @@ runPrinterStyle config m =
                 , psColumn = 0
                 , psLine = 1
                 , psConfig = config
-                , psInsideCase = False
                 , psFitOnOneLine = False
                 , psEolComment = False
-                , psInsideSignature = False
-                , psInsideVerticalList = False
-                , psInsideLambda = False
-                , psInsideVerticalFunctionSignature = False
-                , psInsideMultiwayIf = False
-                , psInsideVerticalHsApp = False
-                , psInsideInstDecl = False
+                , psInside = Set.empty
                 }))))
 
 allExtensions :: [Cabal.Extension]

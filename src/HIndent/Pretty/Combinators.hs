@@ -53,11 +53,9 @@ dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 
 rhsSeparator :: Printer ()
 rhsSeparator = do
-  isInsideCase <- gets psInsideCase
-  isInsideLambda <- gets psInsideLambda
-  isInsideMultiwayIf <- gets psInsideMultiwayIf
+  set <- gets psInside
   string $
-    if isInsideCase || isInsideLambda || isInsideMultiwayIf
+    if or $ fmap (`elem` set) [InsideCase, InsideLambda, InsideMultiwayIf]
       then "->"
       else "="
 

@@ -10,6 +10,7 @@ module HIndent.Types
   ( Printer(..)
   , PrintState(..)
   , Config(..)
+  , Inside(..)
   , readExtension
   , defaultConfig
   ) where
@@ -22,6 +23,7 @@ import           Data.ByteString.Builder
 import           Data.Functor.Identity
 import           Data.Int                   (Int64)
 import           Data.Maybe
+import           Data.Set
 import           Data.Yaml                  (FromJSON (..))
 import qualified Data.Yaml                  as Y
 import           Language.Haskell.Extension (Extension (UnknownExtension),
@@ -40,37 +42,40 @@ newtype Printer a =
            , Alternative
            )
 
+data Inside
+  = InsideSignature
+  | InsideVerticalList
+  | InsideVerticalFunctionSignature
+  | InsideLambda
+  | InsideMultiwayIf
+  | InsideVerticalHsApp
+  | InsideInstDecl
+  | InsideCase
+  deriving (Eq, Ord)
+
 -- | The state of the pretty printer.
---
--- TODO: Merge all 'psInside's and define 'psInside' as a set.
 data PrintState =
   PrintState
-    { psIndentLevel                     :: !Int64
+    { psIndentLevel  :: !Int64
     -- ^ Current indentation level, i.e. every time there's a
     -- new-line, output this many spaces.
-    , psOutput                          :: !Builder
+    , psOutput       :: !Builder
     -- ^ The current output bytestring builder.
-    , psNewline                         :: !Bool
+    , psNewline      :: !Bool
     -- ^ Just outputted a newline?
-    , psColumn                          :: !Int64
+    , psColumn       :: !Int64
     -- ^ Current column.
-    , psLine                            :: !Int64
+    , psLine         :: !Int64
     -- ^ Current line number.
-    , psConfig                          :: !Config
+    , psConfig       :: !Config
     -- ^ Configuration of max colums and indentation style.
-    , psInsideCase                      :: !Bool
-    -- ^ Whether we're in a case statement, used for Rhs printing.
-    , psFitOnOneLine                    :: !Bool
+    , psFitOnOneLine :: !Bool
     -- ^ Bail out if we need to print beyond the current line or
     -- the maximum column.
-    , psEolComment                      :: !Bool
-    , psInsideSignature                 :: !Bool
-    , psInsideVerticalList              :: !Bool
-    , psInsideVerticalFunctionSignature :: !Bool
-    , psInsideLambda                    :: !Bool
-    , psInsideMultiwayIf                :: !Bool
-    , psInsideVerticalHsApp             :: !Bool
-    , psInsideInstDecl                  :: !Bool
+    , psEolComment   :: !Bool
+    , psInside       :: Set Inside
+    -- ^ Denotes if the current position is inside some expression,
+    -- signature, etc.
     }
 
 -- | Configurations shared among the different styles. Styles may pay

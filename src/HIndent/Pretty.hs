@@ -597,7 +597,7 @@ instance Pretty (HsSigType GhcPs) where
       HsOuterExplicit _ xs -> do
         string "forall "
         spaced $ fmap output xs
-        isVertical <- gets psInsideVerticalFunctionSignature
+        isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
         if isVertical
           then do
             string "."
@@ -655,8 +655,8 @@ instance Pretty (ConDecl GhcPs) where
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' Match {..} = do
-    isInsideCase <- gets psInsideCase
-    isInsideLambda <- gets psInsideLambda
+    isInsideCase <- gets ((InsideCase `elem`) . psInside)
+    isInsideLambda <- gets ((InsideLambda `elem`) . psInside)
     whenInsideLambda $ string "\\"
     case (isInsideCase, isInsideLambda, mc_fixity m_ctxt) of
       (True, _, _) -> do
@@ -702,7 +702,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     string "let "
     pretty l
   pretty' (ParStmt _ xs _ _) = do
-    inVertical <- gets psInsideVerticalList
+    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
     if inVertical
       then vertical
       else horizontal <-|> vertical
@@ -731,7 +731,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined
   pretty' HsQualTy {..} = do
-    isInSig <- gets psInsideSignature
+    isInSig <- gets ((InsideSignature `elem`) . psInside)
     if isInSig
       then sigHor <-|> sigVer
       else notInSig
@@ -746,7 +746,7 @@ instance Pretty (HsType GhcPs) where
         indentedWithSpace (-3) $ string "=> "
         pretty hst_body
       notInSig = do
-        isInst <- gets psInsideInstDecl
+        isInst <- gets ((InsideInstDecl `elem`) . psInside)
         if isInst
           then notHor <-|> notVer
           else notVer
@@ -758,7 +758,7 @@ instance Pretty (HsType GhcPs) where
         constraints
         string " =>"
         newline
-        isInst <- gets psInsideInstDecl
+        isInst <- gets ((InsideInstDecl `elem`) . psInside)
         (if isInst
            then id
            else indentedBlock) $
@@ -803,7 +803,7 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty' HsAppKindTy {} = undefined
   pretty' (HsFunTy _ _ a b) = do
-    isVertical <- gets psInsideVerticalFunctionSignature
+    isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
     if isVertical
       then vertical
       else horizontal <-|> vertical
@@ -862,7 +862,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       (HsValBinds epa lr) ->
         indentedBlock $ do
           newline
-          isCase <- gets psInsideCase
+          isCase <- gets ((InsideCase `elem`) . psInside)
           if isCase
             then indentedDependingOnHead (string "where ") $ do
                    printCommentsBefore epa
@@ -884,7 +884,7 @@ instance Pretty (HsMatchContext GhcPs) where
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = do
-    inVertical <- gets psInsideVerticalList
+    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
     if inVertical
       then vCommaSep $ fmap pretty xs
       else commaSep $ fmap pretty xs
@@ -906,7 +906,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         printCommentsSameLine $ getLoc body
         printCommentsAfter $ getLoc body
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
-    isInsideMultiwayIf <- gets psInsideMultiwayIf
+    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
     indentedBlock $ do
       string "| "
@@ -932,7 +932,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         newline
         exitLambda $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
-    isInsideMultiwayIf <- gets psInsideMultiwayIf
+    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
     (if isInsideMultiwayIf
        then indentedDependingOnHead (string "| ")
@@ -946,7 +946,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     where
       horizontal = spacePrefixed [rhsSeparator, pretty body]
       vertical = do
-        isInsideMultiwayIf <- gets psInsideMultiwayIf
+        isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
         space
         rhsSeparator
         newline
