@@ -1,5 +1,5 @@
 -- TODO: Hide `prefixedLined` and `inter`.
-module HIndent.Pretty.Combinators.Lineup
+module HIndent.PrettyPrint.Combinators.Lineup
   ( tuple
   , tuple'
   , hTuple
@@ -29,10 +29,10 @@ module HIndent.Pretty.Combinators.Lineup
 
 import           Control.Monad
 import           Data.List
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.String
-import           HIndent.Pretty.Combinators.Wrap
+import           HIndent.PrettyPrint.Combinators
+import           HIndent.PrettyPrint.Combinators.Indent
+import           HIndent.PrettyPrint.Combinators.String
+import           HIndent.PrettyPrint.Combinators.Wrap
 import           HIndent.Types
 
 -- | Apply 'hTuple' or 'vTuple' appropriately.

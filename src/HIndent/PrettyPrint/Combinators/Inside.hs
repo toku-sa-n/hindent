@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.Inside
+module HIndent.PrettyPrint.Combinators.Inside
   ( insideCase
   , insideInstDecl
   , insideLambda

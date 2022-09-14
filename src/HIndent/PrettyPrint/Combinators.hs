@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP        #-}
 {-# LANGUAGE LambdaCase #-}
 
-module HIndent.Pretty.Combinators
+module HIndent.PrettyPrint.Combinators
   ( (<-|>)
   , output
   , showOutputable
@@ -25,7 +25,7 @@ import           GHC.Utils.Outputable                                hiding
                                                                       parens,
                                                                       space,
                                                                       (<>))
-import           HIndent.Pretty.Combinators.String
+import           HIndent.PrettyPrint.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 

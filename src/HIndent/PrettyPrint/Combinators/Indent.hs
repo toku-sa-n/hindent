@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.Indent
+module HIndent.PrettyPrint.Combinators.Indent
   ( indentedBlock
   , indentedWithSpace
   , indentedDependingOnHead

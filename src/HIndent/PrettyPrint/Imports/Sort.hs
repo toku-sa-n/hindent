@@ -1,4 +1,4 @@
-module HIndent.Pretty.Imports.Sort
+module HIndent.PrettyPrint.Imports.Sort
   ( sortImportsByName
   , sortImportsByLocation
   ) where
@@ -9,7 +9,7 @@ import           Data.List
 import           Data.Maybe
 import           GHC.Hs
 import           GHC.Types.SrcLoc
-import           HIndent.Pretty.Combinators
+import           HIndent.PrettyPrint.Combinators
 import           HIndent.SrcSpan
 
 data LetterType

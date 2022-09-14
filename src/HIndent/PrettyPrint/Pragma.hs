@@ -1,4 +1,4 @@
-module HIndent.Pretty.Pragma
+module HIndent.PrettyPrint.Pragma
   ( outputPragmas
   , pragmaExists
   , isPragma
@@ -7,8 +7,8 @@ module HIndent.Pretty.Pragma
 import           Data.Generics.Schemes
 import           Data.Maybe
 import           GHC.Hs
-import           HIndent.Pretty.Combinators.Lineup
-import           HIndent.Pretty.Combinators.String
+import           HIndent.PrettyPrint.Combinators.Lineup
+import           HIndent.PrettyPrint.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA
 

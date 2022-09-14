@@ -8,7 +8,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 
 -- | Pretty printing.
-module HIndent.Pretty
+module HIndent.PrettyPrint
   ( prettyPrint
   ) where
 
@@ -18,7 +18,7 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                      hiding (Infix, Prefix)
+import           Generics.SYB                           hiding (Infix, Prefix)
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
@@ -29,16 +29,16 @@ import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
 import           GHC.Unit
 import           HIndent.Applicative
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.Inside
-import           HIndent.Pretty.Combinators.Lineup
-import           HIndent.Pretty.Combinators.Op
-import           HIndent.Pretty.Combinators.String
-import           HIndent.Pretty.Combinators.Wrap
-import           HIndent.Pretty.Imports.Sort
-import           HIndent.Pretty.ModuleDeclaration
-import           HIndent.Pretty.Pragma
+import           HIndent.PrettyPrint.Combinators
+import           HIndent.PrettyPrint.Combinators.Indent
+import           HIndent.PrettyPrint.Combinators.Inside
+import           HIndent.PrettyPrint.Combinators.Lineup
+import           HIndent.PrettyPrint.Combinators.Op
+import           HIndent.PrettyPrint.Combinators.String
+import           HIndent.PrettyPrint.Combinators.Wrap
+import           HIndent.PrettyPrint.Imports.Sort
+import           HIndent.PrettyPrint.ModuleDeclaration
+import           HIndent.PrettyPrint.Pragma
 import           HIndent.Types
 
 data SigMethodsFamily

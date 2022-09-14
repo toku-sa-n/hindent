@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.Op
+module HIndent.PrettyPrint.Combinators.Op
   ( infixOp
   , prefixOp
   , unlessSpecialOp
@@ -7,9 +7,9 @@ module HIndent.Pretty.Combinators.Op
 import           Control.Monad
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Combinators.String
-import           HIndent.Pretty.Combinators.Wrap
+import           HIndent.PrettyPrint.Combinators
+import           HIndent.PrettyPrint.Combinators.String
+import           HIndent.PrettyPrint.Combinators.Wrap
 import           HIndent.Types
 
 infixOp :: RdrName -> Printer ()

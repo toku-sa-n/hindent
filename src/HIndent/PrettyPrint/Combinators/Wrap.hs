@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.Wrap
+module HIndent.PrettyPrint.Combinators.Wrap
   ( parens
   , braces
   , brackets
@@ -8,8 +8,8 @@ module HIndent.Pretty.Combinators.Wrap
   , promotedTupleParens
   ) where
 
-import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.String
+import           HIndent.PrettyPrint.Combinators.Indent
+import           HIndent.PrettyPrint.Combinators.String
 import           HIndent.Types
 
 parens :: Printer a -> Printer a

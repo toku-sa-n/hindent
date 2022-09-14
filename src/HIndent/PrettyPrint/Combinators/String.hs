@@ -1,4 +1,4 @@
-module HIndent.Pretty.Combinators.String
+module HIndent.PrettyPrint.Combinators.String
   ( string
   , space
   , newline

@@ -19,11 +19,11 @@ import           Control.Monad.State
 import           Data.Function
 import           Data.List
 import           Data.Maybe
-import           Generics.SYB          hiding (GT, typeOf, typeRep)
+import           Generics.SYB               hiding (GT, typeOf, typeRep)
 import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
-import           HIndent.Pretty.Pragma
+import           HIndent.PrettyPrint.Pragma
 import           Type.Reflection
 
 -- TODO: Merge this type with the same one in HIndent.Pretty'.

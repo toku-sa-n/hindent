@@ -1,14 +1,14 @@
-module HIndent.Pretty.ModuleDeclaration
+module HIndent.PrettyPrint.ModuleDeclaration
   ( outputModuleDeclaration
   , moduleDeclarationExists
   ) where
 
 import           GHC.Hs
-import           GHC.Types.SrcLoc                  (GenLocated (..))
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.Lineup
-import           HIndent.Pretty.Combinators.String
+import           GHC.Types.SrcLoc                       (GenLocated (..))
+import           HIndent.PrettyPrint.Combinators
+import           HIndent.PrettyPrint.Combinators.Indent
+import           HIndent.PrettyPrint.Combinators.Lineup
+import           HIndent.PrettyPrint.Combinators.String
 import           HIndent.Types
 
 outputModuleDeclaration :: HsModule -> Printer ()
