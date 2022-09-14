@@ -213,12 +213,12 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
              pure
                g
                  { grhssLocalBinds =
-                     (HsValBinds
-                        x
-                        (ValBinds
-                           x''
-                           (listToBag $ newMethods newSigMethods)
-                           (newSigs newSigMethods)))
+                     HsValBinds
+                       x
+                       (ValBinds
+                          x''
+                          (listToBag $ newMethods newSigMethods)
+                          (newSigs newSigMethods))
                  }
     f x = pure x
     locateCommentsForSigMethod :: SigMethod -> WithComments SigMethod
