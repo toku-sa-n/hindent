@@ -6,18 +6,26 @@ module HIndent.ExtensionConversion
   , convertExtension
   ) where
 
+import           Data.Maybe
 import qualified GHC.LanguageExtensions     as GLP
 import qualified Language.Haskell.Extension as Cabal
+import           Text.Read
 
 gleExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
-gleExtensionToCabalExtension = read . show
+gleExtensionToCabalExtension = readOrFail . show
+  where
+    readOrFail x =
+      fromMaybe (error $ "Unsupported extension: " ++ show x) $ readMaybe x
 
 uniqueExtensions :: [Cabal.Extension] -> [GLP.Extension]
 uniqueExtensions [] = []
 uniqueExtensions ((Cabal.EnableExtension e):xs) =
   convertExtension e : uniqueExtensions xs
 uniqueExtensions ((Cabal.DisableExtension e):xs) =
-  uniqueExtensions $ filter (/= read (show e)) xs
+  uniqueExtensions $ filter (/= readOrFail (show e)) xs
+  where
+    readOrFail x =
+      fromMaybe (error $ "Unsupported extension: " ++ show x) $ readMaybe x
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
