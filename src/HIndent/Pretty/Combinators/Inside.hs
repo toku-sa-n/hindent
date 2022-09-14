@@ -54,21 +54,19 @@ unlessInsideLambda :: Printer () -> Printer ()
 unlessInsideLambda = unlessInside InsideLambda
 
 inside :: Inside -> Printer b -> Printer b
-inside v p = do
+inside v = modifyInsideSetTemporarily (insert v)
+
+exit :: Inside -> Printer b -> Printer b
+exit v = modifyInsideSetTemporarily (delete v)
+
+modifyInsideSetTemporarily ::
+     (Set Inside -> Set Inside) -> Printer a -> Printer a
+modifyInsideSetTemporarily f p = do
   before <- gets psInside
-  modify (\s -> s {psInside = insert v before})
+  modify (\s -> s {psInside = f before})
   r <- p
   modify (\s -> s {psInside = before})
-  return r
-
-exit::Inside->Printer b->Printer b
-exit v p=do
-  before <- gets psInside
-  modify (\s -> s {psInside = delete v before})
-  r <- p
-  modify (\s -> s {psInside = before})
-  return r
-
+  pure r
 
 whenInside :: Inside -> Printer () -> Printer ()
 whenInside i p = do
