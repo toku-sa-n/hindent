@@ -9,7 +9,7 @@
 
 -- | Pretty printing.
 module HIndent.Pretty
-  ( pretty
+  ( prettyPrint
   ) where
 
 import           Control.Monad
@@ -57,41 +57,41 @@ data InfixApp =
     , immediatelyAfterDo :: Bool
     }
 
--- | This function pretty-prints the given AST node with comments.
-pretty :: PrettyPrintable a => a -> Printer ()
-pretty p = do
+-- | This function prettyPrint-prints the given AST node with comments.
+prettyPrint :: PrettyPrintable a => a -> Printer ()
+prettyPrint p = do
   printCommentsBefore p
-  pretty' p
+  prettyPrint' p
   printCommentsSameLine p
   printCommentsAfter p
 
 -- | Pretty print including comments.
 --
 -- FIXME: 'Pretty' has a problem. It has two responsibilities; one is to
--- print a given node pretty, and the other is to collect comments from the
+-- print a given node prettyPrint, and the other is to collect comments from the
 -- node.
 --
 -- Note that there are three types of nodes:
--- * A node that can pretty-print and has comments (e.g., 'HsModule')
--- * A node that can pretty-print but has no comments (e.g., almost all
+-- * A node that can prettyPrint-print and has comments (e.g., 'HsModule')
+-- * A node that can prettyPrint-print but has no comments (e.g., almost all
 -- nodes)
--- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
+-- * A node that cannot prettyPrint-print but has comments (e.g., 'EpAnn')
 class PrettyPrintable a where
-  pretty' :: a -> Printer ()
+  prettyPrint' :: a -> Printer ()
   printCommentsBefore :: a -> Printer ()
   printCommentsBefore p =
     forM_ (commentsBefore p) $ \x -> do
-      pretty x
+      prettyPrint x
       newline
   printCommentsSameLine :: a -> Printer ()
   printCommentsSameLine (commentsSameLine -> Just (L sp c)) = do
     col <- gets psColumn
     if col == 0
       then indentedWithLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
-           pretty c
+           prettyPrint c
       else do
         space
-        pretty c
+        prettyPrint c
     eolCommentsArePrinted
   printCommentsSameLine _ = return ()
   printCommentsAfter :: a -> Printer ()
@@ -103,7 +103,7 @@ class PrettyPrintable a where
         unless isThereCommentsOnSameLine newline
         forM_ xs $ \(L loc c) -> do
           let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
-          indentedWithLevel col $ pretty c
+          indentedWithLevel col $ prettyPrint c
           eolCommentsArePrinted
   -- These functions must return comments that only this node can fetch. In
   -- other words, these functions must not return comments that child nodes
@@ -116,7 +116,7 @@ class PrettyPrintable a where
   commentsAfter = const []
 
 instance PrettyPrintable HsModule where
-  pretty' m = blanklined printers
+  prettyPrint' m = blanklined printers
     -- TODO: Refactor this 'where' clause.
     where
       printers = snd <$> filter fst pairs
@@ -127,7 +127,7 @@ instance PrettyPrintable HsModule where
         , (declsExist m, outputDecls)
         ]
       outputDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
+        mapM_ (\(x, sp) -> prettyPrint x >> fromMaybe (return ()) sp) $
         addSeparator $ hsmodDecls m
       addSeparator []     = []
       addSeparator [x]    = [(x, Nothing)]
@@ -139,7 +139,7 @@ instance PrettyPrintable HsModule where
         blanklined .
         fmap (outputImportGroup . sortImportsByName) .
         groupImports . sortImportsByLocation . hsmodImports
-      outputImportGroup = lined . fmap pretty
+      outputImportGroup = lined . fmap prettyPrint
       importsExist = not . null . hsmodImports
       groupImports = groupImports' []
         where
@@ -172,37 +172,38 @@ instance PrettyPrintable HsModule where
     followingComments . comments . hsmodAnn
 
 -- FIXME: Requiring 'l' to implement 'Pretty' is wrong because some types
--- (e.g., 'EpAnn') cannot pretty-print. The restriction exists only for
+-- (e.g., 'EpAnn') cannot prettyPrint-print. The restriction exists only for
 -- extracting comments. Remove the restriction.
 instance (PrettyPrintable l, PrettyPrintable e) =>
          PrettyPrintable (GenLocated l e) where
-  pretty' (L _ e) = pretty e
+  prettyPrint' (L _ e) = prettyPrint e
   commentsBefore (L l _) = commentsBefore l
   commentsSameLine (L l _) = commentsSameLine l
   commentsAfter (L l _) = commentsAfter l
 
 instance PrettyPrintable (HsDecl GhcPs) where
-  pretty' (TyClD _ d)    = pretty d
-  pretty' (InstD _ inst) = pretty inst
-  pretty' DerivD {}      = undefined
-  pretty' (ValD _ bind)  = pretty bind
-  pretty' (SigD _ s)     = insideSignature $ pretty s
-  pretty' KindSigD {}    = undefined
-  pretty' DefD {}        = undefined
-  pretty' x@ForD {}      = output x
-  pretty' WarningD {}    = undefined
-  pretty' AnnD {}        = undefined
-  pretty' RuleD {}       = undefined
-  pretty' (SpliceD _ sp) = pretty sp
-  pretty' DocD {}        = return ()
-  pretty' RoleAnnotD {}  = undefined
+  prettyPrint' (TyClD _ d)    = prettyPrint d
+  prettyPrint' (InstD _ inst) = prettyPrint inst
+  prettyPrint' DerivD {}      = undefined
+  prettyPrint' (ValD _ bind)  = prettyPrint bind
+  prettyPrint' (SigD _ s)     = insideSignature $ prettyPrint s
+  prettyPrint' KindSigD {}    = undefined
+  prettyPrint' DefD {}        = undefined
+  prettyPrint' x@ForD {}      = output x
+  prettyPrint' WarningD {}    = undefined
+  prettyPrint' AnnD {}        = undefined
+  prettyPrint' RuleD {}       = undefined
+  prettyPrint' (SpliceD _ sp) = prettyPrint sp
+  prettyPrint' DocD {}        = return ()
+  prettyPrint' RoleAnnotD {}  = undefined
 
 instance PrettyPrintable (TyClDecl GhcPs) where
-  pretty' SynDecl {..} = do
+  prettyPrint' SynDecl {..} = do
     string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
     case tcdFixity of
-      Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+      Prefix ->
+        spaced $ prettyPrint tcdLName : fmap output (hsq_explicit tcdTyVars)
       Infix ->
         case hsq_explicit tcdTyVars of
           (l:r:xs)
@@ -217,13 +218,13 @@ instance PrettyPrintable (TyClDecl GhcPs) where
     where
       hor = do
         string " = "
-        pretty tcdRhs
+        prettyPrint tcdRhs
       ver =
         indentedWithSpace 3 $ do
           newline
           string "= "
-          indentedBlock $ pretty tcdRhs
-  pretty' DataDecl {..} = do
+          indentedBlock $ prettyPrint tcdRhs
+  prettyPrint' DataDecl {..} = do
     case dd_ND tcdDataDefn of
       DataType -> string "data "
       NewType  -> string "newtype "
@@ -231,19 +232,19 @@ instance PrettyPrintable (TyClDecl GhcPs) where
     forM_ (hsq_explicit tcdTyVars) $ \x -> do
       space
       output x
-    pretty tcdDataDefn
-  pretty' ClassDecl {..} = do
+    prettyPrint tcdDataDefn
+  prettyPrint' ClassDecl {..} = do
     if isJust tcdCtxt
       then verHead
       else horHead <-|> verHead
     newline
-    indentedBlock $ lined $ fmap pretty sigsMethodsFamilies
+    indentedBlock $ lined $ fmap prettyPrint sigsMethodsFamilies
     where
       horHead = do
         string "class "
         case tcdFixity of
           Prefix ->
-            spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+            spaced $ prettyPrint tcdLName : fmap output (hsq_explicit tcdTyVars)
           Infix ->
             case hsq_explicit tcdTyVars of
               (l:r:xs)
@@ -257,9 +258,9 @@ instance PrettyPrintable (TyClDecl GhcPs) where
         unless (null tcdFDs) $ do
           string " | "
           forM_ tcdFDs $ \(L _ (FunDep _ from to)) -> do
-            spaced $ fmap pretty from
+            spaced $ fmap prettyPrint from
             string " -> "
-            spaced $ fmap pretty to
+            spaced $ fmap prettyPrint to
         unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
         indentedDependingOnHead (string "class ") $ do
@@ -268,16 +269,17 @@ instance PrettyPrintable (TyClDecl GhcPs) where
                   of
               [] -> undefined
               [x] -> do
-                pretty x
+                prettyPrint x
                 string " =>"
                 newline
               _ -> do
-                hTuple $ fmap pretty xs
+                hTuple $ fmap prettyPrint xs
                 string " =>"
                 newline
           case tcdFixity of
             Prefix ->
-              spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+              spaced $
+              prettyPrint tcdLName : fmap output (hsq_explicit tcdTyVars)
             Infix ->
               case hsq_explicit tcdTyVars of
                 (l:r:xs)
@@ -294,9 +296,9 @@ instance PrettyPrintable (TyClDecl GhcPs) where
             indentedDependingOnHead (string "| ") $
             vCommaSep $
             flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
-              spaced $ fmap pretty from
+              spaced $ fmap prettyPrint from
               string " -> "
-              spaced $ fmap pretty to
+              spaced $ fmap prettyPrint to
           newline
           indentedBlock $ string "where"
         when (isJust tcdCtxt) $ do
@@ -313,15 +315,15 @@ instance PrettyPrintable (TyClDecl GhcPs) where
       getLocation (Sig x)        = realSrcSpan $ locA $ getLoc x
       getLocation (Method x)     = realSrcSpan $ locA $ getLoc x
       getLocation (TypeFamily x) = realSrcSpan $ locA $ getLoc x
-  pretty' x = output x
+  prettyPrint' x = output x
 
 instance PrettyPrintable (InstDecl GhcPs) where
-  pretty' ClsInstD {..} = pretty cid_inst
-  pretty' x             = output x
+  prettyPrint' ClsInstD {..} = prettyPrint cid_inst
+  prettyPrint' x             = output x
 
 instance PrettyPrintable (HsBind GhcPs) where
-  pretty' FunBind {..} = pretty fun_matches
-  pretty' x            = output x
+  prettyPrint' FunBind {..} = prettyPrint fun_matches
+  prettyPrint' x            = output x
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
   commentsSameLine FunBind {..} = commentsSameLine fun_id
@@ -330,13 +332,13 @@ instance PrettyPrintable (HsBind GhcPs) where
   commentsAfter _            = []
 
 instance PrettyPrintable (Sig GhcPs) where
-  pretty' (TypeSig _ funName params) = do
-    pretty $ head funName
+  prettyPrint' (TypeSig _ funName params) = do
+    prettyPrint $ head funName
     horizontal <-|> vertical
     where
       horizontal = do
         string " :: "
-        pretty $ hswc_body params
+        prettyPrint $ hswc_body params
       vertical =
         insideVerticalFunctionSignature $ do
           if isUsingForall
@@ -344,30 +346,30 @@ instance PrettyPrintable (Sig GhcPs) where
             else do
               string " ::"
               newline
-          indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
+          indentedBlock $ indentedWithSpace 3 $ prettyPrint $ hswc_body params -- 3 for "-> "
       isUsingForall =
         case sig_bndrs (unLoc $ hswc_body params) of
           HsOuterExplicit {} -> True
           _                  -> False
-  pretty' (ClassOpSig _ isDefault funNames params) = do
+  prettyPrint' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
-    hCommaSep $ fmap pretty funNames
+    hCommaSep $ fmap prettyPrint funNames
     string " :: "
-    pretty $ sig_body $ unLoc params
-  pretty' (MinimalSig _ _ xs) =
+    prettyPrint $ sig_body $ unLoc params
+  prettyPrint' (MinimalSig _ _ xs) =
     indentedDependingOnHead (string "{-# MINIMAL ") $ do
-      pretty xs
+      prettyPrint xs
       string " #-}"
-  pretty' x = output x
+  prettyPrint' x = output x
 
 instance PrettyPrintable (HsDataDefn GhcPs) where
-  pretty' HsDataDefn {..} =
+  prettyPrint' HsDataDefn {..} =
     case dd_kindSig of
       Just kindSig -> do
         string " :: "
         output kindSig
         string " where"
-        indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
+        indentedBlock $ newlinePrefixed $ fmap prettyPrint dd_cons
       Nothing ->
         indentedBlock $ do
           case length dd_cons of
@@ -375,54 +377,54 @@ instance PrettyPrintable (HsDataDefn GhcPs) where
             1 -> do
               string " ="
               newline
-              pretty $ head dd_cons
+              prettyPrint $ head dd_cons
             _ -> do
               newline
               indentedDependingOnHead (string "= ") $
-                vBarSep $ fmap pretty dd_cons
+                vBarSep $ fmap prettyPrint dd_cons
           unless (null dd_derivs) $ do
             newline
-            lined $ fmap pretty dd_derivs
+            lined $ fmap prettyPrint dd_derivs
 
 instance PrettyPrintable (ClsInstDecl GhcPs) where
-  pretty' ClsInstDecl {..} = do
+  prettyPrint' ClsInstDecl {..} = do
     indentedDependingOnHead (string "instance ") $
       insideInstDecl $ do
         whenJust cid_overlap_mode $ \x -> do
-          pretty x
+          prettyPrint x
           space
-        pretty cid_poly_ty
+        prettyPrint cid_poly_ty
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
-      indentedBlock $ mapM_ pretty cid_binds
+      indentedBlock $ mapM_ prettyPrint cid_binds
 
 instance PrettyPrintable (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' MG {..} = lined $ pretty <$> unLoc mg_alts
+  prettyPrint' MG {..} = lined $ prettyPrint <$> unLoc mg_alts
 
 instance PrettyPrintable (HsExpr GhcPs) where
-  pretty' v@HsVar {} = prefixExpr v
-  pretty' HsUnboundVar {} = undefined
-  pretty' HsConLikeOut {} = undefined
-  pretty' HsRecFld {} = undefined
-  pretty' (HsOverLabel _ l) = do
+  prettyPrint' v@HsVar {} = prefixExpr v
+  prettyPrint' HsUnboundVar {} = undefined
+  prettyPrint' HsConLikeOut {} = undefined
+  prettyPrint' HsRecFld {} = undefined
+  prettyPrint' (HsOverLabel _ l) = do
     string "#"
     output l
-  pretty' HsIPVar {} = undefined
-  pretty' full@HsOverLit {} = output full
-  pretty' (HsLit _ l) = output l
-  pretty' (HsLam _ body) = insideLambda $ pretty body
-  pretty' (HsLamCase _ matches) =
+  prettyPrint' HsIPVar {} = undefined
+  prettyPrint' full@HsOverLit {} = output full
+  prettyPrint' (HsLit _ l) = output l
+  prettyPrint' (HsLam _ body) = insideLambda $ prettyPrint body
+  prettyPrint' (HsLamCase _ matches) =
     insideCase $ do
       string "\\case"
       if null $ unLoc $ mg_alts matches
         then string " {}"
         else do
           newline
-          indentedBlock $ pretty matches
-  pretty' (HsApp _ l r) = horizontal <-|> vertical
+          indentedBlock $ prettyPrint matches
+  prettyPrint' (HsApp _ l r) = horizontal <-|> vertical
     where
-      horizontal = spaced [pretty l, pretty r]
+      horizontal = spaced [prettyPrint l, prettyPrint r]
       vertical = do
         let (f, args) =
               case flatten l ++ [r] of
@@ -430,7 +432,7 @@ instance PrettyPrintable (HsExpr GhcPs) where
                 _          -> error "Invalid function application."
         col <- gets psColumn
         spaces <- getIndentSpaces
-        pretty f
+        prettyPrint f
         col' <- gets psColumn
         let diff =
               col' - col -
@@ -441,7 +443,7 @@ instance PrettyPrintable (HsExpr GhcPs) where
           then space
           else newline
         spaces' <- getIndentSpaces
-        indentedWithSpace spaces' $ lined $ fmap pretty args
+        indentedWithSpace spaces' $ lined $ fmap prettyPrint args
       flatten :: LHsExpr GhcPs -> [LHsExpr GhcPs]
       flatten (L (SrcSpanAnn (EpAnn _ _ cs) _) (HsApp _ l' r')) =
         flatten l' ++ [insertComments cs r']
@@ -450,37 +452,42 @@ instance PrettyPrintable (HsExpr GhcPs) where
       insertComments cs (L s@SrcSpanAnn {ann = e@EpAnn {comments = cs'}} r') =
         L (s {ann = e {comments = cs <> cs'}}) r'
       insertComments _ x = x
-  pretty' t@HsAppType {} = output t
-  pretty' (OpApp _ l o r) = pretty (InfixApp l o r False)
-  pretty' NegApp {} = undefined
-  pretty' (HsPar _ expr) = parens $ pretty expr
-  pretty' (SectionL _ l o) = spaced [pretty l, pretty (InfixExpr o)]
-  pretty' (SectionR _ o r) = spaced [pretty (InfixExpr o), pretty r]
-  pretty' (ExplicitTuple _ full _) = horizontal <-|> vertical
+  prettyPrint' t@HsAppType {} = output t
+  prettyPrint' (OpApp _ l o r) = prettyPrint (InfixApp l o r False)
+  prettyPrint' NegApp {} = undefined
+  prettyPrint' (HsPar _ expr) = parens $ prettyPrint expr
+  prettyPrint' (SectionL _ l o) =
+    spaced [prettyPrint l, prettyPrint (InfixExpr o)]
+  prettyPrint' (SectionR _ o r) =
+    spaced [prettyPrint (InfixExpr o), prettyPrint r]
+  prettyPrint' (ExplicitTuple _ full _) = horizontal <-|> vertical
     where
-      horizontal = hTuple $ fmap pretty full
+      horizontal = hTuple $ fmap prettyPrint full
       vertical =
         parens $
         prefixedLined "," $
         fmap
-          (\e -> unless (isMissing e) (indentedDependingOnHead space $ pretty e))
+          (\e ->
+             unless
+               (isMissing e)
+               (indentedDependingOnHead space $ prettyPrint e))
           full
       isMissing Missing {} = True
       isMissing _          = False
-  pretty' ExplicitSum {} = undefined
-  pretty' (HsCase _ cond arms) =
+  prettyPrint' ExplicitSum {} = undefined
+  prettyPrint' (HsCase _ cond arms) =
     insideCase $ do
       indentedDependingOnHead (string "case ") $ do
-        pretty cond
+        prettyPrint cond
         string " of"
       if null $ unLoc $ mg_alts arms
         then string " {}"
         else do
           newline
-          indentedBlock $ pretty arms
-  pretty' (HsIf _ cond t f) = do
+          indentedBlock $ prettyPrint arms
+  prettyPrint' (HsIf _ cond t f) = do
     string "if "
-    pretty cond
+    prettyPrint cond
     indentedBlock $ do
       newline
       branch "then " t
@@ -494,58 +501,59 @@ instance PrettyPrintable (HsExpr GhcPs) where
             string str
             string "do"
             newline
-            indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
-          _ -> indentedDependingOnHead (string str) $ pretty e
-  pretty' (HsMultiIf _ guards) =
+            indentedBlock $ lined $ prettyPrint <$> unLoc xs -- TODO: Handle comments.
+          _ -> indentedDependingOnHead (string str) $ prettyPrint e
+  prettyPrint' (HsMultiIf _ guards) =
     indentedDependingOnHead (string "if ") $
-    insideMultiwayIf $ lined $ fmap pretty guards
-  pretty' (HsLet _ binds exprs) = do
-    indentedDependingOnHead (string "let ") $ pretty binds
+    insideMultiwayIf $ lined $ fmap prettyPrint guards
+  prettyPrint' (HsLet _ binds exprs) = do
+    indentedDependingOnHead (string "let ") $ prettyPrint binds
     newline
-    indentedDependingOnHead (string " in ") $ pretty exprs
-  pretty' (HsDo _ (DoExpr _) xs) =
+    indentedDependingOnHead (string " in ") $ prettyPrint exprs
+  prettyPrint' (HsDo _ (DoExpr _) xs) =
     indentedDependingOnHead (string "do ") $ lined $ output <$> unLoc xs -- TODO: Handle comments.
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
-  pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
+  prettyPrint' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
       horizontal =
         brackets $ do
-          pretty $ head $ unLoc xs
+          prettyPrint $ head $ unLoc xs
           string " | "
-          hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          hCommaSep $ fmap prettyPrint $ tail $ unLoc xs -- TODO: Handle comments.
       vertical =
         insideVerticalList $
         if null $ unLoc xs
           then string "[]"
           else let (lastStmt, others) = (head $ unLoc xs, tail $ unLoc xs)
                 in do string "[ "
-                      pretty lastStmt
+                      prettyPrint lastStmt
                       newline
                       forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        indentedDependingOnHead (string p) $ pretty x
+                        indentedDependingOnHead (string p) $ prettyPrint x
                         newline
                       string "]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
-  pretty' HsDo {} = undefined
-  pretty' (ExplicitList _ xs) = horizontal <-|> vertical
+  prettyPrint' HsDo {} = undefined
+  prettyPrint' (ExplicitList _ xs) = horizontal <-|> vertical
     where
-      horizontal = brackets $ hCommaSep $ fmap pretty xs
-      vertical = vList $ fmap pretty xs
-  pretty' (RecordCon _ name fields) = horizontal <-|> vertical
+      horizontal = brackets $ hCommaSep $ fmap prettyPrint xs
+      vertical = vList $ fmap prettyPrint xs
+  prettyPrint' (RecordCon _ name fields) = horizontal <-|> vertical
     where
       horizontal = do
         name'
         space
-        pretty fields
+        prettyPrint fields
       vertical = do
         name'
-        (space >> pretty fields) <-|> (newline >> indentedBlock (pretty fields))
+        (space >> prettyPrint fields) <-|>
+          (newline >> indentedBlock (prettyPrint fields))
       name' =
         if head (showOutputable name) == ':'
           then parens $ output name
           else output name
-  pretty' (RecordUpd _ name fields) = do
-    pretty name
+  prettyPrint' (RecordUpd _ name fields) = do
+    prettyPrint name
     space
     braces $
       -- TODO: Refactor this case.
@@ -553,35 +561,35 @@ instance PrettyPrintable (HsExpr GhcPs) where
         Right xs ->
           forM_ xs $ \(L l HsRecField {..}) -> do
             printCommentsBefore l
-            pretty hsRecFieldLbl
+            prettyPrint hsRecFieldLbl
             string " = "
-            pretty hsRecFieldArg
+            prettyPrint hsRecFieldArg
             printCommentsSameLine l
             printCommentsAfter l
         Left xs ->
           forM_ xs $ \(L l HsRecField {..}) -> do
             printCommentsBefore l
-            pretty hsRecFieldLbl
+            prettyPrint hsRecFieldLbl
             string " = "
-            pretty hsRecFieldArg
+            prettyPrint hsRecFieldArg
             printCommentsSameLine l
             printCommentsAfter l
-  pretty' HsGetField {} = undefined
-  pretty' HsProjection {} = undefined
-  pretty' (ExprWithTySig _ e sig) = do
-    pretty e
+  prettyPrint' HsGetField {} = undefined
+  prettyPrint' HsProjection {} = undefined
+  prettyPrint' (ExprWithTySig _ e sig) = do
+    prettyPrint e
     string " :: "
-    pretty $ hswc_body sig
-  pretty' (ArithSeq _ _ x) = pretty x
-  pretty' (HsBracket _ inner) = pretty inner
-  pretty' HsRnBracketOut {} = undefined
-  pretty' HsTcBracketOut {} = undefined
-  pretty' (HsSpliceE _ x) = pretty x
-  pretty' HsProc {} = undefined
-  pretty' HsStatic {} = undefined
-  pretty' HsTick {} = undefined
-  pretty' HsBinTick {} = undefined
-  pretty' HsPragE {} = undefined
+    prettyPrint $ hswc_body sig
+  prettyPrint' (ArithSeq _ _ x) = prettyPrint x
+  prettyPrint' (HsBracket _ inner) = prettyPrint inner
+  prettyPrint' HsRnBracketOut {} = undefined
+  prettyPrint' HsTcBracketOut {} = undefined
+  prettyPrint' (HsSpliceE _ x) = prettyPrint x
+  prettyPrint' HsProc {} = undefined
+  prettyPrint' HsStatic {} = undefined
+  prettyPrint' HsTick {} = undefined
+  prettyPrint' HsBinTick {} = undefined
+  prettyPrint' HsPragE {} = undefined
   commentsBefore (HsVar _ x)   = commentsBefore x
   commentsBefore (HsApp x _ _) = commentsBefore x
   commentsBefore _             = []
@@ -593,7 +601,7 @@ instance PrettyPrintable (HsExpr GhcPs) where
   commentsAfter _             = []
 
 instance PrettyPrintable (HsSigType GhcPs) where
-  pretty' HsSig {..} = do
+  prettyPrint' HsSig {..} = do
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
@@ -605,26 +613,26 @@ instance PrettyPrintable (HsSigType GhcPs) where
             newline
           else string ". "
       _ -> return ()
-    pretty sig_body
+    prettyPrint sig_body
 
 instance PrettyPrintable (ConDecl GhcPs) where
-  pretty' ConDeclGADT {..} = horizontal <-|> vertical
+  prettyPrint' ConDeclGADT {..} = horizontal <-|> vertical
     where
       horizontal = do
         output $ head con_names
         string " :: "
-        pretty con_g_args
+        prettyPrint con_g_args
         string " -> "
         output con_res_ty
       vertical = do
         output $ head con_names
         newline
         indentedBlock $ do
-          indentedDependingOnHead (string ":: ") $ pretty con_g_args
+          indentedDependingOnHead (string ":: ") $ prettyPrint con_g_args
           newline
           string "-> "
           output con_res_ty
-  pretty' ConDeclH98 {..}
+  prettyPrint' ConDeclH98 {..}
     -- TODO: Refactor.
    =
     if con_forall
@@ -637,82 +645,84 @@ instance PrettyPrintable (ConDecl GhcPs) where
                    Nothing -> return ()
                    Just (L _ []) -> return ()
                    Just (L _ [x]) -> do
-                     pretty x
+                     prettyPrint x
                      string " =>"
                      newline
                    Just (L _ xs) -> do
-                     hTuple $ fmap pretty xs
+                     hTuple $ fmap prettyPrint xs
                      string " =>"
                      newline
-                 pretty con_name
-                 pretty con_args)
+                 prettyPrint con_name
+                 prettyPrint con_args)
       else do
         case con_args of
           (InfixCon l r) ->
-            spaced [pretty l, infixOp $ unLoc con_name, pretty r] -- TODO: Handle comments.
+            spaced [prettyPrint l, infixOp $ unLoc con_name, prettyPrint r] -- TODO: Handle comments.
           _ -> do
-            pretty con_name
-            pretty con_args
+            prettyPrint con_name
+            prettyPrint con_args
 
 instance PrettyPrintable (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' Match {..} = do
+  prettyPrint' Match {..} = do
     isInsideCase <- gets ((InsideCase `elem`) . psInside)
     isInsideLambda <- gets ((InsideLambda `elem`) . psInside)
     whenInsideLambda $ string "\\"
     case (isInsideCase, isInsideLambda, mc_fixity m_ctxt) of
       (True, _, _) -> do
-        mapM_ pretty m_pats
-        pretty m_grhss
+        mapM_ prettyPrint m_pats
+        prettyPrint m_grhss
       (_, True, _) -> do
         unless (null m_pats) $
           case unLoc $ head m_pats of
             LazyPat {} -> space
             BangPat {} -> space
             _          -> return ()
-        spaced $ fmap pretty m_pats ++ [pretty m_grhss]
+        spaced $ fmap prettyPrint m_pats ++ [prettyPrint m_grhss]
       (_, _, Prefix) -> do
-        pretty m_ctxt
+        prettyPrint m_ctxt
         unless (null m_pats) $ do
           space
-          spaced $ fmap pretty m_pats
-        pretty m_grhss
+          spaced $ fmap prettyPrint m_pats
+        prettyPrint m_grhss
       (_, _, Infix) -> do
         case (m_pats, m_ctxt) of
           (l:r:xs, FunRhs {..}) -> do
             spaced $
-              [pretty l, infixOp $ unLoc mc_fun, pretty r] ++ fmap pretty xs
-            pretty m_grhss
+              [prettyPrint l, infixOp $ unLoc mc_fun, prettyPrint r] ++
+              fmap prettyPrint xs
+            prettyPrint m_grhss
           _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
   commentsSameLine Match {..} = commentsSameLine m_ext
   commentsAfter Match {..} = commentsAfter m_ext
 
 instance PrettyPrintable (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' l@LastStmt {} = output l
-  pretty' full@(BindStmt _ pat body) =
+  prettyPrint' l@LastStmt {} = output l
+  prettyPrint' full@(BindStmt _ pat body) =
     output full <-|> do
       output pat
       string " <-"
       newline
-      indentedBlock $ pretty body
-  pretty' ApplicativeStmt {} = undefined
-  pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
-    pretty (L loc (InfixApp l o r True))
-  pretty' (BodyStmt _ body _ _) = pretty body
-  pretty' (LetStmt _ l) = do
+      indentedBlock $ prettyPrint body
+  prettyPrint' ApplicativeStmt {} = undefined
+  prettyPrint' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
+    prettyPrint (L loc (InfixApp l o r True))
+  prettyPrint' (BodyStmt _ body _ _) = prettyPrint body
+  prettyPrint' (LetStmt _ l) = do
     string "let "
-    pretty l
-  pretty' (ParStmt _ xs _ _) = do
+    prettyPrint l
+  prettyPrint' (ParStmt _ xs _ _) = do
     inVertical <- gets ((InsideVerticalList `elem`) . psInside)
     if inVertical
       then vertical
       else horizontal <-|> vertical
     where
       horizontal = hBarSep $ fmap output xs
-      vertical = vBarSep $ fmap pretty xs
-  pretty' TransStmt {..} =
-    vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
-  pretty' RecStmt {} = undefined
+      vertical = vBarSep $ fmap prettyPrint xs
+  prettyPrint' TransStmt {..} =
+    vCommaSep $
+    fmap prettyPrint trS_stmts ++ [string "then " >> prettyPrint trS_using]
+  prettyPrint' RecStmt {} = undefined
   commentsBefore (LetStmt l _) = commentsBefore l
   commentsBefore _             = []
   commentsAfter (LetStmt l _) = commentsAfter l
@@ -721,17 +731,17 @@ instance PrettyPrintable (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr Ghc
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance PrettyPrintable a => PrettyPrintable (HsRecFields GhcPs a) where
-  pretty' HsRecFields {..} = horizontal <-|> vertical
+  prettyPrint' HsRecFields {..} = horizontal <-|> vertical
     where
       horizontal =
         case rec_dotdot of
           Just _  -> braces $ string ".."
-          Nothing -> hFields $ fmap pretty rec_flds
-      vertical = vFields $ fmap pretty rec_flds
+          Nothing -> hFields $ fmap prettyPrint rec_flds
+      vertical = vFields $ fmap prettyPrint rec_flds
 
 instance PrettyPrintable (HsType GhcPs) where
-  pretty' HsForAllTy {} = undefined
-  pretty' HsQualTy {..} = do
+  prettyPrint' HsForAllTy {} = undefined
+  prettyPrint' HsQualTy {..} = do
     isInSig <- gets ((InsideSignature `elem`) . psInside)
     if isInSig
       then sigHor <-|> sigVer
@@ -740,12 +750,12 @@ instance PrettyPrintable (HsType GhcPs) where
       sigHor = do
         constraints
         string " => "
-        pretty hst_body
+        prettyPrint hst_body
       sigVer = do
         constraints
         newline
         indentedWithSpace (-3) $ string "=> "
-        pretty hst_body
+        prettyPrint hst_body
       notInSig = do
         isInst <- gets ((InsideInstDecl `elem`) . psInside)
         if isInst
@@ -754,7 +764,7 @@ instance PrettyPrintable (HsType GhcPs) where
       notHor = do
         constraints
         string " => "
-        pretty hst_body
+        prettyPrint hst_body
       notVer = do
         constraints
         string " =>"
@@ -763,17 +773,17 @@ instance PrettyPrintable (HsType GhcPs) where
         (if isInst
            then id
            else indentedBlock) $
-          pretty hst_body
+          prettyPrint hst_body
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
-        mapM_ (hCommaSep . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (hCommaSep . fmap prettyPrint . unLoc) hst_ctxt -- TODO: Handle comments
       vCon = do
         string constraintsParensL
         space
         forM_ hst_ctxt $ \(L l cs) -> do
           printCommentsBefore l
-          inter (newline >> string ", ") $ fmap pretty cs
+          inter (newline >> string ", ") $ fmap prettyPrint cs
           printCommentsSameLine l
           printCommentsAfter l
         newline
@@ -797,59 +807,60 @@ instance PrettyPrintable (HsType GhcPs) where
           Just (L _ [])  -> parens
           Just (L _ [_]) -> id
           Just _         -> parens
-  pretty' x@HsTyVar {} = output x
-  pretty' (HsAppTy _ l r) = do
-    pretty l
+  prettyPrint' x@HsTyVar {} = output x
+  prettyPrint' (HsAppTy _ l r) = do
+    prettyPrint l
     space
-    pretty r
-  pretty' HsAppKindTy {} = undefined
-  pretty' (HsFunTy _ _ a b) = do
+    prettyPrint r
+  prettyPrint' HsAppKindTy {} = undefined
+  prettyPrint' (HsFunTy _ _ a b) = do
     isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
     if isVertical
       then vertical
       else horizontal <-|> vertical
     where
       horizontal = do
-        pretty a
+        prettyPrint a
         string " -> "
-        pretty b
+        prettyPrint b
       vertical = do
-        exitVerticalFunctionSignature $ pretty a
+        exitVerticalFunctionSignature $ prettyPrint a
         newline
         indentedWithSpace (-3) $ string "-> "
-        pretty b
-  pretty' (HsListTy _ xs) = brackets $ pretty xs
-  pretty' (HsTupleTy _ _ xs) = tuple' $ fmap pretty xs
-  pretty' HsSumTy {} = undefined
+        prettyPrint b
+  prettyPrint' (HsListTy _ xs) = brackets $ prettyPrint xs
+  prettyPrint' (HsTupleTy _ _ xs) = tuple' $ fmap prettyPrint xs
+  prettyPrint' HsSumTy {} = undefined
   -- For `HsOpTy`, we do not need a single quote for the infix operator. An
   -- explicit promotion is necessary if there is a data constructor and
   -- a type with the same name. However, infix data constructors never
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
-  pretty' (HsOpTy _ l op r) = spaced [pretty l, infixOp $ unLoc op, pretty r]
-  pretty' (HsParTy _ inside) = parens $ pretty inside
-  pretty' t@HsIParamTy {} = output t
-  pretty' HsStarTy {} = undefined
-  pretty' HsKindSig {} = undefined
-  pretty' (HsSpliceTy _ sp) = pretty sp
-  pretty' HsDocTy {} = undefined
-  pretty' e@HsBangTy {} = output e
-  pretty' HsRecTy {} = undefined
-  pretty' (HsExplicitListTy _ _ xs) =
+  prettyPrint' (HsOpTy _ l op r) =
+    spaced [prettyPrint l, infixOp $ unLoc op, prettyPrint r]
+  prettyPrint' (HsParTy _ inside) = parens $ prettyPrint inside
+  prettyPrint' t@HsIParamTy {} = output t
+  prettyPrint' HsStarTy {} = undefined
+  prettyPrint' HsKindSig {} = undefined
+  prettyPrint' (HsSpliceTy _ sp) = prettyPrint sp
+  prettyPrint' HsDocTy {} = undefined
+  prettyPrint' e@HsBangTy {} = output e
+  prettyPrint' HsRecTy {} = undefined
+  prettyPrint' (HsExplicitListTy _ _ xs) =
     case xs of
       [] -> string "'[]"
-      _  -> hPromotedList $ fmap pretty xs
-  pretty' (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
-  pretty' (HsTyLit _ x) = output x
-  pretty' HsWildCardTy {} = undefined
-  pretty' XHsType {} = undefined
+      _  -> hPromotedList $ fmap prettyPrint xs
+  prettyPrint' (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap prettyPrint xs
+  prettyPrint' (HsTyLit _ x) = output x
+  prettyPrint' HsWildCardTy {} = undefined
+  prettyPrint' XHsType {} = undefined
 
 instance PrettyPrintable (HsConDeclGADTDetails GhcPs) where
-  pretty' (PrefixConGADT xs) =
+  prettyPrint' (PrefixConGADT xs) =
     inter (string " -> ") $
     flip fmap xs $ \case
       (HsScaled _ x) -> output x
-  pretty' (RecConGADT xs) =
+  prettyPrint' (RecConGADT xs) =
     vFields' $
     flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
       output $ head cd_fld_names
@@ -857,8 +868,8 @@ instance PrettyPrintable (HsConDeclGADTDetails GhcPs) where
       output cd_fld_type
 
 instance PrettyPrintable (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' GRHSs {..} = do
-    mapM_ pretty grhssGRHSs
+  prettyPrint' GRHSs {..} = do
+    mapM_ prettyPrint grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $ do
@@ -867,34 +878,34 @@ instance PrettyPrintable (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) w
           if isCase
             then indentedDependingOnHead (string "where ") $ do
                    printCommentsBefore epa
-                   exitCase $ pretty lr
+                   exitCase $ prettyPrint lr
             else do
               string "where"
               newline
               printCommentsBefore epa
-              indentedBlock $ pretty lr
+              indentedBlock $ prettyPrint lr
           printCommentsSameLine epa
           printCommentsAfter epa
       _ -> return ()
 
 instance PrettyPrintable (HsMatchContext GhcPs) where
-  pretty' FunRhs {..} = pretty mc_fun
-  pretty' CaseAlt     = return ()
-  pretty' LambdaExpr  = return ()
-  pretty' x           = output x
+  prettyPrint' FunRhs {..} = prettyPrint mc_fun
+  prettyPrint' CaseAlt     = return ()
+  prettyPrint' LambdaExpr  = return ()
+  prettyPrint' x           = output x
 
 instance PrettyPrintable (ParStmtBlock GhcPs GhcPs) where
-  pretty' (ParStmtBlock _ xs _ _) = do
+  prettyPrint' (ParStmtBlock _ xs _ _) = do
     inVertical <- gets ((InsideVerticalList `elem`) . psInside)
     if inVertical
-      then vCommaSep $ fmap pretty xs
-      else commaSep $ fmap pretty xs
+      then vCommaSep $ fmap prettyPrint xs
+      else commaSep $ fmap prettyPrint xs
 
 instance PrettyPrintable RdrName where
-  pretty' = prefixOp
+  prettyPrint' = prefixOp
 
 instance PrettyPrintable (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
+  prettyPrint' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
     unlessInsideLambda space
     rhsSeparator
     space
@@ -903,10 +914,10 @@ instance PrettyPrintable (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wh
     exitLambda $
       indentedBlock $ do
         printCommentsBefore $ getLoc body
-        lined $ pretty <$> unLoc body
+        lined $ prettyPrint <$> unLoc body
         printCommentsSameLine $ getLoc body
         printCommentsAfter $ getLoc body
-  pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
+  prettyPrint' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
     indentedBlock $ do
@@ -915,24 +926,24 @@ instance PrettyPrintable (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wh
         (if isInsideMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
-        fmap pretty guards
+        fmap prettyPrint guards
       space
       rhsSeparator
       string " do "
-      mapM_ pretty $ unLoc body
-  pretty' (GRHS _ [] body) = horizontal <-|> vertical
+      mapM_ prettyPrint $ unLoc body
+  prettyPrint' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
         unlessInsideLambda space
         rhsSeparator
         space
-        pretty body
+        prettyPrint body
       vertical = do
         unlessInsideLambda space
         rhsSeparator
         newline
-        exitLambda $ indentedBlock $ pretty body
-  pretty' (GRHS _ guards body) = do
+        exitLambda $ indentedBlock $ prettyPrint body
+  prettyPrint' (GRHS _ guards body) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
     (if isInsideMultiwayIf
@@ -942,10 +953,10 @@ instance PrettyPrintable (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wh
         (if isInsideMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
-        fmap pretty guards
+        fmap prettyPrint guards
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [rhsSeparator, pretty body]
+      horizontal = spacePrefixed [rhsSeparator, prettyPrint body]
       vertical = do
         isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
         space
@@ -954,118 +965,118 @@ instance PrettyPrintable (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wh
         (if isInsideMultiwayIf
            then id
            else indentedBlock) $
-          pretty body
+          prettyPrint body
   commentsBefore (GRHS x _ _) = commentsBefore x
   commentsSameLine (GRHS x _ _) = commentsSameLine x
   commentsAfter (GRHS x _ _) = commentsAfter x
 
 instance PrettyPrintable EpaCommentTok where
-  pretty' (EpaLineComment c)  = string c
-  pretty' (EpaBlockComment c) = string c
-  pretty' _                   = undefined
+  prettyPrint' (EpaLineComment c)  = string c
+  prettyPrint' (EpaBlockComment c) = string c
+  prettyPrint' _                   = undefined
 
 instance PrettyPrintable (SpliceDecl GhcPs) where
-  pretty' (SpliceDecl _ sp _) = pretty sp
+  prettyPrint' (SpliceDecl _ sp _) = prettyPrint sp
 
 instance PrettyPrintable (HsSplice GhcPs) where
-  pretty' HsTypedSplice {} = undefined
-  pretty' (HsUntypedSplice _ decoration _ body) = do
+  prettyPrint' HsTypedSplice {} = undefined
+  prettyPrint' (HsUntypedSplice _ decoration _ body) = do
     string prefix
-    pretty body
+    prettyPrint body
     where
       prefix =
         case decoration of
           DollarSplice -> "$"
           BareSplice   -> ""
-  pretty' p@HsQuasiQuote {} = output p
-  pretty' HsSpliced {} = undefined
+  prettyPrint' p@HsQuasiQuote {} = output p
+  prettyPrint' HsSpliced {} = undefined
 
 instance PrettyPrintable (Pat GhcPs) where
-  pretty' p@WildPat {} = output p
-  pretty' p@VarPat {} = output p
-  pretty' p@LazyPat {} = output p
-  pretty' (AsPat _ a b) = do
-    pretty a
+  prettyPrint' p@WildPat {} = output p
+  prettyPrint' p@VarPat {} = output p
+  prettyPrint' p@LazyPat {} = output p
+  prettyPrint' (AsPat _ a b) = do
+    prettyPrint a
     string "@"
-    pretty b
-  pretty' (ParPat _ inner) = parens $ pretty inner
-  pretty' p@BangPat {} = output p
-  pretty' (ListPat _ xs) = hList $ fmap pretty xs
-  pretty' (TuplePat _ pats _) = hTuple $ fmap pretty pats
-  pretty' SumPat {} = undefined
-  pretty' ConPat {..} =
+    prettyPrint b
+  prettyPrint' (ParPat _ inner) = parens $ prettyPrint inner
+  prettyPrint' p@BangPat {} = output p
+  prettyPrint' (ListPat _ xs) = hList $ fmap prettyPrint xs
+  prettyPrint' (TuplePat _ pats _) = hTuple $ fmap prettyPrint pats
+  prettyPrint' SumPat {} = undefined
+  prettyPrint' ConPat {..} =
     case pat_args of
       PrefixCon _ as -> do
         prefixOp $ unLoc pat_con
-        spacePrefixed $ fmap pretty as
+        spacePrefixed $ fmap prettyPrint as
       RecCon rec ->
-        indentedDependingOnHead (pretty pat_con >> space) $ pretty rec
+        indentedDependingOnHead (prettyPrint pat_con >> space) $ prettyPrint rec
       InfixCon a b -> do
-        pretty a
+        prettyPrint a
         unlessSpecialOp (unLoc pat_con) space
         infixOp $ unLoc pat_con
         unlessSpecialOp (unLoc pat_con) space
-        pretty b
-  pretty' (ViewPat _ l r) = do
-    pretty l
+        prettyPrint b
+  prettyPrint' (ViewPat _ l r) = do
+    prettyPrint l
     string " -> "
-    pretty r
-  pretty' p@SplicePat {} = output p
-  pretty' p@LitPat {} = output p
-  pretty' (NPat _ x _ _) = output x
-  pretty' p@NPlusKPat {} = output p
-  pretty' p@SigPat {} = output p
+    prettyPrint r
+  prettyPrint' p@SplicePat {} = output p
+  prettyPrint' p@LitPat {} = output p
+  prettyPrint' (NPat _ x _ _) = output x
+  prettyPrint' p@NPlusKPat {} = output p
+  prettyPrint' p@SigPat {} = output p
 
 instance PrettyPrintable (HsBracket GhcPs) where
-  pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
-  pretty' (PatBr _ expr) =
+  prettyPrint' (ExpBr _ expr) = brackets $ wrapWithBars $ prettyPrint expr
+  prettyPrint' (PatBr _ expr) =
     brackets $ do
       string "p"
-      wrapWithBars $ pretty expr
-  pretty' DecBrL {} = undefined
-  pretty' DecBrG {} = undefined
-  pretty' (TypBr _ expr) =
+      wrapWithBars $ prettyPrint expr
+  prettyPrint' DecBrL {} = undefined
+  prettyPrint' DecBrG {} = undefined
+  prettyPrint' (TypBr _ expr) =
     brackets $ do
       string "t"
-      wrapWithBars $ pretty expr
-  pretty' (VarBr _ True var) = do
+      wrapWithBars $ prettyPrint expr
+  prettyPrint' (VarBr _ True var) = do
     string "'"
-    pretty var
-  pretty' (VarBr _ False var) = do
+    prettyPrint var
+  prettyPrint' (VarBr _ False var) = do
     string "''"
-    pretty var
-  pretty' TExpBr {} = undefined
+    prettyPrint var
+  prettyPrint' TExpBr {} = undefined
 
 instance PrettyPrintable SigMethodsFamily where
-  pretty' (Sig x)        = pretty x
-  pretty' (Method x)     = pretty x
-  pretty' (TypeFamily x) = pretty x
+  prettyPrint' (Sig x)        = prettyPrint x
+  prettyPrint' (Method x)     = prettyPrint x
+  prettyPrint' (TypeFamily x) = prettyPrint x
 
 instance PrettyPrintable EpaComment where
-  pretty' EpaComment {..} = pretty ac_tok
+  prettyPrint' EpaComment {..} = prettyPrint ac_tok
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
--- for satisfying the 'GenLocated' one. We can't pretty-print 'Anchor'.
+-- for satisfying the 'GenLocated' one. We can't prettyPrint-print 'Anchor'.
 instance PrettyPrintable Anchor where
-  pretty' _ = return ()
+  prettyPrint' _ = return ()
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
--- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcAnn'.
+-- for satisfying the 'GenLocated' one. We can't prettyPrint-print 'SrcAnn'.
 instance PrettyPrintable (SrcAnn a) where
-  pretty' _ = return ()
+  prettyPrint' _ = return ()
   commentsBefore (SrcSpanAnn ep _) = commentsBefore ep
   commentsSameLine (SrcSpanAnn ep _) = commentsSameLine ep
   commentsAfter (SrcSpanAnn ep _) = commentsAfter ep
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
--- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcSpan'.
+-- for satisfying the 'GenLocated' one. We can't prettyPrint-print 'SrcSpan'.
 instance PrettyPrintable SrcSpan where
-  pretty' _ = return ()
+  prettyPrint' _ = return ()
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
--- for satisfying the 'GenLocated' one. We can't pretty-print 'EpAnn'.
+-- for satisfying the 'GenLocated' one. We can't prettyPrint-print 'EpAnn'.
 instance PrettyPrintable (EpAnn a) where
-  pretty' _ = return ()
+  prettyPrint' _ = return ()
   commentsBefore (EpAnn _ _ cs) = priorComments cs
   commentsBefore EpAnnNotUsed   = []
   -- FIXME: Remove duplicated 'where's.
@@ -1082,11 +1093,12 @@ instance PrettyPrintable (EpAnn a) where
   commentsAfter EpAnnNotUsed = []
 
 instance PrettyPrintable (HsLocalBindsLR GhcPs GhcPs) where
-  pretty' (HsValBinds _ lr) = pretty lr
-  pretty' x                 = output x
+  prettyPrint' (HsValBinds _ lr) = prettyPrint lr
+  prettyPrint' x                 = output x
 
 instance PrettyPrintable (HsValBindsLR GhcPs GhcPs) where
-  pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
+  prettyPrint' (ValBinds _ methods sigs) =
+    lined $ fmap prettyPrint sigsAndMethods
       -- TODO: Merge this where clause with the one in the 'ClassDecl' of
       -- 'TyClDecl'.
     where
@@ -1096,81 +1108,82 @@ instance PrettyPrintable (HsValBindsLR GhcPs GhcPs) where
       getLocation (Sig x)       = realSrcSpan $ locA $ getLoc x
       getLocation (Method x)    = realSrcSpan $ locA $ getLoc x
       getLocation TypeFamily {} = undefined
-  pretty' x = output x
+  prettyPrint' x = output x
 
 instance PrettyPrintable (HsTupArg GhcPs) where
-  pretty' (Present _ e) = pretty e
-  pretty' Missing {}    = return () -- This appears in a tuple section.
+  prettyPrint' (Present _ e) = prettyPrint e
+  prettyPrint' Missing {}    = return () -- This appears in a tuple section.
 
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance (PrettyPrintable a, PrettyPrintable b) =>
          PrettyPrintable (HsRecField' a b) where
-  pretty' HsRecField {..} = horizontal <-|> vertical
+  prettyPrint' HsRecField {..} = horizontal <-|> vertical
     where
       horizontal = do
-        pretty hsRecFieldLbl
+        prettyPrint hsRecFieldLbl
         unless hsRecPun $ do
           string " = "
-          pretty hsRecFieldArg
+          prettyPrint hsRecFieldArg
       vertical = do
-        pretty hsRecFieldLbl
+        prettyPrint hsRecFieldLbl
         unless hsRecPun $ do
           string " ="
           newline
-          indentedBlock $ pretty hsRecFieldArg
+          indentedBlock $ prettyPrint hsRecFieldArg
 
 instance PrettyPrintable (FieldOcc GhcPs) where
-  pretty' FieldOcc {..} = pretty rdrNameFieldOcc
+  prettyPrint' FieldOcc {..} = prettyPrint rdrNameFieldOcc
 
 -- HsConDeclH98Details
 instance PrettyPrintable (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (BangType GhcPs))) (GenLocated SrcSpanAnnL [GenLocated SrcSpanAnnA (ConDeclField GhcPs)])) where
-  pretty' (PrefixCon _ xs) = horizontal <-|> vertical
+  prettyPrint' (PrefixCon _ xs) = horizontal <-|> vertical
     where
-      horizontal = spacePrefixed $ fmap pretty xs
-      vertical = indentedBlock $ newlinePrefixed $ fmap pretty xs
-  pretty' (RecCon (L _ rec)) = do
+      horizontal = spacePrefixed $ fmap prettyPrint xs
+      vertical = indentedBlock $ newlinePrefixed $ fmap prettyPrint xs
+  prettyPrint' (RecCon (L _ rec)) = do
     newline
-    indentedBlock $ vFields $ fmap pretty rec
-  pretty' InfixCon {} =
+    indentedBlock $ vFields $ fmap prettyPrint rec
+  prettyPrint' InfixCon {} =
     error
       "Cannot handle here because 'InfixCon' does not have the information of its constructor."
 
 -- FIXME: Reconsider using a type variable.
 instance PrettyPrintable a => PrettyPrintable (HsScaled GhcPs a) where
-  pretty' (HsScaled _ x) = pretty x
+  prettyPrint' (HsScaled _ x) = prettyPrint x
 
 instance PrettyPrintable (ConDeclField GhcPs) where
-  pretty' ConDeclField {..}
+  prettyPrint' ConDeclField {..}
     -- Here, we *ignore* the 'cd_fld_doc' field because doc strings are
     -- also stored as comments, and printing both results in duplicated
     -- comments.
    = do
-    pretty $ head cd_fld_names
+    prettyPrint $ head cd_fld_names
     string " :: "
-    pretty cd_fld_type
+    prettyPrint cd_fld_type
 
 instance PrettyPrintable InfixExpr where
-  pretty' (InfixExpr (L _ (HsVar _ bind))) = infixOp $ unLoc bind
-  pretty' (InfixExpr x)                    = pretty' x
+  prettyPrint' (InfixExpr (L _ (HsVar _ bind))) = infixOp $ unLoc bind
+  prettyPrint' (InfixExpr x)                    = prettyPrint' x
   commentsBefore (InfixExpr x) = commentsBefore x
   commentsSameLine (InfixExpr x) = commentsSameLine x
   commentsAfter (InfixExpr x) = commentsAfter x
 
 instance PrettyPrintable InfixApp where
-  pretty' InfixApp {..} = horizontal <-|> vertical
+  prettyPrint' InfixApp {..} = horizontal <-|> vertical
     where
-      horizontal = spaced [pretty lhs, pretty (InfixExpr op), pretty rhs]
+      horizontal =
+        spaced [prettyPrint lhs, prettyPrint (InfixExpr op), prettyPrint rhs]
       vertical = do
         lhsVer
         beforeRhs <-
           case unLoc lhs of
             (HsDo _ DoExpr {} _) -> do
-              indentedWithSpace 3 (newline >> pretty (InfixExpr op)) -- 3 for "do "
+              indentedWithSpace 3 (newline >> prettyPrint (InfixExpr op)) -- 3 for "do "
               return space
             _ -> do
               space
-              pretty (InfixExpr op)
+              prettyPrint (InfixExpr op)
               return newline
         (if immediatelyAfterDo
            then indentedBlock
@@ -1179,47 +1192,47 @@ instance PrettyPrintable InfixApp where
             (HsDo _ (DoExpr _) xs) -> do
               string " do"
               newline
-              indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+              indentedBlock $ lined $ prettyPrint <$> unLoc xs -- TODO: Handle comments.
             HsLam {} -> do
               space
-              pretty rhs
+              prettyPrint rhs
             HsLamCase {} -> do
               space
-              pretty rhs
+              prettyPrint rhs
             _ -> do
               beforeRhs
               col <- startingColumn
               (if col == 0
                  then indentedBlock
                  else id) $
-                pretty rhs
+                prettyPrint rhs
       lhsVer =
         case lhs of
           (L loc (OpApp _ l o r)) ->
-            pretty (L loc (InfixApp l o r immediatelyAfterDo))
-          _ -> pretty lhs
+            prettyPrint (L loc (InfixApp l o r immediatelyAfterDo))
+          _ -> prettyPrint lhs
 
 instance PrettyPrintable a => PrettyPrintable (BooleanFormula a) where
-  pretty' (Var x)    = pretty x
-  pretty' (And xs)   = commaSep $ fmap pretty xs
-  pretty' (Or xs)    = barSep $ fmap pretty xs
-  pretty' (Parens x) = parens $ pretty x
+  prettyPrint' (Var x)    = prettyPrint x
+  prettyPrint' (And xs)   = commaSep $ fmap prettyPrint xs
+  prettyPrint' (Or xs)    = barSep $ fmap prettyPrint xs
+  prettyPrint' (Parens x) = parens $ prettyPrint x
 
 instance PrettyPrintable (FieldLabelStrings GhcPs) where
-  pretty' _ = undefined
+  prettyPrint' _ = undefined
 
 instance PrettyPrintable (AmbiguousFieldOcc GhcPs) where
-  pretty' (Unambiguous _ name) = pretty name
-  pretty' (Ambiguous _ name)   = pretty name
+  prettyPrint' (Unambiguous _ name) = prettyPrint name
+  prettyPrint' (Ambiguous _ name)   = prettyPrint name
 
 instance PrettyPrintable (ImportDecl GhcPs) where
-  pretty' ImportDecl {..} = do
+  prettyPrint' ImportDecl {..} = do
     string "import "
     when (ideclSource == IsBoot) $ string "{-# SOURCE #-} "
     when ideclSafe $ string "safe "
     unless (ideclQualified == NotQualified) $ string "qualified "
     whenJust ideclPkgQual $ \x -> do
-      pretty x
+      prettyPrint x
       space
     output ideclName
     whenJust ideclAs $ \x -> do
@@ -1234,62 +1247,62 @@ instance PrettyPrintable (ImportDecl GhcPs) where
         output <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
 
 instance PrettyPrintable (HsDerivingClause GhcPs) where
-  pretty' HsDerivingClause {..} = do
+  prettyPrint' HsDerivingClause {..} = do
     string "deriving "
     whenJust deriv_clause_strategy $ \x -> do
       output x
       space
-    pretty deriv_clause_tys
+    prettyPrint deriv_clause_tys
 
 instance PrettyPrintable (DerivClauseTys GhcPs) where
-  pretty' (DctSingle _ ty) = parens $ pretty ty
-  pretty' (DctMulti _ ts)  = tuple $ fmap pretty ts
+  prettyPrint' (DctSingle _ ty) = parens $ prettyPrint ty
+  prettyPrint' (DctMulti _ ts)  = tuple $ fmap prettyPrint ts
 
 instance PrettyPrintable OverlapMode where
-  pretty' NoOverlap {}    = undefined
-  pretty' Overlappable {} = undefined
-  pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
-  pretty' Overlaps {}     = undefined
-  pretty' Incoherent {}   = undefined
+  prettyPrint' NoOverlap {}    = undefined
+  prettyPrint' Overlappable {} = undefined
+  prettyPrint' Overlapping {}  = string "{-# OVERLAPPING #-}"
+  prettyPrint' Overlaps {}     = undefined
+  prettyPrint' Incoherent {}   = undefined
 
 instance PrettyPrintable StringLiteral where
-  pretty' = output
+  prettyPrint' = output
 
 instance PrettyPrintable (FamilyDecl GhcPs) where
-  pretty' FamilyDecl {..} = do
+  prettyPrint' FamilyDecl {..} = do
     string "type "
-    pretty fdLName
-    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
+    prettyPrint fdLName
+    spacePrefixed $ prettyPrint <$> hsq_explicit fdTyVars
     string " = "
-    pretty fdResultSig
+    prettyPrint fdResultSig
     whenJust fdInjectivityAnn $ \x -> do
       string " | "
-      pretty x
+      prettyPrint x
 
 instance PrettyPrintable (FamilyResultSig GhcPs) where
-  pretty' NoSig {}       = undefined
-  pretty' KindSig {}     = undefined
-  pretty' (TyVarSig _ x) = pretty x
+  prettyPrint' NoSig {}       = undefined
+  prettyPrint' KindSig {}     = undefined
+  prettyPrint' (TyVarSig _ x) = prettyPrint x
 
 instance PrettyPrintable (HsTyVarBndr a GhcPs) where
-  pretty' (UserTyVar _ _ x) = pretty x
-  pretty' KindedTyVar {}    = undefined
+  prettyPrint' (UserTyVar _ _ x) = prettyPrint x
+  prettyPrint' KindedTyVar {}    = undefined
 
 instance PrettyPrintable (InjectivityAnn GhcPs) where
-  pretty' (InjectivityAnn _ from to) = do
-    pretty from
+  prettyPrint' (InjectivityAnn _ from to) = do
+    prettyPrint from
     string " -> "
-    spaced $ fmap pretty to
+    spaced $ fmap prettyPrint to
 
 instance PrettyPrintable (ArithSeqInfo GhcPs) where
-  pretty' (From from) =
+  prettyPrint' (From from) =
     brackets $ do
-      pretty from
+      prettyPrint from
       string " .."
-  pretty' FromThen {} = undefined
-  pretty' FromTo {} = undefined
-  pretty' FromThenTo {} = undefined
+  prettyPrint' FromThen {} = undefined
+  prettyPrint' FromTo {} = undefined
+  prettyPrint' FromThenTo {} = undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
-prefixExpr x              = pretty x
+prefixExpr x              = prettyPrint x
