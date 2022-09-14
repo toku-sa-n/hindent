@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module HIndent.HavingComments
-  ( HavingComments
+  ( HavingComments(..)
   ) where
 
 import           Data.List
