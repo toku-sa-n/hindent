@@ -144,7 +144,7 @@ hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 -- | Print the module.
 prettyPrint :: Config -> HsModule -> Builder
 prettyPrint config m =
-  runPrinterStyle config (P.prettyPrint $ relocateComments m)
+  runPrinterStyle config (P.prettyPrintWithComments $ relocateComments m)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
