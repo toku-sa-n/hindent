@@ -22,12 +22,21 @@ pragmaExists = not . null . collectPragmas
 -- should be slow. Limit the range to search for them.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  mapMaybe unwrapComment . filter isPragma . listify matchToComment
+  fmap (\x -> "{-# LANGUAGE " ++ x ++ " #-}") .
+  mapMaybe fetchPragma . listify matchToComment
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
-    unwrapComment (EpaBlockComment c) = Just c
-    unwrapComment _                   = Nothing
+
+fetchPragma :: EpaCommentTok -> Maybe String
+fetchPragma (EpaBlockComment c) =
+  case c =~ "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}" :: ( String
+                                                    , String
+                                                    , String
+                                                    , [String]) of
+    (_, _, _, [x]) -> Just x
+    _              -> Nothing
+fetchPragma _ = Nothing
 
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ ("{-# +LANGUAGE +[a-zA-Z]+ +#-}" :: String)

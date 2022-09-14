@@ -30,6 +30,16 @@ Extension pragmas
 fun @Int 12
 ```
 
+A pragma's length is adjusted automatically
+
+```haskell given
+{-#         LANGUAGE OverloadedStrings          #-}
+```
+
+```haskell expect
+{-# LANGUAGE OverloadedStrings #-}
+```
+
 Module header
 
 ``` haskell
