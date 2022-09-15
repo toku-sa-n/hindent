@@ -111,13 +111,13 @@ printCommentsAfter p =
 -- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
 class Pretty a where
   pretty' :: a -> Printer ()
-  -- These functions must return comments that only this node can fetch. In
-  -- other words, these functions must not return comments that child nodes
-  -- can fetch.
+  -- | Returns comments that are before the given AST node.
   commentsBefore :: a -> [LEpaComment]
   commentsBefore = const []
+  -- | Returns a comment that is on the same line as the last line of the given AST node if it exists.
   commentOnSameLine :: a -> Maybe LEpaComment
   commentOnSameLine = const Nothing
+  -- | Returns comments that are after the given AST node.
   commentsAfter :: a -> [LEpaComment]
   commentsAfter = const []
 
