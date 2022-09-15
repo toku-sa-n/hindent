@@ -20,33 +20,8 @@ import           GHC.Types.SrcLoc
 import           HIndent.ModulePreprocessing.CommentRelocation
 import           Type.Reflection
 
--- | This function collects all comments from the passed 'HsModule', and modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
---
--- HIndent gathers all comments above a function, an import, a module declaration, etc. For example, HIndent formats the following code
---
--- > f :: Int
--- > f = 1
--- >
--- > -- A comment between f and g
--- >
--- > -- Another comment between f and g
--- >
--- > g :: Int
--- > g = 2
---
--- to
---
--- > f :: Int
--- > f = 1
--- >
--- > -- A comment between f and g
--- > -- Another comment between f and g
--- > g :: Int
--- > g = 2
---
--- AST's nodes must have the information of which comments are above, on the same line, and below. However, the 'HsModule's AST nodes obtained by parsing a module contain only comments after the nodes.
---
--- This function solves the problem by collecting all 'LEpaComment's with 'listify', and iterates all nodes from top to bottom a few times. During the first iteration, this function adds comments above each node from the collected ones to the node. On the next iteration, it adds a comment on the same line. On the last iteration, it adds comments below them.
+-- | This function modifies the given module AST for pretty-printing
+-- easier.
 modifyASTForPrettyPrinting :: HsModule -> HsModule
 modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
   where
