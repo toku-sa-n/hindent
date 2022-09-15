@@ -62,7 +62,7 @@ pretty :: Pretty a => a -> Printer ()
 pretty p = do
   printCommentsBefore p
   pretty' p
-  printCommentsSameLine p
+  printCommentOnSameLine p
   printCommentsAfter p
 
 printCommentsBefore :: Pretty a => a -> Printer ()
@@ -71,8 +71,8 @@ printCommentsBefore p =
     pretty x
     newline
 
-printCommentsSameLine :: Pretty a => a -> Printer ()
-printCommentsSameLine (commentsSameLine -> Just (L sp c)) = do
+printCommentOnSameLine :: Pretty a => a -> Printer ()
+printCommentOnSameLine (commentOnSameLine -> Just (L sp c)) = do
   col <- gets psColumn
   if col == 0
     then indentedWithLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
@@ -81,7 +81,7 @@ printCommentsSameLine (commentsSameLine -> Just (L sp c)) = do
       space
       pretty c
   eolCommentsArePrinted
-printCommentsSameLine _ = return ()
+printCommentOnSameLine _ = return ()
 
 printCommentsAfter :: Pretty a => a -> Printer ()
 printCommentsAfter p =
@@ -113,8 +113,8 @@ class Pretty a where
   -- can fetch.
   commentsBefore :: a -> [LEpaComment]
   commentsBefore = const []
-  commentsSameLine :: a -> Maybe LEpaComment
-  commentsSameLine = const Nothing
+  commentOnSameLine :: a -> Maybe LEpaComment
+  commentOnSameLine = const Nothing
   commentsAfter :: a -> [LEpaComment]
   commentsAfter = const []
 
@@ -180,7 +180,7 @@ instance Pretty HsModule where
 instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
   pretty' (L _ e) = pretty e
   commentsBefore (L l _) = commentsBefore l
-  commentsSameLine (L l _) = commentsSameLine l
+  commentOnSameLine (L l _) = commentOnSameLine l
   commentsAfter (L l _) = commentsAfter l
 
 instance Pretty (HsDecl GhcPs) where
@@ -326,8 +326,8 @@ instance Pretty (HsBind GhcPs) where
   pretty' x            = output x
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
-  commentsSameLine FunBind {..} = commentsSameLine fun_id
-  commentsSameLine _            = Nothing
+  commentOnSameLine FunBind {..} = commentOnSameLine fun_id
+  commentOnSameLine _            = Nothing
   commentsAfter FunBind {..} = commentsAfter fun_id
   commentsAfter _            = []
 
@@ -558,7 +558,7 @@ instance Pretty (HsExpr GhcPs) where
             pretty hsRecFieldLbl
             string " = "
             pretty hsRecFieldArg
-            printCommentsSameLine l
+            printCommentOnSameLine l
             printCommentsAfter l
         Left xs ->
           forM_ xs $ \(L l HsRecField {..}) -> do
@@ -566,7 +566,7 @@ instance Pretty (HsExpr GhcPs) where
             pretty hsRecFieldLbl
             string " = "
             pretty hsRecFieldArg
-            printCommentsSameLine l
+            printCommentOnSameLine l
             printCommentsAfter l
   pretty' HsGetField {} = undefined
   pretty' HsProjection {} = undefined
@@ -587,9 +587,9 @@ instance Pretty (HsExpr GhcPs) where
   commentsBefore (HsVar _ x)   = commentsBefore x
   commentsBefore (HsApp x _ _) = commentsBefore x
   commentsBefore _             = []
-  commentsSameLine (HsVar _ x)   = commentsSameLine x
-  commentsSameLine (HsApp x _ _) = commentsSameLine x
-  commentsSameLine _             = Nothing
+  commentOnSameLine (HsVar _ x)   = commentOnSameLine x
+  commentOnSameLine (HsApp x _ _) = commentOnSameLine x
+  commentOnSameLine _             = Nothing
   commentsAfter (HsVar _ x)   = commentsAfter x
   commentsAfter (HsApp x _ _) = commentsAfter x
   commentsAfter _             = []
@@ -686,7 +686,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
-  commentsSameLine Match {..} = commentsSameLine m_ext
+  commentOnSameLine Match {..} = commentOnSameLine m_ext
   commentsAfter Match {..} = commentsAfter m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -776,7 +776,7 @@ instance Pretty (HsType GhcPs) where
         forM_ hst_ctxt $ \(L l cs) -> do
           printCommentsBefore l
           inter (newline >> string ", ") $ fmap pretty cs
-          printCommentsSameLine l
+          printCommentOnSameLine l
           printCommentsAfter l
         newline
         string constraintsParensR
@@ -875,7 +875,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
               newline
               printCommentsBefore epa
               indentedBlock $ pretty lr
-          printCommentsSameLine epa
+          printCommentOnSameLine epa
           printCommentsAfter epa
       _ -> return ()
 
@@ -906,7 +906,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       indentedBlock $ do
         printCommentsBefore $ getLoc body
         lined $ pretty <$> unLoc body
-        printCommentsSameLine $ getLoc body
+        printCommentOnSameLine $ getLoc body
         printCommentsAfter $ getLoc body
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
@@ -958,7 +958,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
            else indentedBlock) $
           pretty body
   commentsBefore (GRHS x _ _) = commentsBefore x
-  commentsSameLine (GRHS x _ _) = commentsSameLine x
+  commentOnSameLine (GRHS x _ _) = commentOnSameLine x
   commentsAfter (GRHS x _ _) = commentsAfter x
 
 instance Pretty EpaCommentTok where
@@ -1056,7 +1056,7 @@ instance Pretty Anchor where
 instance Pretty (SrcAnn a) where
   pretty' _ = return ()
   commentsBefore (SrcSpanAnn ep _) = commentsBefore ep
-  commentsSameLine (SrcSpanAnn ep _) = commentsSameLine ep
+  commentOnSameLine (SrcSpanAnn ep _) = commentOnSameLine ep
   commentsAfter (SrcSpanAnn ep _) = commentsAfter ep
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
@@ -1071,11 +1071,11 @@ instance Pretty (EpAnn a) where
   commentsBefore (EpAnn _ _ cs) = priorComments cs
   commentsBefore EpAnnNotUsed   = []
   -- FIXME: Remove duplicated 'where's.
-  commentsSameLine (EpAnn ann _ cs) = find isSameLine $ getFollowingComments cs
+  commentOnSameLine (EpAnn ann _ cs) = find isSameLine $ getFollowingComments cs
     where
       isSameLine (L comAnn _) =
         srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
-  commentsSameLine EpAnnNotUsed = Nothing
+  commentOnSameLine EpAnnNotUsed = Nothing
   commentsAfter (EpAnn ann _ cs) =
     filter (not . isSameLine) $ getFollowingComments cs
     where
@@ -1155,7 +1155,7 @@ instance Pretty InfixExpr where
   pretty' (InfixExpr (L _ (HsVar _ bind))) = infixOp $ unLoc bind
   pretty' (InfixExpr x)                    = pretty' x
   commentsBefore (InfixExpr x) = commentsBefore x
-  commentsSameLine (InfixExpr x) = commentsSameLine x
+  commentOnSameLine (InfixExpr x) = commentOnSameLine x
   commentsAfter (InfixExpr x) = commentsAfter x
 
 instance Pretty InfixApp where
