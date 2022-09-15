@@ -65,12 +65,14 @@ pretty p = do
   printCommentOnSameLine p
   printCommentsAfter p
 
+-- | Prints comments that are before the given AST node.
 printCommentsBefore :: Pretty a => a -> Printer ()
 printCommentsBefore p =
   forM_ (commentsBefore p) $ \x -> do
     pretty x
     newline
 
+-- | Prints a comment that is on the same line as the given AST node if it exists.
 printCommentOnSameLine :: Pretty a => a -> Printer ()
 printCommentOnSameLine (commentOnSameLine -> Just (L sp c)) = do
   col <- gets psColumn
@@ -83,6 +85,7 @@ printCommentOnSameLine (commentOnSameLine -> Just (L sp c)) = do
   eolCommentsArePrinted
 printCommentOnSameLine _ = return ()
 
+-- | Prints comments that are after the given AST node.
 printCommentsAfter :: Pretty a => a -> Printer ()
 printCommentsAfter p =
   case commentsAfter p of
