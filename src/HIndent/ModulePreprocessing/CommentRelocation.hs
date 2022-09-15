@@ -74,16 +74,11 @@ relocateComments m = evalState (relocate m)
       relocateCommentsTopLevelWhereClause >=> relocateCommentsAfter
 
 -- | This function locates pragmas to the module's EPA.
---
--- FIXME: Do we need 'everywhereM''?
 relocatePragmas :: HsModule -> WithComments HsModule
-relocatePragmas m@HsModule {hsmodAnn = hsmodAnn} = do
-  newAnn <- everywhereM' (applyM f) hsmodAnn
+relocatePragmas m@HsModule {hsmodAnn = epa@EpAnn {}} = do
+  newAnn <- insertComments (isPragma . ac_tok . unLoc) insertPriorComments epa
   return m {hsmodAnn = newAnn}
-  where
-    f epa@EpAnn {} =
-      insertComments (isPragma . ac_tok . unLoc) insertPriorComments epa
-    f EpAnnNotUsed = pure EpAnnNotUsed
+relocatePragmas m@HsModule {hsmodAnn = EpAnnNotUsed} = pure m
 
 -- | This function locates comments that are located before pragmas.
 relocateCommentsBeforePragmas :: HsModule -> WithComments HsModule
