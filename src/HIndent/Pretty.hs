@@ -65,6 +65,36 @@ pretty p = do
   printCommentsSameLine p
   printCommentsAfter p
 
+printCommentsBefore :: Pretty a => a -> Printer ()
+printCommentsBefore p =
+  forM_ (commentsBefore p) $ \x -> do
+    pretty x
+    newline
+
+printCommentsSameLine :: Pretty a => a -> Printer ()
+printCommentsSameLine (commentsSameLine -> Just (L sp c)) = do
+  col <- gets psColumn
+  if col == 0
+    then indentedWithLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
+         pretty c
+    else do
+      space
+      pretty c
+  eolCommentsArePrinted
+printCommentsSameLine _ = return ()
+
+printCommentsAfter :: Pretty a => a -> Printer ()
+printCommentsAfter p =
+  case commentsAfter p of
+    [] -> return ()
+    xs -> do
+      isThereCommentsOnSameLine <- gets psEolComment
+      unless isThereCommentsOnSameLine newline
+      forM_ xs $ \(L loc c) -> do
+        let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
+        indentedWithLevel col $ pretty c
+        eolCommentsArePrinted
+
 -- | Pretty print including comments.
 --
 -- FIXME: 'Pretty' has a problem. It has two responsibilities; one is to
@@ -78,33 +108,6 @@ pretty p = do
 -- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
 class Pretty a where
   pretty' :: a -> Printer ()
-  printCommentsBefore :: a -> Printer ()
-  printCommentsBefore p =
-    forM_ (commentsBefore p) $ \x -> do
-      pretty x
-      newline
-  printCommentsSameLine :: a -> Printer ()
-  printCommentsSameLine (commentsSameLine -> Just (L sp c)) = do
-    col <- gets psColumn
-    if col == 0
-      then indentedWithLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
-           pretty c
-      else do
-        space
-        pretty c
-    eolCommentsArePrinted
-  printCommentsSameLine _ = return ()
-  printCommentsAfter :: a -> Printer ()
-  printCommentsAfter p =
-    case commentsAfter p of
-      [] -> return ()
-      xs -> do
-        isThereCommentsOnSameLine <- gets psEolComment
-        unless isThereCommentsOnSameLine newline
-        forM_ xs $ \(L loc c) -> do
-          let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
-          indentedWithLevel col $ pretty c
-          eolCommentsArePrinted
   -- These functions must return comments that only this node can fetch. In
   -- other words, these functions must not return comments that child nodes
   -- can fetch.
