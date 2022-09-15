@@ -36,6 +36,7 @@ library
                      HIndent.CodeBlock
                      HIndent.ExtensionConversion
                      HIndent.ModulePreprocessing
+                     HIndent.ModulePreprocessing.CommentRelocation
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
                      HIndent.Pretty.Combinators.Indent
