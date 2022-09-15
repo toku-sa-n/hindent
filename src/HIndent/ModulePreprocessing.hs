@@ -1,7 +1,3 @@
--- TODO: Split this module by creating 'RelocateComments.Preprocessing'.
--- TODO: This module is not so much for comment relocation as for
--- preprocessing. Rename the module and create a new one called
--- 'RelocateComments' inside it.
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ImpredicativeTypes  #-}
