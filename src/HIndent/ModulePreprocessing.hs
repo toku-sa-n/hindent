@@ -10,7 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module HIndent.RelocateComments
+module HIndent.ModulePreprocessing
   ( relocateComments
   ) where
 

@@ -46,8 +46,8 @@ import           GHC.Parser.Lexer            hiding (buffer)
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import qualified HIndent.ExtensionConversion as CE
+import           HIndent.ModulePreprocessing
 import           HIndent.Pretty
-import           HIndent.RelocateComments
 import           HIndent.Types
 import qualified Language.Haskell.Extension  as Cabal
 import           Prelude
