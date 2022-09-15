@@ -212,8 +212,6 @@ applyForEpAnn f =
 
 -- | This functions returns 'True' if the given token is an Eof comment,
 -- and 'False' otherwise.
---
--- TODO: Merge this function with the one in
 isEofComment :: EpaCommentTok -> Bool
 isEofComment EpaEofComment = True
 isEofComment _             = False
