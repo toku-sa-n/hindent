@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
+-- | Module preprocessing before pretty-printing.
 module HIndent.ModulePreprocessing
   ( modifyASTForPrettyPrinting
   ) where
