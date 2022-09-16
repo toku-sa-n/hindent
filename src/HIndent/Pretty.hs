@@ -694,9 +694,9 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
-  pretty' full@(BindStmt _ pat body) = hor <-|> ver
+  pretty' (BindStmt _ pat body) = hor <-|> ver
     where
-      hor = output full
+      hor = spaced [output pat, string "<-", pretty body]
       ver = do
         output pat
         string " <-"
@@ -1293,7 +1293,11 @@ instance Pretty (ArithSeqInfo GhcPs) where
       pretty from
       string " .."
   pretty' FromThen {} = undefined
-  pretty' FromTo {} = undefined
+  pretty' (FromTo from to) =
+    brackets $ do
+      pretty from
+      string " .. "
+      pretty to
   pretty' FromThenTo {} = undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()

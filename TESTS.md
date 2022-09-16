@@ -346,6 +346,14 @@ for xs $ do
   right x
 ```
 
+`do` with a binding
+
+```haskell
+foo = do
+  mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
+  print mcp
+```
+
 Operator with lambda
 
 ```haskell
