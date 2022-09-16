@@ -3,7 +3,7 @@ module HIndent.Pretty.Combinators.Inside
   , insideInstDecl
   , insideLambda
   , insideMultiwayIf
-  , insideSignature
+  , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
   , resetInside
@@ -27,8 +27,8 @@ insideMultiwayIf = inside InsideMultiwayIf
 insideLambda :: Printer a -> Printer a
 insideLambda = inside InsideLambda
 
-insideSignature :: Printer a -> Printer a
-insideSignature = inside InsideSignature
+insideDeclSig :: Printer a -> Printer a
+insideDeclSig = inside InsideDeclSig
 
 insideVerticalList :: Printer a -> Printer a
 insideVerticalList = inside InsideVerticalList

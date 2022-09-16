@@ -193,7 +193,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (InstD _ inst) = pretty inst
   pretty' DerivD {}      = undefined
   pretty' (ValD _ bind)  = pretty bind
-  pretty' (SigD _ s)     = insideSignature $ pretty s
+  pretty' (SigD _ s)     = insideDeclSig $ pretty s
   pretty' KindSigD {}    = undefined
   pretty' DefD {}        = undefined
   pretty' x@ForD {}      = output x
@@ -738,7 +738,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined
   pretty' HsQualTy {..} = do
-    isInSig <- gets ((InsideSignature `elem`) . psInside)
+    isInSig <- gets ((InsideDeclSig `elem`) . psInside)
     if isInSig
       then sigHor <-|> sigVer
       else notInSig

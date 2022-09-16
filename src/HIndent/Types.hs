@@ -43,7 +43,7 @@ newtype Printer a =
            )
 
 data Inside
-  = InsideSignature
+  = InsideDeclSig
   | InsideVerticalList
   | InsideVerticalFunctionSignature
   | InsideLambda
