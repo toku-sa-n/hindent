@@ -642,6 +642,29 @@ sayHello = do
     greeting name = "Hello, " ++ name ++ "!"
 ```
 
+An empty line is inserted after an empty `where`
+
+```haskell given
+f = undefined
+  where
+```
+
+```haskell expect
+f = undefined
+  where
+
+```
+
+Multiple function declarations with an empty `where`
+
+```haskell
+f = undefined
+  where
+
+
+g = undefined
+```
+
 Guards and pattern guards
 
 ``` haskell

@@ -122,7 +122,9 @@ class Pretty a where
   commentsAfter = const []
 
 instance Pretty HsModule where
-  pretty' m = blanklined printers
+  pretty' m = do
+    blanklined printers
+    newline
     -- TODO: Refactor this 'where' clause.
     where
       printers = snd <$> filter fst pairs
@@ -241,8 +243,7 @@ instance Pretty (TyClDecl GhcPs) where
     if isJust tcdCtxt
       then verHead
       else horHead <-|> verHead
-    newline
-    indentedBlock $ lined $ fmap pretty sigsMethodsFamilies
+    indentedBlock $ newlinePrefixed $ fmap pretty sigsMethodsFamilies
     where
       horHead = do
         string "class "
