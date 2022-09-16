@@ -178,7 +178,6 @@ applyForEpAnn f =
         Just HRefl -> f
         Nothing    -> id
     _ -> id
-    -- 'HIndent.ModulePreprocessing.CommeentRelocation'.
 
 -- | This functions returns 'True' if the given token is an Eof comment,
 -- and 'False' otherwise.
