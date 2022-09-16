@@ -256,9 +256,7 @@ instance Pretty (TyClDecl GhcPs) where
                 -- TODO: Handle comments around 'tcdLName'.
                -> do
                 parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
-                forM_ xs $ \x -> do
-                  space
-                  output x
+                spacePrefixed $ fmap output xs
               _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
           string " | "
