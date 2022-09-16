@@ -98,7 +98,7 @@ replaceAllNotUsedAnns = everywhere app
           let try :: Typeable b => b -> Maybe a
               try ann = do
                 HRefl <- eqTypeRep (typeOf ann) z
-                pure sp {ann = EpAnn (spanAsAnchor (locA sp)) ann emptyComments}
+                pure sp {ann = EpAnn (spanAsAnchor $ locA sp) ann emptyComments}
           try emptyListItem <|> try emptyList <|> try emptyPragma <|>
             try emptyContext <|>
             try emptyNameAnn
