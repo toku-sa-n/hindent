@@ -69,7 +69,8 @@ sortExprLStmt m@HsModule {hsmodDecls = xs} = m {hsmodDecls = sorted}
     sortByLoc :: [ExprLStmt GhcPs] -> [ExprLStmt GhcPs]
     sortByLoc = sortBy (compare `on` srcSpanToRealSrcSpan . locA . getLoc)
 
--- | This function removes all comments from the given module. It is necessary not to duplicate comments.
+-- | This function removes all comments from the given module. It is
+-- necessary not to duplicate comments.
 removeComments :: HsModule -> HsModule
 removeComments = everywhere (mkT remover)
   where
