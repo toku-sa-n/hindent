@@ -476,7 +476,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (HsCase _ cond arms) =
     insideCase $ do
       indentedDependingOnHead (string "case ") $ do
-        exitCase $ pretty cond
+        resetInside $ pretty cond
         string " of"
       if null $ unLoc $ mg_alts arms
         then string " {}"
@@ -819,7 +819,7 @@ instance Pretty (HsType GhcPs) where
         string " -> "
         pretty b
       vertical = do
-        exitVerticalFunctionSignature $ pretty a
+        resetInside $ pretty a
         newline
         indentedWithSpace (-3) $ string "-> "
         pretty b
@@ -872,7 +872,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
           if isCase
             then indentedDependingOnHead (string "where ") $ do
                    printCommentsBefore epa
-                   exitCase $ pretty lr
+                   resetInside $ pretty lr
             else do
               string "where"
               newline
@@ -905,7 +905,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     space
     string "do"
     newline
-    exitLambda $
+    resetInside $
       indentedBlock $ do
         printCommentsBefore $ getLoc body
         lined $ pretty <$> unLoc body
@@ -931,12 +931,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         unlessInsideLambda space
         rhsSeparator
         space
-        exitCase $ pretty body
+        resetInside $ pretty body
       vertical = do
         unlessInsideLambda space
         rhsSeparator
         newline
-        exitCase $ exitLambda $ indentedBlock $ pretty body
+        resetInside $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
