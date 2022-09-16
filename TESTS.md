@@ -326,8 +326,7 @@ x =
 ```haskell
 f =
   Right $
-  S.lazyByteStrings $
-  addPrefix prefix $ S.toLazyByteString $ prettyPrint m
+  S.lazyByteStrings $ addPrefix prefix $ S.toLazyByteString $ prettyPrint m
 ```
 
 Operator with `do`
