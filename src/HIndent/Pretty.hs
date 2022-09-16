@@ -694,12 +694,14 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
-  pretty' full@(BindStmt _ pat body) =
-    output full <-|> do
-      output pat
-      string " <-"
-      newline
-      indentedBlock $ pretty body
+  pretty' full@(BindStmt _ pat body) = hor <-|> ver
+    where
+      hor = output full
+      ver = do
+        output pat
+        string " <-"
+        newline
+        indentedBlock $ pretty body
   pretty' ApplicativeStmt {} = undefined
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
