@@ -19,6 +19,7 @@ import           Generics.SYB                                  hiding (GT,
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.ModulePreprocessing.CommentRelocation
+import           Language.Haskell.GhclibParserEx.Fixity
 import           Type.Reflection
 
 -- | This function modifies the given module AST for pretty-printing
@@ -32,8 +33,11 @@ modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
       closePlaceHolderEpAnns .
       closeEpAnnOfFunBindFunId .
       replaceAllNotUsedAnns .
-      removeComments . sortExprLStmt . resetModuleStartLine
+      removeComments . sortExprLStmt . resetModuleStartLine . fixFixities
     allComments = listify (not . isEofComment . ac_tok . unLoc) m
+
+fixFixities :: HsModule -> HsModule
+fixFixities = applyFixities baseFixities
 
 -- | This function sets the given module's start line as the module
 -- name's start position if the name exists.
