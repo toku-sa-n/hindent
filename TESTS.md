@@ -321,6 +321,14 @@ x =
   Just thisissolong <*> Just stilllonger <*> evenlonger
 ```
 
+`$` chain
+
+```haskell
+f =
+  Right $
+  S.lazyByteStrings $ addPrefix prefix $ S.toLazyByteString $ prettyPrint m
+```
+
 Operator with `do`
 
 ```haskell
