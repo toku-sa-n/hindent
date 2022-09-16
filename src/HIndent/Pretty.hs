@@ -931,12 +931,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         unlessInsideLambda space
         rhsSeparator
         space
-        pretty body
+        exitCase $ pretty body
       vertical = do
         unlessInsideLambda space
         rhsSeparator
         newline
-        exitLambda $ indentedBlock $ pretty body
+        exitCase $ exitLambda $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline

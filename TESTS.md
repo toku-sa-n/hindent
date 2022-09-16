@@ -309,7 +309,7 @@ Lambda in case
 f x =
   case filter (\y -> isHappy y x) of
     [] -> Nothing
-    (z:_) -> Just z
+    (z:_) -> Just (\a b -> makeSmile z a b)
 ```
 
 Operators, bad
