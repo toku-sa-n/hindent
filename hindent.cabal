@@ -35,6 +35,8 @@ library
                      HIndent.CabalFile
                      HIndent.CodeBlock
                      HIndent.ExtensionConversion
+                     HIndent.ModulePreprocessing
+                     HIndent.ModulePreprocessing.CommentRelocation
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
                      HIndent.Pretty.Combinators.Indent
@@ -47,7 +49,6 @@ library
                      HIndent.Pretty.ModuleDeclaration
                      HIndent.Pretty.Pragma
                      HIndent.Read
-                     HIndent.RelocateComments
                      HIndent.SrcSpan
                      HIndent.Types
   build-depends:     base >= 4.7 && <5

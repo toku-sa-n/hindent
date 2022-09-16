@@ -46,8 +46,8 @@ import           GHC.Parser.Lexer            hiding (buffer)
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import qualified HIndent.ExtensionConversion as CE
+import           HIndent.ModulePreprocessing
 import           HIndent.Pretty
-import           HIndent.RelocateComments
 import           HIndent.Types
 import qualified Language.Haskell.Extension  as Cabal
 import           Prelude
@@ -132,7 +132,7 @@ reformat config mexts mfilepath =
 testAst :: ByteString -> Either String HsModule
 testAst x =
   case parseModule Nothing opts (UTF8.toString x) of
-    POk _ m   -> Right $ relocateComments m
+    POk _ m   -> Right $ modifyASTForPrettyPrinting m
     PFailed _ -> Left "Parse failed."
   where
     opts = parserOptsFromExtensions $ CE.uniqueExtensions allExtensions
@@ -143,7 +143,8 @@ hasTrailingLine xs = not (S8.null xs) && S8.last xs == '\n'
 
 -- | Print the module.
 prettyPrint :: Config -> HsModule -> Builder
-prettyPrint config m = runPrinterStyle config (pretty $ relocateComments m)
+prettyPrint config m =
+  runPrinterStyle config (pretty $ modifyASTForPrettyPrinting m)
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
