@@ -36,6 +36,8 @@ modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
       removeComments . sortExprLStmt . resetModuleStartLine . fixFixities
     allComments = listify (not . isEofComment . ac_tok . unLoc) m
 
+-- | This function modifies the given module AST to apply fixities of infix
+-- operators in the 'base' package.
 fixFixities :: HsModule -> HsModule
 fixFixities = applyFixities baseFixities
 
