@@ -90,21 +90,19 @@ replaceAllNotUsedAnns = everywhere app
     app ::
          forall a. Data a
       => (a -> a)
-    app sp =
-      case typeRep @a of
-        App g (App y z) ->
-          fromMaybe sp $ do
-            HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
-            HRefl <- eqTypeRep y (typeRep @EpAnn)
-            let try :: Typeable b => b -> Maybe a
-                try ann = do
-                  HRefl <- eqTypeRep (typeOf ann) z
-                  pure
-                    sp {ann = EpAnn (spanAsAnchor (locA sp)) ann emptyComments}
-            try emptyListItem <|> try emptyList <|> try emptyPragma <|>
-              try emptyContext <|>
-              try emptyNameAnn
-        _ -> sp
+    app sp
+      | App g (App y z) <- typeRep @a =
+        fromMaybe sp $ do
+          HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
+          HRefl <- eqTypeRep y (typeRep @EpAnn)
+          let try :: Typeable b => b -> Maybe a
+              try ann = do
+                HRefl <- eqTypeRep (typeOf ann) z
+                pure sp {ann = EpAnn (spanAsAnchor (locA sp)) ann emptyComments}
+          try emptyListItem <|> try emptyList <|> try emptyPragma <|>
+            try emptyContext <|>
+            try emptyNameAnn
+    app x = x
     emptyListItem = AnnListItem []
     emptyList = AnnList Nothing Nothing Nothing [] []
     emptyPragma = AnnPragma emptyAddEpAnn emptyAddEpAnn []
