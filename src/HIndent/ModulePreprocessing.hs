@@ -150,7 +150,7 @@ closeEpAnnOfMatchMExt = everywhere closeEpAnn
 
 -- | This function replaces all 'EpAnn's that contain placeholder anchors
 -- to locate comments correctly. A placeholder anchor is an anchor pointing
--- (-1, -1).
+-- on (-1, -1).
 closePlaceHolderEpAnns :: HsModule -> HsModule
 closePlaceHolderEpAnns = everywhere (applyForEpAnn closeEpAnn)
   where
