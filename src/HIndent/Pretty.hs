@@ -814,6 +814,7 @@ instance Pretty (HsType GhcPs) where
     if isVertical
       then vertical
       else horizontal <-|> vertical
+      -- TODO: Use `spaced`
     where
       horizontal = do
         pretty a
@@ -822,6 +823,7 @@ instance Pretty (HsType GhcPs) where
       vertical = do
         resetInside $ pretty a
         newline
+        -- TODO: Define prefixed.
         indentedWithSpace (-3) $ string "-> "
         pretty b
   pretty' (HsListTy _ xs) = brackets $ pretty xs
