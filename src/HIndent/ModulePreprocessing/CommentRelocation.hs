@@ -84,7 +84,7 @@ relocatePragmas m@HsModule {hsmodAnn = EpAnnNotUsed} = pure m
 relocateCommentsBeforePragmas :: HsModule -> WithComments HsModule
 relocateCommentsBeforePragmas m@HsModule {hsmodAnn = hsmodAnn}
   | pragmaExists m = do
-    newAnn <- everywhereM' (applyM f) hsmodAnn
+    newAnn <- everywhereM (applyM f) hsmodAnn
     pure m {hsmodAnn = newAnn}
   | otherwise = pure m
   where
@@ -98,7 +98,7 @@ relocateCommentsBeforePragmas m@HsModule {hsmodAnn = hsmodAnn}
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
 relocateCommentsBefore :: HsModule -> WithComments HsModule
-relocateCommentsBefore = everywhereM' (applyM f)
+relocateCommentsBefore = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
       insertCommentsByPos (isBefore $ anchor entry) insertPriorComments epa
@@ -112,7 +112,7 @@ relocateCommentsBefore = everywhereM' (applyM f)
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
 relocateCommentsSameLine :: HsModule -> WithComments HsModule
-relocateCommentsSameLine = everywhereM' (applyM f)
+relocateCommentsSameLine = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
       insertCommentsByPos
@@ -214,13 +214,6 @@ relocateCommentsAfter = everywhereMr f
       insertCommentsByPos (isAfter $ anchor entry) insertFollowingComments epa
     f EpAnnNotUsed = pure EpAnnNotUsed
     isAfter anc comAnc = srcSpanEndLine anc <= srcSpanStartLine comAnc
-
--- | 'everywhereM' in top-down manner.
-everywhereM' :: GenericM WithComments -> GenericM WithComments
-everywhereM' f = go
-  where
-    go :: GenericM WithComments
-    go = f >=> gmapM go
 
 -- | This function applies the given function to all 'EpAnn's.
 applyM ::
