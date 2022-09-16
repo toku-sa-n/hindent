@@ -31,32 +31,31 @@ modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
       closeEpAnnOfFunBindFunId .
-      replaceAllNotUsedAnns . removeComments . sortExprLStmt . resetSrcSpan
+      replaceAllNotUsedAnns .
+      removeComments . sortExprLStmt . resetModuleStartLine
     allComments = listify (not . isEofComment . ac_tok . unLoc) m
 
--- | This function resets the source span of the given module by searching
--- an 'EpaEofComment'.
+-- | This function sets the given module's start line as the module
+-- name's start position if the name exists.
 --
--- This process is necessary because the module obtained by parsing
--- a source code with 'parseModule' only contains its start position.
---
--- TODO: Update the above comment. We need to specify column 1 to locate comments.
--- TODO: Split setting the start and last positiong.
--- TODO: Improve the name.
-resetSrcSpan :: HsModule -> HsModule
-resetSrcSpan m@HsModule { hsmodAnn = ea@EpAnn {..}
-                        , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
-                        } =
-  m {hsmodAnn = ea {entry = entry {anchor = newAnchor}}}
+-- 'ghc-lib-parser''s parser sets the start position to the fixed point (1,
+-- 1), and without correcting it, it is impossible to locate module
+-- documentation above the module name.
+resetModuleStartLine :: HsModule -> HsModule
+resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
+                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
+                                } =
+  m {hsmodAnn = epa {entry = entry {anchor = newAnchor}}}
   where
     newAnchor =
       mkRealSrcSpan
-        (mkRealSrcLoc (srcSpanFile sp) (srcSpanStartLine sp) 1)
-        (realSrcSpanEnd $ anchor $ getLoc eofComment)
-    eofComment =
-      head $
-      filter (isEofComment . ac_tok . unLoc) $ getFollowingComments comments
-resetSrcSpan m = m
+        (mkRealSrcLoc
+           (srcSpanFile anc)
+           (srcSpanStartLine sp)
+           (srcSpanStartCol anc))
+        (realSrcSpanEnd anc)
+    anc = anchor entry
+resetModuleStartLine m = m
 
 -- | This function sorts lists of statements in order their positions.
 --
