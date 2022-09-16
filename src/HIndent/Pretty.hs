@@ -476,7 +476,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' (HsCase _ cond arms) =
     insideCase $ do
       indentedDependingOnHead (string "case ") $ do
-        pretty cond
+        exitCase $ pretty cond
         string " of"
       if null $ unLoc $ mg_alts arms
         then string " {}"

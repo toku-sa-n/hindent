@@ -303,6 +303,15 @@ strToMonth month =
     _ -> error $ "Unknown month " ++ month
 ```
 
+Lambda in case
+
+```haskell
+f x =
+  case filter (\y -> isHappy y x) of
+    [] -> Nothing
+    (z:_) -> Just z
+```
+
 Operators, bad
 
 ``` haskell
