@@ -602,12 +602,6 @@ b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
 b = undefined
 ```
 
-Range
-
-```haskell
-a = [1 ..]
-```
-
 Promoted list with a tuple (issue #348)
 
 ```haskell
@@ -811,6 +805,12 @@ Match against a list
 head [] = undefined
 head [x] = x
 head xs = head $ init xs
+```
+
+Range
+
+```haskell
+a = [1 ..]
 ```
 
 View pattern
