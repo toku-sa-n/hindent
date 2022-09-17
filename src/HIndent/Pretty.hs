@@ -740,7 +740,7 @@ instance Pretty (HsType GhcPs) where
   pretty' HsQualTy {..}
     -- TODO: Use a case expression for `isInSig` and `isInst`.
    = do
-    isInSig <- gets ((InsideDeclSig `elem`) . psInside)
+    isInSig <- isInsideDeclSig
     if isInSig
       then sigHor <-|> sigVer
       else notInSig
@@ -812,7 +812,7 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty' HsAppKindTy {} = undefined
   pretty' (HsFunTy _ _ a b) = do
-    isDeclSig <- gets ((InsideDeclSig `elem`) . psInside)
+    isDeclSig <- isInsideDeclSig
     isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
     case (isDeclSig, isVertical) of
       (True, True)  -> declSigV

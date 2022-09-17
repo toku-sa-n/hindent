@@ -10,6 +10,7 @@ module HIndent.Pretty.Combinators.Inside
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
+  , isInsideDeclSig
   ) where
 
 import           Control.Monad.RWS
@@ -71,3 +72,6 @@ unlessInside :: Inside -> Printer () -> Printer ()
 unlessInside i p = do
   set <- gets psInside
   unless (i `elem` set) p
+
+isInsideDeclSig :: Printer Bool
+isInsideDeclSig = gets ((InsideDeclSig `elem`) . psInside)
