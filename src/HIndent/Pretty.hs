@@ -735,10 +735,8 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 
 instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined
-  pretty' HsQualTy {..} = do
-    isInSig <- isInsideDeclSig
-    isInst <- isInsideInstDecl
-    case (isInSig, isInst) of
+  pretty' HsQualTy {..} =
+    (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
       (True, _)      -> sigHor <-|> sigVer
       (False, True)  -> notHor <-|> notVer
       (False, False) -> notVer
