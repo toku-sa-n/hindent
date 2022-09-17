@@ -753,7 +753,7 @@ instance Pretty (HsType GhcPs) where
         indentedWithSpace (-3) $ string "=> "
         insideVerticalFunctionSignature $ pretty hst_body
       notInSig = do
-        isInst <- gets ((InsideInstDecl `elem`) . psInside)
+        isInst <- isInsideInstDecl
         if isInst
           then notHor <-|> notVer
           else notVer
@@ -765,7 +765,7 @@ instance Pretty (HsType GhcPs) where
         constraints
         string " =>"
         newline
-        isInst <- gets ((InsideInstDecl `elem`) . psInside)
+        isInst <- isInsideInstDecl
         (if isInst
            then id
            else indentedBlock) $

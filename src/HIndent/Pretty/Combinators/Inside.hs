@@ -11,6 +11,7 @@ module HIndent.Pretty.Combinators.Inside
   , whenInsideLambda
   , unlessInsideLambda
   , isInsideDeclSig
+  , isInsideInstDecl
   , isInsideVerticalFuncSig
   ) where
 
@@ -76,6 +77,9 @@ unlessInside i p = do
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = gets ((InsideDeclSig `elem`) . psInside)
+
+isInsideInstDecl :: Printer Bool
+isInsideInstDecl = gets ((InsideInstDecl `elem`) . psInside)
 
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig =
