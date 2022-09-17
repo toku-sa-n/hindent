@@ -626,24 +626,23 @@ instance Pretty (ConDecl GhcPs) where
     -- TODO: Refactor.
    =
     if con_forall
-      then indentedDependingOnHead
-             (do string "forall "
-                 spaced $ fmap output con_ex_tvs
-                 string ". ")
+      then (do string "forall "
+               spaced $ fmap output con_ex_tvs
+               string ". ") |=>
       -- TODO: Handle comments.
-             (do case con_mb_cxt of
-                   Nothing -> return ()
-                   Just (L _ []) -> return ()
-                   Just (L _ [x]) -> do
-                     pretty x
-                     string " =>"
-                     newline
-                   Just (L _ xs) -> do
-                     hTuple $ fmap pretty xs
-                     string " =>"
-                     newline
-                 pretty con_name
-                 pretty con_args)
+           (do case con_mb_cxt of
+                 Nothing -> return ()
+                 Just (L _ []) -> return ()
+                 Just (L _ [x]) -> do
+                   pretty x
+                   string " =>"
+                   newline
+                 Just (L _ xs) -> do
+                   hTuple $ fmap pretty xs
+                   string " =>"
+                   newline
+               pretty con_name
+               pretty con_args)
       else do
         case con_args of
           (InfixCon l r) ->
@@ -925,7 +924,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
     (if isInsideMultiwayIf
-       then indentedDependingOnHead (string "| ")
+       then (string "| " |=>)
        else indentedBlock . (string "| " >>)) $ do
       inter
         (if isInsideMultiwayIf

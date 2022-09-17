@@ -2,7 +2,6 @@ module HIndent.Pretty.Combinators.Indent
   ( indentedBlock
   , indentedWithSpace
   , (|=>)
-  , indentedDependingOnHead
   , indentedWithLevel
   , getIndentSpaces
   ) where
@@ -31,9 +30,6 @@ hd |=> p = do
   indentedWithLevel col p
 
 infixl 1 |=>
-
-indentedDependingOnHead :: Printer () -> Printer a -> Printer a
-indentedDependingOnHead = (|=>)
 
 indentedWithLevel :: Int64 -> Printer a -> Printer a
 indentedWithLevel i p = do
