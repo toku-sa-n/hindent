@@ -818,7 +818,6 @@ instance Pretty (HsType GhcPs) where
       (True, False) -> declSigH <-|> declSigV
       (_, True)     -> noDeclSigV
       (_, False)    -> noDeclSigH <-|> noDeclSigV
-      -- TODO: Use `spaced`
     where
       declSigH = spaced [pretty a, string "->", pretty b]
       declSigV =
@@ -827,10 +826,7 @@ instance Pretty (HsType GhcPs) where
           newline
           indentedWithSpace (-3) $ string "-> "
           pretty b
-      noDeclSigH = do
-        pretty a
-        string " -> "
-        pretty b
+      noDeclSigH = spaced [pretty a, string "->", pretty b]
       noDeclSigV = do
         resetInside $ pretty a
         newline
