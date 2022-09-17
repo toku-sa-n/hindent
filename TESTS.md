@@ -622,7 +622,7 @@ c :: '(:->) 'True 'False
 d :: (:->) 'True 'False
 ```
 
-Forall type
+`forall` type
 
 ```haskell
 f :: (forall a. Data a =>

@@ -9,6 +9,7 @@ module HIndent.Pretty.Combinators
   , prefixed
   , eolCommentsArePrinted
   , startingColumn
+  , printerLength
   ) where
 
 import           Control.Applicative
@@ -78,3 +79,14 @@ startingColumn = do
   after <- get
   put before
   return $ psColumn after
+
+-- Returns how many characters the printer moved the cursor horizontally.
+-- The returned value maybe negative if the printer prints multiple lines
+-- and the column of the last position is less than before.
+printerLength :: Printer a -> Printer Int64
+printerLength p = do
+  before <- get
+  _ <- p
+  after <- get
+  put before
+  pure $ psColumn after - psColumn before

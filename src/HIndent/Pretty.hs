@@ -27,6 +27,7 @@ import           GHC.Types.Fixity
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
+import           GHC.Types.Var
 import           GHC.Unit
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
@@ -343,7 +344,9 @@ instance Pretty (Sig GhcPs) where
         pretty $ hswc_body params
       vertical =
         insideVerticalFunctionSignature $ do
-          if isUsingForall
+          headLen <- printerLength $ pretty $ head funName
+          indentSpaces <- getIndentSpaces
+          if isUsingForall || headLen < indentSpaces
             then string " :: "
             else do
               string " ::"
@@ -734,7 +737,8 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
       vertical = vFields $ fmap pretty rec_flds
 
 instance Pretty (HsType GhcPs) where
-  pretty' HsForAllTy {} = undefined
+  pretty' (HsForAllTy _ tele body) =
+    indentedDependingOnHead (pretty tele >> space) $ pretty body
   pretty' HsQualTy {..} =
     (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
       (True, _)      -> hor <-|> sigVer
@@ -1285,6 +1289,18 @@ instance Pretty (ArithSeqInfo GhcPs) where
       string " .. "
       pretty to
   pretty' FromThenTo {} = undefined
+
+instance Pretty (HsForAllTelescope GhcPs) where
+  pretty' HsForAllVis {..} = do
+    string "forall "
+    spaced $ fmap pretty hsf_vis_bndrs
+    dot
+  pretty' HsForAllInvis {..} = do
+    string "forall"
+    forM_ hsf_invis_bndrs $ \case
+      (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty) >> dot
+      (L _ (UserTyVar _ InferredSpec _))   -> return ()
+      _                                    -> undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
