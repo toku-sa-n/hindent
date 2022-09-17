@@ -741,10 +741,7 @@ instance Pretty (HsType GhcPs) where
       (False, True)  -> hor <-|> notVer
       (False, False) -> notVer
     where
-      hor = do
-        constraints
-        string " => "
-        pretty hst_body
+      hor = spaced [constraints, string "=>", pretty hst_body]
       sigVer = do
         constraints
         newline
