@@ -267,7 +267,7 @@ instance Pretty (TyClDecl GhcPs) where
             spaced $ fmap pretty to
         unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
-        indentedDependingOnHead (string "class ") $ do
+        string "class " |=> do
           whenJust tcdCtxt $ \(L _ xs) ->
             case xs -- TODO: Handle comments.
                   of
@@ -296,12 +296,12 @@ instance Pretty (TyClDecl GhcPs) where
         unless (null tcdFDs) $ do
           newline
           indentedBlock $
-            indentedDependingOnHead (string "| ") $
-            vCommaSep $
-            flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
-              spaced $ fmap pretty from
-              string " -> "
-              spaced $ fmap pretty to
+            string "| " |=>
+            vCommaSep
+              (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
+                 spaced $ fmap pretty from
+                 string " -> "
+                 spaced $ fmap pretty to)
           newline
           indentedBlock $ string "where"
         when (isJust tcdCtxt) $ do
@@ -359,7 +359,7 @@ instance Pretty (Sig GhcPs) where
     string " :: "
     pretty $ sig_body $ unLoc params
   pretty' (MinimalSig _ _ xs) =
-    indentedDependingOnHead (string "{-# MINIMAL ") $ do
+    string "{-# MINIMAL " |=> do
       pretty xs
       string " #-}"
   pretty' x = output x
@@ -382,20 +382,19 @@ instance Pretty (HsDataDefn GhcPs) where
               pretty $ head dd_cons
             _ -> do
               newline
-              indentedDependingOnHead (string "= ") $
-                vBarSep $ fmap pretty dd_cons
+              string "= " |=> vBarSep (fmap pretty dd_cons)
           unless (null dd_derivs) $ do
             newline
             lined $ fmap pretty dd_derivs
 
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
-    indentedDependingOnHead (string "instance ") $
-      insideInstDecl $ do
-        whenJust cid_overlap_mode $ \x -> do
-          pretty x
-          space
-        pretty cid_poly_ty
+    string "instance " |=>
+      insideInstDecl
+        (do whenJust cid_overlap_mode $ \x -> do
+              pretty x
+              space
+            pretty cid_poly_ty)
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
@@ -466,15 +465,13 @@ instance Pretty (HsExpr GhcPs) where
       vertical =
         parens $
         prefixedLined "," $
-        fmap
-          (\e -> unless (isMissing e) (indentedDependingOnHead space $ pretty e))
-          full
+        fmap (\e -> unless (isMissing e) (space |=> pretty e)) full
       isMissing Missing {} = True
       isMissing _          = False
   pretty' ExplicitSum {} = undefined
   pretty' (HsCase _ cond arms) =
     insideCase $ do
-      indentedDependingOnHead (string "case ") $ do
+      string "case " |=> do
         resetInside $ pretty cond
         string " of"
       if null $ unLoc $ mg_alts arms
@@ -499,16 +496,15 @@ instance Pretty (HsExpr GhcPs) where
             string "do"
             newline
             indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
-          _ -> indentedDependingOnHead (string str) $ pretty e
+          _ -> string str |=> pretty e
   pretty' (HsMultiIf _ guards) =
-    indentedDependingOnHead (string "if ") $
-    insideMultiwayIf $ lined $ fmap pretty guards
+    string "if " |=> insideMultiwayIf (lined $ fmap pretty guards)
   pretty' (HsLet _ binds exprs) = do
-    indentedDependingOnHead (string "let ") $ pretty binds
+    string "let " |=> pretty binds
     newline
-    indentedDependingOnHead (string " in ") $ pretty exprs
+    string " in " |=> pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    indentedDependingOnHead (string "do ") $ lined $ output <$> unLoc xs -- TODO: Handle comments.
+    string "do " |=> lined (output <$> unLoc xs) -- TODO: Handle comments.
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
@@ -526,7 +522,7 @@ instance Pretty (HsExpr GhcPs) where
                       pretty lastStmt
                       newline
                       forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        indentedDependingOnHead (string p) $ pretty x
+                        string p |=> pretty x
                         newline
                       string "]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
@@ -622,7 +618,7 @@ instance Pretty (ConDecl GhcPs) where
         output $ head con_names
         newline
         indentedBlock $ do
-          indentedDependingOnHead (string ":: ") $ pretty con_g_args
+          string ":: " |=> pretty con_g_args
           newline
           string "-> "
           output con_res_ty
@@ -734,8 +730,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
       vertical = vFields $ fmap pretty rec_flds
 
 instance Pretty (HsType GhcPs) where
-  pretty' (HsForAllTy _ tele body) =
-    indentedDependingOnHead (pretty tele >> space) $ pretty body
+  pretty' (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
   pretty' HsQualTy {..} =
     (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
       (True, _)      -> hor <-|> sigVer
@@ -859,7 +854,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
           newline
           isCase <- gets ((InsideCase `elem`) . psInside)
           if isCase
-            then indentedDependingOnHead (string "where ") $ do
+            then string "where " |=> do
                    printCommentsBefore epa
                    resetInside $ pretty lr
             else do
@@ -992,8 +987,7 @@ instance Pretty (Pat GhcPs) where
       PrefixCon _ as -> do
         prefixOp $ unLoc pat_con
         spacePrefixed $ fmap pretty as
-      RecCon rec ->
-        indentedDependingOnHead (pretty pat_con >> space) $ pretty rec
+      RecCon rec -> (pretty pat_con >> space) |=> pretty rec
       InfixCon a b -> do
         pretty a
         unlessSpecialOp (unLoc pat_con) space
