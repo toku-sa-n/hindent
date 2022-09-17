@@ -698,9 +698,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
-  pretty' (LetStmt _ l) = do
-    string "let "
-    pretty l
+  pretty' (LetStmt _ l) = string "let " |=> pretty l
   pretty' (ParStmt _ xs _ _) = do
     inVertical <- gets ((InsideVerticalList `elem`) . psInside)
     if inVertical

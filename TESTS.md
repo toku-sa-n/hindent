@@ -749,6 +749,15 @@ g x =
        in y
 ```
 
+Let containing a type signature inside a `do`
+
+```haskell
+f = do
+  let g :: Int
+      g = 3
+  print g
+```
+
 Lists
 
 ``` haskell
