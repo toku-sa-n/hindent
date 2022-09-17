@@ -735,9 +735,7 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 
 instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined
-  pretty' HsQualTy {..}
-    -- TODO: Use a case expression for `isInSig` and `isInst`.
-   = do
+  pretty' HsQualTy {..} = do
     isInSig <- isInsideDeclSig
     isInst <- isInsideInstDecl
     case (isInSig, isInst) of
