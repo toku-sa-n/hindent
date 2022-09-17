@@ -609,7 +609,7 @@ instance Pretty (HsSigType GhcPs) where
             newline
           else string ". "
       _ -> return ()
-    pretty sig_body
+    exitVerticalSig $ pretty sig_body
 
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
@@ -753,7 +753,7 @@ instance Pretty (HsType GhcPs) where
         constraints
         newline
         indentedWithSpace (-3) $ string "=> "
-        pretty hst_body
+        insideVerticalFunctionSignature $ pretty hst_body
       notInSig = do
         isInst <- gets ((InsideInstDecl `elem`) . psInside)
         if isInst
@@ -812,17 +812,27 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty' HsAppKindTy {} = undefined
   pretty' (HsFunTy _ _ a b) = do
+    isDeclSig <- gets ((InsideDeclSig `elem`) . psInside)
     isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
-    if isVertical
-      then vertical
-      else horizontal <-|> vertical
+    case (isDeclSig, isVertical) of
+      (True, True)  -> declSigV
+      (True, False) -> declSigH <-|> declSigV
+      (_, True)     -> noDeclSigV
+      (_, False)    -> noDeclSigH <-|> noDeclSigV
       -- TODO: Use `spaced`
     where
-      horizontal = do
+      declSigH = spaced [pretty a, string "->", pretty b]
+      declSigV =
+        insideVerticalFunctionSignature $ do
+          pretty a
+          newline
+          indentedWithSpace (-3) $ string "-> "
+          pretty b
+      noDeclSigH = do
         pretty a
         string " -> "
         pretty b
-      vertical = do
+      noDeclSigV = do
         resetInside $ pretty a
         newline
         -- TODO: Define prefixed.
@@ -837,7 +847,7 @@ instance Pretty (HsType GhcPs) where
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
   pretty' (HsOpTy _ l op r) = spaced [pretty l, infixOp $ unLoc op, pretty r]
-  pretty' (HsParTy _ inside) = parens $ pretty inside
+  pretty' (HsParTy _ inside) = parens $ resetInside $ pretty inside
   pretty' t@HsIParamTy {} = output t
   pretty' HsStarTy {} = undefined
   pretty' HsKindSig {} = undefined

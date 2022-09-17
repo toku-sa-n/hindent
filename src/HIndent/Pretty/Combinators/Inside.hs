@@ -6,6 +6,7 @@ module HIndent.Pretty.Combinators.Inside
   , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
+  , exitVerticalSig
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
@@ -44,6 +45,10 @@ unlessInsideLambda = unlessInside InsideLambda
 
 inside :: Inside -> Printer b -> Printer b
 inside v = modifyInsideSetTemporarily (insert v)
+
+exitVerticalSig :: Printer a -> Printer a
+exitVerticalSig =
+  modifyInsideSetTemporarily (delete InsideVerticalFunctionSignature)
 
 resetInside :: Printer b -> Printer b
 resetInside = modifyInsideSetTemporarily (const empty)
