@@ -34,4 +34,4 @@ promotedTupleParens :: Printer a -> Printer a
 promotedTupleParens = wrap "'( " ")"
 
 wrap :: String -> String -> Printer a -> Printer a
-wrap open close p = indentedDependingOnHead (string open) $ p <* string close
+wrap open close p = string open |=> p <* string close
