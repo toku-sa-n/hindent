@@ -3,9 +3,10 @@ module HIndent.Pretty.Combinators.Inside
   , insideInstDecl
   , insideLambda
   , insideMultiwayIf
-  , insideSignature
+  , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
+  , exitVerticalSig
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
@@ -27,8 +28,8 @@ insideMultiwayIf = inside InsideMultiwayIf
 insideLambda :: Printer a -> Printer a
 insideLambda = inside InsideLambda
 
-insideSignature :: Printer a -> Printer a
-insideSignature = inside InsideSignature
+insideDeclSig :: Printer a -> Printer a
+insideDeclSig = inside InsideDeclSig
 
 insideVerticalList :: Printer a -> Printer a
 insideVerticalList = inside InsideVerticalList
@@ -44,6 +45,10 @@ unlessInsideLambda = unlessInside InsideLambda
 
 inside :: Inside -> Printer b -> Printer b
 inside v = modifyInsideSetTemporarily (insert v)
+
+exitVerticalSig :: Printer a -> Printer a
+exitVerticalSig =
+  modifyInsideSetTemporarily (delete InsideVerticalFunctionSignature)
 
 resetInside :: Printer b -> Printer b
 resetInside = modifyInsideSetTemporarily (const empty)
