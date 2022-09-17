@@ -99,7 +99,8 @@ hPromotedList = promotedListBrackets . hCommaSep
 -- | Prints elements in vertical with the given prefix and suffix.
 vLineup :: (String, String) -> [Printer ()] -> Printer ()
 vLineup (prefix, suffix) ps =
-  indentedDependingOnHead (string prefix >> space) $ do
+  string prefix >>
+  space |=> do
     vCommaSep ps
     newline
     indentedWithSpace (-(fromIntegral (length prefix) + 1)) $ string suffix
@@ -108,7 +109,8 @@ vLineup (prefix, suffix) ps =
 -- element.
 vLineup' :: (String, String) -> [Printer ()] -> Printer ()
 vLineup' (prefix, suffix) ps =
-  indentedDependingOnHead (string prefix >> space) $ do
+  string prefix >>
+  space |=> do
     vCommaSep ps
     string suffix
 
@@ -164,7 +166,7 @@ prefixedLined pref (x:xs) = do
   indentedWithSpace (fromIntegral (length pref * (-1))) $
     forM_ xs $ \p -> do
       newline
-      indentedDependingOnHead (string pref) p
+      string pref |=> p
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
