@@ -602,12 +602,11 @@ instance Pretty (HsSigType GhcPs) where
       HsOuterExplicit _ xs -> do
         string "forall "
         spaced $ fmap output xs
-        isVertical <- isInsideVerticalFuncSig
-        if isVertical
-          then do
+        isInsideVerticalFuncSig >>= \case
+          True -> do
             string "."
             newline
-          else string ". "
+          False -> string ". "
       _ -> return ()
     exitVerticalSig $ pretty sig_body
 
