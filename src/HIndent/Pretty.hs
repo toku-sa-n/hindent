@@ -737,11 +737,11 @@ instance Pretty (HsType GhcPs) where
   pretty' HsForAllTy {} = undefined
   pretty' HsQualTy {..} =
     (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
-      (True, _)      -> sigHor <-|> sigVer
-      (False, True)  -> notHor <-|> notVer
+      (True, _)      -> hor <-|> sigVer
+      (False, True)  -> hor <-|> notVer
       (False, False) -> notVer
     where
-      sigHor = do
+      hor = do
         constraints
         string " => "
         pretty hst_body
@@ -750,10 +750,6 @@ instance Pretty (HsType GhcPs) where
         newline
         indentedWithSpace (-3) $ string "=> "
         insideVerticalFunctionSignature $ pretty hst_body
-      notHor = do
-        constraints
-        string " => "
-        pretty hst_body
       notVer = do
         constraints
         string " =>"
