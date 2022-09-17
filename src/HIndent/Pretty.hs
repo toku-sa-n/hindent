@@ -27,6 +27,7 @@ import           GHC.Types.Fixity
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
+import           GHC.Types.Var
 import           GHC.Unit
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
@@ -335,7 +336,7 @@ instance Pretty (HsBind GhcPs) where
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
-    pretty $ head funName
+    printFunName
     horizontal <-|> vertical
     where
       horizontal = do
@@ -343,16 +344,15 @@ instance Pretty (Sig GhcPs) where
         pretty $ hswc_body params
       vertical =
         insideVerticalFunctionSignature $ do
-          if isUsingForall
+          headLen <- printerLength printFunName
+          indentSpaces <- getIndentSpaces
+          if headLen < indentSpaces
             then string " :: "
             else do
               string " ::"
               newline
           indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
-      isUsingForall =
-        case sig_bndrs (unLoc $ hswc_body params) of
-          HsOuterExplicit {} -> True
-          _                  -> False
+      printFunName = pretty $ head funName
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
@@ -734,7 +734,8 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
       vertical = vFields $ fmap pretty rec_flds
 
 instance Pretty (HsType GhcPs) where
-  pretty' HsForAllTy {} = undefined
+  pretty' (HsForAllTy _ tele body) =
+    indentedDependingOnHead (pretty tele >> space) $ pretty body
   pretty' HsQualTy {..} =
     (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
       (True, _)      -> hor <-|> sigVer
@@ -1285,6 +1286,18 @@ instance Pretty (ArithSeqInfo GhcPs) where
       string " .. "
       pretty to
   pretty' FromThenTo {} = undefined
+
+instance Pretty (HsForAllTelescope GhcPs) where
+  pretty' HsForAllVis {..} = do
+    string "forall "
+    spaced $ fmap pretty hsf_vis_bndrs
+    dot
+  pretty' HsForAllInvis {..} = do
+    string "forall"
+    forM_ hsf_invis_bndrs $ \case
+      (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty) >> dot
+      (L _ (UserTyVar _ InferredSpec _))   -> return ()
+      _                                    -> undefined
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind

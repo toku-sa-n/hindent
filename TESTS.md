@@ -622,6 +622,16 @@ c :: '(:->) 'True 'False
 d :: (:->) 'True 'False
 ```
 
+`forall` type
+
+```haskell
+f :: (forall a. Data a =>
+                  a -> a)
+  -> (forall a. Data a =>
+                  a -> a)
+f = undefined
+```
+
 # Function declarations
 
 Prefix notation for operators
