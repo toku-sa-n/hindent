@@ -346,16 +346,12 @@ instance Pretty (Sig GhcPs) where
         insideVerticalFunctionSignature $ do
           headLen <- printerLength $ pretty $ head funName
           indentSpaces <- getIndentSpaces
-          if isUsingForall || headLen < indentSpaces
+          if headLen < indentSpaces
             then string " :: "
             else do
               string " ::"
               newline
           indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
-      isUsingForall =
-        case sig_bndrs (unLoc $ hswc_body params) of
-          HsOuterExplicit {} -> True
-          _                  -> False
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
