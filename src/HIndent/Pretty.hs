@@ -602,7 +602,7 @@ instance Pretty (HsSigType GhcPs) where
       HsOuterExplicit _ xs -> do
         string "forall "
         spaced $ fmap output xs
-        isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
+        isVertical <- isInsideVerticalFuncSig
         if isVertical
           then do
             string "."
@@ -812,8 +812,7 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty' HsAppKindTy {} = undefined
   pretty' (HsFunTy _ _ a b) =
-    (,) <$> isInsideDeclSig <*>
-    gets ((InsideVerticalFunctionSignature `elem`) . psInside) >>= \case
+    (,) <$> isInsideDeclSig <*> isInsideVerticalFuncSig >>= \case
       (True, True)  -> declSigV
       (True, False) -> hor <-|> declSigV
       (_, True)     -> noDeclSigV

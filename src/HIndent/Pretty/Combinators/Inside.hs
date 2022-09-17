@@ -11,6 +11,7 @@ module HIndent.Pretty.Combinators.Inside
   , whenInsideLambda
   , unlessInsideLambda
   , isInsideDeclSig
+  , isInsideVerticalFuncSig
   ) where
 
 import           Control.Monad.RWS
@@ -75,3 +76,7 @@ unlessInside i p = do
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = gets ((InsideDeclSig `elem`) . psInside)
+
+isInsideVerticalFuncSig :: Printer Bool
+isInsideVerticalFuncSig =
+  gets ((InsideVerticalFunctionSignature `elem`) . psInside)
