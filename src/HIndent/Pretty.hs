@@ -815,18 +815,17 @@ instance Pretty (HsType GhcPs) where
     (,) <$> isInsideDeclSig <*>
     gets ((InsideVerticalFunctionSignature `elem`) . psInside) >>= \case
       (True, True)  -> declSigV
-      (True, False) -> declSigH <-|> declSigV
+      (True, False) -> hor <-|> declSigV
       (_, True)     -> noDeclSigV
-      (_, False)    -> noDeclSigH <-|> noDeclSigV
+      (_, False)    -> hor <-|> noDeclSigV
     where
-      declSigH = spaced [pretty a, string "->", pretty b]
+      hor = spaced [pretty a, string "->", pretty b]
       declSigV =
         insideVerticalFunctionSignature $ do
           pretty a
           newline
           indentedWithSpace (-3) $ string "-> "
           pretty b
-      noDeclSigH = spaced [pretty a, string "->", pretty b]
       noDeclSigV = do
         resetInside $ pretty a
         newline
