@@ -336,7 +336,7 @@ instance Pretty (HsBind GhcPs) where
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
-    pretty $ head funName
+    printFunName
     horizontal <-|> vertical
     where
       horizontal = do
@@ -344,7 +344,7 @@ instance Pretty (Sig GhcPs) where
         pretty $ hswc_body params
       vertical =
         insideVerticalFunctionSignature $ do
-          headLen <- printerLength $ pretty $ head funName
+          headLen <- printerLength printFunName
           indentSpaces <- getIndentSpaces
           if headLen < indentSpaces
             then string " :: "
@@ -352,6 +352,7 @@ instance Pretty (Sig GhcPs) where
               string " ::"
               newline
           indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
+      printFunName = pretty $ head funName
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
