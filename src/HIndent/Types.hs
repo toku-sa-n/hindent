@@ -42,6 +42,7 @@ newtype Printer a =
            , Alternative
            )
 
+-- TODO: Rename `Inside` to `Condition`.
 data Inside
   = InsideDeclSig
   | InsideVerticalList
@@ -77,6 +78,7 @@ data PrintState =
     , psInside       :: Set Inside
     -- ^ Denotes if the current position is inside some expression,
     -- signature, etc.
+    -- TODO: Rename `psInside` to `psCondition`.
     }
 
 -- | Configurations shared among the different styles. Styles may pay
