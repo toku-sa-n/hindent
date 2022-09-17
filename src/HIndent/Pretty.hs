@@ -745,8 +745,7 @@ instance Pretty (HsType GhcPs) where
       sigVer = do
         constraints
         newline
-        indentedWithSpace (-3) $ string "=> "
-        insideVerticalFunctionSignature $ pretty hst_body
+        prefixed "=> " $ insideVerticalFunctionSignature $ pretty hst_body
       notVer = do
         constraints
         string " =>"
@@ -807,14 +806,11 @@ instance Pretty (HsType GhcPs) where
         insideVerticalFunctionSignature $ do
           pretty a
           newline
-          indentedWithSpace (-3) $ string "-> "
-          pretty b
+          prefixed "-> " $ pretty b
       noDeclSigV = do
         resetInside $ pretty a
         newline
-        -- TODO: Define prefixed.
-        indentedWithSpace (-3) $ string "-> "
-        pretty b
+        prefixed "-> " $ pretty b
   pretty' (HsListTy _ xs) = brackets $ pretty xs
   pretty' (HsTupleTy _ _ xs) = tuple' $ fmap pretty xs
   pretty' HsSumTy {} = undefined

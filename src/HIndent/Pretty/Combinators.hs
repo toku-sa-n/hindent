@@ -6,6 +6,7 @@ module HIndent.Pretty.Combinators
   , output
   , showOutputable
   , rhsSeparator
+  , prefixed
   , eolCommentsArePrinted
   , startingColumn
   ) where
@@ -25,6 +26,7 @@ import           GHC.Utils.Outputable                                hiding
                                                                       parens,
                                                                       space,
                                                                       (<>))
+import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
@@ -58,6 +60,13 @@ rhsSeparator = do
     if or $ fmap (`elem` set) [InsideCase, InsideLambda, InsideMultiwayIf]
       then "->"
       else "="
+
+-- | Prints the text passed as the first argument before the current
+-- position and then the second argument.
+prefixed :: String -> Printer () -> Printer ()
+prefixed s p = do
+  indentedWithSpace (-(fromIntegral $ length s)) $ string s
+  p
 
 eolCommentsArePrinted :: Printer ()
 eolCommentsArePrinted = modify (\s -> s {psEolComment = True})
