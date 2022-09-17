@@ -811,10 +811,9 @@ instance Pretty (HsType GhcPs) where
     space
     pretty r
   pretty' HsAppKindTy {} = undefined
-  pretty' (HsFunTy _ _ a b) = do
-    isDeclSig <- isInsideDeclSig
-    isVertical <- gets ((InsideVerticalFunctionSignature `elem`) . psInside)
-    case (isDeclSig, isVertical) of
+  pretty' (HsFunTy _ _ a b) =
+    (,) <$> isInsideDeclSig <*>
+    gets ((InsideVerticalFunctionSignature `elem`) . psInside) >>= \case
       (True, True)  -> declSigV
       (True, False) -> declSigH <-|> declSigV
       (_, True)     -> noDeclSigV
