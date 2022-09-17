@@ -739,9 +739,11 @@ instance Pretty (HsType GhcPs) where
     -- TODO: Use a case expression for `isInSig` and `isInst`.
    = do
     isInSig <- isInsideDeclSig
-    if isInSig
-      then sigHor <-|> sigVer
-      else notInSig
+    isInst <- isInsideInstDecl
+    case (isInSig, isInst) of
+      (True, _)      -> sigHor <-|> sigVer
+      (False, True)  -> notHor <-|> notVer
+      (False, False) -> notVer
     where
       sigHor = do
         constraints
@@ -752,11 +754,6 @@ instance Pretty (HsType GhcPs) where
         newline
         indentedWithSpace (-3) $ string "=> "
         insideVerticalFunctionSignature $ pretty hst_body
-      notInSig = do
-        isInst <- isInsideInstDecl
-        if isInst
-          then notHor <-|> notVer
-          else notVer
       notHor = do
         constraints
         string " => "
