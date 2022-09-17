@@ -51,6 +51,7 @@ data Inside
   | InsideVerticalHsApp
   | InsideInstDecl
   | InsideCase
+  | InsideConPat
   deriving (Eq, Ord)
 
 -- | The state of the pretty printer.

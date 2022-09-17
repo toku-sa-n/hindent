@@ -984,7 +984,7 @@ instance Pretty (Pat GhcPs) where
       PrefixCon _ as -> do
         prefixOp $ unLoc pat_con
         spacePrefixed $ fmap pretty as
-      RecCon rec -> (pretty pat_con >> space) |=> pretty rec
+      RecCon rec -> (pretty pat_con >> space) |=> insideConPat (pretty rec)
       InfixCon a b -> do
         pretty a
         unlessSpecialOp (unLoc pat_con) space
@@ -1090,7 +1090,10 @@ instance Pretty (HsTupArg GhcPs) where
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance (Pretty a, Pretty b) => Pretty (HsRecField' a b) where
-  pretty' HsRecField {..} = horizontal <-|> vertical
+  pretty' HsRecField {..} =
+    isInsideConPat >>= \case
+      True  -> horizontal
+      False -> horizontal <-|> vertical
     where
       horizontal = do
         pretty hsRecFieldLbl

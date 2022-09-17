@@ -1,5 +1,6 @@
 module HIndent.Pretty.Combinators.Inside
   ( insideCase
+  , insideConPat
   , insideInstDecl
   , insideLambda
   , insideMultiwayIf
@@ -10,6 +11,7 @@ module HIndent.Pretty.Combinators.Inside
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
+  , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
   , isInsideVerticalFuncSig
@@ -21,6 +23,9 @@ import           HIndent.Types
 
 insideCase :: Printer a -> Printer a
 insideCase = inside InsideCase
+
+insideConPat :: Printer a -> Printer a
+insideConPat = inside InsideConPat
 
 insideInstDecl :: Printer a -> Printer a
 insideInstDecl = inside InsideInstDecl
@@ -74,6 +79,9 @@ unlessInside :: Inside -> Printer () -> Printer ()
 unlessInside i p = do
   set <- gets psInside
   unless (i `elem` set) p
+
+isInsideConPat :: Printer Bool
+isInsideConPat = isInside InsideConPat
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = isInside InsideDeclSig

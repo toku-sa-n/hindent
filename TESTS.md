@@ -861,6 +861,14 @@ fun Rec { alpha = beta
   beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
 ```
 
+Another pattern matching, long
+
+```haskell
+resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
+                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
+                                } = undefined
+```
+
 Symbol constructor, short
 
 ```haskell
