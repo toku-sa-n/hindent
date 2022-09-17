@@ -76,11 +76,13 @@ unlessInside i p = do
   unless (i `elem` set) p
 
 isInsideDeclSig :: Printer Bool
-isInsideDeclSig = gets ((InsideDeclSig `elem`) . psInside)
+isInsideDeclSig = isInside InsideDeclSig
 
 isInsideInstDecl :: Printer Bool
-isInsideInstDecl = gets ((InsideInstDecl `elem`) . psInside)
+isInsideInstDecl = isInside InsideInstDecl
 
 isInsideVerticalFuncSig :: Printer Bool
-isInsideVerticalFuncSig =
-  gets ((InsideVerticalFunctionSignature `elem`) . psInside)
+isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
+
+isInside :: Inside -> Printer Bool
+isInside x = gets ((x `elem`) . psInside)
