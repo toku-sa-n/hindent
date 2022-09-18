@@ -81,16 +81,14 @@ newtype MatchForCase =
 newtype MatchForLambda =
   MatchForLambda (Match GhcPs (LHsExpr GhcPs))
 
--- TODO: Fix the name.
 newtype GRHSsForCase =
-  GRHSsForMatch (GRHSs GhcPs (LHsExpr GhcPs))
+  GRHSsForCase (GRHSs GhcPs (LHsExpr GhcPs))
 
 newtype GRHSsForLambda =
   GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
 
--- TODO: Fix the name.
 newtype GRHSForCase =
-  GRHSForMatch (GRHS GhcPs (LHsExpr GhcPs))
+  GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
 
 newtype GRHSForMultiwayIf =
   GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
@@ -730,7 +728,7 @@ instance Pretty MatchForCase
                                              where
   pretty' (MatchForCase Match {..}) = do
     mapM_ pretty m_pats
-    pretty (GRHSsForMatch m_grhss)
+    pretty (GRHSsForCase m_grhss)
 
 instance Pretty MatchForLambda where
   pretty' (MatchForLambda Match {..}) = do
@@ -921,8 +919,8 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       _ -> return ()
 
 instance Pretty GRHSsForCase where
-  pretty' (GRHSsForMatch GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForMatch) grhssGRHSs
+  pretty' (GRHSsForCase GRHSs {..}) = do
+    mapM_ (pretty . fmap GRHSForCase) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1006,14 +1004,14 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   commentsAfter (GRHS x _ _) = commentsAfter x
 
 instance Pretty GRHSForCase where
-  pretty' (GRHSForMatch (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
+  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
     space
     string "->"
     space
     string "do"
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForMatch (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
       string "| "
@@ -1022,7 +1020,7 @@ instance Pretty GRHSForCase where
       string "->"
       string " do "
       printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForMatch (GRHS _ [] body)) = horizontal <-|> vertical
+  pretty' (GRHSForCase (GRHS _ [] body)) = horizontal <-|> vertical
     where
       horizontal = do
         space
@@ -1034,7 +1032,7 @@ instance Pretty GRHSForCase where
         string "->"
         newline
         resetInside $ indentedBlock $ pretty body
-  pretty' (GRHSForMatch (GRHS _ guards body)) = do
+  pretty' (GRHSForCase (GRHS _ guards body)) = do
     newline
     indentedBlock . (string "| " >>) $ do
       inter (newline >> string ", ") $ fmap pretty guards
@@ -1046,9 +1044,9 @@ instance Pretty GRHSForCase where
         string "->"
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHSForMatch (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForMatch (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForMatch (GRHS x _ _)) = commentsAfter x
+  commentsBefore (GRHSForCase (GRHS x _ _)) = commentsBefore x
+  commentOnSameLine (GRHSForCase (GRHS x _ _)) = commentOnSameLine x
+  commentsAfter (GRHSForCase (GRHS x _ _)) = commentsAfter x
 
 instance Pretty GRHSForLambda where
   pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
