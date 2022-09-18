@@ -11,10 +11,14 @@ module HIndent.Pretty.Combinators.Inside
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
+  , isInsideCase
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
+  , isInsideLambda
+  , isInsideMultiwayIf
   , isInsideVerticalFuncSig
+  , isInsideVerticalList
   ) where
 
 import           Control.Monad.RWS
@@ -80,6 +84,9 @@ unlessInside i p = do
   set <- gets psInside
   unless (i `elem` set) p
 
+isInsideCase :: Printer Bool
+isInsideCase = isInside InsideCase
+
 isInsideConPat :: Printer Bool
 isInsideConPat = isInside InsideConPat
 
@@ -89,8 +96,17 @@ isInsideDeclSig = isInside InsideDeclSig
 isInsideInstDecl :: Printer Bool
 isInsideInstDecl = isInside InsideInstDecl
 
+isInsideLambda :: Printer Bool
+isInsideLambda = isInside InsideLambda
+
+isInsideMultiwayIf :: Printer Bool
+isInsideMultiwayIf = isInside InsideMultiwayIf
+
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
+
+isInsideVerticalList :: Printer Bool
+isInsideVerticalList = isInside InsideVerticalList
 
 isInside :: Inside -> Printer Bool
 isInside x = gets ((x `elem`) . psInside)
