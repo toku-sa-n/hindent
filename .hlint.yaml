@@ -8,3 +8,4 @@
 - error: {lhs: gets ((InsideDeclSig `elem`) . psInside), rhs: isInsideDeclSig}
 - error: {lhs: gets ((InsideVerticalFunctionSignature `elem`) . psInside), rhs: isInsideVerticalFuncSig}
 - error: {lhs: gets ((InsideInstDecl `elem`) . psInside), rhs: isInsideInstDecl}
+- error: {lhs: gets ((InsideCase `elem`) . psInside), rhs: isInsideCase}

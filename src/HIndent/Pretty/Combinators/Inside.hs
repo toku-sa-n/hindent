@@ -11,6 +11,7 @@ module HIndent.Pretty.Combinators.Inside
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
+  , isInsideCase
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
@@ -79,6 +80,9 @@ unlessInside :: Inside -> Printer () -> Printer ()
 unlessInside i p = do
   set <- gets psInside
   unless (i `elem` set) p
+
+isInsideCase :: Printer Bool
+isInsideCase = isInside InsideCase
 
 isInsideConPat :: Printer Bool
 isInsideConPat = isInside InsideConPat

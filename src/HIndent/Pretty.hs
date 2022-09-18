@@ -671,10 +671,10 @@ instance Pretty (ConDecl GhcPs) where
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' Match {..} = do
-    isInsideCase <- gets ((InsideCase `elem`) . psInside)
+    isInCase <- isInsideCase
     isInsideLambda <- gets ((InsideLambda `elem`) . psInside)
     whenInsideLambda $ string "\\"
-    case (isInsideCase, isInsideLambda, mc_fixity m_ctxt) of
+    case (isInCase, isInsideLambda, mc_fixity m_ctxt) of
       (True, _, _) -> do
         mapM_ pretty m_pats
         pretty m_grhss
@@ -870,12 +870,12 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       (HsValBinds epa lr) ->
         indentedBlock $ do
           newline
-          isCase <- gets ((InsideCase `elem`) . psInside)
-          if isCase
-            then string "where " |=> do
-                   printCommentsBefore epa
-                   resetInside $ pretty lr
-            else do
+          isInsideCase >>= \case
+            True ->
+              string "where " |=> do
+                printCommentsBefore epa
+                resetInside $ pretty lr
+            False -> do
               string "where"
               newline
               printCommentsBefore epa
