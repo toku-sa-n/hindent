@@ -770,7 +770,7 @@ instance Pretty (HsType GhcPs) where
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
-        mapM_ (hCommaSep . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
       vCon = do
         string constraintsParensL
         space
