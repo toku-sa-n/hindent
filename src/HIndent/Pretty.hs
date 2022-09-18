@@ -43,6 +43,8 @@ import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
 import           HIndent.Types
 
+-- TODO: Document why we declare data and newtypes, and not define
+-- functions instead.
 data SigMethodsFamily
   = Sig (LSig GhcPs)
   | Method (LHsBindLR GhcPs GhcPs)
@@ -108,6 +110,12 @@ newtype HsSigTypeInsideInstDecl =
 newtype HsSigTypeInsideVerticalFuncSig =
   HsSigTypeInsideVerticalFuncSig (HsSigType GhcPs)
 
+newtype HsSigTypeInsideDeclSig =
+  HsSigTypeInsideDeclSig (HsSigType GhcPs)
+
+newtype HsSigTypeInsideVerticalDeclSig =
+  HsSigTypeInsideVerticalDeclSig (HsSigType GhcPs)
+
 newtype HsTypeInsideInstDecl =
   HsTypeInsideInstDecl (HsType GhcPs)
 
@@ -119,6 +127,15 @@ newtype StmtLRInsideVerticalList =
 
 newtype ParStmtBlockInsideVerticalList =
   ParStmtBlockInsideVerticalList (ParStmtBlock GhcPs GhcPs)
+
+newtype DeclSig =
+  DeclSig (Sig GhcPs)
+
+newtype HsTypeInsideDeclSig =
+  HsTypeInsideDeclSig (HsType GhcPs)
+
+newtype HsTypeInsideVerticalDeclSig =
+  HsTypeInsideVerticalDeclSig (HsType GhcPs)
 
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
@@ -264,7 +281,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (InstD _ inst) = pretty inst
   pretty' DerivD {}      = undefined
   pretty' (ValD _ bind)  = pretty bind
-  pretty' (SigD _ s)     = insideDeclSig $ pretty s
+  pretty' (SigD _ s)     = pretty $ DeclSig s
   pretty' KindSigD {}    = undefined
   pretty' DefD {}        = undefined
   pretty' x@ForD {}      = output x
@@ -430,6 +447,28 @@ instance Pretty (Sig GhcPs) where
       pretty xs
       string " #-}"
   pretty' x = output x
+
+instance Pretty DeclSig where
+  pretty' (DeclSig (TypeSig _ funName params)) = do
+    printFunName
+    horizontal <-|> vertical
+    where
+      horizontal = do
+        string " :: "
+        pretty $ HsSigTypeInsideDeclSig <$> hswc_body params
+      vertical = do
+        headLen <- printerLength printFunName
+        indentSpaces <- getIndentSpaces
+        if headLen < indentSpaces
+          then string " :: "
+          else do
+            string " ::"
+            newline
+        indentedBlock $
+          indentedWithSpace 3 $
+          pretty $ HsSigTypeInsideVerticalDeclSig <$> hswc_body params
+      printFunName = pretty $ head funName
+  pretty' (DeclSig x) = pretty x
 
 instance Pretty (HsDataDefn GhcPs) where
   pretty' HsDataDefn {..} =
@@ -700,6 +739,28 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
       _ -> return ()
     pretty sig_body
 
+instance Pretty HsSigTypeInsideDeclSig where
+  pretty' (HsSigTypeInsideDeclSig HsSig {..}) = do
+    case sig_bndrs of
+      HsOuterExplicit _ xs -> do
+        string "forall "
+        spaced $ fmap output xs
+        dot
+        space
+      _ -> return ()
+    pretty $ fmap HsTypeInsideDeclSig sig_body
+
+instance Pretty HsSigTypeInsideVerticalDeclSig where
+  pretty' (HsSigTypeInsideVerticalDeclSig HsSig {..}) = do
+    case sig_bndrs of
+      HsOuterExplicit _ xs -> do
+        string "forall "
+        spaced $ fmap output xs
+        dot
+        newline
+      _ -> pure ()
+    pretty $ fmap HsTypeInsideDeclSig sig_body
+
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
     where
@@ -833,16 +894,8 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 
 instance Pretty (HsType GhcPs) where
   pretty' (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
-  pretty' HsQualTy {..} =
-    isInsideDeclSig >>= \case
-      True  -> hor <-|> sigVer
-      False -> notVer
+  pretty' HsQualTy {..} = notVer
     where
-      hor = spaced [constraints, string "=>", pretty hst_body]
-      sigVer = do
-        constraints
-        newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
       notVer = do
         constraints
         string " =>"
@@ -887,16 +940,9 @@ instance Pretty (HsType GhcPs) where
     space
     pretty r
   pretty' HsAppKindTy {} = undefined
-  pretty' (HsFunTy _ _ a b) =
-    isInsideDeclSig >>= \case
-      True  -> hor <-|> declSigV
-      False -> hor <-|> noDeclSigV
+  pretty' (HsFunTy _ _ a b) = hor <-|> noDeclSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
-      declSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
-        newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
       noDeclSigV = do
         resetInside $ pretty a
         newline
@@ -972,21 +1018,73 @@ instance Pretty HsTypeInsideInstDecl where
           Just _         -> parens
   pretty' (HsTypeInsideInstDecl x) = pretty x
 
-instance Pretty HsTypeInsideVerticalFuncSig where
-  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) =
-    isInsideDeclSig >>= \case
-      True  -> declSigV
-      False -> noDeclSigV
+instance Pretty HsTypeInsideDeclSig where
+  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
     where
-      declSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
+      hor = spaced [constraints, string "=>", pretty hst_body]
+      sigVer = do
+        constraints
         newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
+      constraints = hCon <-|> vCon
+      hCon =
+        constraintsParens $
+        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
+      vCon = do
+        string constraintsParensL
+        space
+        forM_ hst_ctxt $ \(L l cs) -> do
+          printCommentsBefore l
+          inter (newline >> string ", ") $ fmap pretty cs
+          printCommentOnSameLine l
+          printCommentsAfter l
+        newline
+        string constraintsParensR
+      -- TODO: Clean up here.
+      constraintsParensL =
+        case hst_ctxt of
+          Nothing        -> ""
+          Just (L _ [])  -> "("
+          Just (L _ [_]) -> ""
+          Just _         -> "("
+      constraintsParensR =
+        case hst_ctxt of
+          Nothing        -> ""
+          Just (L _ [])  -> ")"
+          Just (L _ [_]) -> ""
+          Just _         -> ")"
+      constraintsParens =
+        case hst_ctxt of
+          Nothing        -> id
+          Just (L _ [])  -> parens
+          Just (L _ [_]) -> id
+          Just _         -> parens
+  pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
+    where
+      hor = spaced [pretty a, string "->", pretty b]
+      declSigV = do
+        pretty $ fmap HsTypeInsideVerticalDeclSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
+  pretty' (HsTypeInsideDeclSig x) = pretty x
+
+instance Pretty HsTypeInsideVerticalFuncSig where
+  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = noDeclSigV
+    where
       noDeclSigV = do
         resetInside $ pretty $ fmap HsTypeInsideVerticalFuncSig a
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
+
+instance Pretty HsTypeInsideVerticalDeclSig where
+  pretty' (HsTypeInsideVerticalDeclSig (HsFunTy _ _ a b)) = declSigV
+    where
+      declSigV = do
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+  pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
 
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =

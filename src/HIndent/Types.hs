@@ -10,7 +10,7 @@ module HIndent.Types
   ( Printer(..)
   , PrintState(..)
   , Config(..)
-  , Inside(..)
+  , Inside
   , readExtension
   , defaultConfig
   ) where
@@ -42,9 +42,7 @@ newtype Printer a =
            , Alternative
            )
 
-data Inside =
-  InsideDeclSig
-  deriving (Eq, Ord)
+data Inside
 
 -- | The state of the pretty printer.
 data PrintState =
