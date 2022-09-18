@@ -81,14 +81,19 @@ newtype MatchForCase =
 newtype MatchForLambda =
   MatchForLambda (Match GhcPs (LHsExpr GhcPs))
 
+-- TODO: Fix the name.
 newtype GRHSsForCase =
   GRHSsForMatch (GRHSs GhcPs (LHsExpr GhcPs))
 
 newtype GRHSsForLambda =
   GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
 
+-- TODO: Fix the name.
 newtype GRHSForCase =
   GRHSForMatch (GRHS GhcPs (LHsExpr GhcPs))
+
+newtype GRHSForMultiwayIf =
+  GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
 
 newtype GRHSForLambda =
   GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
@@ -543,7 +548,7 @@ instance Pretty (HsExpr GhcPs) where
             indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
           _ -> string str |=> pretty e
   pretty' (HsMultiIf _ guards) =
-    string "if " |=> insideMultiwayIf (lined $ fmap pretty guards)
+    string "if " |=> lined (fmap (pretty . fmap GRHSForMultiwayIf) guards)
   pretty' (HsLet _ binds exprs) = do
     string "let " |=> pretty binds
     newline
@@ -958,60 +963,44 @@ instance Pretty RdrName where
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
     space
-    rhsSeparator
+    string "="
     space
     string "do"
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
+    newline
     indentedBlock $ do
       string "| "
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+      inter (newline >> string ", ") $ fmap pretty guards
       space
-      rhsSeparator
+      string "="
       string " do "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
         space
-        rhsSeparator
+        string "="
         space
         resetInside $ pretty body
       vertical = do
         space
-        rhsSeparator
+        string "="
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
-    (if isMultiwayIf
-       then (string "| " |=>)
-       else indentedBlock . (string "| " >>)) $ do
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+    newline
+    indentedBlock . (string "| " >>) $ do
+      inter (newline >> string ", ") $ fmap pretty guards
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [rhsSeparator, pretty body]
+      horizontal = spacePrefixed [string "=", pretty body]
       vertical = do
-        isMultiwayIf <- isInsideMultiwayIf
         space
-        rhsSeparator
+        string "="
         newline
-        (if isMultiwayIf
-           then id
-           else indentedBlock) $
-          pretty body
+        (indentedBlock) $ pretty body
   commentsBefore (GRHS x _ _) = commentsBefore x
   commentOnSameLine (GRHS x _ _) = commentOnSameLine x
   commentsAfter (GRHS x _ _) = commentsAfter x
@@ -1025,15 +1014,10 @@ instance Pretty GRHSForCase where
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForMatch (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
+    newline
     indentedBlock $ do
       string "| "
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+      inter (newline >> string ", ") $ fmap pretty guards
       space
       string "->"
       string " do "
@@ -1051,28 +1035,17 @@ instance Pretty GRHSForCase where
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHSForMatch (GRHS _ guards body)) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
-    (if isMultiwayIf
-       then (string "| " |=>)
-       else indentedBlock . (string "| " >>)) $ do
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+    newline
+    (indentedBlock . (string "| " >>)) $ do
+      inter (newline >> string ", ") $ fmap pretty guards
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [rhsSeparator, pretty body]
+      horizontal = spacePrefixed [string "=", pretty body]
       vertical = do
-        isMultiwayIf <- isInsideMultiwayIf
         space
         string "->"
         newline
-        (if isMultiwayIf
-           then id
-           else indentedBlock) $
-          pretty body
+        (indentedBlock) $ pretty body
   commentsBefore (GRHSForMatch (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForMatch (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForMatch (GRHS x _ _)) = commentsAfter x
@@ -1085,15 +1058,10 @@ instance Pretty GRHSForLambda where
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
+    newline
     indentedBlock $ do
       string "| "
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+      inter (newline >> string ", ") $ fmap pretty guards
       space
       string "->"
       string " do "
@@ -1109,31 +1077,63 @@ instance Pretty GRHSForLambda where
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHSForLambda (GRHS _ guards body)) = do
-    isMultiwayIf <- isInsideMultiwayIf
-    unless isMultiwayIf newline
-    (if isMultiwayIf
-       then (string "| " |=>)
-       else indentedBlock . (string "| " >>)) $ do
-      inter
-        (if isMultiwayIf
-           then comma >> newline
-           else newline >> string ", ") $
-        fmap pretty guards
+    newline
+    (indentedBlock . (string "| " >>)) $ do
+      inter (newline >> string ", ") $ fmap pretty guards
       horizontal <-|> vertical
     where
       horizontal = spacePrefixed [string "->", pretty body]
       vertical = do
-        isMultiwayIf <- isInsideMultiwayIf
         space
         string "->"
         newline
-        (if isMultiwayIf
-           then id
-           else indentedBlock) $
-          pretty body
+        (indentedBlock) $ pretty body
   commentsBefore (GRHSForLambda (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForLambda (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForLambda (GRHS x _ _)) = commentsAfter x
+
+instance Pretty GRHSForMultiwayIf where
+  pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
+    space
+    string "->"
+    space
+    string "do"
+    newline
+    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+    indentedBlock $ do
+      string "| "
+      inter (comma >> newline) $ fmap pretty guards
+      space
+      string "->"
+      string " do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForMultiwayIf (GRHS _ [] body)) = horizontal <-|> vertical
+    where
+      horizontal = do
+        space
+        string "->"
+        space
+        resetInside $ pretty body
+      vertical = do
+        space
+        string "->"
+        newline
+        resetInside $ indentedBlock $ pretty body
+  pretty' (GRHSForMultiwayIf (GRHS _ guards body)) = do
+    ((string "| " |=>)) $ do
+      inter (comma >> newline) $ fmap pretty guards
+      horizontal <-|> vertical
+    where
+      horizontal = spacePrefixed [string "->", pretty body]
+      vertical = do
+        space
+        string "->"
+        newline
+        (id) $ pretty body
+  commentsBefore (GRHSForMultiwayIf (GRHS x _ _)) = commentsBefore x
+  commentOnSameLine (GRHSForMultiwayIf (GRHS x _ _)) = commentOnSameLine x
+  commentsAfter (GRHSForMultiwayIf (GRHS x _ _)) = commentsAfter x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c)  = string c

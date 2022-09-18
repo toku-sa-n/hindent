@@ -46,7 +46,6 @@ data Inside
   = InsideDeclSig
   | InsideVerticalList
   | InsideVerticalFunctionSignature
-  | InsideMultiwayIf
   | InsideVerticalHsApp
   | InsideInstDecl
   | InsideConPat

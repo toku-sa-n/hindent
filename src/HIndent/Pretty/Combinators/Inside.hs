@@ -1,7 +1,6 @@
 module HIndent.Pretty.Combinators.Inside
   ( insideConPat
   , insideInstDecl
-  , insideMultiwayIf
   , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
@@ -10,7 +9,6 @@ module HIndent.Pretty.Combinators.Inside
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
-  , isInsideMultiwayIf
   , isInsideVerticalFuncSig
   , isInsideVerticalList
   ) where
@@ -24,9 +22,6 @@ insideConPat = inside InsideConPat
 
 insideInstDecl :: Printer a -> Printer a
 insideInstDecl = inside InsideInstDecl
-
-insideMultiwayIf :: Printer a -> Printer a
-insideMultiwayIf = inside InsideMultiwayIf
 
 insideDeclSig :: Printer a -> Printer a
 insideDeclSig = inside InsideDeclSig
@@ -64,9 +59,6 @@ isInsideDeclSig = isInside InsideDeclSig
 
 isInsideInstDecl :: Printer Bool
 isInsideInstDecl = isInside InsideInstDecl
-
-isInsideMultiwayIf :: Printer Bool
-isInsideMultiwayIf = isInside InsideMultiwayIf
 
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
