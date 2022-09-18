@@ -856,11 +856,12 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
     flip fmap xs $ \case
       (HsScaled _ x) -> output x
   pretty' (RecConGADT xs) =
-    vFields' $
-    flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
-      output $ head cd_fld_names
-      string " :: "
-      output cd_fld_type
+    printCommentsAnd xs $ \xs' ->
+      vFields' $
+      flip fmap xs' $ \(L _ ConDeclField {..}) -> do
+        output $ head cd_fld_names
+        string " :: "
+        output cd_fld_type
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
