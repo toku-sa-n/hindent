@@ -510,7 +510,7 @@ instance Pretty (HsExpr GhcPs) where
             string str
             string "do"
             newline
-            indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+            indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
           _ -> string str |=> pretty e
   pretty' (HsMultiIf _ guards) =
     string "if " |=> insideMultiwayIf (lined $ fmap pretty guards)
