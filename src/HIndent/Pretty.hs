@@ -1315,14 +1315,14 @@ instance Pretty InfixOp where
       occ = occName name
 
 instance Pretty PrefixOp where
-  pretty' (PrefixOp ((Unqual name))) = parensIfSymbol name $ output name
-  pretty' (PrefixOp ((Qual modName name))) =
+  pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ output name
+  pretty' (PrefixOp (Qual modName name)) =
     parensIfSymbol name $ do
       output modName
       string "."
       output name
   pretty' (PrefixOp (Orig {})) = undefined
-  pretty' (PrefixOp ((Exact name))) = parensIfSymbol occ $ output occ
+  pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
     where
       occ = occName name
 
