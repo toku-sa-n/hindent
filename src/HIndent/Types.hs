@@ -50,7 +50,6 @@ data Inside
   | InsideMultiwayIf
   | InsideVerticalHsApp
   | InsideInstDecl
-  | InsideCase
   | InsideConPat
   deriving (Eq, Ord)
 

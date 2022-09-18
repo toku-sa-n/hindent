@@ -58,7 +58,7 @@ rhsSeparator :: Printer ()
 rhsSeparator = do
   set <- gets psInside
   string $
-    if or $ fmap (`elem` set) [InsideCase, InsideLambda, InsideMultiwayIf]
+    if or $ fmap (`elem` set) [InsideLambda, InsideMultiwayIf]
       then "->"
       else "="
 

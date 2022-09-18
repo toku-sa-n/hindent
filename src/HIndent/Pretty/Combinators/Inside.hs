@@ -1,6 +1,5 @@
 module HIndent.Pretty.Combinators.Inside
-  ( insideCase
-  , insideConPat
+  ( insideConPat
   , insideInstDecl
   , insideLambda
   , insideMultiwayIf
@@ -11,7 +10,6 @@ module HIndent.Pretty.Combinators.Inside
   , resetInside
   , whenInsideLambda
   , unlessInsideLambda
-  , isInsideCase
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
@@ -24,9 +22,6 @@ module HIndent.Pretty.Combinators.Inside
 import           Control.Monad.RWS
 import           Data.Set
 import           HIndent.Types
-
-insideCase :: Printer a -> Printer a
-insideCase = inside InsideCase
 
 insideConPat :: Printer a -> Printer a
 insideConPat = inside InsideConPat
@@ -83,9 +78,6 @@ unlessInside :: Inside -> Printer () -> Printer ()
 unlessInside i p = do
   set <- gets psInside
   unless (i `elem` set) p
-
-isInsideCase :: Printer Bool
-isInsideCase = isInside InsideCase
 
 isInsideConPat :: Printer Bool
 isInsideConPat = isInside InsideConPat
