@@ -921,7 +921,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       space
       rhsSeparator
       string " do "
-      mapM_ pretty $ unLoc body
+      printCommentsAnd body (mapM_ pretty)
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
