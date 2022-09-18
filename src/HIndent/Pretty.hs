@@ -525,7 +525,7 @@ instance Pretty (HsExpr GhcPs) where
     where
       horizontal =
         brackets $ do
-          pretty $ head $ unLoc xs
+          printCommentsAnd xs (pretty . head)
           string " | "
           hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
       vertical =
