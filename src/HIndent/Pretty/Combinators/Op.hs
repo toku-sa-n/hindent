@@ -1,27 +1,11 @@
 module HIndent.Pretty.Combinators.Op
-  ( prefixOp
-  , unlessSpecialOp
+  ( unlessSpecialOp
   ) where
 
 import           Control.Monad
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Combinators.String
-import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
-
-prefixOp :: RdrName -> Printer ()
-prefixOp (Unqual name) = parensIfSymbol name $ output name
-prefixOp (Qual modName name) =
-  parensIfSymbol name $ do
-    output modName
-    string "."
-    output name
-prefixOp Orig {} = undefined
-prefixOp (Exact name) = parensIfSymbol occ $ output occ
-  where
-    occ = occName name
 
 unlessSpecialOp :: RdrName -> Printer () -> Printer ()
 unlessSpecialOp name = unless (isSpecialOp name)
