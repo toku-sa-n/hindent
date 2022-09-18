@@ -1,19 +1,15 @@
 module HIndent.Pretty.Combinators.Inside
   ( insideConPat
   , insideInstDecl
-  , insideLambda
   , insideMultiwayIf
   , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
   , exitVerticalSig
   , resetInside
-  , whenInsideLambda
-  , unlessInsideLambda
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
-  , isInsideLambda
   , isInsideMultiwayIf
   , isInsideVerticalFuncSig
   , isInsideVerticalList
@@ -32,9 +28,6 @@ insideInstDecl = inside InsideInstDecl
 insideMultiwayIf :: Printer a -> Printer a
 insideMultiwayIf = inside InsideMultiwayIf
 
-insideLambda :: Printer a -> Printer a
-insideLambda = inside InsideLambda
-
 insideDeclSig :: Printer a -> Printer a
 insideDeclSig = inside InsideDeclSig
 
@@ -43,12 +36,6 @@ insideVerticalList = inside InsideVerticalList
 
 insideVerticalFunctionSignature :: Printer a -> Printer a
 insideVerticalFunctionSignature = inside InsideVerticalFunctionSignature
-
-whenInsideLambda :: Printer () -> Printer ()
-whenInsideLambda = whenInside InsideLambda
-
-unlessInsideLambda :: Printer () -> Printer ()
-unlessInsideLambda = unlessInside InsideLambda
 
 inside :: Inside -> Printer b -> Printer b
 inside v = modifyInsideSetTemporarily (insert v)
@@ -69,16 +56,6 @@ modifyInsideSetTemporarily f p = do
   modify (\s -> s {psInside = before})
   pure r
 
-whenInside :: Inside -> Printer () -> Printer ()
-whenInside i p = do
-  set <- gets psInside
-  when (i `elem` set) p
-
-unlessInside :: Inside -> Printer () -> Printer ()
-unlessInside i p = do
-  set <- gets psInside
-  unless (i `elem` set) p
-
 isInsideConPat :: Printer Bool
 isInsideConPat = isInside InsideConPat
 
@@ -87,9 +64,6 @@ isInsideDeclSig = isInside InsideDeclSig
 
 isInsideInstDecl :: Printer Bool
 isInsideInstDecl = isInside InsideInstDecl
-
-isInsideLambda :: Printer Bool
-isInsideLambda = isInside InsideLambda
 
 isInsideMultiwayIf :: Printer Bool
 isInsideMultiwayIf = isInside InsideMultiwayIf

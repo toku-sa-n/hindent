@@ -72,14 +72,26 @@ data InfixApp =
 newtype MatchGroupForCase =
   MatchGroupForCase (MatchGroup GhcPs (LHsExpr GhcPs))
 
+newtype MatchGroupForLambda =
+  MatchGroupForLambda (MatchGroup GhcPs (LHsExpr GhcPs))
+
 newtype MatchForCase =
   MatchForCase (Match GhcPs (LHsExpr GhcPs))
+
+newtype MatchForLambda =
+  MatchForLambda (Match GhcPs (LHsExpr GhcPs))
 
 newtype GRHSsForCase =
   GRHSsForMatch (GRHSs GhcPs (LHsExpr GhcPs))
 
+newtype GRHSsForLambda =
+  GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
+
 newtype GRHSForCase =
   GRHSForMatch (GRHS GhcPs (LHsExpr GhcPs))
+
+newtype GRHSForLambda =
+  GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
 
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
@@ -434,6 +446,10 @@ instance Pretty MatchGroupForCase where
   pretty' (MatchGroupForCase MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCase))
 
+instance Pretty MatchGroupForLambda where
+  pretty' (MatchGroupForLambda MG {..}) =
+    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambda))
+
 instance Pretty (HsExpr GhcPs) where
   pretty' (HsVar _ bind) = pretty $ fmap PrefixOp bind
   pretty' HsUnboundVar {} = undefined
@@ -445,7 +461,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' HsIPVar {} = undefined
   pretty' full@HsOverLit {} = output full
   pretty' (HsLit _ l) = output l
-  pretty' (HsLam _ body) = insideLambda $ pretty body
+  pretty' (HsLam _ body) = pretty $ MatchGroupForLambda body
   pretty' (HsLamCase _ matches) = do
     string "\\case"
     if null $ unLoc $ mg_alts matches
@@ -684,24 +700,15 @@ instance Pretty (ConDecl GhcPs) where
             pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' Match {..} = do
-    isInLambda <- isInsideLambda
-    whenInsideLambda $ string "\\"
-    case (isInLambda, mc_fixity m_ctxt) of
-      (True, _) -> do
-        unless (null m_pats) $
-          case unLoc $ head m_pats of
-            LazyPat {} -> space
-            BangPat {} -> space
-            _          -> return ()
-        spaced $ fmap pretty m_pats ++ [pretty m_grhss]
-      (_, Prefix) -> do
+  pretty' Match {..} =
+    case mc_fixity m_ctxt of
+      Prefix -> do
         pretty m_ctxt
         unless (null m_pats) $ do
           space
           spaced $ fmap pretty m_pats
         pretty m_grhss
-      (_, Infix) -> do
+      Infix -> do
         case (m_pats, m_ctxt) of
           (l:r:xs, FunRhs {..}) -> do
             spaced $
@@ -713,10 +720,25 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   commentOnSameLine Match {..} = commentOnSameLine m_ext
   commentsAfter Match {..} = commentsAfter m_ext
 
-instance Pretty MatchForCase where
+instance Pretty MatchForCase
+  -- TODO: Do not forget to handle comments!
+                                             where
   pretty' (MatchForCase Match {..}) = do
     mapM_ pretty m_pats
     pretty (GRHSsForMatch m_grhss)
+
+instance Pretty MatchForLambda where
+  pretty' (MatchForLambda Match {..}) = do
+    string "\\"
+    unless (null m_pats) $
+      case unLoc $ head m_pats of
+        LazyPat {} -> space
+        BangPat {} -> space
+        _          -> return ()
+    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambda m_grhss]
+  commentsBefore (MatchForLambda (Match {..})) = commentsBefore m_ext
+  commentOnSameLine (MatchForLambda (Match {..})) = commentOnSameLine m_ext
+  commentsAfter (MatchForLambda (Match {..})) = commentsAfter m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
@@ -903,6 +925,21 @@ instance Pretty GRHSsForCase where
           string "where " |=> resetInside (pretty grhssLocalBinds)
       _ -> pure ()
 
+instance Pretty GRHSsForLambda where
+  pretty' (GRHSsForLambda GRHSs {..}) = do
+    mapM_ (pretty . fmap GRHSForLambda) grhssGRHSs
+    case grhssLocalBinds of
+      (HsValBinds epa lr) ->
+        indentedBlock $ do
+          newline
+          string "where"
+          newline
+          printCommentsBefore epa
+          indentedBlock $ pretty lr
+          printCommentOnSameLine epa
+          printCommentsAfter epa
+      _ -> return ()
+
 instance Pretty (HsMatchContext GhcPs) where
   pretty' FunRhs {..} = pretty mc_fun
   pretty' CaseAlt     = return ()
@@ -920,7 +957,7 @@ instance Pretty RdrName where
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
-    unlessInsideLambda space
+    space
     rhsSeparator
     space
     string "do"
@@ -943,12 +980,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
-        unlessInsideLambda space
+        space
         rhsSeparator
         space
         resetInside $ pretty body
       vertical = do
-        unlessInsideLambda space
+        space
         rhsSeparator
         newline
         resetInside $ indentedBlock $ pretty body
@@ -981,7 +1018,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSForCase where
   pretty' (GRHSForMatch (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    unlessInsideLambda space
+    space
     string "->"
     space
     string "do"
@@ -1004,12 +1041,12 @@ instance Pretty GRHSForCase where
   pretty' (GRHSForMatch (GRHS _ [] body)) = horizontal <-|> vertical
     where
       horizontal = do
-        unlessInsideLambda space
+        space
         string "->"
         space
         resetInside $ pretty body
       vertical = do
-        unlessInsideLambda space
+        space
         string "->"
         newline
         resetInside $ indentedBlock $ pretty body
@@ -1039,6 +1076,64 @@ instance Pretty GRHSForCase where
   commentsBefore (GRHSForMatch (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForMatch (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForMatch (GRHS x _ _)) = commentsAfter x
+
+instance Pretty GRHSForLambda where
+  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
+    string "->"
+    space
+    string "do"
+    newline
+    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
+    indentedBlock $ do
+      string "| "
+      inter
+        (if isMultiwayIf
+           then comma >> newline
+           else newline >> string ", ") $
+        fmap pretty guards
+      space
+      string "->"
+      string " do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForLambda (GRHS _ [] body)) = horizontal <-|> vertical
+    where
+      horizontal = do
+        string "->"
+        space
+        resetInside $ pretty body
+      vertical = do
+        string "->"
+        newline
+        resetInside $ indentedBlock $ pretty body
+  pretty' (GRHSForLambda (GRHS _ guards body)) = do
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
+    (if isMultiwayIf
+       then (string "| " |=>)
+       else indentedBlock . (string "| " >>)) $ do
+      inter
+        (if isMultiwayIf
+           then comma >> newline
+           else newline >> string ", ") $
+        fmap pretty guards
+      horizontal <-|> vertical
+    where
+      horizontal = spacePrefixed [string "->", pretty body]
+      vertical = do
+        isMultiwayIf <- isInsideMultiwayIf
+        space
+        string "->"
+        newline
+        (if isMultiwayIf
+           then id
+           else indentedBlock) $
+          pretty body
+  commentsBefore (GRHSForLambda (GRHS x _ _)) = commentsBefore x
+  commentOnSameLine (GRHSForLambda (GRHS x _ _)) = commentOnSameLine x
+  commentsAfter (GRHSForLambda (GRHS x _ _)) = commentsAfter x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c)  = string c
