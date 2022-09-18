@@ -1,12 +1,10 @@
 module HIndent.Pretty.Combinators.Inside
-  ( insideConPat
-  , insideInstDecl
+  ( insideInstDecl
   , insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
   , exitVerticalSig
   , resetInside
-  , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
   , isInsideVerticalFuncSig
@@ -16,9 +14,6 @@ module HIndent.Pretty.Combinators.Inside
 import           Control.Monad.RWS
 import           Data.Set
 import           HIndent.Types
-
-insideConPat :: Printer a -> Printer a
-insideConPat = inside InsideConPat
 
 insideInstDecl :: Printer a -> Printer a
 insideInstDecl = inside InsideInstDecl
@@ -50,9 +45,6 @@ modifyInsideSetTemporarily f p = do
   r <- p
   modify (\s -> s {psInside = before})
   pure r
-
-isInsideConPat :: Printer Bool
-isInsideConPat = isInside InsideConPat
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = isInside InsideDeclSig

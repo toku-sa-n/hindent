@@ -96,6 +96,12 @@ newtype GRHSForMultiwayIf =
 newtype GRHSForLambda =
   GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
 
+newtype RecConPat =
+  RecConPat (HsRecFields GhcPs (LPat GhcPs))
+
+newtype RecConField =
+  RecConField (HsRecField' (FieldOcc GhcPs) (LPat GhcPs))
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -1163,7 +1169,7 @@ instance Pretty (Pat GhcPs) where
       PrefixCon _ as -> do
         pretty $ fmap PrefixOp pat_con
         spacePrefixed $ fmap pretty as
-      RecCon rec -> (pretty pat_con >> space) |=> insideConPat (pretty rec)
+      RecCon rec -> (pretty pat_con >> space) |=> pretty (RecConPat rec)
       InfixCon a b -> do
         pretty a
         unlessSpecialOp (unLoc pat_con) space
@@ -1179,6 +1185,15 @@ instance Pretty (Pat GhcPs) where
   pretty' (NPat _ x _ _) = output x
   pretty' p@NPlusKPat {} = output p
   pretty' p@SigPat {} = output p
+
+instance Pretty RecConPat where
+  pretty' (RecConPat HsRecFields {..}) = horizontal <-|> vertical
+    where
+      horizontal =
+        case rec_dotdot of
+          Just _  -> braces $ string ".."
+          Nothing -> hFields $ fmap (pretty . fmap RecConField) rec_flds
+      vertical = vFields $ fmap (pretty . fmap RecConField) rec_flds
 
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
@@ -1269,10 +1284,7 @@ instance Pretty (HsTupArg GhcPs) where
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
 instance (Pretty a, Pretty b) => Pretty (HsRecField' a b) where
-  pretty' HsRecField {..} =
-    isInsideConPat >>= \case
-      True  -> horizontal
-      False -> horizontal <-|> vertical
+  pretty' HsRecField {..} = horizontal <-|> vertical
     where
       horizontal = do
         pretty hsRecFieldLbl
@@ -1285,6 +1297,13 @@ instance (Pretty a, Pretty b) => Pretty (HsRecField' a b) where
           string " ="
           newline
           indentedBlock $ pretty hsRecFieldArg
+
+instance Pretty RecConField where
+  pretty' (RecConField HsRecField {..}) = do
+    pretty hsRecFieldLbl
+    unless hsRecPun $ do
+      string " = "
+      pretty hsRecFieldArg
 
 instance Pretty (FieldOcc GhcPs) where
   pretty' FieldOcc {..} = pretty rdrNameFieldOcc
