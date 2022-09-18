@@ -419,7 +419,7 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty (HsExpr GhcPs) where
-  pretty' v@HsVar {} = prefixExpr v
+  pretty' (HsVar _ bind) = pretty $ fmap PrefixOp bind
   pretty' HsUnboundVar {} = undefined
   pretty' HsConLikeOut {} = undefined
   pretty' HsRecFld {} = undefined
@@ -1332,7 +1332,3 @@ instance Pretty PrefixOp where
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
     where
       occ = occName name
-
-prefixExpr :: HsExpr GhcPs -> Printer ()
-prefixExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
-prefixExpr x              = pretty x
