@@ -519,7 +519,7 @@ instance Pretty (HsExpr GhcPs) where
     newline
     string " in " |=> pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    string "do " |=> lined (output <$> unLoc xs) -- TODO: Handle comments.
+    string "do " |=> printCommentsAnd xs (lined . fmap output)
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
