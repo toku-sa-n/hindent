@@ -54,6 +54,13 @@ newtype InfixExpr =
 newtype InfixOp =
   InfixOp RdrName
 
+-- | A wrapper type for printing an identifier as a prefix operator.
+--
+-- Printing a `PrefixOp` value containing a symbol operator wraps it with
+-- parentheses.
+newtype PrefixOp =
+  PrefixOp RdrName
+
 data InfixApp =
   InfixApp
     { lhs                :: LHsExpr GhcPs
@@ -879,7 +886,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       else commaSep $ fmap pretty xs
 
 instance Pretty RdrName where
-  pretty' = prefixOp
+  pretty' = pretty . PrefixOp
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
@@ -984,7 +991,7 @@ instance Pretty (Pat GhcPs) where
   pretty' ConPat {..} =
     case pat_args of
       PrefixCon _ as -> do
-        prefixOp $ unLoc pat_con
+        pretty $ fmap PrefixOp pat_con
         spacePrefixed $ fmap pretty as
       RecCon rec -> (pretty pat_con >> space) |=> insideConPat (pretty rec)
       InfixCon a b -> do
@@ -1307,6 +1314,18 @@ instance Pretty InfixOp where
     where
       occ = occName name
 
+instance Pretty PrefixOp where
+  pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ output name
+  pretty' (PrefixOp (Qual modName name)) =
+    parensIfSymbol name $ do
+      output modName
+      string "."
+      output name
+  pretty' (PrefixOp (Orig {})) = undefined
+  pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
+    where
+      occ = occName name
+
 prefixExpr :: HsExpr GhcPs -> Printer ()
-prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
+prefixExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prefixExpr x              = pretty x

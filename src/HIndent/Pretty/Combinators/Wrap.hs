@@ -1,5 +1,6 @@
 module HIndent.Pretty.Combinators.Wrap
   ( parens
+  , parensIfSymbol
   , braces
   , brackets
   , tick
@@ -16,6 +17,12 @@ import           HIndent.Types
 
 parens :: Printer a -> Printer a
 parens = wrap "(" ")"
+
+-- | Encloses the given printer if the given operator is symbol one.
+parensIfSymbol :: OccName -> Printer a -> Printer a
+parensIfSymbol name
+  | isSymOcc name = parens
+  | otherwise = id
 
 braces :: Printer a -> Printer a
 braces = wrap "{" "}"
