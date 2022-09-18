@@ -1182,7 +1182,7 @@ instance Pretty InfixApp where
             (HsDo _ (DoExpr _) xs) -> do
               string " do"
               newline
-              indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+              indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
             HsLam {} -> do
               space
               pretty rhs
