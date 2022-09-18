@@ -1,11 +1,8 @@
 module HIndent.Pretty.Combinators.Inside
   ( insideDeclSig
   , insideVerticalList
-  , insideVerticalFunctionSignature
-  , exitVerticalSig
   , resetInside
   , isInsideDeclSig
-  , isInsideVerticalFuncSig
   , isInsideVerticalList
   ) where
 
@@ -19,15 +16,8 @@ insideDeclSig = inside InsideDeclSig
 insideVerticalList :: Printer a -> Printer a
 insideVerticalList = inside InsideVerticalList
 
-insideVerticalFunctionSignature :: Printer a -> Printer a
-insideVerticalFunctionSignature = inside InsideVerticalFunctionSignature
-
 inside :: Inside -> Printer b -> Printer b
 inside v = modifyInsideSetTemporarily (insert v)
-
-exitVerticalSig :: Printer a -> Printer a
-exitVerticalSig =
-  modifyInsideSetTemporarily (delete InsideVerticalFunctionSignature)
 
 resetInside :: Printer b -> Printer b
 resetInside = modifyInsideSetTemporarily (const empty)
@@ -43,9 +33,6 @@ modifyInsideSetTemporarily f p = do
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = isInside InsideDeclSig
-
-isInsideVerticalFuncSig :: Printer Bool
-isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
 
 isInsideVerticalList :: Printer Bool
 isInsideVerticalList = isInside InsideVerticalList

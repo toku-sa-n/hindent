@@ -45,7 +45,6 @@ newtype Printer a =
 data Inside
   = InsideDeclSig
   | InsideVerticalList
-  | InsideVerticalFunctionSignature
   deriving (Eq, Ord)
 
 -- | The state of the pretty printer.

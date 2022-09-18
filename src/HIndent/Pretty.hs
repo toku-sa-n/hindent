@@ -105,8 +105,14 @@ newtype RecConField =
 newtype HsSigTypeInsideInstDecl =
   HsSigTypeInsideInstDecl (HsSigType GhcPs)
 
+newtype HsSigTypeInsideVerticalFuncSig =
+  HsSigTypeInsideVerticalFuncSig (HsSigType GhcPs)
+
 newtype HsTypeInsideInstDecl =
   HsTypeInsideInstDecl (HsType GhcPs)
+
+newtype HsTypeInsideVerticalFuncSig =
+  HsTypeInsideVerticalFuncSig (HsType GhcPs)
 
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
@@ -396,16 +402,17 @@ instance Pretty (Sig GhcPs) where
       horizontal = do
         string " :: "
         pretty $ hswc_body params
-      vertical =
-        insideVerticalFunctionSignature $ do
-          headLen <- printerLength printFunName
-          indentSpaces <- getIndentSpaces
-          if headLen < indentSpaces
-            then string " :: "
-            else do
-              string " ::"
-              newline
-          indentedBlock $ indentedWithSpace 3 $ pretty $ hswc_body params -- 3 for "-> "
+      vertical = do
+        headLen <- printerLength printFunName
+        indentSpaces <- getIndentSpaces
+        if headLen < indentSpaces
+          then string " :: "
+          else do
+            string " ::"
+            newline
+        indentedBlock $
+          indentedWithSpace 3 $
+          pretty $ fmap HsSigTypeInsideVerticalFuncSig $ hswc_body params
       printFunName = pretty $ head funName
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
@@ -661,11 +668,9 @@ instance Pretty (HsSigType GhcPs) where
         string "forall "
         spaced $ fmap output xs
         dot
-        isInsideVerticalFuncSig >>= \case
-          True  -> newline
-          False -> space
+        space
       _ -> return ()
-    exitVerticalSig $ pretty sig_body
+    pretty sig_body
 
 instance Pretty HsSigTypeInsideInstDecl where
   pretty' (HsSigTypeInsideInstDecl HsSig {..}) = do
@@ -674,11 +679,20 @@ instance Pretty HsSigTypeInsideInstDecl where
         string "forall "
         spaced $ fmap output xs
         dot
-        isInsideVerticalFuncSig >>= \case
-          True  -> newline
-          False -> space
+        space
       _ -> return ()
-    exitVerticalSig $ pretty $ fmap HsTypeInsideInstDecl sig_body
+    pretty $ fmap HsTypeInsideInstDecl sig_body
+
+instance Pretty HsSigTypeInsideVerticalFuncSig where
+  pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) = do
+    case sig_bndrs of
+      HsOuterExplicit _ xs -> do
+        string "forall "
+        spaced $ fmap output xs
+        dot
+        newline
+      _ -> return ()
+    pretty sig_body
 
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
@@ -820,7 +834,7 @@ instance Pretty (HsType GhcPs) where
       sigVer = do
         constraints
         newline
-        prefixed "=> " $ insideVerticalFunctionSignature $ pretty hst_body
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
       notVer = do
         constraints
         string " =>"
@@ -866,18 +880,15 @@ instance Pretty (HsType GhcPs) where
     pretty r
   pretty' HsAppKindTy {} = undefined
   pretty' (HsFunTy _ _ a b) =
-    (,) <$> isInsideDeclSig <*> isInsideVerticalFuncSig >>= \case
-      (True, True)  -> declSigV
-      (True, False) -> hor <-|> declSigV
-      (_, True)     -> noDeclSigV
-      (_, False)    -> hor <-|> noDeclSigV
+    isInsideDeclSig >>= \case
+      True  -> hor <-|> declSigV
+      False -> hor <-|> noDeclSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
-      declSigV =
-        insideVerticalFunctionSignature $ do
-          pretty a
-          newline
-          prefixed "-> " $ pretty b
+      declSigV = do
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
       noDeclSigV = do
         resetInside $ pretty a
         newline
@@ -952,6 +963,22 @@ instance Pretty HsTypeInsideInstDecl where
           Just (L _ [_]) -> id
           Just _         -> parens
   pretty' (HsTypeInsideInstDecl x) = pretty x
+
+instance Pretty HsTypeInsideVerticalFuncSig where
+  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) =
+    isInsideDeclSig >>= \case
+      True  -> declSigV
+      False -> noDeclSigV
+    where
+      declSigV = do
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+      noDeclSigV = do
+        resetInside $ pretty $ fmap HsTypeInsideVerticalFuncSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+  pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
 
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
