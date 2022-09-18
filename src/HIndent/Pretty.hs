@@ -66,6 +66,14 @@ pretty p = do
   printCommentOnSameLine p
   printCommentsAfter p
 
+printCommentsAnd ::
+     (Pretty l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
+printCommentsAnd (L l e) f = do
+  printCommentsBefore l
+  f e
+  printCommentOnSameLine l
+  printCommentsAfter l
+
 -- | Prints comments that are before the given AST node.
 printCommentsBefore :: Pretty a => a -> Printer ()
 printCommentsBefore p =
