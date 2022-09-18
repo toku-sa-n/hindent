@@ -908,12 +908,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
-    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
-    unless isInsideMultiwayIf newline
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
     indentedBlock $ do
       string "| "
       inter
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
         fmap pretty guards
@@ -934,13 +934,13 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
-    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
-    unless isInsideMultiwayIf newline
-    (if isInsideMultiwayIf
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
+    (if isMultiwayIf
        then (string "| " |=>)
        else indentedBlock . (string "| " >>)) $ do
       inter
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
         fmap pretty guards
@@ -948,11 +948,11 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     where
       horizontal = spacePrefixed [rhsSeparator, pretty body]
       vertical = do
-        isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
+        isMultiwayIf <- isInsideMultiwayIf
         space
         rhsSeparator
         newline
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then id
            else indentedBlock) $
           pretty body

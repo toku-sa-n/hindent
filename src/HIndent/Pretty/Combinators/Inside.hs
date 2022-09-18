@@ -15,6 +15,7 @@ module HIndent.Pretty.Combinators.Inside
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
+  , isInsideMultiwayIf
   , isInsideVerticalFuncSig
   , isInsideVerticalList
   ) where
@@ -93,6 +94,9 @@ isInsideDeclSig = isInside InsideDeclSig
 
 isInsideInstDecl :: Printer Bool
 isInsideInstDecl = isInside InsideInstDecl
+
+isInsideMultiwayIf :: Printer Bool
+isInsideMultiwayIf = isInside InsideMultiwayIf
 
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
