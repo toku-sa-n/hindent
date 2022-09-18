@@ -754,6 +754,8 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
                     Just (L _ [])  -> parens
                     Just (L _ [_]) -> id
                     Just _         -> parens
+                -- TODO: Define a type that wraps a 'HsContext' and
+                -- implement 'Pretty' for it.
                 horCtx =
                   constraintsParens $
                   mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
