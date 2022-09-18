@@ -54,6 +54,13 @@ newtype InfixExpr =
 newtype InfixOp =
   InfixOp RdrName
 
+-- | A wrapper type for printing an identifier as a prefix operator.
+--
+-- Printing a `PrefixOp` value containing a symbol operator wraps it with
+-- parentheses.
+newtype PrefixOp =
+  PrefixOp RdrName
+
 data InfixApp =
   InfixApp
     { lhs                :: LHsExpr GhcPs
@@ -1304,6 +1311,18 @@ instance Pretty InfixOp where
       output name
   pretty' (InfixOp Orig {}) = undefined
   pretty' (InfixOp (Exact name)) = tickIfNotSymbol occ $ output occ
+    where
+      occ = occName name
+
+instance Pretty PrefixOp where
+  pretty' (PrefixOp ((Unqual name))) = parensIfSymbol name $ output name
+  pretty' (PrefixOp ((Qual modName name))) =
+    parensIfSymbol name $ do
+      output modName
+      string "."
+      output name
+  pretty' (PrefixOp (Orig {})) = undefined
+  pretty' (PrefixOp ((Exact name))) = parensIfSymbol occ $ output occ
     where
       occ = occName name
 

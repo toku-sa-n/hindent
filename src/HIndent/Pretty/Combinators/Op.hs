@@ -26,11 +26,6 @@ prefixOp (Exact name) = parensIfSymbol occ $ output occ
 unlessSpecialOp :: RdrName -> Printer () -> Printer ()
 unlessSpecialOp name = unless (isSpecialOp name)
 
-parensIfSymbol :: OccName -> Printer a -> Printer a
-parensIfSymbol name
-  | isSymOcc name = parens
-  | otherwise = id
-
 isSpecialOp :: RdrName -> Bool
 isSpecialOp (Unqual name) = isSpecialOpString $ occNameString name
 isSpecialOp Qual {}       = undefined
