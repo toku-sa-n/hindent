@@ -671,10 +671,10 @@ instance Pretty (ConDecl GhcPs) where
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' Match {..} = do
-    isInsideCase <- gets ((InsideCase `elem`) . psInside)
-    isInsideLambda <- gets ((InsideLambda `elem`) . psInside)
+    isInCase <- isInsideCase
+    isInLambda <- isInsideLambda
     whenInsideLambda $ string "\\"
-    case (isInsideCase, isInsideLambda, mc_fixity m_ctxt) of
+    case (isInCase, isInLambda, mc_fixity m_ctxt) of
       (True, _, _) -> do
         mapM_ pretty m_pats
         pretty m_grhss
@@ -718,11 +718,11 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
-  pretty' (ParStmt _ xs _ _) = do
-    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
-    if inVertical
-      then vertical
-      else horizontal <-|> vertical
+  pretty' (ParStmt _ xs _ _) =
+    isInsideVerticalList >>= \case
+      True  -> vertical
+      False -> horizontal <-|> vertical
+      -- TODO: Use `barSep`.
     where
       horizontal = hBarSep $ fmap output xs
       vertical = vBarSep $ fmap pretty xs
@@ -870,12 +870,12 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       (HsValBinds epa lr) ->
         indentedBlock $ do
           newline
-          isCase <- gets ((InsideCase `elem`) . psInside)
-          if isCase
-            then string "where " |=> do
-                   printCommentsBefore epa
-                   resetInside $ pretty lr
-            else do
+          isInsideCase >>= \case
+            True ->
+              string "where " |=> do
+                printCommentsBefore epa
+                resetInside $ pretty lr
+            False -> do
               string "where"
               newline
               printCommentsBefore epa
@@ -891,11 +891,10 @@ instance Pretty (HsMatchContext GhcPs) where
   pretty' x           = output x
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
-  pretty' (ParStmtBlock _ xs _ _) = do
-    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
-    if inVertical
-      then vCommaSep $ fmap pretty xs
-      else commaSep $ fmap pretty xs
+  pretty' (ParStmtBlock _ xs _ _) =
+    isInsideVerticalList >>= \case
+      True  -> vCommaSep $ fmap pretty xs
+      False -> commaSep $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = pretty . PrefixOp
@@ -909,12 +908,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
-    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
-    unless isInsideMultiwayIf newline
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
     indentedBlock $ do
       string "| "
       inter
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
         fmap pretty guards
@@ -935,13 +934,13 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
-    isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
-    unless isInsideMultiwayIf newline
-    (if isInsideMultiwayIf
+    isMultiwayIf <- isInsideMultiwayIf
+    unless isMultiwayIf newline
+    (if isMultiwayIf
        then (string "| " |=>)
        else indentedBlock . (string "| " >>)) $ do
       inter
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then comma >> newline
            else newline >> string ", ") $
         fmap pretty guards
@@ -949,11 +948,11 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     where
       horizontal = spacePrefixed [rhsSeparator, pretty body]
       vertical = do
-        isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
+        isMultiwayIf <- isInsideMultiwayIf
         space
         rhsSeparator
         newline
-        (if isInsideMultiwayIf
+        (if isMultiwayIf
            then id
            else indentedBlock) $
           pretty body
