@@ -11,3 +11,4 @@
 - error: {lhs: gets ((InsideCase `elem`) . psInside), rhs: isInsideCase}
 - error: {lhs: gets ((InsideVerticalList `elem`) . psInside), rhs: isInsideVerticalList}
 - error: {lhs: gets ((InsideMultiwayIf `elem`) . psInside), rhs: isInsideMultiwayIf}
+- error: {lhs: gets ((InsideLambda `elem`) . psInside), rhs: isInsideLambda}

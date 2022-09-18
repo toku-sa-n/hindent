@@ -672,9 +672,9 @@ instance Pretty (ConDecl GhcPs) where
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' Match {..} = do
     isInCase <- isInsideCase
-    isInsideLambda <- gets ((InsideLambda `elem`) . psInside)
+    isInLambda <- isInsideLambda
     whenInsideLambda $ string "\\"
-    case (isInCase, isInsideLambda, mc_fixity m_ctxt) of
+    case (isInCase, isInLambda, mc_fixity m_ctxt) of
       (True, _, _) -> do
         mapM_ pretty m_pats
         pretty m_grhss

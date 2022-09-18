@@ -15,6 +15,7 @@ module HIndent.Pretty.Combinators.Inside
   , isInsideConPat
   , isInsideDeclSig
   , isInsideInstDecl
+  , isInsideLambda
   , isInsideMultiwayIf
   , isInsideVerticalFuncSig
   , isInsideVerticalList
@@ -94,6 +95,9 @@ isInsideDeclSig = isInside InsideDeclSig
 
 isInsideInstDecl :: Printer Bool
 isInsideInstDecl = isInside InsideInstDecl
+
+isInsideLambda :: Printer Bool
+isInsideLambda = isInside InsideLambda
 
 isInsideMultiwayIf :: Printer Bool
 isInsideMultiwayIf = isInside InsideMultiwayIf
