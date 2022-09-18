@@ -1000,7 +1000,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         space
         string "="
         newline
-        (indentedBlock) $ pretty body
+        indentedBlock $ pretty body
   commentsBefore (GRHS x _ _) = commentsBefore x
   commentOnSameLine (GRHS x _ _) = commentOnSameLine x
   commentsAfter (GRHS x _ _) = commentsAfter x
@@ -1036,7 +1036,7 @@ instance Pretty GRHSForCase where
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHSForMatch (GRHS _ guards body)) = do
     newline
-    (indentedBlock . (string "| " >>)) $ do
+    indentedBlock . (string "| " >>) $ do
       inter (newline >> string ", ") $ fmap pretty guards
       horizontal <-|> vertical
     where
@@ -1045,7 +1045,7 @@ instance Pretty GRHSForCase where
         space
         string "->"
         newline
-        (indentedBlock) $ pretty body
+        indentedBlock $ pretty body
   commentsBefore (GRHSForMatch (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForMatch (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForMatch (GRHS x _ _)) = commentsAfter x
@@ -1078,7 +1078,7 @@ instance Pretty GRHSForLambda where
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHSForLambda (GRHS _ guards body)) = do
     newline
-    (indentedBlock . (string "| " >>)) $ do
+    indentedBlock . (string "| " >>) $ do
       inter (newline >> string ", ") $ fmap pretty guards
       horizontal <-|> vertical
     where
@@ -1087,7 +1087,7 @@ instance Pretty GRHSForLambda where
         space
         string "->"
         newline
-        (indentedBlock) $ pretty body
+        indentedBlock $ pretty body
   commentsBefore (GRHSForLambda (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForLambda (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForLambda (GRHS x _ _)) = commentsAfter x
@@ -1100,7 +1100,7 @@ instance Pretty GRHSForMultiwayIf where
     string "do"
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) =
     indentedBlock $ do
       string "| "
       inter (comma >> newline) $ fmap pretty guards
@@ -1120,8 +1120,8 @@ instance Pretty GRHSForMultiwayIf where
         string "->"
         newline
         resetInside $ indentedBlock $ pretty body
-  pretty' (GRHSForMultiwayIf (GRHS _ guards body)) = do
-    ((string "| " |=>)) $ do
+  pretty' (GRHSForMultiwayIf (GRHS _ guards body)) =
+    string "| " |=> do
       inter (comma >> newline) $ fmap pretty guards
       horizontal <-|> vertical
     where
@@ -1130,7 +1130,7 @@ instance Pretty GRHSForMultiwayIf where
         space
         string "->"
         newline
-        (id) $ pretty body
+        pretty body
   commentsBefore (GRHSForMultiwayIf (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForMultiwayIf (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForMultiwayIf (GRHS x _ _)) = commentsAfter x
