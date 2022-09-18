@@ -372,7 +372,7 @@ instance Pretty (Sig GhcPs) where
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
     string " :: "
-    pretty $ sig_body $ unLoc params
+    printCommentsAnd params (pretty . sig_body)
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
