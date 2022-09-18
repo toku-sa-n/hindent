@@ -532,14 +532,17 @@ instance Pretty (HsExpr GhcPs) where
         insideVerticalList $
         if null $ unLoc xs
           then string "[]"
-          else let (lastStmt, others) = (head $ unLoc xs, tail $ unLoc xs)
-                in do string "[ "
-                      pretty lastStmt
-                      newline
-                      forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        string p |=> pretty x
-                        newline
-                      string "]"
+          else printCommentsAnd
+                 xs
+                 (\xs' ->
+                    let (lastStmt, others) = (head xs', tail xs')
+                     in do string "[ "
+                           pretty lastStmt
+                           newline
+                           forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                             string p |=> pretty x
+                             newline
+                           string "]")
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
   pretty' HsDo {} = undefined
   pretty' (ExplicitList _ xs) = horizontal <-|> vertical
