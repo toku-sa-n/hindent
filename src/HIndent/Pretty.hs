@@ -77,6 +77,14 @@ pretty p = do
   printCommentOnSameLine p
   printCommentsAfter p
 
+printCommentsAnd ::
+     (Pretty l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
+printCommentsAnd (L l e) f = do
+  printCommentsBefore l
+  f e
+  printCommentOnSameLine l
+  printCommentsAfter l
+
 -- | Prints comments that are before the given AST node.
 printCommentsBefore :: Pretty a => a -> Printer ()
 printCommentsBefore p =
@@ -364,7 +372,7 @@ instance Pretty (Sig GhcPs) where
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
     string " :: "
-    pretty $ sig_body $ unLoc params
+    printCommentsAnd params (pretty . sig_body)
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
@@ -408,7 +416,7 @@ instance Pretty (ClsInstDecl GhcPs) where
       indentedBlock $ mapM_ pretty cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' MG {..} = lined $ pretty <$> unLoc mg_alts
+  pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty (HsExpr GhcPs) where
   pretty' v@HsVar {} = prefixExpr v
@@ -502,7 +510,7 @@ instance Pretty (HsExpr GhcPs) where
             string str
             string "do"
             newline
-            indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+            indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
           _ -> string str |=> pretty e
   pretty' (HsMultiIf _ guards) =
     string "if " |=> insideMultiwayIf (lined $ fmap pretty guards)
@@ -511,27 +519,30 @@ instance Pretty (HsExpr GhcPs) where
     newline
     string " in " |=> pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    string "do " |=> lined (output <$> unLoc xs) -- TODO: Handle comments.
+    string "do " |=> printCommentsAnd xs (lined . fmap output)
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
       horizontal =
         brackets $ do
-          pretty $ head $ unLoc xs
+          printCommentsAnd xs (pretty . head)
           string " | "
-          hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          printCommentsAnd xs (hCommaSep . fmap pretty . tail)
       vertical =
         insideVerticalList $
         if null $ unLoc xs
           then string "[]"
-          else let (lastStmt, others) = (head $ unLoc xs, tail $ unLoc xs)
-                in do string "[ "
-                      pretty lastStmt
-                      newline
-                      forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        string p |=> pretty x
-                        newline
-                      string "]"
+          else printCommentsAnd
+                 xs
+                 (\xs' ->
+                    let (lastStmt, others) = (head xs', tail xs')
+                     in do string "[ "
+                           pretty lastStmt
+                           newline
+                           forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                             string p |=> pretty x
+                             newline
+                           string "]")
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
   pretty' HsDo {} = undefined
   pretty' (ExplicitList _ xs) = horizontal <-|> vertical
@@ -759,7 +770,7 @@ instance Pretty (HsType GhcPs) where
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
-        mapM_ (hCommaSep . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
       vCon = do
         string constraintsParensL
         space
@@ -845,11 +856,12 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
     flip fmap xs $ \case
       (HsScaled _ x) -> output x
   pretty' (RecConGADT xs) =
-    vFields' $
-    flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
-      output $ head cd_fld_names
-      string " :: "
-      output cd_fld_type
+    printCommentsAnd xs $ \xs' ->
+      vFields' $
+      flip fmap xs' $ \(L _ ConDeclField {..}) -> do
+        output $ head cd_fld_names
+        string " :: "
+        output cd_fld_type
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
@@ -895,12 +907,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     space
     string "do"
     newline
-    resetInside $
-      indentedBlock $ do
-        printCommentsBefore $ getLoc body
-        lined $ pretty <$> unLoc body
-        printCommentOnSameLine $ getLoc body
-        printCommentsAfter $ getLoc body
+    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
@@ -914,7 +921,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       space
       rhsSeparator
       string " do "
-      mapM_ pretty $ unLoc body
+      printCommentsAnd body (mapM_ pretty)
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
@@ -1175,7 +1182,7 @@ instance Pretty InfixApp where
             (HsDo _ (DoExpr _) xs) -> do
               string " do"
               newline
-              indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+              indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
             HsLam {} -> do
               space
               pretty rhs
