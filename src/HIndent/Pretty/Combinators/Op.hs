@@ -1,6 +1,5 @@
 module HIndent.Pretty.Combinators.Op
-  ( infixOp
-  , prefixOp
+  ( prefixOp
   , unlessSpecialOp
   ) where
 
@@ -11,18 +10,6 @@ import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
-
-infixOp :: RdrName -> Printer ()
-infixOp (Unqual name) = tickIfNotSymbol name $ output name
-infixOp (Qual modName name) =
-  tickIfNotSymbol name $ do
-    output modName
-    string "."
-    output name
-infixOp Orig {} = undefined
-infixOp (Exact name) = tickIfNotSymbol occ $ output occ
-  where
-    occ = occName name
 
 prefixOp :: RdrName -> Printer ()
 prefixOp (Unqual name) = parensIfSymbol name $ output name
@@ -38,11 +25,6 @@ prefixOp (Exact name) = parensIfSymbol occ $ output occ
 
 unlessSpecialOp :: RdrName -> Printer () -> Printer ()
 unlessSpecialOp name = unless (isSpecialOp name)
-
-tickIfNotSymbol :: OccName -> Printer a -> Printer a
-tickIfNotSymbol name
-  | isSymOcc name = id
-  | otherwise = tick
 
 parensIfSymbol :: OccName -> Printer a -> Printer a
 parensIfSymbol name

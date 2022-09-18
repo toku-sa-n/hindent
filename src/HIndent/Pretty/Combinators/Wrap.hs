@@ -3,11 +3,13 @@ module HIndent.Pretty.Combinators.Wrap
   , braces
   , brackets
   , tick
+  , tickIfNotSymbol
   , wrapWithBars
   , promotedListBrackets
   , promotedTupleParens
   ) where
 
+import           GHC.Types.Name
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
@@ -23,6 +25,11 @@ brackets = wrap "[" "]"
 
 tick :: Printer a -> Printer a
 tick = wrap "`" "`"
+
+tickIfNotSymbol :: OccName -> Printer a -> Printer a
+tickIfNotSymbol name
+  | isSymOcc name = id
+  | otherwise = tick
 
 wrapWithBars :: Printer a -> Printer a
 wrapWithBars = wrap "|" "|"

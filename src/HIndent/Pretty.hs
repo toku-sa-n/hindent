@@ -24,6 +24,7 @@ import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Hs
 import           GHC.Types.Fixity
+import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
@@ -49,6 +50,9 @@ data SigMethodsFamily
 
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
+
+newtype InfixOp =
+  InfixOp RdrName
 
 data InfixApp =
   InfixApp
@@ -213,10 +217,8 @@ instance Pretty (TyClDecl GhcPs) where
       Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
       Infix ->
         case hsq_explicit tcdTyVars of
-          (l:r:xs)
-            -- TODO: Handle comments around 'tcdLName'.
-           -> do
-            spaced [output l, infixOp $ unLoc tcdLName, output r]
+          (l:r:xs) -> do
+            spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
             forM_ xs $ \x -> do
               space
               output x
@@ -253,10 +255,9 @@ instance Pretty (TyClDecl GhcPs) where
             spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
           Infix ->
             case hsq_explicit tcdTyVars of
-              (l:r:xs)
-                -- TODO: Handle comments around 'tcdLName'.
-               -> do
-                parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
+              (l:r:xs) -> do
+                parens $
+                  spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
                 spacePrefixed $ fmap output xs
               _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
@@ -285,10 +286,9 @@ instance Pretty (TyClDecl GhcPs) where
               spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
             Infix ->
               case hsq_explicit tcdTyVars of
-                (l:r:xs)
-                  -- TODO: Handle comments around 'tcdLName'.
-                 -> do
-                  parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
+                (l:r:xs) -> do
+                  parens $
+                    spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
                   forM_ xs $ \x -> do
                     space
                     output x
@@ -646,7 +646,7 @@ instance Pretty (ConDecl GhcPs) where
       else do
         case con_args of
           (InfixCon l r) ->
-            spaced [pretty l, infixOp $ unLoc con_name, pretty r] -- TODO: Handle comments.
+            spaced [pretty l, pretty $ fmap InfixOp con_name, pretty r]
           _ -> do
             pretty con_name
             pretty con_args
@@ -677,7 +677,8 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         case (m_pats, m_ctxt) of
           (l:r:xs, FunRhs {..}) -> do
             spaced $
-              [pretty l, infixOp $ unLoc mc_fun, pretty r] ++ fmap pretty xs
+              [pretty l, pretty $ fmap InfixOp mc_fun, pretty r] ++
+              fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
@@ -812,7 +813,8 @@ instance Pretty (HsType GhcPs) where
   -- a type with the same name. However, infix data constructors never
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
-  pretty' (HsOpTy _ l op r) = spaced [pretty l, infixOp $ unLoc op, pretty r]
+  pretty' (HsOpTy _ l op r) =
+    spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
   pretty' (HsParTy _ inside) = parens $ resetInside $ pretty inside
   pretty' t@HsIParamTy {} = output t
   pretty' HsStarTy {} = undefined
@@ -988,7 +990,7 @@ instance Pretty (Pat GhcPs) where
       InfixCon a b -> do
         pretty a
         unlessSpecialOp (unLoc pat_con) space
-        infixOp $ unLoc pat_con
+        pretty $ fmap InfixOp pat_con
         unlessSpecialOp (unLoc pat_con) space
         pretty b
   pretty' (ViewPat _ l r) = do
@@ -1138,7 +1140,7 @@ instance Pretty (ConDeclField GhcPs) where
     pretty cd_fld_type
 
 instance Pretty InfixExpr where
-  pretty' (InfixExpr (L _ (HsVar _ bind))) = infixOp $ unLoc bind
+  pretty' (InfixExpr (L _ (HsVar _ bind))) = pretty $ fmap InfixOp bind
   pretty' (InfixExpr x)                    = pretty' x
   commentsBefore (InfixExpr x) = commentsBefore x
   commentOnSameLine (InfixExpr x) = commentOnSameLine x
@@ -1292,6 +1294,18 @@ instance Pretty (HsForAllTelescope GhcPs) where
       (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty) >> dot
       (L _ (UserTyVar _ InferredSpec _))   -> return ()
       _                                    -> undefined
+
+instance Pretty InfixOp where
+  pretty' (InfixOp (Unqual name)) = tickIfNotSymbol name $ output name
+  pretty' (InfixOp (Qual modName name)) =
+    tickIfNotSymbol name $ do
+      output modName
+      string "."
+      output name
+  pretty' (InfixOp Orig {}) = undefined
+  pretty' (InfixOp (Exact name)) = tickIfNotSymbol occ $ output occ
+    where
+      occ = occName name
 
 prefixExpr :: HsExpr GhcPs -> Printer ()
 prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
