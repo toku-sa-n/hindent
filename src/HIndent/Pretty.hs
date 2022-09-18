@@ -734,9 +734,44 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
         string "forall "
         spaced $ fmap output xs
         dot
-        newline
-      _ -> return ()
-    pretty sig_body
+        printCommentsAnd sig_body $ \case
+          HsQualTy {..} -> do
+            let constraintsParensL =
+                  case hst_ctxt of
+                    Nothing        -> ""
+                    Just (L _ [])  -> "("
+                    Just (L _ [_]) -> ""
+                    Just _         -> "("
+                constraintsParensR =
+                  case hst_ctxt of
+                    Nothing        -> ""
+                    Just (L _ [])  -> ")"
+                    Just (L _ [_]) -> ""
+                    Just _         -> ")"
+                constraintsParens =
+                  case hst_ctxt of
+                    Nothing        -> id
+                    Just (L _ [])  -> parens
+                    Just (L _ [_]) -> id
+                    Just _         -> parens
+                horCtx =
+                  constraintsParens $
+                  mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
+                verCtx = do
+                  string constraintsParensL
+                  space
+                  forM_ hst_ctxt $ \(L l cs) -> do
+                    printCommentsBefore l
+                    inter (newline >> string ", ") $ fmap pretty cs
+                    printCommentOnSameLine l
+                    printCommentsAfter l
+                  newline
+                  string constraintsParensR
+            (space >> horCtx) <-|> (newline >> verCtx)
+            newline
+            prefixed "=> " $ pretty hst_body
+          x -> pretty $ HsTypeInsideDeclSig x
+      _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
 
 instance Pretty HsSigTypeInsideDeclSig where
   pretty' (HsSigTypeInsideDeclSig HsSig {..}) = do
