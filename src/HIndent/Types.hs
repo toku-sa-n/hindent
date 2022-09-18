@@ -10,7 +10,6 @@ module HIndent.Types
   ( Printer(..)
   , PrintState(..)
   , Config(..)
-  , Inside
   , readExtension
   , defaultConfig
   ) where
@@ -23,7 +22,6 @@ import           Data.ByteString.Builder
 import           Data.Functor.Identity
 import           Data.Int                   (Int64)
 import           Data.Maybe
-import           Data.Set
 import           Data.Yaml                  (FromJSON (..))
 import qualified Data.Yaml                  as Y
 import           Language.Haskell.Extension (Extension (UnknownExtension),
@@ -41,8 +39,6 @@ newtype Printer a =
            , MonadPlus
            , Alternative
            )
-
-data Inside
 
 -- | The state of the pretty printer.
 data PrintState =
@@ -64,9 +60,6 @@ data PrintState =
     -- ^ Bail out if we need to print beyond the current line or
     -- the maximum column.
     , psEolComment   :: !Bool
-    , psInside       :: Set Inside
-    -- ^ Denotes if the current position is inside some expression,
-    -- signature, etc.
     }
 
 -- | Configurations shared among the different styles. Styles may pay

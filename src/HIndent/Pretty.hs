@@ -33,7 +33,6 @@ import           GHC.Unit
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
-import           HIndent.Pretty.Combinators.Inside
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.Op
 import           HIndent.Pretty.Combinators.String
@@ -583,7 +582,7 @@ instance Pretty (HsExpr GhcPs) where
   pretty' ExplicitSum {} = undefined
   pretty' (HsCase _ cond arms) = do
     string "case " |=> do
-      resetInside $ pretty cond
+      pretty cond
       string " of"
     if null $ unLoc $ mg_alts arms
       then string " {}"
@@ -944,7 +943,7 @@ instance Pretty (HsType GhcPs) where
     where
       hor = spaced [pretty a, string "->", pretty b]
       noDeclSigV = do
-        resetInside $ pretty a
+        pretty a
         newline
         prefixed "-> " $ pretty b
   pretty' (HsListTy _ xs) = brackets $ pretty xs
@@ -957,7 +956,7 @@ instance Pretty (HsType GhcPs) where
   -- Thus there is no ambiguity.
   pretty' (HsOpTy _ l op r) =
     spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
-  pretty' (HsParTy _ inside) = parens $ resetInside $ pretty inside
+  pretty' (HsParTy _ inside) = parens $ pretty inside
   pretty' t@HsIParamTy {} = output t
   pretty' HsStarTy {} = undefined
   pretty' HsKindSig {} = undefined
@@ -1072,7 +1071,7 @@ instance Pretty HsTypeInsideVerticalFuncSig where
   pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = noDeclSigV
     where
       noDeclSigV = do
-        resetInside $ pretty $ fmap HsTypeInsideVerticalFuncSig a
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
@@ -1121,7 +1120,7 @@ instance Pretty GRHSsForCase where
       HsValBinds {} ->
         indentedBlock $ do
           newline
-          string "where " |=> resetInside (pretty grhssLocalBinds)
+          string "where " |=> pretty grhssLocalBinds
       _ -> pure ()
 
 instance Pretty GRHSsForLambda where
@@ -1162,7 +1161,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     space
     string "do"
     newline
-    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     newline
     indentedBlock $ do
@@ -1178,12 +1177,12 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         space
         string "="
         space
-        resetInside $ pretty body
+        pretty body
       vertical = do
         space
         string "="
         newline
-        resetInside $ indentedBlock $ pretty body
+        indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
     newline
     indentedBlock . (string "| " >>) $ do
@@ -1207,7 +1206,7 @@ instance Pretty GRHSForCase where
     space
     string "do"
     newline
-    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
@@ -1223,12 +1222,12 @@ instance Pretty GRHSForCase where
         space
         string "->"
         space
-        resetInside $ pretty body
+        pretty body
       vertical = do
         space
         string "->"
         newline
-        resetInside $ indentedBlock $ pretty body
+        indentedBlock $ pretty body
   pretty' (GRHSForCase (GRHS _ guards body)) = do
     newline
     indentedBlock . (string "| " >>) $ do
@@ -1251,7 +1250,7 @@ instance Pretty GRHSForLambda where
     space
     string "do"
     newline
-    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
@@ -1266,11 +1265,11 @@ instance Pretty GRHSForLambda where
       horizontal = do
         string "->"
         space
-        resetInside $ pretty body
+        pretty body
       vertical = do
         string "->"
         newline
-        resetInside $ indentedBlock $ pretty body
+        indentedBlock $ pretty body
   pretty' (GRHSForLambda (GRHS _ guards body)) = do
     newline
     indentedBlock . (string "| " >>) $ do
@@ -1291,7 +1290,7 @@ instance Pretty GRHSForMultiwayIf where
   pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
     string " -> do"
     newline
-    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) =
     indentedBlock $ do
       string "| "
@@ -1302,11 +1301,11 @@ instance Pretty GRHSForMultiwayIf where
     where
       horizontal = do
         string " -> "
-        resetInside $ pretty body
+        pretty body
       vertical = do
         string " ->"
         newline
-        resetInside $ indentedBlock $ pretty body
+        indentedBlock $ pretty body
   pretty' (GRHSForMultiwayIf (GRHS _ guards body)) =
     string "| " |=> do
       inter (comma >> newline) $ fmap pretty guards
