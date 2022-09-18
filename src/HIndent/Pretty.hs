@@ -412,7 +412,7 @@ instance Pretty (Sig GhcPs) where
             newline
         indentedBlock $
           indentedWithSpace 3 $
-          pretty $ fmap HsSigTypeInsideVerticalFuncSig $ hswc_body params
+          pretty $ HsSigTypeInsideVerticalFuncSig <$> hswc_body params
       printFunName = pretty $ head funName
   pretty' (ClassOpSig _ isDefault funNames params) = do
     when isDefault $ string "default "
