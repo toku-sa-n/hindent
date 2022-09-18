@@ -102,6 +102,12 @@ newtype RecConPat =
 newtype RecConField =
   RecConField (HsRecField' (FieldOcc GhcPs) (LPat GhcPs))
 
+newtype HsSigTypeInsideInstDecl =
+  HsSigTypeInsideInstDecl (HsSigType GhcPs)
+
+newtype HsTypeInsideInstDecl =
+  HsTypeInsideInstDecl (HsType GhcPs)
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -437,12 +443,11 @@ instance Pretty (HsDataDefn GhcPs) where
 
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
-    string "instance " |=>
-      insideInstDecl
-        (do whenJust cid_overlap_mode $ \x -> do
-              pretty x
-              space
-            pretty cid_poly_ty)
+    string "instance " |=> do
+      whenJust cid_overlap_mode $ \x -> do
+        pretty x
+        space
+      pretty $ fmap HsSigTypeInsideInstDecl cid_poly_ty
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
@@ -662,6 +667,19 @@ instance Pretty (HsSigType GhcPs) where
       _ -> return ()
     exitVerticalSig $ pretty sig_body
 
+instance Pretty HsSigTypeInsideInstDecl where
+  pretty' (HsSigTypeInsideInstDecl HsSig {..}) = do
+    case sig_bndrs of
+      HsOuterExplicit _ xs -> do
+        string "forall "
+        spaced $ fmap output xs
+        dot
+        isInsideVerticalFuncSig >>= \case
+          True  -> newline
+          False -> space
+      _ -> return ()
+    exitVerticalSig $ pretty $ fmap HsTypeInsideInstDecl sig_body
+
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
     where
@@ -794,10 +812,9 @@ instance Pretty a => Pretty (HsRecFields GhcPs a) where
 instance Pretty (HsType GhcPs) where
   pretty' (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
   pretty' HsQualTy {..} =
-    (,) <$> isInsideDeclSig <*> isInsideInstDecl >>= \case
-      (True, _)      -> hor <-|> sigVer
-      (False, True)  -> hor <-|> notVer
-      (False, False) -> notVer
+    isInsideDeclSig >>= \case
+      True  -> hor <-|> sigVer
+      False -> notVer
     where
       hor = spaced [constraints, string "=>", pretty hst_body]
       sigVer = do
@@ -808,11 +825,7 @@ instance Pretty (HsType GhcPs) where
         constraints
         string " =>"
         newline
-        isInst <- isInsideInstDecl
-        (if isInst
-           then id
-           else indentedBlock) $
-          pretty hst_body
+        indentedBlock $ pretty hst_body
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
@@ -895,6 +908,50 @@ instance Pretty (HsType GhcPs) where
   pretty' (HsTyLit _ x) = output x
   pretty' HsWildCardTy {} = undefined
   pretty' XHsType {} = undefined
+
+instance Pretty HsTypeInsideInstDecl where
+  pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
+    where
+      hor = spaced [constraints, string "=>", pretty hst_body]
+      notVer = do
+        constraints
+        string " =>"
+        newline
+        pretty hst_body
+      constraints = hCon <-|> vCon
+      hCon =
+        constraintsParens $
+        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
+      vCon = do
+        string constraintsParensL
+        space
+        forM_ hst_ctxt $ \(L l cs) -> do
+          printCommentsBefore l
+          inter (newline >> string ", ") $ fmap pretty cs
+          printCommentOnSameLine l
+          printCommentsAfter l
+        newline
+        string constraintsParensR
+      -- TODO: Clean up here.
+      constraintsParensL =
+        case hst_ctxt of
+          Nothing        -> ""
+          Just (L _ [])  -> "("
+          Just (L _ [_]) -> ""
+          Just _         -> "("
+      constraintsParensR =
+        case hst_ctxt of
+          Nothing        -> ""
+          Just (L _ [])  -> ")"
+          Just (L _ [_]) -> ""
+          Just _         -> ")"
+      constraintsParens =
+        case hst_ctxt of
+          Nothing        -> id
+          Just (L _ [])  -> parens
+          Just (L _ [_]) -> id
+          Just _         -> parens
+  pretty' (HsTypeInsideInstDecl x) = pretty x
 
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =

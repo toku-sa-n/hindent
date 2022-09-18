@@ -47,7 +47,6 @@ data Inside
   | InsideVerticalList
   | InsideVerticalFunctionSignature
   | InsideVerticalHsApp
-  | InsideInstDecl
   deriving (Eq, Ord)
 
 -- | The state of the pretty printer.

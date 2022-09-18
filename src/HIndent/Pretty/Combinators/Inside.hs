@@ -1,12 +1,10 @@
 module HIndent.Pretty.Combinators.Inside
-  ( insideInstDecl
-  , insideDeclSig
+  ( insideDeclSig
   , insideVerticalList
   , insideVerticalFunctionSignature
   , exitVerticalSig
   , resetInside
   , isInsideDeclSig
-  , isInsideInstDecl
   , isInsideVerticalFuncSig
   , isInsideVerticalList
   ) where
@@ -14,9 +12,6 @@ module HIndent.Pretty.Combinators.Inside
 import           Control.Monad.RWS
 import           Data.Set
 import           HIndent.Types
-
-insideInstDecl :: Printer a -> Printer a
-insideInstDecl = inside InsideInstDecl
 
 insideDeclSig :: Printer a -> Printer a
 insideDeclSig = inside InsideDeclSig
@@ -48,9 +43,6 @@ modifyInsideSetTemporarily f p = do
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = isInside InsideDeclSig
-
-isInsideInstDecl :: Printer Bool
-isInsideInstDecl = isInside InsideInstDecl
 
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
