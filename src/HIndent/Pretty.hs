@@ -718,11 +718,11 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
-  pretty' (ParStmt _ xs _ _) = do
-    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
-    if inVertical
-      then vertical
-      else horizontal <-|> vertical
+  pretty' (ParStmt _ xs _ _) =
+    isInsideVerticalList >>= \case
+      True  -> vertical
+      False -> horizontal <-|> vertical
+      -- TODO: Use `barSep`.
     where
       horizontal = hBarSep $ fmap output xs
       vertical = vBarSep $ fmap pretty xs
@@ -891,11 +891,10 @@ instance Pretty (HsMatchContext GhcPs) where
   pretty' x           = output x
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
-  pretty' (ParStmtBlock _ xs _ _) = do
-    inVertical <- gets ((InsideVerticalList `elem`) . psInside)
-    if inVertical
-      then vCommaSep $ fmap pretty xs
-      else commaSep $ fmap pretty xs
+  pretty' (ParStmtBlock _ xs _ _) =
+    isInsideVerticalList >>= \case
+      True  -> vCommaSep $ fmap pretty xs
+      False -> commaSep $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = pretty . PrefixOp

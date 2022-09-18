@@ -16,6 +16,7 @@ module HIndent.Pretty.Combinators.Inside
   , isInsideDeclSig
   , isInsideInstDecl
   , isInsideVerticalFuncSig
+  , isInsideVerticalList
   ) where
 
 import           Control.Monad.RWS
@@ -95,6 +96,9 @@ isInsideInstDecl = isInside InsideInstDecl
 
 isInsideVerticalFuncSig :: Printer Bool
 isInsideVerticalFuncSig = isInside InsideVerticalFunctionSignature
+
+isInsideVerticalList :: Printer Bool
+isInsideVerticalList = isInside InsideVerticalList
 
 isInside :: Inside -> Printer Bool
 isInside x = gets ((x `elem`) . psInside)
