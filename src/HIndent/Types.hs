@@ -42,9 +42,8 @@ newtype Printer a =
            , Alternative
            )
 
-data Inside
-  = InsideDeclSig
-  | InsideVerticalList
+data Inside =
+  InsideDeclSig
   deriving (Eq, Ord)
 
 -- | The state of the pretty printer.

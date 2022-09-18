@@ -1,9 +1,7 @@
 module HIndent.Pretty.Combinators.Inside
   ( insideDeclSig
-  , insideVerticalList
   , resetInside
   , isInsideDeclSig
-  , isInsideVerticalList
   ) where
 
 import           Control.Monad.RWS
@@ -12,9 +10,6 @@ import           HIndent.Types
 
 insideDeclSig :: Printer a -> Printer a
 insideDeclSig = inside InsideDeclSig
-
-insideVerticalList :: Printer a -> Printer a
-insideVerticalList = inside InsideVerticalList
 
 inside :: Inside -> Printer b -> Printer b
 inside v = modifyInsideSetTemporarily (insert v)
@@ -33,9 +28,6 @@ modifyInsideSetTemporarily f p = do
 
 isInsideDeclSig :: Printer Bool
 isInsideDeclSig = isInside InsideDeclSig
-
-isInsideVerticalList :: Printer Bool
-isInsideVerticalList = isInside InsideVerticalList
 
 isInside :: Inside -> Printer Bool
 isInside x = gets ((x `elem`) . psInside)

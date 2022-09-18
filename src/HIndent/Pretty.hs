@@ -114,6 +114,12 @@ newtype HsTypeInsideInstDecl =
 newtype HsTypeInsideVerticalFuncSig =
   HsTypeInsideVerticalFuncSig (HsType GhcPs)
 
+newtype StmtLRInsideVerticalList =
+  StmtLRInsideVerticalList (StmtLR GhcPs GhcPs (LHsExpr GhcPs))
+
+newtype ParStmtBlockInsideVerticalList =
+  ParStmtBlockInsideVerticalList (ParStmtBlock GhcPs GhcPs)
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -580,7 +586,6 @@ instance Pretty (HsExpr GhcPs) where
           string " | "
           printCommentsAnd xs (hCommaSep . fmap pretty . tail)
       vertical =
-        insideVerticalList $
         if null $ unLoc xs
           then string "[]"
           else printCommentsAnd
@@ -588,10 +593,11 @@ instance Pretty (HsExpr GhcPs) where
                  (\xs' ->
                     let (lastStmt, others) = (head xs', tail xs')
                      in do string "[ "
-                           pretty lastStmt
+                           pretty $ fmap StmtLRInsideVerticalList lastStmt
                            newline
                            forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                             string p |=> pretty x
+                             string p |=>
+                               pretty (fmap StmtLRInsideVerticalList x)
                              newline
                            string "]")
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
@@ -796,10 +802,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
-  pretty' (ParStmt _ xs _ _) =
-    isInsideVerticalList >>= \case
-      True  -> vertical
-      False -> horizontal <-|> vertical
+  pretty' (ParStmt _ xs _ _) = horizontal <-|> vertical
       -- TODO: Use `barSep`.
     where
       horizontal = hBarSep $ fmap output xs
@@ -811,6 +814,11 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   commentsBefore _             = []
   commentsAfter (LetStmt l _) = commentsAfter l
   commentsAfter _             = []
+
+instance Pretty StmtLRInsideVerticalList where
+  pretty' (StmtLRInsideVerticalList (ParStmt _ xs _ _)) =
+    vBarSep $ fmap (pretty . ParStmtBlockInsideVerticalList) xs
+  pretty' (StmtLRInsideVerticalList x) = pretty x
 
 -- FIXME: Reconsider using a type variable. Using type variables may need
 -- to define odd instances (e.g., Void).
@@ -1040,10 +1048,11 @@ instance Pretty (HsMatchContext GhcPs) where
   pretty' x           = output x
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
-  pretty' (ParStmtBlock _ xs _ _) =
-    isInsideVerticalList >>= \case
-      True  -> vCommaSep $ fmap pretty xs
-      False -> commaSep $ fmap pretty xs
+  pretty' (ParStmtBlock _ xs _ _) = commaSep $ fmap pretty xs
+
+instance Pretty ParStmtBlockInsideVerticalList where
+  pretty' (ParStmtBlockInsideVerticalList (ParStmtBlock _ xs _ _)) =
+    vCommaSep $ fmap pretty xs
 
 instance Pretty RdrName where
   pretty' = pretty . PrefixOp
