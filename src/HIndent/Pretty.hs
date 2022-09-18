@@ -24,6 +24,7 @@ import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Hs
 import           GHC.Types.Fixity
+import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
@@ -50,6 +51,16 @@ data SigMethodsFamily
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
 
+newtype InfixOp =
+  InfixOp RdrName
+
+-- | A wrapper type for printing an identifier as a prefix operator.
+--
+-- Printing a `PrefixOp` value containing a symbol operator wraps it with
+-- parentheses.
+newtype PrefixOp =
+  PrefixOp RdrName
+
 data InfixApp =
   InfixApp
     { lhs                :: LHsExpr GhcPs
@@ -65,6 +76,14 @@ pretty p = do
   pretty' p
   printCommentOnSameLine p
   printCommentsAfter p
+
+printCommentsAnd ::
+     (Pretty l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
+printCommentsAnd (L l e) f = do
+  printCommentsBefore l
+  f e
+  printCommentOnSameLine l
+  printCommentsAfter l
 
 -- | Prints comments that are before the given AST node.
 printCommentsBefore :: Pretty a => a -> Printer ()
@@ -213,10 +232,8 @@ instance Pretty (TyClDecl GhcPs) where
       Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
       Infix ->
         case hsq_explicit tcdTyVars of
-          (l:r:xs)
-            -- TODO: Handle comments around 'tcdLName'.
-           -> do
-            spaced [output l, infixOp $ unLoc tcdLName, output r]
+          (l:r:xs) -> do
+            spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
             forM_ xs $ \x -> do
               space
               output x
@@ -253,10 +270,9 @@ instance Pretty (TyClDecl GhcPs) where
             spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
           Infix ->
             case hsq_explicit tcdTyVars of
-              (l:r:xs)
-                -- TODO: Handle comments around 'tcdLName'.
-               -> do
-                parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
+              (l:r:xs) -> do
+                parens $
+                  spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
                 spacePrefixed $ fmap output xs
               _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
@@ -285,10 +301,9 @@ instance Pretty (TyClDecl GhcPs) where
               spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
             Infix ->
               case hsq_explicit tcdTyVars of
-                (l:r:xs)
-                  -- TODO: Handle comments around 'tcdLName'.
-                 -> do
-                  parens $ spaced [output l, infixOp $ unLoc tcdLName, output r]
+                (l:r:xs) -> do
+                  parens $
+                    spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
                   forM_ xs $ \x -> do
                     space
                     output x
@@ -357,7 +372,7 @@ instance Pretty (Sig GhcPs) where
     when isDefault $ string "default "
     hCommaSep $ fmap pretty funNames
     string " :: "
-    pretty $ sig_body $ unLoc params
+    printCommentsAnd params (pretty . sig_body)
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
@@ -401,7 +416,7 @@ instance Pretty (ClsInstDecl GhcPs) where
       indentedBlock $ mapM_ pretty cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' MG {..} = lined $ pretty <$> unLoc mg_alts
+  pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty (HsExpr GhcPs) where
   pretty' v@HsVar {} = prefixExpr v
@@ -495,7 +510,7 @@ instance Pretty (HsExpr GhcPs) where
             string str
             string "do"
             newline
-            indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+            indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
           _ -> string str |=> pretty e
   pretty' (HsMultiIf _ guards) =
     string "if " |=> insideMultiwayIf (lined $ fmap pretty guards)
@@ -504,27 +519,30 @@ instance Pretty (HsExpr GhcPs) where
     newline
     string " in " |=> pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    string "do " |=> lined (output <$> unLoc xs) -- TODO: Handle comments.
+    string "do " |=> printCommentsAnd xs (lined . fmap output)
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
       horizontal =
         brackets $ do
-          pretty $ head $ unLoc xs
+          printCommentsAnd xs (pretty . head)
           string " | "
-          hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          printCommentsAnd xs (hCommaSep . fmap pretty . tail)
       vertical =
         insideVerticalList $
         if null $ unLoc xs
           then string "[]"
-          else let (lastStmt, others) = (head $ unLoc xs, tail $ unLoc xs)
-                in do string "[ "
-                      pretty lastStmt
-                      newline
-                      forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                        string p |=> pretty x
-                        newline
-                      string "]"
+          else printCommentsAnd
+                 xs
+                 (\xs' ->
+                    let (lastStmt, others) = (head xs', tail xs')
+                     in do string "[ "
+                           pretty lastStmt
+                           newline
+                           forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                             string p |=> pretty x
+                             newline
+                           string "]")
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
   pretty' HsDo {} = undefined
   pretty' (ExplicitList _ xs) = horizontal <-|> vertical
@@ -646,7 +664,7 @@ instance Pretty (ConDecl GhcPs) where
       else do
         case con_args of
           (InfixCon l r) ->
-            spaced [pretty l, infixOp $ unLoc con_name, pretty r] -- TODO: Handle comments.
+            spaced [pretty l, pretty $ fmap InfixOp con_name, pretty r]
           _ -> do
             pretty con_name
             pretty con_args
@@ -677,7 +695,8 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         case (m_pats, m_ctxt) of
           (l:r:xs, FunRhs {..}) -> do
             spaced $
-              [pretty l, infixOp $ unLoc mc_fun, pretty r] ++ fmap pretty xs
+              [pretty l, pretty $ fmap InfixOp mc_fun, pretty r] ++
+              fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
   commentsBefore Match {..} = commentsBefore m_ext
@@ -751,7 +770,7 @@ instance Pretty (HsType GhcPs) where
       constraints = hCon <-|> vCon
       hCon =
         constraintsParens $
-        mapM_ (hCommaSep . fmap pretty . unLoc) hst_ctxt -- TODO: Handle comments
+        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
       vCon = do
         string constraintsParensL
         space
@@ -812,7 +831,8 @@ instance Pretty (HsType GhcPs) where
   -- a type with the same name. However, infix data constructors never
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
-  pretty' (HsOpTy _ l op r) = spaced [pretty l, infixOp $ unLoc op, pretty r]
+  pretty' (HsOpTy _ l op r) =
+    spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
   pretty' (HsParTy _ inside) = parens $ resetInside $ pretty inside
   pretty' t@HsIParamTy {} = output t
   pretty' HsStarTy {} = undefined
@@ -836,11 +856,12 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
     flip fmap xs $ \case
       (HsScaled _ x) -> output x
   pretty' (RecConGADT xs) =
-    vFields' $
-    flip fmap (unLoc xs) $ \(L _ ConDeclField {..}) -> do
-      output $ head cd_fld_names
-      string " :: "
-      output cd_fld_type
+    printCommentsAnd xs $ \xs' ->
+      vFields' $
+      flip fmap xs' $ \(L _ ConDeclField {..}) -> do
+        output $ head cd_fld_names
+        string " :: "
+        output cd_fld_type
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
@@ -877,7 +898,7 @@ instance Pretty (ParStmtBlock GhcPs GhcPs) where
       else commaSep $ fmap pretty xs
 
 instance Pretty RdrName where
-  pretty' = prefixOp
+  pretty' = pretty . PrefixOp
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
@@ -886,12 +907,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     space
     string "do"
     newline
-    resetInside $
-      indentedBlock $ do
-        printCommentsBefore $ getLoc body
-        lined $ pretty <$> unLoc body
-        printCommentOnSameLine $ getLoc body
-        printCommentsAfter $ getLoc body
+    resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     isInsideMultiwayIf <- gets ((InsideMultiwayIf `elem`) . psInside)
     unless isInsideMultiwayIf newline
@@ -905,7 +921,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       space
       rhsSeparator
       string " do "
-      mapM_ pretty $ unLoc body
+      printCommentsAnd body (mapM_ pretty)
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
@@ -982,13 +998,13 @@ instance Pretty (Pat GhcPs) where
   pretty' ConPat {..} =
     case pat_args of
       PrefixCon _ as -> do
-        prefixOp $ unLoc pat_con
+        pretty $ fmap PrefixOp pat_con
         spacePrefixed $ fmap pretty as
       RecCon rec -> (pretty pat_con >> space) |=> insideConPat (pretty rec)
       InfixCon a b -> do
         pretty a
         unlessSpecialOp (unLoc pat_con) space
-        infixOp $ unLoc pat_con
+        pretty $ fmap InfixOp pat_con
         unlessSpecialOp (unLoc pat_con) space
         pretty b
   pretty' (ViewPat _ l r) = do
@@ -1138,7 +1154,7 @@ instance Pretty (ConDeclField GhcPs) where
     pretty cd_fld_type
 
 instance Pretty InfixExpr where
-  pretty' (InfixExpr (L _ (HsVar _ bind))) = infixOp $ unLoc bind
+  pretty' (InfixExpr (L _ (HsVar _ bind))) = pretty $ fmap InfixOp bind
   pretty' (InfixExpr x)                    = pretty' x
   commentsBefore (InfixExpr x) = commentsBefore x
   commentOnSameLine (InfixExpr x) = commentOnSameLine x
@@ -1166,7 +1182,7 @@ instance Pretty InfixApp where
             (HsDo _ (DoExpr _) xs) -> do
               string " do"
               newline
-              indentedBlock $ lined $ pretty <$> unLoc xs -- TODO: Handle comments.
+              indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
             HsLam {} -> do
               space
               pretty rhs
@@ -1293,6 +1309,30 @@ instance Pretty (HsForAllTelescope GhcPs) where
       (L _ (UserTyVar _ InferredSpec _))   -> return ()
       _                                    -> undefined
 
+instance Pretty InfixOp where
+  pretty' (InfixOp (Unqual name)) = tickIfNotSymbol name $ output name
+  pretty' (InfixOp (Qual modName name)) =
+    tickIfNotSymbol name $ do
+      output modName
+      string "."
+      output name
+  pretty' (InfixOp Orig {}) = undefined
+  pretty' (InfixOp (Exact name)) = tickIfNotSymbol occ $ output occ
+    where
+      occ = occName name
+
+instance Pretty PrefixOp where
+  pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ output name
+  pretty' (PrefixOp (Qual modName name)) =
+    parensIfSymbol name $ do
+      output modName
+      string "."
+      output name
+  pretty' (PrefixOp (Orig {})) = undefined
+  pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
+    where
+      occ = occName name
+
 prefixExpr :: HsExpr GhcPs -> Printer ()
-prefixExpr (HsVar _ bind) = prefixOp $ unLoc bind
+prefixExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prefixExpr x              = pretty x
