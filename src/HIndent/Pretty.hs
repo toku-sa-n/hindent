@@ -1094,30 +1094,22 @@ instance Pretty GRHSForLambda where
 
 instance Pretty GRHSForMultiwayIf where
   pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    space
-    string "->"
-    space
-    string "do"
+    string " -> do"
     newline
     resetInside $ indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) =
     indentedBlock $ do
       string "| "
       inter (comma >> newline) $ fmap pretty guards
-      space
-      string "->"
-      string " do "
+      string " -> do "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForMultiwayIf (GRHS _ [] body)) = horizontal <-|> vertical
     where
       horizontal = do
-        space
-        string "->"
-        space
+        string " -> "
         resetInside $ pretty body
       vertical = do
-        space
-        string "->"
+        string " ->"
         newline
         resetInside $ indentedBlock $ pretty body
   pretty' (GRHSForMultiwayIf (GRHS _ guards body)) =
@@ -1127,8 +1119,7 @@ instance Pretty GRHSForMultiwayIf where
     where
       horizontal = spacePrefixed [string "->", pretty body]
       vertical = do
-        space
-        string "->"
+        string " ->"
         newline
         pretty body
   commentsBefore (GRHSForMultiwayIf (GRHS x _ _)) = commentsBefore x
