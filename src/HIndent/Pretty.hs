@@ -527,7 +527,7 @@ instance Pretty (HsExpr GhcPs) where
         brackets $ do
           printCommentsAnd xs (pretty . head)
           string " | "
-          hCommaSep $ fmap pretty $ tail $ unLoc xs -- TODO: Handle comments.
+          printCommentsAnd xs (hCommaSep . fmap pretty . tail)
       vertical =
         insideVerticalList $
         if null $ unLoc xs
