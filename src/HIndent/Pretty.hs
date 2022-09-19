@@ -1103,10 +1103,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSForCase where
   pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    space
-    string "->"
-    space
-    string "do"
+    string " -> do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
@@ -1114,20 +1111,15 @@ instance Pretty GRHSForCase where
     indentedBlock $ do
       string "| "
       inter (newline >> string ", ") $ fmap pretty guards
-      space
-      string "->"
-      string " do "
+      string " -> do "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForCase (GRHS _ [] body)) = horizontal <-|> vertical
     where
       horizontal = do
-        space
-        string "->"
-        space
+        string " -> "
         pretty body
       vertical = do
-        space
-        string "->"
+        string " ->"
         newline
         indentedBlock $ pretty body
   pretty' (GRHSForCase (GRHS _ guards body)) = do
