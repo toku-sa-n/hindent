@@ -1027,10 +1027,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
           newline
           string "where"
           newline
-          printCommentsBefore epa
-          indentedBlock $ pretty lr
-          printCommentOnSameLine epa
-          printCommentsAfter epa
+          printCommentsAnd (L epa lr) (indentedBlock . pretty)
       _ -> return ()
 
 instance Pretty GRHSsForCase where
