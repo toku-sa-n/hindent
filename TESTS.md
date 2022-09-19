@@ -523,6 +523,18 @@ cppSplitBlocks inp = undefined
     spanCPPLines = undefined
 ```
 
+A `forall` type inside a where clause
+
+```haskell
+replaceAllNotUsedAnns :: HsModule -> HsModule
+replaceAllNotUsedAnns = everywhere app
+  where
+    app ::
+         forall a. Data a
+      => (a -> a)
+    app = undefined
+```
+
 Long argument list should line break
 
 ```haskell

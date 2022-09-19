@@ -5,7 +5,6 @@ module HIndent.Pretty.Combinators
   ( (<-|>)
   , output
   , showOutputable
-  , rhsSeparator
   , prefixed
   , eolCommentsArePrinted
   , startingColumn
@@ -53,14 +52,6 @@ showOutputable = showPpr dynFlags
 
 dynFlags :: DynFlags
 dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
-
-rhsSeparator :: Printer ()
-rhsSeparator = do
-  set <- gets psInside
-  string $
-    if or $ fmap (`elem` set) [InsideCase, InsideLambda, InsideMultiwayIf]
-      then "->"
-      else "="
 
 -- | Prints the text passed as the first argument before the current
 -- position and then the second argument.
