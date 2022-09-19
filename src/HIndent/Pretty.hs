@@ -1048,11 +1048,9 @@ instance Pretty GRHSsForLambda where
     mapM_ (pretty . fmap GRHSForLambda) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
-        indentedBlock $ do
-          newline
-          string "where"
-          newline
-          printCommentsAnd (L epa lr) (indentedBlock . pretty)
+        indentedBlock $
+        newlinePrefixed
+          [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
 
 instance Pretty (HsMatchContext GhcPs) where
