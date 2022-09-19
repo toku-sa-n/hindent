@@ -1641,24 +1641,8 @@ instance Pretty HorizontalContext where
           Just _         -> parens
 
 instance Pretty VerticalContext where
-  pretty' (VerticalContext xs) = do
-    string constraintsParensL
-    space
-    forM_ xs $
-      flip printCommentsAnd (inter (newline >> string ", ") . fmap pretty)
-    newline
-    string constraintsParensR
-    -- TODO: Clean up here.
-    where
-      constraintsParensL =
-        case xs of
-          Nothing        -> ""
-          Just (L _ [])  -> "("
-          Just (L _ [_]) -> ""
-          Just _         -> "("
-      constraintsParensR =
-        case xs of
-          Nothing        -> ""
-          Just (L _ [])  -> ")"
-          Just (L _ [_]) -> ""
-          Just _         -> ")"
+  pretty' (VerticalContext Nothing) = undefined
+  pretty' (VerticalContext (Just (L _ []))) = undefined
+  pretty' (VerticalContext (Just (L _ [_]))) = undefined
+  pretty' (VerticalContext (Just xs)) =
+    printCommentsAnd xs (vTuple . fmap pretty)
