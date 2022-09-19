@@ -740,6 +740,15 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
   | otherwise = Nothing
 ```
 
+A `do` inside a guard arm
+
+```haskell
+f
+  | x == 1 = do
+    a
+    b
+```
+
 Multi-way if
 
 ``` haskell
