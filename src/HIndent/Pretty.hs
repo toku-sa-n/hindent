@@ -750,40 +750,8 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
         dot
         printCommentsAnd sig_body $ \case
           HsQualTy {..} -> do
-            let constraintsParensL =
-                  case hst_ctxt of
-                    Nothing        -> ""
-                    Just (L _ [])  -> "("
-                    Just (L _ [_]) -> ""
-                    Just _         -> "("
-                constraintsParensR =
-                  case hst_ctxt of
-                    Nothing        -> ""
-                    Just (L _ [])  -> ")"
-                    Just (L _ [_]) -> ""
-                    Just _         -> ")"
-                constraintsParens =
-                  case hst_ctxt of
-                    Nothing        -> id
-                    Just (L _ [])  -> parens
-                    Just (L _ [_]) -> id
-                    Just _         -> parens
-                -- TODO: Define a type that wraps a 'HsContext' and
-                -- implement 'Pretty' for it.
-                horCtx =
-                  constraintsParens $
-                  mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
-                verCtx = do
-                  string constraintsParensL
-                  space
-                  forM_ hst_ctxt $ \(L l cs) -> do
-                    printCommentsBefore l
-                    inter (newline >> string ", ") $ fmap pretty cs
-                    printCommentOnSameLine l
-                    printCommentsAfter l
-                  newline
-                  string constraintsParensR
-            (space >> horCtx) <-|> (newline >> verCtx)
+            (space >> pretty (HorizontalContext hst_ctxt)) <-|>
+              (newline >> pretty (VerticalContext hst_ctxt))
             newline
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
