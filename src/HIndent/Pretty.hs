@@ -1644,11 +1644,8 @@ instance Pretty VerticalContext where
   pretty' (VerticalContext xs) = do
     string constraintsParensL
     space
-    forM_ xs $ \(L l cs) -> do
-      printCommentsBefore l
-      inter (newline >> string ", ") $ fmap pretty cs
-      printCommentOnSameLine l
-      printCommentsAfter l
+    forM_ xs $
+      flip printCommentsAnd (inter (newline >> string ", ") . fmap pretty)
     newline
     string constraintsParensR
     -- TODO: Clean up here.
