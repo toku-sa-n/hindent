@@ -1090,10 +1090,11 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       string "| " |=> vCommaSep (fmap pretty guards)
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [string "=", pretty body]
+      horizontal = do
+        string " = "
+        pretty body
       vertical = do
-        space
-        string "="
+        string " ="
         newline
         indentedBlock $ pretty body
   commentsBefore (GRHS x _ _) = commentsBefore x
