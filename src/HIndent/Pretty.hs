@@ -1086,8 +1086,8 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
     newline
-    indentedBlock . (string "| " >>) $ do
-      inter (newline >> string ", ") $ fmap pretty guards
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
       horizontal <-|> vertical
     where
       horizontal = spacePrefixed [string "=", pretty body]
