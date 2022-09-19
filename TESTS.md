@@ -312,6 +312,16 @@ f x =
     (z:_) -> Just (\a b -> makeSmile z a b)
 ```
 
+A guard in a case
+
+```haskell
+f =
+  case g of
+    []
+      | even h -> Nothing
+    _ -> undefined
+```
+
 Operators, bad
 
 ``` haskell

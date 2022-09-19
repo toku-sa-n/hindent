@@ -1128,7 +1128,7 @@ instance Pretty GRHSForCase where
       horizontal <-|> vertical
     where
       horizontal = do
-        string " = "
+        string " -> "
         pretty body
       vertical = do
         string " ->"
