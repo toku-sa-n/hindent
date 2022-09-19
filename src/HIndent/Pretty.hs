@@ -962,45 +962,12 @@ instance Pretty (HsType GhcPs) where
 instance Pretty HsTypeInsideInstDecl where
   pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
     where
-      hor = spaced [constraints, string "=>", pretty hst_body]
+      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
       notVer = do
-        constraints
+        pretty (Context hst_ctxt)
         string " =>"
         newline
         pretty hst_body
-      constraints = hCon <-|> vCon
-      hCon =
-        constraintsParens $
-        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
-      vCon = do
-        string constraintsParensL
-        space
-        forM_ hst_ctxt $ \(L l cs) -> do
-          printCommentsBefore l
-          inter (newline >> string ", ") $ fmap pretty cs
-          printCommentOnSameLine l
-          printCommentsAfter l
-        newline
-        string constraintsParensR
-      -- TODO: Clean up here.
-      constraintsParensL =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> "("
-          Just (L _ [_]) -> ""
-          Just _         -> "("
-      constraintsParensR =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> ")"
-          Just (L _ [_]) -> ""
-          Just _         -> ")"
-      constraintsParens =
-        case hst_ctxt of
-          Nothing        -> id
-          Just (L _ [])  -> parens
-          Just (L _ [_]) -> id
-          Just _         -> parens
   pretty' (HsTypeInsideInstDecl x) = pretty x
 
 instance Pretty HsTypeInsideDeclSig where
