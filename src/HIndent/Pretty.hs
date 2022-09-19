@@ -1066,10 +1066,7 @@ instance Pretty RdrName where
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
-    space
-    string "="
-    space
-    string "do"
+    string " = do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
