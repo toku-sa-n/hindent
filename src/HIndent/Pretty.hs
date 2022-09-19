@@ -772,9 +772,14 @@ instance Pretty HsSigTypeInsideDeclSig where
                     pretty $ VerticalContext hst_ctxt
                in do hor <-|> ver
                      newline
-                     prefixed "=> " $ pretty hst_body
+                     prefixed "=> " $
+                       prefixedLined "-> " $ pretty <$> flatten hst_body
           _ -> pure ()
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
+    where
+      flatten :: LHsType GhcPs -> [LHsType GhcPs]
+      flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
+      flatten x                       = [x]
 
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
