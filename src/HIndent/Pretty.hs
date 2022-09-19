@@ -673,16 +673,21 @@ instance Pretty (HsExpr GhcPs) where
       hor = do
         pretty name
         space
-        case fields of
-          Right xs -> hFields $ fmap (`printCommentsAnd` horField) xs
-          Left xs  -> hFields $ fmap (`printCommentsAnd` horField) xs
+        either printHorFields printHorFields fields
       ver = do
         pretty name
         newline
-        indentedBlock $
-          case fields of
-            Right xs -> vFields $ fmap printField xs
-            Left xs  -> vFields $ fmap printField xs
+        indentedBlock $ either printVerFields printVerFields fields
+      printHorFields ::
+           (Pretty a, Pretty b, Pretty l)
+        => [GenLocated l (HsRecField' a b)]
+        -> Printer ()
+      printHorFields = hFields . fmap (`printCommentsAnd` horField)
+      printVerFields ::
+           (Pretty a, Pretty b, Pretty l)
+        => [GenLocated l (HsRecField' a b)]
+        -> Printer ()
+      printVerFields = vFields . fmap printField
       printField x = printCommentsAnd x $ (<-|>) <$> horField <*> verField
       horField HsRecField {..} = do
         pretty hsRecFieldLbl
