@@ -1123,14 +1123,15 @@ instance Pretty GRHSForCase where
         indentedBlock $ pretty body
   pretty' (GRHSForCase (GRHS _ guards body)) = do
     newline
-    indentedBlock . (string "| " >>) $ do
-      inter (newline >> string ", ") $ fmap pretty guards
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [string "=", pretty body]
+      horizontal = do
+        string " = "
+        pretty body
       vertical = do
-        space
-        string "->"
+        string " ->"
         newline
         indentedBlock $ pretty body
   commentsBefore (GRHSForCase (GRHS x _ _)) = commentsBefore x
