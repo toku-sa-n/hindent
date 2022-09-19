@@ -1078,13 +1078,10 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] body) = horizontal <-|> vertical
     where
       horizontal = do
-        space
-        string "="
-        space
+        string " = "
         pretty body
       vertical = do
-        space
-        string "="
+        string " ="
         newline
         indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
