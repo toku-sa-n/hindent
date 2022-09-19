@@ -552,6 +552,15 @@ replaceAllNotUsedAnns = everywhere app
          forall a. Data a
       => (a -> a)
     app = undefined
+
+f :: a
+f = undefined
+  where
+    ggg ::
+         forall a. Typeable a
+      => a
+      -> a
+    ggg = undefined
 ```
 
 Long argument list should line break
