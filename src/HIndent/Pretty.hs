@@ -625,7 +625,7 @@ instance Pretty (HsExpr GhcPs) where
     newline
     string " in " |=> pretty exprs
   pretty' (HsDo _ (DoExpr _) xs) =
-    string "do " |=> printCommentsAnd xs (lined . fmap output)
+    string "do " |=> printCommentsAnd xs (lined . fmap pretty)
   -- While the name contains "Monad", this branch seems to be for list comprehensions.
   pretty' (HsDo _ MonadComp xs) = horizontal <-|> vertical
     where
@@ -668,28 +668,36 @@ instance Pretty (HsExpr GhcPs) where
         if head (showOutputable name) == ':'
           then parens $ output name
           else output name
-  pretty' (RecordUpd _ name fields) = do
-    pretty name
-    space
-    braces $
-      -- TODO: Refactor this case.
-      case fields of
-        Right xs ->
-          forM_ xs $ \(L l HsRecField {..}) -> do
-            printCommentsBefore l
-            pretty hsRecFieldLbl
-            string " = "
-            pretty hsRecFieldArg
-            printCommentOnSameLine l
-            printCommentsAfter l
-        Left xs ->
-          forM_ xs $ \(L l HsRecField {..}) -> do
-            printCommentsBefore l
-            pretty hsRecFieldLbl
-            string " = "
-            pretty hsRecFieldArg
-            printCommentOnSameLine l
-            printCommentsAfter l
+  pretty' (RecordUpd _ name fields) = hor <-|> ver
+    where
+      hor = do
+        pretty name
+        space
+        either printHorFields printHorFields fields
+      ver = do
+        pretty name
+        newline
+        indentedBlock $ either printVerFields printVerFields fields
+      printHorFields ::
+           (Pretty a, Pretty b, Pretty l)
+        => [GenLocated l (HsRecField' a b)]
+        -> Printer ()
+      printHorFields = hFields . fmap (`printCommentsAnd` horField)
+      printVerFields ::
+           (Pretty a, Pretty b, Pretty l)
+        => [GenLocated l (HsRecField' a b)]
+        -> Printer ()
+      printVerFields = vFields . fmap printField
+      printField x = printCommentsAnd x $ (<-|>) <$> horField <*> verField
+      horField HsRecField {..} = do
+        pretty hsRecFieldLbl
+        string " = "
+        pretty hsRecFieldArg
+      verField HsRecField {..} = do
+        pretty hsRecFieldLbl
+        string " ="
+        newline
+        indentedBlock $ pretty hsRecFieldArg
   pretty' HsGetField {} = undefined
   pretty' HsProjection {} = undefined
   pretty' (ExprWithTySig _ e sig) = do
