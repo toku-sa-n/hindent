@@ -364,6 +364,15 @@ foo = do
   print mcp
 ```
 
+A `let` with a signature inside a `do`
+
+```haskell
+f = do
+  let try :: Typeable b => b
+      try = undefined
+  undefined
+```
+
 Operator with lambda
 
 ```haskell
