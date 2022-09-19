@@ -1109,8 +1109,7 @@ instance Pretty GRHSForCase where
   pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
-      string "| "
-      inter (newline >> string ", ") $ fmap pretty guards
+      string "| " |=> vCommaSep (fmap pretty guards)
       string " -> do "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForCase (GRHS _ [] body)) = horizontal <-|> vertical
