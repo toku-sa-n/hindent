@@ -492,6 +492,21 @@ double = (2 *)
 halve = (/ 2)
 ```
 
+A field updater in a `do` inside a `let ... in`.
+
+```haskell
+f = undefined
+  where
+    g h =
+      let x = undefined
+       in do foo
+             pure
+               h
+                 { grhssLocalBinds =
+                     HsValBinds x (ValBinds (newSigs newSigMethods))
+                 }
+```
+
 # Template Haskell
 
 Expression brackets
