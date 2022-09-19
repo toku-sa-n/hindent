@@ -973,44 +973,11 @@ instance Pretty HsTypeInsideInstDecl where
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
     where
-      hor = spaced [constraints, string "=>", pretty hst_body]
+      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
       sigVer = do
-        constraints
+        pretty (Context hst_ctxt)
         newline
         prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
-      constraints = hCon <-|> vCon
-      hCon =
-        constraintsParens $
-        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
-      vCon = do
-        string constraintsParensL
-        space
-        forM_ hst_ctxt $ \(L l cs) -> do
-          printCommentsBefore l
-          inter (newline >> string ", ") $ fmap pretty cs
-          printCommentOnSameLine l
-          printCommentsAfter l
-        newline
-        string constraintsParensR
-      -- TODO: Clean up here.
-      constraintsParensL =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> "("
-          Just (L _ [_]) -> ""
-          Just _         -> "("
-      constraintsParensR =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> ")"
-          Just (L _ [_]) -> ""
-          Just _         -> ")"
-      constraintsParens =
-        case hst_ctxt of
-          Nothing        -> id
-          Just (L _ [])  -> parens
-          Just (L _ [_]) -> id
-          Just _         -> parens
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
@@ -1675,7 +1642,6 @@ instance Pretty HorizontalContext where
 
 instance Pretty VerticalContext where
   pretty' (VerticalContext xs) = do
-    string constraintsParensL
     string constraintsParensL
     space
     forM_ xs $ \(L l cs) -> do
