@@ -1140,25 +1140,19 @@ instance Pretty GRHSForCase where
 
 instance Pretty GRHSForLambda where
   pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string "->"
-    space
-    string "do"
+    string "-> do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
-      string "| "
-      inter (newline >> string ", ") $ fmap pretty guards
-      space
-      string "->"
-      string " do "
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " -> do "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForLambda (GRHS _ [] body)) = horizontal <-|> vertical
     where
       horizontal = do
-        string "->"
-        space
+        string "-> "
         pretty body
       vertical = do
         string "->"
@@ -1166,14 +1160,15 @@ instance Pretty GRHSForLambda where
         indentedBlock $ pretty body
   pretty' (GRHSForLambda (GRHS _ guards body)) = do
     newline
-    indentedBlock . (string "| " >>) $ do
-      inter (newline >> string ", ") $ fmap pretty guards
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
       horizontal <-|> vertical
     where
-      horizontal = spacePrefixed [string "->", pretty body]
+      horizontal = do
+        string " -> "
+        pretty body
       vertical = do
-        space
-        string "->"
+        string " ->"
         newline
         indentedBlock $ pretty body
   commentsBefore (GRHSForLambda (GRHS x _ _)) = commentsBefore x
