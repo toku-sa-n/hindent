@@ -1052,10 +1052,7 @@ instance Pretty GRHSsForLambda where
           newline
           string "where"
           newline
-          printCommentsBefore epa
-          indentedBlock $ pretty lr
-          printCommentOnSameLine epa
-          printCommentsAfter epa
+          printCommentsAnd (L epa lr) (indentedBlock . pretty)
       _ -> return ()
 
 instance Pretty (HsMatchContext GhcPs) where
