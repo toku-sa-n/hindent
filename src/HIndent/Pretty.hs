@@ -136,6 +136,20 @@ newtype HsTypeInsideDeclSig =
 newtype HsTypeInsideVerticalDeclSig =
   HsTypeInsideVerticalDeclSig (HsType GhcPs)
 
+-- | A wrapper type for type class constraints; e.g., (Eq a, Ord a) of (Eq
+-- a, Ord a) => [a] -> [a]. Either 'HorizontalContext' or 'VerticalContext'
+-- is used internally.
+newtype Context =
+  Context (Maybe (LHsContext GhcPs))
+
+-- | A wrapper type for printing a context horizontally.
+newtype HorizontalContext =
+  HorizontalContext (Maybe (LHsContext GhcPs))
+
+-- | A wrapper type for printing a context vertically.
+newtype VerticalContext =
+  VerticalContext (Maybe (LHsContext GhcPs))
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -728,7 +742,7 @@ instance Pretty HsSigTypeInsideInstDecl where
     pretty $ fmap HsTypeInsideInstDecl sig_body
 
 instance Pretty HsSigTypeInsideVerticalFuncSig where
-  pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) = do
+  pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
@@ -933,43 +947,10 @@ instance Pretty (HsType GhcPs) where
   pretty' HsQualTy {..} = notVer
     where
       notVer = do
-        constraints
+        pretty (Context hst_ctxt)
         string " =>"
         newline
         indentedBlock $ pretty hst_body
-      constraints = hCon <-|> vCon
-      hCon =
-        constraintsParens $
-        mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) hst_ctxt
-      vCon = do
-        string constraintsParensL
-        space
-        forM_ hst_ctxt $ \(L l cs) -> do
-          printCommentsBefore l
-          inter (newline >> string ", ") $ fmap pretty cs
-          printCommentOnSameLine l
-          printCommentsAfter l
-        newline
-        string constraintsParensR
-      -- TODO: Clean up here.
-      constraintsParensL =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> "("
-          Just (L _ [_]) -> ""
-          Just _         -> "("
-      constraintsParensR =
-        case hst_ctxt of
-          Nothing        -> ""
-          Just (L _ [])  -> ")"
-          Just (L _ [_]) -> ""
-          Just _         -> ")"
-      constraintsParens =
-        case hst_ctxt of
-          Nothing        -> id
-          Just (L _ [])  -> parens
-          Just (L _ [_]) -> id
-          Just _         -> parens
   pretty' x@HsTyVar {} = output x
   pretty' (HsAppTy _ l r) = do
     pretty l
@@ -1741,3 +1722,45 @@ instance Pretty PrefixOp where
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
     where
       occ = occName name
+
+instance Pretty Context where
+  pretty' (Context xs) =
+    pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
+
+instance Pretty HorizontalContext where
+  pretty' (HorizontalContext xs) =
+    constraintsParens $ mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) xs
+    where
+      constraintsParens =
+        case xs of
+          Nothing        -> id
+          Just (L _ [])  -> parens
+          Just (L _ [_]) -> id
+          Just _         -> parens
+
+instance Pretty VerticalContext where
+  pretty' (VerticalContext xs) = do
+    string constraintsParensL
+    string constraintsParensL
+    space
+    forM_ xs $ \(L l cs) -> do
+      printCommentsBefore l
+      inter (newline >> string ", ") $ fmap pretty cs
+      printCommentOnSameLine l
+      printCommentsAfter l
+    newline
+    string constraintsParensR
+    -- TODO: Clean up here.
+    where
+      constraintsParensL =
+        case xs of
+          Nothing        -> ""
+          Just (L _ [])  -> "("
+          Just (L _ [_]) -> ""
+          Just _         -> "("
+      constraintsParensR =
+        case xs of
+          Nothing        -> ""
+          Just (L _ [])  -> ")"
+          Just (L _ [_]) -> ""
+          Just _         -> ")"
