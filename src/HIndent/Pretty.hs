@@ -112,9 +112,6 @@ newtype HsSigTypeInsideVerticalFuncSig =
 newtype HsSigTypeInsideDeclSig =
   HsSigTypeInsideDeclSig (HsSigType GhcPs)
 
-newtype HsSigTypeInsideVerticalDeclSig =
-  HsSigTypeInsideVerticalDeclSig (HsSigType GhcPs)
-
 newtype HsTypeInsideInstDecl =
   HsTypeInsideInstDecl (HsType GhcPs)
 
@@ -479,7 +476,7 @@ instance Pretty DeclSig where
             newline
         indentedBlock $
           indentedWithSpace 3 $
-          pretty $ HsSigTypeInsideVerticalDeclSig <$> hswc_body params
+          pretty $ HsSigTypeInsideDeclSig <$> hswc_body params
       printFunName = pretty $ head funName
   pretty' (DeclSig x) = pretty x
 
@@ -758,26 +755,26 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
 
 instance Pretty HsSigTypeInsideDeclSig where
-  pretty' (HsSigTypeInsideDeclSig HsSig {..}) = do
+  pretty' (HsSigTypeInsideDeclSig HsSig {..}) =
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
         spaced $ fmap output xs
         dot
-        space
-      _ -> return ()
-    pretty $ fmap HsTypeInsideDeclSig sig_body
-
-instance Pretty HsSigTypeInsideVerticalDeclSig where
-  pretty' (HsSigTypeInsideVerticalDeclSig HsSig {..}) = do
-    case sig_bndrs of
-      HsOuterExplicit _ xs -> do
-        string "forall "
-        spaced $ fmap output xs
-        dot
-        newline
-      _ -> pure ()
-    pretty $ fmap HsTypeInsideDeclSig sig_body
+        case unLoc sig_body of
+          HsQualTy {..} ->
+            printCommentsAnd sig_body $ \_ ->
+              let hor = do
+                    space
+                    pretty $ HorizontalContext hst_ctxt
+                  ver = do
+                    newline
+                    pretty $ VerticalContext hst_ctxt
+               in do hor <-|> ver
+                     newline
+                     prefixed "=> " $ pretty hst_body
+          _ -> pure ()
+      _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
 
 instance Pretty (ConDecl GhcPs) where
   pretty' ConDeclGADT {..} = horizontal <-|> vertical
@@ -1295,7 +1292,7 @@ instance Pretty (HsBracket GhcPs) where
   pretty' TExpBr {} = undefined
 
 instance Pretty SigMethodsFamily where
-  pretty' (Sig x)        = pretty x
+  pretty' (Sig x)        = pretty $ fmap DeclSig x
   pretty' (Method x)     = pretty x
   pretty' (TypeFamily x) = pretty x
 
@@ -1612,6 +1609,7 @@ instance Pretty HorizontalContext where
 instance Pretty VerticalContext where
   pretty' (VerticalContext Nothing) = undefined
   pretty' (VerticalContext (Just (L _ []))) = undefined
-  pretty' (VerticalContext (Just (L _ [_]))) = undefined
+  pretty' (VerticalContext (Just full@(L _ [x]))) =
+    printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
