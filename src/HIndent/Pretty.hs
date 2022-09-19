@@ -1023,11 +1023,9 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     mapM_ pretty grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
-        indentedBlock $ do
-          newline
-          string "where"
-          newline
-          printCommentsAnd (L epa lr) (indentedBlock . pretty)
+        indentedBlock $
+        newlinePrefixed
+          [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
 
 instance Pretty GRHSsForCase where
