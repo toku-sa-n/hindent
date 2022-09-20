@@ -33,36 +33,14 @@ modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
       closeEpAnnOfFunBindFunId .
-      replaceAllNotUsedAnns .
-      removeComments . sortExprLStmt . resetModuleStartLine . fixFixities
+      resetModuleNameColumn .
+      replaceAllNotUsedAnns . removeComments . sortExprLStmt . fixFixities
     allComments = listify (not . isEofComment . ac_tok . unLoc) m
 
 -- | This function modifies the given module AST to apply fixities of infix
 -- operators in the 'base' package.
 fixFixities :: HsModule -> HsModule
 fixFixities = applyFixities baseFixities
-
--- | This function sets the given module's start line as the module
--- name's start position if the name exists.
---
--- 'ghc-lib-parser''s parser sets the start position to the fixed point (1,
--- 1), and without correcting it, it is impossible to locate module
--- documentation above the module name.
-resetModuleStartLine :: HsModule -> HsModule
-resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
-                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
-                                } =
-  m {hsmodAnn = epa {entry = entry {anchor = newAnchor}}}
-  where
-    newAnchor =
-      mkRealSrcSpan
-        (mkRealSrcLoc
-           (srcSpanFile anc)
-           (srcSpanStartLine sp)
-           (srcSpanStartCol anc))
-        (realSrcSpanEnd anc)
-    anc = anchor entry
-resetModuleStartLine m = m
 
 -- | This function sets an 'LGRHS's end position to the end position of the
 -- last RHS in the 'grhssGRHSs'.
@@ -139,6 +117,20 @@ replaceAllNotUsedAnns = everywhere app
     emptyNameAnn = NameAnnTrailing []
     emptyAddEpAnn = AddEpAnn AnnAnyclass emptyEpaLocation
     emptyEpaLocation = EpaDelta (SameLine 0) []
+
+-- | This function sets the start column of 'hsmodName' of the given
+-- 'HsModule' to 1 to correctly locate comments above the module name.
+resetModuleNameColumn :: HsModule -> HsModule
+resetModuleNameColumn m@HsModule {hsmodName = Just (L (SrcSpanAnn epa@EpAnn {..} sp) name)} =
+  m {hsmodName = Just (L (SrcSpanAnn newAnn sp) name)}
+  where
+    newAnn = epa {entry = realSpanAsAnchor newSpan}
+    newSpan =
+      mkRealSrcSpan
+        (mkRealSrcLoc (srcSpanFile anc) (srcSpanStartLine anc) 1)
+        (realSrcSpanEnd anc)
+    anc = anchor entry
+resetModuleNameColumn m = m
 
 -- | This function replaces the 'EpAnn' of 'fun_id' in 'FunBind' with
 -- 'EpAnnNotUsed'.

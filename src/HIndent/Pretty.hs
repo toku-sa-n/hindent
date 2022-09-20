@@ -38,7 +38,6 @@ import           HIndent.Pretty.Combinators.Op
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Pretty.Imports.Sort
-import           HIndent.Pretty.ModuleDeclaration
 import           HIndent.Pretty.Pragma
 import           HIndent.Types
 
@@ -232,6 +231,22 @@ instance Pretty HsModule where
         , (importsExist m, outputImports m)
         , (declsExist m, outputDecls)
         ]
+      outputModuleDeclaration HsModule {hsmodName = Nothing} = return ()
+      outputModuleDeclaration HsModule { hsmodName = Just name
+                                       , hsmodExports = Nothing
+                                       } = do
+        pretty name
+        string " where"
+      outputModuleDeclaration HsModule { hsmodName = Just name
+                                       , hsmodExports = Just (L _ xs)
+                                       } = do
+        pretty name
+        newline
+        indentedBlock $ do
+          vTuple $ fmap pretty xs
+          string " where"
+      moduleDeclarationExists HsModule {hsmodName = Nothing} = False
+      moduleDeclarationExists _                              = True
       outputDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
         addSeparator $ hsmodDecls m
@@ -1638,3 +1653,15 @@ instance Pretty VerticalContext where
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
+
+-- We need to print "module " together instead of (string "module " >>
+-- pretty (name :: ModuleName)) otherwise comments that are before the name
+-- will be printed in the same line as `module ` and the name in the next
+-- line of it.
+instance Pretty ModuleName where
+  pretty' name = do
+    string "module "
+    output name
+
+instance Pretty (IE GhcPs) where
+  pretty' = output
