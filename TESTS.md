@@ -814,6 +814,16 @@ f = do
   undefined
 ```
 
+A `do` inside a lambda.
+
+```haskell
+printCommentsAfter =
+  case commentsAfter p of
+    xs -> do
+      forM_ xs $ \(L loc c) -> do
+        eolCommentsArePrinted
+```
+
 Case with natural pattern (See NPat of https://hackage.haskell.org/package/ghc-lib-parser-9.2.3.20220527/docs/Language-Haskell-Syntax-Pat.html#t:Pat)
 
 ```haskell

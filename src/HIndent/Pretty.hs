@@ -1453,21 +1453,21 @@ instance Pretty InfixApp where
               space
               pretty (InfixExpr op)
               return newline
-        (if immediatelyAfterDo
-           then indentedBlock
-           else id) $
-          case unLoc rhs of
-            (HsDo _ (DoExpr _) xs) -> do
-              string " do"
-              newline
-              indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
-            HsLam {} -> do
-              space
-              pretty rhs
-            HsLamCase {} -> do
-              space
-              pretty rhs
-            _ -> do
+        case unLoc rhs of
+          (HsDo _ (DoExpr _) xs) -> do
+            string " do"
+            newline
+            indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
+          HsLam {} -> do
+            space
+            pretty rhs
+          HsLamCase {} -> do
+            space
+            pretty rhs
+          _ ->
+            (if immediatelyAfterDo
+               then indentedBlock
+               else id) $ do
               beforeRhs
               col <- startingColumn
               (if col == 0
