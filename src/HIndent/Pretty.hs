@@ -238,8 +238,9 @@ instance Pretty HsModule where
       addSeparator []     = []
       addSeparator [x]    = [(x, Nothing)]
       addSeparator (x:xs) = (x, Just $ separator $ unLoc x) : addSeparator xs
-      separator SigD {} = newline
-      separator _       = blankline
+      separator (SigD _ TypeSig {})   = newline
+      separator (SigD _ InlineSig {}) = newline
+      separator _                     = blankline
       declsExist = not . null . hsmodDecls
       outputImports =
         blanklined .

@@ -1438,6 +1438,16 @@ Escaped newlines
   x
 ```
 
+A blank line is inserted after an `infixl`.
+
+```haskell
+(^-^) = undefined
+
+infixl 1 ^-^
+
+f = undefined
+```
+
 # Regression tests
 
 jml Adds trailing whitespace when wrapping #221
