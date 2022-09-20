@@ -48,6 +48,7 @@ jobs:
       # This problem is fixed in GHC 9.2.3.
     - name: Build with a workaround for macOS
       run: C_INCLUDE_PATH="`xcrun --show-sdk-path`/usr/include/ffi" cabal v2-build
+      if: matrix.os == 'macOS-latest'
     - name: Run tests
       run: cabal v2-test $CONFIG
     - name: Run benchmarks
