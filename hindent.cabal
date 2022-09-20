@@ -45,7 +45,6 @@ library
                      HIndent.Pretty.Combinators.String
                      HIndent.Pretty.Combinators.Wrap
                      HIndent.Pretty.Imports.Sort
-                     HIndent.Pretty.ModuleDeclaration
                      HIndent.Pretty.Pragma
                      HIndent.Read
                      HIndent.SrcSpan
