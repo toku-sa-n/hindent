@@ -895,11 +895,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
-  pretty' (ParStmt _ xs _ _) = horizontal <-|> vertical
-      -- TODO: Use `barSep`.
-    where
-      horizontal = hBarSep $ fmap output xs
-      vertical = vBarSep $ fmap pretty xs
+  pretty' (ParStmt _ xs _ _) = barSep $ fmap pretty xs
   pretty' TransStmt {..} =
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
