@@ -803,6 +803,17 @@ g x =
         y = 2
 ```
 
+A `case` inside a `let`.
+
+```haskell
+f = do
+  let (x, xs) =
+        case gs of
+          [] -> undefined
+          (x':xs') -> (x', xs')
+  undefined
+```
+
 Case with natural pattern (See NPat of https://hackage.haskell.org/package/ghc-lib-parser-9.2.3.20220527/docs/Language-Haskell-Syntax-Pat.html#t:Pat)
 
 ```haskell
