@@ -419,7 +419,10 @@ instance Pretty (InstDecl GhcPs) where
 
 instance Pretty (HsBind GhcPs) where
   pretty' FunBind {..} = pretty fun_matches
-  pretty' x            = output x
+  pretty' PatBind {..} = do
+    pretty pat_lhs
+    pretty pat_rhs
+  pretty' x = output x
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
   commentOnSameLine FunBind {..} = commentOnSameLine fun_id
@@ -840,6 +843,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     case mc_fixity m_ctxt of
       Prefix -> do
         pretty m_ctxt
+        -- TODO: Use 'spacePrefixed'.
         unless (null m_pats) $ do
           space
           spaced $ fmap pretty m_pats
