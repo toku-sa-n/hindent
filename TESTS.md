@@ -1133,6 +1133,26 @@ foo =
 
 # Comments
 
+A module header with comments
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+-- | Haskell indenter.
+module HIndent
+   -- * Formatting functions.
+  ( reformat
+  , prettyPrint
+  -- * Testing
+  , defaultExtensions
+  , getExtensions
+  , testAst
+  ) where
+```
+
 Comments within a declaration
 
 ``` haskell
