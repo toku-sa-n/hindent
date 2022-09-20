@@ -513,7 +513,7 @@ instance Pretty (ClsInstDecl GhcPs) where
     unless (isEmptyBag cid_binds) $ do
       string " where"
       newline
-      indentedBlock $ mapM_ pretty cid_binds
+      indentedBlock $ lined $ pretty <$> bagToList cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
