@@ -582,7 +582,9 @@ instance Pretty (HsExpr GhcPs) where
       insertComments _ x = x
   pretty' t@HsAppType {} = output t
   pretty' (OpApp _ l o r) = pretty (InfixApp l o r False)
-  pretty' NegApp {} = undefined
+  pretty' (NegApp _ x _) = do
+    string "-"
+    pretty x
   pretty' (HsPar _ expr) = parens $ pretty expr
   pretty' (SectionL _ l o) = spaced [pretty l, pretty (InfixExpr o)]
   pretty' (SectionR _ o r) = spaced [pretty (InfixExpr o), pretty r]

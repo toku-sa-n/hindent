@@ -197,6 +197,12 @@ data Ty :: (* -> *) where
 
 # Expressions
 
+A minus sign
+
+```haskell
+f = -(3 + 5)
+```
+
 Lazy patterns in a lambda
 
 ``` haskell
