@@ -4,6 +4,7 @@ module HIndent.Pretty.Combinators.String
   , newline
   , blankline
   , comma
+  , dot
   ) where
 
 import           Control.Monad.RWS
@@ -54,3 +55,6 @@ blankline = newline >> newline
 
 comma :: Printer ()
 comma = string ","
+
+dot :: Printer ()
+dot = string "."

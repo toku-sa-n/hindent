@@ -175,6 +175,15 @@ instance Bool :?: Bool
 instance (:?:) Int Bool
 ```
 
+An instance declaration with a comment between the header and `where`.
+
+```haskell
+instance Pretty MatchForCase
+  -- TODO: Do not forget to handle comments!
+                                             where
+  pretty' = undefined
+```
+
 GADT declarations
 
 ```haskell
@@ -187,6 +196,12 @@ data Ty :: (* -> *) where
 ```
 
 # Expressions
+
+A minus sign
+
+```haskell
+f = -(3 + 5)
+```
 
 Lazy patterns in a lambda
 
@@ -303,6 +318,25 @@ strToMonth month =
     _ -> error $ "Unknown month " ++ month
 ```
 
+Lambda in case
+
+```haskell
+f x =
+  case filter (\y -> isHappy y x) of
+    [] -> Nothing
+    (z:_) -> Just (\a b -> makeSmile z a b)
+```
+
+A guard in a case
+
+```haskell
+f =
+  case g of
+    []
+      | even h -> Nothing
+    _ -> undefined
+```
+
 Operators, bad
 
 ``` haskell
@@ -321,12 +355,37 @@ x =
   Just thisissolong <*> Just stilllonger <*> evenlonger
 ```
 
+`$` chain
+
+```haskell
+f =
+  Right $
+  S.lazyByteStrings $ addPrefix prefix $ S.toLazyByteString $ prettyPrint m
+```
+
 Operator with `do`
 
 ```haskell
 for xs $ do
   left x
   right x
+```
+
+`do` with a binding
+
+```haskell
+foo = do
+  mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
+  print mcp
+```
+
+A `let` with a signature inside a `do`
+
+```haskell
+f = do
+  let try :: Typeable b => b
+      try = undefined
+  undefined
 ```
 
 Operator with lambda
@@ -448,6 +507,21 @@ double = (2 *)
 halve = (/ 2)
 ```
 
+A field updater in a `do` inside a `let ... in`.
+
+```haskell
+f = undefined
+  where
+    g h =
+      let x = undefined
+       in do foo
+             pure
+               h
+                 { grhssLocalBinds =
+                     HsValBinds x (ValBinds (newSigs newSigMethods))
+                 }
+```
+
 # Template Haskell
 
 Expression brackets
@@ -486,6 +560,38 @@ g =
 ```
 
 # Type signatures
+
+A long signature inside a where clause
+
+```haskell
+cppSplitBlocks :: ByteString -> [CodeBlock]
+cppSplitBlocks inp = undefined
+  where
+    spanCPPLines ::
+         [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
+    spanCPPLines = undefined
+```
+
+A `forall` type inside a where clause
+
+```haskell
+replaceAllNotUsedAnns :: HsModule -> HsModule
+replaceAllNotUsedAnns = everywhere app
+  where
+    app ::
+         forall a. Data a
+      => (a -> a)
+    app = undefined
+
+f :: a
+f = undefined
+  where
+    ggg ::
+         forall a. Typeable a
+      => a
+      -> a
+    ggg = undefined
+```
 
 Long argument list should line break
 
@@ -566,12 +672,6 @@ b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
 b = undefined
 ```
 
-Range
-
-```haskell
-a = [1 ..]
-```
-
 Promoted list with a tuple (issue #348)
 
 ```haskell
@@ -590,6 +690,16 @@ a :: '(T.:->) 'True 'False
 b :: (T.:->) 'True 'False
 c :: '(:->) 'True 'False
 d :: (:->) 'True 'False
+```
+
+`forall` type
+
+```haskell
+f :: (forall a. Data a =>
+                  a -> a)
+  -> (forall a. Data a =>
+                  a -> a)
+f = undefined
 ```
 
 # Function declarations
@@ -617,6 +727,41 @@ sayHello = do
     greeting name = "Hello, " ++ name ++ "!"
 ```
 
+An empty line is inserted after an empty `where`
+
+```haskell given
+f = evalState
+    -- A comment
+  where
+```
+
+```haskell expect
+f = evalState
+    -- A comment
+  where
+
+```
+
+Multiple function declarations with an empty `where`
+
+```haskell
+f = undefined
+  where
+
+
+g = undefined
+```
+
+A `where` clause between instance functions.
+
+```haskell
+instance Pretty HsModule where
+  pretty' = undefined
+    where
+      a = b
+  commentsBefore = Nothing
+```
+
 Guards and pattern guards
 
 ``` haskell
@@ -635,6 +780,15 @@ Guard and infix operator
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
   | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
   | otherwise = Nothing
+```
+
+A `do` inside a guard arm
+
+```haskell
+f
+  | x == 1 = do
+    a
+    b
 ```
 
 Multi-way if
@@ -664,6 +818,27 @@ g x =
         y = 2
 ```
 
+A `case` inside a `let`.
+
+```haskell
+f = do
+  let (x, xs) =
+        case gs of
+          [] -> undefined
+          (x':xs') -> (x', xs')
+  undefined
+```
+
+A `do` inside a lambda.
+
+```haskell
+printCommentsAfter =
+  case commentsAfter p of
+    xs -> do
+      forM_ xs $ \(L loc c) -> do
+        eolCommentsArePrinted
+```
+
 Case with natural pattern (See NPat of https://hackage.haskell.org/package/ghc-lib-parser-9.2.3.20220527/docs/Language-Haskell-Syntax-Pat.html#t:Pat)
 
 ```haskell
@@ -684,6 +859,15 @@ g x =
       let y = 2
           z = 3
        in y
+```
+
+Let containing a type signature inside a `do`
+
+```haskell
+f = do
+  let g :: Int
+      g = 3
+  print g
 ```
 
 Lists
@@ -754,6 +938,12 @@ head [x] = x
 head xs = head $ init xs
 ```
 
+Range
+
+```haskell
+a = [1 ..]
+```
+
 View pattern
 
 ```haskell
@@ -781,6 +971,14 @@ fun Rec { alpha = beta
         , lambda = mu
         } =
   beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+```
+
+Another pattern matching, long
+
+```haskell
+resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
+                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
+                                } = undefined
 ```
 
 Symbol constructor, short
@@ -934,6 +1132,26 @@ foo =
 ```
 
 # Comments
+
+A module header with comments
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+-- | Haskell indenter.
+module HIndent
+   -- * Formatting functions.
+  ( reformat
+  , prettyPrint
+  -- * Testing
+  , defaultExtensions
+  , getExtensions
+  , testAst
+  ) where
+```
 
 Comments within a declaration
 
@@ -1238,6 +1456,16 @@ Escaped newlines
     }
 #define SHORT_MACRO_DEFINITION \
   x
+```
+
+A blank line is inserted after an `infixl`.
+
+```haskell
+(^-^) = undefined
+
+infixl 1 ^-^
+
+f = undefined
 ```
 
 # Regression tests

@@ -1,7 +1,7 @@
 module HIndent.Pretty.Combinators.Indent
   ( indentedBlock
   , indentedWithSpace
-  , indentedDependingOnHead
+  , (|=>)
   , indentedWithLevel
   , getIndentSpaces
   ) where
@@ -23,11 +23,13 @@ indentedWithSpace i p = do
   modify (\s -> s {psIndentLevel = level})
   return m
 
-indentedDependingOnHead :: Printer () -> Printer a -> Printer a
-indentedDependingOnHead hd p = do
+(|=>) :: Printer () -> Printer a -> Printer a
+hd |=> p = do
   hd
   col <- gets psColumn
   indentedWithLevel col p
+
+infixl 1 |=>
 
 indentedWithLevel :: Int64 -> Printer a -> Printer a
 indentedWithLevel i p = do

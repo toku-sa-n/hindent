@@ -5,3 +5,10 @@
 - error: {lhs: 'inter (string " | ")', rhs: hBarSep}
 - error: {lhs: 'prefixedLined "| "', rhs: vBarSep}
 - error: {lhs: parens (hCommaSep x), rhs: hTuple x}
+- error: {lhs: gets ((InsideDeclSig `elem`) . psInside), rhs: isInsideDeclSig}
+- error: {lhs: gets ((InsideVerticalFunctionSignature `elem`) . psInside), rhs: isInsideVerticalFuncSig}
+- error: {lhs: gets ((InsideInstDecl `elem`) . psInside), rhs: isInsideInstDecl}
+- error: {lhs: gets ((InsideCase `elem`) . psInside), rhs: isInsideCase}
+- error: {lhs: gets ((InsideVerticalList `elem`) . psInside), rhs: isInsideVerticalList}
+- error: {lhs: gets ((InsideMultiwayIf `elem`) . psInside), rhs: isInsideMultiwayIf}
+- error: {lhs: gets ((InsideLambda `elem`) . psInside), rhs: isInsideLambda}
