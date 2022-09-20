@@ -715,12 +715,14 @@ sayHello = do
 An empty line is inserted after an empty `where`
 
 ```haskell given
-f = undefined
+f = evalState
+    -- A comment
   where
 ```
 
 ```haskell expect
-f = undefined
+f = evalState
+    -- A comment
   where
 
 ```

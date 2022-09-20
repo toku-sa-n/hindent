@@ -1,3 +1,4 @@
+-- | Module preprocessing before pretty-printing.
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ImpredicativeTypes  #-}
@@ -5,7 +6,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
--- | Module preprocessing before pretty-printing.
 module HIndent.ModulePreprocessing
   ( modifyASTForPrettyPrinting
   ) where
@@ -28,6 +28,7 @@ modifyASTForPrettyPrinting :: HsModule -> HsModule
 modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
   where
     preprocessing =
+      resetLGRHSEndPosition .
       removeAllDocDs .
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
@@ -62,6 +63,28 @@ resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
         (realSrcSpanEnd anc)
     anc = anchor entry
 resetModuleStartLine m = m
+
+-- | This function sets an 'LGRHS's end position to the end position of the
+-- last RHS in the 'grhssGRHSs'.
+--
+-- The source span of an 'L?GRHS' contains the 'where' keyword, which
+-- locates comments in the wrong position in the process of comment
+-- relocation. This function prevents it by fixing the 'L?GRHS''s source
+-- span.
+resetLGRHSEndPosition :: HsModule -> HsModule
+resetLGRHSEndPosition = everywhere (mkT f)
+  where
+    f :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+    f (L _ (GRHS ext@EpAnn {..} stmt body)) =
+      let lastPosition =
+            maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
+          newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
+          newLoc = RealSrcSpan newSpan Nothing
+          newAnn = ext {entry = realSpanAsAnchor newSpan}
+       in L newLoc (GRHS newAnn stmt body)
+    f x = x
+    collectAnchor :: Anchor -> Bool
+    collectAnchor _ = True
 
 -- | This function sorts lists of statements in order their positions.
 --
