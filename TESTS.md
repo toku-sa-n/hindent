@@ -737,6 +737,16 @@ f = undefined
 g = undefined
 ```
 
+A `where` clause between instance functions.
+
+```haskell
+instance Pretty HsModule where
+  pretty' = undefined
+    where
+      a = b
+  commentsBefore = Nothing
+```
+
 Guards and pattern guards
 
 ``` haskell
