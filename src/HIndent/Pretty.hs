@@ -235,13 +235,11 @@ instance Pretty HsModule where
       outputModuleDeclaration HsModule { hsmodName = Just name
                                        , hsmodExports = Nothing
                                        } = do
-        string "module "
         pretty name
         string " where"
       outputModuleDeclaration HsModule { hsmodName = Just name
                                        , hsmodExports = Just (L _ xs)
                                        } = do
-        string "module "
         pretty name
         newline
         indentedBlock $ do
@@ -1656,8 +1654,14 @@ instance Pretty VerticalContext where
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
 
+-- We need to print "module " together instead of (string "module " >>
+-- pretty (name :: ModuleName)) otherwise comments that are before the name
+-- will be printed in the same line as `module ` and the name in the next
+-- line of it.
 instance Pretty ModuleName where
-  pretty' = output
+  pretty' name = do
+    string "module "
+    output name
 
 instance Pretty (IE GhcPs) where
   pretty' = output
