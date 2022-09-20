@@ -175,6 +175,15 @@ instance Bool :?: Bool
 instance (:?:) Int Bool
 ```
 
+An instance declaration with a comment between the header and `where`.
+
+```haskell
+instance Pretty MatchForCase
+  -- TODO: Do not forget to handle comments!
+                                             where
+  pretty' = undefined
+```
+
 GADT declarations
 
 ```haskell

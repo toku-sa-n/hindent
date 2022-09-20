@@ -1,3 +1,4 @@
+-- | Pretty printing.
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
@@ -7,7 +8,6 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE ViewPatterns        #-}
 
--- | Pretty printing.
 module HIndent.Pretty
   ( pretty
   ) where
@@ -512,11 +512,13 @@ instance Pretty (ClsInstDecl GhcPs) where
       whenJust cid_overlap_mode $ \x -> do
         pretty x
         space
-      pretty $ fmap HsSigTypeInsideInstDecl cid_poly_ty
-    unless (isEmptyBag cid_binds) $ do
-      string " where"
+      pretty (fmap HsSigTypeInsideInstDecl cid_poly_ty) |=>
+        when bindsExist (string " where")
+    when bindsExist $ do
       newline
       indentedBlock $ lined $ pretty <$> bagToList cid_binds
+    where
+      bindsExist = not $ isEmptyBag cid_binds
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
