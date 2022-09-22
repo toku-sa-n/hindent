@@ -896,9 +896,9 @@ instance Pretty MatchForLambda where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambda m_grhss]
-  commentsBefore (MatchForLambda (Match {..})) = commentsBefore m_ext
-  commentOnSameLine (MatchForLambda (Match {..})) = commentOnSameLine m_ext
-  commentsAfter (MatchForLambda (Match {..})) = commentsAfter m_ext
+  commentsBefore (MatchForLambda Match {..}) = commentsBefore m_ext
+  commentOnSameLine (MatchForLambda Match {..}) = commentOnSameLine m_ext
+  commentsAfter (MatchForLambda Match {..}) = commentsAfter m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
@@ -1632,7 +1632,7 @@ instance Pretty PrefixOp where
       output modName
       string "."
       output name
-  pretty' (PrefixOp (Orig {})) = undefined
+  pretty' (PrefixOp Orig {}) = undefined
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
     where
       occ = occName name
