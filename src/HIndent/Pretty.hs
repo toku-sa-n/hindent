@@ -1176,10 +1176,16 @@ instance Pretty GRHSForCase where
   commentsAfter (GRHSForCase (GRHS x _ _)) = commentsAfter x
 
 instance Pretty GRHSForLambda where
-  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string "-> do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) =
+    hor <-|> ver
+    where
+      hor = do
+        string "-> do "
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        string "-> do"
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
