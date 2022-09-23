@@ -57,7 +57,7 @@ resetLGRHSEndPosition = everywhere (mkT f)
       let lastPosition =
             maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
           newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
-          newLoc = RealSrcSpan newSpan Nothing
+          newLoc = srcSpanFromRealSrcSpan newSpan
           newAnn = ext {entry = realSpanAsAnchor newSpan}
        in L newLoc (GRHS newAnn stmt body)
     f x = x
@@ -199,6 +199,9 @@ applyForEpAnn f =
         Just HRefl -> f
         Nothing    -> id
     _ -> id
+
+srcSpanFromRealSrcSpan :: RealSrcSpan -> SrcSpan
+srcSpanFromRealSrcSpan s = RealSrcSpan s Nothing
 
 -- | This functions returns 'True' if the given token is an Eof comment,
 -- and 'False' otherwise.
