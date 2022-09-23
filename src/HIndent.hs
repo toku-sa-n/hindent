@@ -5,10 +5,8 @@
 
 -- | Haskell indenter.
 module HIndent
-   -- * Formatting functions.
   ( reformat
   , prettyPrint
-  -- * Testing
   , defaultExtensions
   , getExtensions
   , testAst
