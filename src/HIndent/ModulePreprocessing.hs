@@ -179,7 +179,7 @@ removeAllDocDs x@HsModule {hsmodDecls = decls} =
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 resetLGRHSEndPosition ::
      LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
-resetLGRHSEndPosition (L (SrcSpanAnn locAnn sp) (GRHS ext@EpAnn {..} stmt body)) =
+resetLGRHSEndPosition (L (SrcSpanAnn locAnn@EpAnn {} sp) (GRHS ext@EpAnn {..} stmt body)) =
   let lastPosition =
         maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
       newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
@@ -197,7 +197,7 @@ resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
   let lastPosition =
         maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
       newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
-      newLoc = srcSpanFromRealSrcSpan newSpan
+      newLoc = RealSrcSpan newSpan Nothing
       newAnn = ext {entry = realSpanAsAnchor newSpan}
    in L newLoc (GRHS newAnn stmt body)
   where
@@ -216,9 +216,6 @@ applyForEpAnn f =
         Just HRefl -> f
         Nothing    -> id
     _ -> id
-
-srcSpanFromRealSrcSpan :: RealSrcSpan -> SrcSpan
-srcSpanFromRealSrcSpan s = RealSrcSpan s Nothing
 
 -- | This functions returns 'True' if the given token is an Eof comment,
 -- and 'False' otherwise.
