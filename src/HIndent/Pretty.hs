@@ -818,7 +818,11 @@ prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined
 #endif
 prettyHsExpr HsPragE {} = undefined
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsExpr HsRecSel {} = undefined
+prettyHsExpr HsTypedBracket {} = undefined
+prettyHsExpr HsUntypedBracket {} = undefined
+#endif
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
     case sig_bndrs of
