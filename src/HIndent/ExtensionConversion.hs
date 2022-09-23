@@ -142,7 +142,7 @@ convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes -- See https://dow
 convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
-#if !MIN_VERSION_ghc_lib_parser(9,4,0)
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
 convertExtension Cabal.RecordPuns = GLP.RecordPuns
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
 #endif
