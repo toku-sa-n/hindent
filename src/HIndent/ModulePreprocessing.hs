@@ -97,7 +97,8 @@ replaceAllNotUsedAnns = everywhere app
                 pure sp {ann = EpAnn (spanAsAnchor $ locA sp) ann emptyComments}
           try emptyListItem <|> try emptyList <|> try emptyPragma <|>
             try emptyContext <|>
-            try emptyNameAnn
+            try emptyNameAnn <|>
+            try NoEpAnns
     app x = x
     emptyListItem = AnnListItem []
     emptyList = AnnList Nothing Nothing Nothing [] []
