@@ -1,4 +1,5 @@
 -- | Module preprocessing before pretty-printing.
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ImpredicativeTypes  #-}
@@ -175,7 +176,21 @@ removeAllDocDs x@HsModule {hsmodDecls = decls} =
   where
     isDocD DocD {} = True
     isDocD _       = False
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+resetLGRHSEndPosition ::
+     LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+resetLGRHSEndPosition (L (SrcSpanAnn locAnn sp) (GRHS ext@EpAnn {..} stmt body)) =
+  let lastPosition =
+        maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
+      newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
+      newLocAnn = locAnn {entry = realSpanAsAnchor newSpan}
+      newAnn = ext {entry = realSpanAsAnchor newSpan}
+   in L (SrcSpanAnn newLocAnn sp) (GRHS newAnn stmt body)
+  where
+    collectAnchor :: Anchor -> Bool
+    collectAnchor _ = True
+resetLGRHSEndPosition x = x
+#else
 resetLGRHSEndPosition ::
      LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
@@ -189,7 +204,7 @@ resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
     collectAnchor :: Anchor -> Bool
     collectAnchor _ = True
 resetLGRHSEndPosition x = x
-
+#endif
 applyForEpAnn ::
      forall a. Typeable a
   => (forall b. EpAnn b -> EpAnn b)
