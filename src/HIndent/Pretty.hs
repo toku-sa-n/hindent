@@ -821,7 +821,7 @@ prettyHsExpr HsPragE {} = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined
-prettyHsExpr HsUntypedBracket {} = undefined
+prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #endif
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
@@ -1894,3 +1894,22 @@ instance Pretty ModuleName where
 
 instance Pretty (IE GhcPs) where
   pretty' = output
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+instance Pretty (HsQuote GhcPs) where
+  pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
+  pretty' (PatBr _ x) =
+    brackets $ do
+      string "p"
+      wrapWithBars $ pretty x
+  pretty' DecBrL {} = undefined
+  pretty' DecBrG {} = undefined
+  pretty' (TypBr _ x) =
+    brackets $ do
+      string "t"
+      wrapWithBars $ pretty x
+  pretty' (VarBr _ isSingle x) = do
+    if isSingle
+      then string "'"
+      else string "''"
+    pretty x
+#endif
