@@ -28,7 +28,7 @@ modifyASTForPrettyPrinting :: HsModule -> HsModule
 modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
   where
     preprocessing =
-      resetLGRHSEndPosition .
+      resetLGRHSEndPositionForModule .
       removeAllDocDs .
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
@@ -49,20 +49,8 @@ fixFixities = applyFixities baseFixities
 -- locates comments in the wrong position in the process of comment
 -- relocation. This function prevents it by fixing the 'L?GRHS''s source
 -- span.
-resetLGRHSEndPosition :: HsModule -> HsModule
-resetLGRHSEndPosition = everywhere (mkT f)
-  where
-    f :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
-    f (L _ (GRHS ext@EpAnn {..} stmt body)) =
-      let lastPosition =
-            maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
-          newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
-          newLoc = srcSpanFromRealSrcSpan newSpan
-          newAnn = ext {entry = realSpanAsAnchor newSpan}
-       in L newLoc (GRHS newAnn stmt body)
-    f x = x
-    collectAnchor :: Anchor -> Bool
-    collectAnchor _ = True
+resetLGRHSEndPositionForModule :: HsModule -> HsModule
+resetLGRHSEndPositionForModule = everywhere (mkT resetLGRHSEndPosition)
 
 -- | This function sorts lists of statements in order their positions.
 --
@@ -187,6 +175,20 @@ removeAllDocDs x@HsModule {hsmodDecls = decls} =
   where
     isDocD DocD {} = True
     isDocD _       = False
+
+resetLGRHSEndPosition ::
+     LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
+  let lastPosition =
+        maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
+      newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
+      newLoc = srcSpanFromRealSrcSpan newSpan
+      newAnn = ext {entry = realSpanAsAnchor newSpan}
+   in L newLoc (GRHS newAnn stmt body)
+  where
+    collectAnchor :: Anchor -> Bool
+    collectAnchor _ = True
+resetLGRHSEndPosition x = x
 
 applyForEpAnn ::
      forall a. Typeable a
