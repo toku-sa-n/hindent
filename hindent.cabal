@@ -55,7 +55,6 @@ library
                    , Cabal
                    , filepath
                    , directory
-                   , ghc-lib-parser >= 9.2.3.20220527 && < 9.3
                    , ghc-lib-parser-ex
                    , monad-loops
                    , mtl
@@ -67,6 +66,10 @@ library
                    , regex-tdfa
                    , text
                    , yaml
+  if(impl(ghc >= 9.4.1))
+    build-depends: ghc-lib-parser >= 9.4.1.20220807 && < 9.5
+  else
+    build-depends: ghc-lib-parser >= 9.2.3.20220527 && < 9.3
 
 executable hindent
   hs-source-dirs:    src/main
