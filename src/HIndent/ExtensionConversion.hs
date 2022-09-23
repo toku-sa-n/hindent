@@ -59,7 +59,6 @@ convertExtension Cabal.OverloadedLists = GLP.OverloadedLists
 convertExtension Cabal.NumDecimals = GLP.NumDecimals
 convertExtension Cabal.DisambiguateRecordFields = GLP.DisambiguateRecordFields
 convertExtension Cabal.RecordWildCards = GLP.RecordWildCards
-convertExtension Cabal.RecordPuns = GLP.RecordPuns
 convertExtension Cabal.ViewPatterns = GLP.ViewPatterns
 convertExtension Cabal.GADTs = GLP.GADTs
 convertExtension Cabal.GADTSyntax = GLP.GADTSyntax
@@ -143,7 +142,6 @@ convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes -- See https://dow
 convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
-convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
 #if MIN_VERSION_Cabal(3,6,0)
 convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
 convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
@@ -151,6 +149,10 @@ convertExtension Cabal.LexicalNegation = GLP.LexicalNegation
 convertExtension Cabal.LinearTypes = GLP.LinearTypes
 convertExtension Cabal.UnliftedDatatypes = GLP.UnliftedDatatypes
 convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
+#endif
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+convertExtension Cabal.RecordPuns = GLP.RecordPuns
+convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
 #endif
 convertExtension _ = GLP.ImplicitPrelude
                                          -- XXX: I gave up everything.

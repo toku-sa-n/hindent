@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -48,7 +49,10 @@ import           HIndent.Pretty
 import           HIndent.Types
 import qualified Language.Haskell.Extension  as Cabal
 import           Prelude
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+import           GHC.Utils.Error
+import           GHC.Utils.Outputable        hiding ((<>))
+#endif
 -- | Format the given source.
 reformat ::
      Config
@@ -208,6 +212,28 @@ getExtensions = foldl f defaultExtensions . map T.unpack
 -- 'StarIsType' extension is always enabled to compile a code using kinds
 -- like '* -> *'.
 parserOptsFromExtensions :: [GLP.Extension] -> ParserOpts
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+parserOptsFromExtensions opts =
+  mkParserOpts
+    opts'
+    diagOpts
+    [] -- FIXME: What's this?
+    False -- Safe imports are off.
+    False -- Haddock comments are treated as normal comments.
+    True -- Comments are kept in an AST.
+    False -- Do not update the internal position of a comment.
+  where
+    opts' = ES.fromList $ GLP.StarIsType : opts
+    diagOpts =
+      DiagOpts
+        { diag_warning_flags = ES.empty
+        , diag_fatal_warning_flags = ES.empty
+        , diag_warn_is_error = False
+        , diag_reverse_errors = False
+        , diag_max_errors = Nothing
+        , diag_ppr_ctx = defaultSDocContext
+        }
+#else
 parserOptsFromExtensions opts =
   mkParserOpts
     ES.empty -- No compiler warnings are enabled.
@@ -218,7 +244,7 @@ parserOptsFromExtensions opts =
     False -- Do not update the internal position of a comment.
   where
     opts' = ES.fromList $ GLP.StarIsType : opts
-
+#endif
 -- | This function parses the given Haskell source code with the given file
 -- path (if any) and parse options.
 parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
