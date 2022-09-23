@@ -55,7 +55,7 @@ library
                    , Cabal
                    , filepath
                    , directory
-                   , ghc-lib-parser <= 9.2.3.20220527
+                   , ghc-lib-parser >= 9.2.3.20220527 && < 9.3
                    , ghc-lib-parser-ex
                    , monad-loops
                    , mtl
