@@ -36,6 +36,7 @@ import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.Op
 import           HIndent.Pretty.Combinators.String
+import           HIndent.Pretty.Combinators.Switch
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Pretty.Pragma

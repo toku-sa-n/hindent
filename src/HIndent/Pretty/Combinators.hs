@@ -1,9 +1,7 @@
-{-# LANGUAGE CPP        #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 module HIndent.Pretty.Combinators
-  ( (<-|>)
-  , output
+  ( output
   , showOutputable
   , prefixed
   , eolCommentsArePrinted
@@ -11,8 +9,6 @@ module HIndent.Pretty.Combinators
   , printerLength
   ) where
 
-import           Control.Applicative
-import           Control.Monad
 import           Control.Monad.RWS                                   hiding
                                                                      (state)
 import           Data.Int
@@ -30,19 +26,6 @@ import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-
-(<-|>) :: Printer a -> Printer a -> Printer a
-fit <-|> notFit = do
-  before <- get
-  put before {psFitOnOneLine = True}
-  fmap Just fit <|> return Nothing >>= \case
-    Just r -> do
-      modify $ \st -> st {psFitOnOneLine = psFitOnOneLine before}
-      return r
-    Nothing -> do
-      put before
-      guard $ not $ psFitOnOneLine before
-      notFit
 
 output :: Outputable a => a -> Printer ()
 output = string . showOutputable

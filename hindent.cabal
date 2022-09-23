@@ -43,6 +43,7 @@ library
                      HIndent.Pretty.Combinators.Lineup
                      HIndent.Pretty.Combinators.Op
                      HIndent.Pretty.Combinators.String
+                     HIndent.Pretty.Combinators.Switch
                      HIndent.Pretty.Combinators.Wrap
                      HIndent.Pretty.Imports.Sort
                      HIndent.Pretty.Pragma
