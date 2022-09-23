@@ -1,5 +1,4 @@
 -- | Module preprocessing before pretty-printing.
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ImpredicativeTypes  #-}
@@ -29,7 +28,7 @@ modifyASTForPrettyPrinting :: HsModule -> HsModule
 modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
   where
     preprocessing =
-      resetLGRHSEndPositionForModule .
+      resetLGRHSEndPosition .
       removeAllDocDs .
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
@@ -50,8 +49,20 @@ fixFixities = applyFixities baseFixities
 -- locates comments in the wrong position in the process of comment
 -- relocation. This function prevents it by fixing the 'L?GRHS''s source
 -- span.
-resetLGRHSEndPositionForModule :: HsModule -> HsModule
-resetLGRHSEndPositionForModule = everywhere (mkT resetLGRHSEndPosition)
+resetLGRHSEndPosition :: HsModule -> HsModule
+resetLGRHSEndPosition = everywhere (mkT f)
+  where
+    f :: LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
+    f (L _ (GRHS ext@EpAnn {..} stmt body)) =
+      let lastPosition =
+            maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
+          newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
+          newLoc = RealSrcSpan newSpan Nothing
+          newAnn = ext {entry = realSpanAsAnchor newSpan}
+       in L newLoc (GRHS newAnn stmt body)
+    f x = x
+    collectAnchor :: Anchor -> Bool
+    collectAnchor _ = True
 
 -- | This function sorts lists of statements in order their positions.
 --
@@ -176,35 +187,7 @@ removeAllDocDs x@HsModule {hsmodDecls = decls} =
   where
     isDocD DocD {} = True
     isDocD _       = False
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-resetLGRHSEndPosition ::
-     LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
-resetLGRHSEndPosition (L (SrcSpanAnn locAnn@EpAnn {} sp) (GRHS ext@EpAnn {..} stmt body)) =
-  let lastPosition =
-        maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
-      newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
-      newLocAnn = locAnn {entry = realSpanAsAnchor newSpan}
-      newAnn = ext {entry = realSpanAsAnchor newSpan}
-   in L (SrcSpanAnn newLocAnn sp) (GRHS newAnn stmt body)
-  where
-    collectAnchor :: Anchor -> Bool
-    collectAnchor _ = True
-resetLGRHSEndPosition x = x
-#else
-resetLGRHSEndPosition ::
-     LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
-resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
-  let lastPosition =
-        maximum $ realSrcSpanEnd . anchor <$> listify collectAnchor body
-      newSpan = mkRealSrcSpan (realSrcSpanStart $ anchor entry) lastPosition
-      newLoc = RealSrcSpan newSpan Nothing
-      newAnn = ext {entry = realSpanAsAnchor newSpan}
-   in L newLoc (GRHS newAnn stmt body)
-  where
-    collectAnchor :: Anchor -> Bool
-    collectAnchor _ = True
-resetLGRHSEndPosition x = x
-#endif
+
 applyForEpAnn ::
      forall a. Typeable a
   => (forall b. EpAnn b -> EpAnn b)

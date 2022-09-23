@@ -99,13 +99,10 @@ newtype GRHSForLambda =
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-newtype RecConField =
-  RecConField (HsFieldBind (LFieldOcc GhcPs) (LPat GhcPs))
-#else
+
 newtype RecConField =
   RecConField (HsRecField' (FieldOcc GhcPs) (LPat GhcPs))
-#endif
+
 newtype HsSigTypeInsideInstDecl =
   HsSigTypeInsideInstDecl (HsSigType GhcPs)
 
