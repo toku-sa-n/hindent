@@ -51,7 +51,7 @@ import qualified Language.Haskell.Extension  as Cabal
 import           Prelude
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Utils.Error
-import           GHC.Utils.Outputable        hiding ((<>))
+import           GHC.Utils.Outputable        hiding (text, (<>))
 #endif
 -- | Format the given source.
 reformat ::
