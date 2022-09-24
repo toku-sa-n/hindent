@@ -22,10 +22,16 @@ uniqueExtensions ((Cabal.DisableExtension e):xs) =
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
--- `ghc-lib-parser`'s `Extension` does not implement `read`.
+-- | This function converts a value of 'KnownExtension' defined in the
+-- 'Cabal' package to the same value of 'Extension' defined in
+-- 'ghc-lib-parser'.
 --
--- TODO: Change the return type to `Maybe GLP.Extension` because some
--- extensions are not supported by `ghc-lib-parser`.
+-- The implementation of this function is very long because 'Extension'
+-- does not implement 'Read'.
+--
+-- This function returns a 'Just' value if it succeeds in converting.
+-- Otherwise (e.g., neigher GHC nor 'ghc-lib-parser' does not the passed
+-- extension, or it is deprecated or removed), it returns a 'Nothing'.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
 convertExtension Cabal.OverlappingInstances = GLP.OverlappingInstances
 convertExtension Cabal.UndecidableInstances = GLP.UndecidableInstances
