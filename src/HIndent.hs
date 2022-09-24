@@ -250,10 +250,10 @@ parserOptsFromExtensions opts =
 parseModule :: Maybe FilePath -> ParserOpts -> String -> ParseResult HsModule
 parseModule filepath opts src =
   case unP GLP.parseModule initState of
-    POk s m   -> POk s (unLoc m)
+    POk s m   -> POk s $ unLoc m
     PFailed s -> PFailed s
   where
     initState = initParserState opts buffer location
     location =
-      mkRealSrcLoc (mkFastString (fromMaybe "<interactive>" filepath)) 1 1
+      mkRealSrcLoc (mkFastString $ fromMaybe "<interactive>" filepath) 1 1
     buffer = stringToStringBuffer src
