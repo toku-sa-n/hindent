@@ -23,6 +23,9 @@ uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
 -- `ghc-lib-parser`'s `Extension` does not implement `read`.
+--
+-- TODO: Change the return type to `Maybe GLP.Extension` because some
+-- extensions are not supported by `ghc-lib-parser`.
 convertExtension :: Cabal.KnownExtension -> GLP.Extension
 convertExtension Cabal.OverlappingInstances = GLP.OverlappingInstances
 convertExtension Cabal.UndecidableInstances = GLP.UndecidableInstances
@@ -142,6 +145,21 @@ convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes -- See https://dow
 convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
 convertExtension Cabal.CPP = GLP.Cpp
 convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
+convertExtension Cabal.DoRec = undefined
+convertExtension Cabal.GeneralisedNewtypeDeriving =
+  GLP.GeneralizedNewtypeDeriving
+convertExtension Cabal.ExtensibleRecords = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
+convertExtension Cabal.RestrictedTypeSynonyms = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
+convertExtension Cabal.HereDocuments = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
+convertExtension Cabal.MonoPatBinds = GLP.ImplicitPrelude -- FIXME: This extension has not effect.
+convertExtension Cabal.NewQualifiedOperators = GLP.ImplicitPrelude -- FIXME: This extension has no effect.
+convertExtension Cabal.XmlSyntax = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
+convertExtension Cabal.RegularPatterns = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
+convertExtension Cabal.SafeImports = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
+convertExtension Cabal.Safe = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
+convertExtension Cabal.Trustworthy = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
+convertExtension Cabal.Unsafe = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
+convertExtension Cabal.MonadFailDesugaring = GLP.ImplicitPrelude -- FIXME: This extension is enabled by default.
 #if MIN_VERSION_Cabal(3,6,0)
 convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
 convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
@@ -154,5 +172,3 @@ convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
 convertExtension Cabal.RecordPuns = GLP.RecordPuns
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
 #endif
-convertExtension _ = GLP.ImplicitPrelude
-                                         -- XXX: I gave up everything.
