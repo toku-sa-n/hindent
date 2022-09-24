@@ -188,8 +188,22 @@ badExtensions =
   , Cabal.RecursiveDo -- steals the rec keyword
   , Cabal.DoRec -- same
   , Cabal.TypeApplications -- since GHC
-  ]
+  ] ++
+  badExtensionsSinceGhc941
 
+-- | Additionally disabled extensions since GHC 9.4.1.
+--
+-- With these extensions enabled, a few tests fail.
+badExtensionsSinceGhc941 :: [Cabal.KnownExtension]
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+badExtensionsSinceGhc941 =
+  [ Cabal.OverloadedRecordUpdate
+  , Cabal.AlternativeLayoutRule
+  , Cabal.AlternativeLayoutRuleTransitional
+  ]
+#else
+badExtensionsSinceGhc941 = []
+#endif
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
   | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
