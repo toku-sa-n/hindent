@@ -64,7 +64,7 @@ main = do
                case reformat
                       style
                       (Just $
-                       fmap EC.gleExtensionToCabalExtension cabalexts ++ exts)
+                       fmap EC.glpExtensionToCabalExtension cabalexts ++ exts)
                       (Just filepath)
                       text of
                  Left e -> error e

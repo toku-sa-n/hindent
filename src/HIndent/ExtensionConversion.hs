@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
 module HIndent.ExtensionConversion
-  ( gleExtensionToCabalExtension
+  ( glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
   ) where
@@ -10,8 +10,8 @@ import qualified GHC.LanguageExtensions     as GLP
 import           HIndent.Read
 import qualified Language.Haskell.Extension as Cabal
 
-gleExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
-gleExtensionToCabalExtension = readOrFail . show
+glpExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
+glpExtensionToCabalExtension = readOrFail . show
 
 -- | This function converts each value of the type 'Extension' defined in
 -- the package 'Cabal' in the list to the same value of the type
