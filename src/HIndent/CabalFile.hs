@@ -24,7 +24,7 @@ import           GHC.Driver.Session                            (impliedXFlags,
                                                                 languageExtensions)
 import qualified GHC.Driver.Session                            as GLP
 import qualified GHC.LanguageExtensions.Type                   as GLP
-import qualified HIndent.ExtensionConversion                   as EC
+import qualified HIndent.Extension.Conversion                  as EC
 import           HIndent.Read
 import           Language.Haskell.Extension
 import           System.Directory

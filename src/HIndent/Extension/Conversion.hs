@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module HIndent.ExtensionConversion
+module HIndent.Extension.Conversion
   ( glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension

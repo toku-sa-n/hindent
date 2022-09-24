@@ -11,28 +11,28 @@ module Main
 import           Control.Applicative
 import           Control.Exception
 import           Control.Monad
-import qualified Data.ByteString             as S
-import qualified Data.ByteString.Builder     as S
-import qualified Data.ByteString.Lazy.Char8  as L8
+import qualified Data.ByteString              as S
+import qualified Data.ByteString.Builder      as S
+import qualified Data.ByteString.Lazy.Char8   as L8
 import           Data.Maybe
-import qualified Data.Text                   as T
-import           Data.Version                (showVersion)
-import qualified Data.Yaml                   as Y
+import qualified Data.Text                    as T
+import           Data.Version                 (showVersion)
+import qualified Data.Yaml                    as Y
 import           Foreign.C.Error
 import           GHC.IO.Exception
 import           HIndent
 import           HIndent.CabalFile
-import qualified HIndent.ExtensionConversion as EC
+import qualified HIndent.Extension.Conversion as EC
 import           HIndent.Types
 import           Language.Haskell.Extension
-import           Options.Applicative         hiding (action, style)
+import           Options.Applicative          hiding (action, style)
 import           Path
-import qualified Path.Find                   as Path
-import qualified Path.IO                     as Path
-import           Paths_hindent               (version)
-import qualified System.Directory            as IO
-import           System.Exit                 (exitWith)
-import qualified System.IO                   as IO
+import qualified Path.Find                    as Path
+import qualified Path.IO                      as Path
+import           Paths_hindent                (version)
+import qualified System.Directory             as IO
+import           System.Exit                  (exitWith)
+import qualified System.IO                    as IO
 
 data Action
   = Validate
