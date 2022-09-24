@@ -13,12 +13,25 @@ import qualified Language.Haskell.Extension as Cabal
 gleExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
 gleExtensionToCabalExtension = readOrFail . show
 
+-- | This function converts each value of the type 'Extension' defined in
+-- the package 'Cabal' in the list to the same value of the type
+-- 'Extension' defined in the package 'ghc-lib-parser'.
+--
+-- If the extension has the 'No' suffix, the extension is removed from the
+-- result. If both extensions having and not having the suffix exist in the
+-- list, only the most backward one has the effect.
+--
+-- If converting an extension fails due to neither GHC nor 'ghc-lib-parser'
+-- not supporting or deprecation or removal, the extension is ignored.
 uniqueExtensions :: [Cabal.Extension] -> [GLP.Extension]
 uniqueExtensions [] = []
-uniqueExtensions ((Cabal.EnableExtension e):xs) =
-  convertExtension e : uniqueExtensions xs
-uniqueExtensions ((Cabal.DisableExtension e):xs) =
-  uniqueExtensions $ filter (/= readOrFail (show e)) xs
+uniqueExtensions ((Cabal.EnableExtension e):xs)
+  | Just e' <- convertExtension e = e' : uniqueExtensions xs
+  | otherwise = uniqueExtensions xs
+uniqueExtensions ((Cabal.DisableExtension e):xs)
+  | Just e' <- convertExtension e =
+    uniqueExtensions $ filter (/= readOrFail (show e')) xs
+  | otherwise = uniqueExtensions xs
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
@@ -32,157 +45,166 @@ uniqueExtensions ((Cabal.UnknownExtension s):_) =
 -- This function returns a 'Just' value if it succeeds in converting.
 -- Otherwise (e.g., neigher GHC nor 'ghc-lib-parser' does not the passed
 -- extension, or it is deprecated or removed), it returns a 'Nothing'.
-convertExtension :: Cabal.KnownExtension -> GLP.Extension
-convertExtension Cabal.OverlappingInstances = GLP.OverlappingInstances
-convertExtension Cabal.UndecidableInstances = GLP.UndecidableInstances
-convertExtension Cabal.IncoherentInstances = GLP.IncoherentInstances
-convertExtension Cabal.UndecidableSuperClasses = GLP.UndecidableSuperClasses
-convertExtension Cabal.MonomorphismRestriction = GLP.MonomorphismRestriction
-convertExtension Cabal.MonoLocalBinds = GLP.MonoLocalBinds
-convertExtension Cabal.RelaxedPolyRec = GLP.RelaxedPolyRec
-convertExtension Cabal.ExtendedDefaultRules = GLP.ExtendedDefaultRules
-convertExtension Cabal.ForeignFunctionInterface = GLP.ForeignFunctionInterface
-convertExtension Cabal.UnliftedFFITypes = GLP.UnliftedFFITypes
-convertExtension Cabal.InterruptibleFFI = GLP.InterruptibleFFI
-convertExtension Cabal.CApiFFI = GLP.CApiFFI
-convertExtension Cabal.GHCForeignImportPrim = GLP.GHCForeignImportPrim
-convertExtension Cabal.JavaScriptFFI = GLP.JavaScriptFFI
-convertExtension Cabal.ParallelArrays = GLP.ParallelArrays
-convertExtension Cabal.Arrows = GLP.Arrows
-convertExtension Cabal.TemplateHaskell = GLP.TemplateHaskell
-convertExtension Cabal.TemplateHaskellQuotes = GLP.TemplateHaskellQuotes
-convertExtension Cabal.QuasiQuotes = GLP.QuasiQuotes
-convertExtension Cabal.ImplicitParams = GLP.ImplicitParams
-convertExtension Cabal.ImplicitPrelude = GLP.ImplicitPrelude
-convertExtension Cabal.ScopedTypeVariables = GLP.ScopedTypeVariables
-convertExtension Cabal.AllowAmbiguousTypes = GLP.AllowAmbiguousTypes
-convertExtension Cabal.UnboxedTuples = GLP.UnboxedTuples
-convertExtension Cabal.UnboxedSums = GLP.UnboxedSums
-convertExtension Cabal.UnliftedNewtypes = GLP.UnliftedNewtypes
-convertExtension Cabal.BangPatterns = GLP.BangPatterns
-convertExtension Cabal.TypeFamilies = GLP.TypeFamilies
-convertExtension Cabal.TypeFamilyDependencies = GLP.TypeFamilyDependencies
-convertExtension Cabal.TypeInType = GLP.TypeInType
-convertExtension Cabal.OverloadedStrings = GLP.OverloadedStrings
-convertExtension Cabal.OverloadedLists = GLP.OverloadedLists
-convertExtension Cabal.NumDecimals = GLP.NumDecimals
-convertExtension Cabal.DisambiguateRecordFields = GLP.DisambiguateRecordFields
-convertExtension Cabal.RecordWildCards = GLP.RecordWildCards
-convertExtension Cabal.ViewPatterns = GLP.ViewPatterns
-convertExtension Cabal.GADTs = GLP.GADTs
-convertExtension Cabal.GADTSyntax = GLP.GADTSyntax
-convertExtension Cabal.NPlusKPatterns = GLP.NPlusKPatterns
-convertExtension Cabal.DoAndIfThenElse = GLP.DoAndIfThenElse
-convertExtension Cabal.BlockArguments = GLP.BlockArguments
-convertExtension Cabal.RebindableSyntax = GLP.RebindableSyntax
-convertExtension Cabal.ConstraintKinds = GLP.ConstraintKinds
-convertExtension Cabal.PolyKinds = GLP.PolyKinds
-convertExtension Cabal.DataKinds = GLP.DataKinds
-convertExtension Cabal.InstanceSigs = GLP.InstanceSigs
-convertExtension Cabal.ApplicativeDo = GLP.ApplicativeDo
-convertExtension Cabal.StandaloneDeriving = GLP.StandaloneDeriving
-convertExtension Cabal.DeriveDataTypeable = GLP.DeriveDataTypeable
-convertExtension Cabal.AutoDeriveTypeable = GLP.AutoDeriveTypeable
-convertExtension Cabal.DeriveFunctor = GLP.DeriveFunctor
-convertExtension Cabal.DeriveTraversable = GLP.DeriveTraversable
-convertExtension Cabal.DeriveFoldable = GLP.DeriveFoldable
-convertExtension Cabal.DeriveGeneric = GLP.DeriveGeneric
-convertExtension Cabal.DefaultSignatures = GLP.DefaultSignatures
-convertExtension Cabal.DeriveAnyClass = GLP.DeriveAnyClass
-convertExtension Cabal.DeriveLift = GLP.DeriveLift
-convertExtension Cabal.DerivingStrategies = GLP.DerivingStrategies
-convertExtension Cabal.DerivingVia = GLP.DerivingVia
-convertExtension Cabal.TypeSynonymInstances = GLP.TypeSynonymInstances
-convertExtension Cabal.FlexibleContexts = GLP.FlexibleContexts
-convertExtension Cabal.FlexibleInstances = GLP.FlexibleInstances
-convertExtension Cabal.ConstrainedClassMethods = GLP.ConstrainedClassMethods
-convertExtension Cabal.MultiParamTypeClasses = GLP.MultiParamTypeClasses
-convertExtension Cabal.NullaryTypeClasses = GLP.NullaryTypeClasses
-convertExtension Cabal.FunctionalDependencies = GLP.FunctionalDependencies
-convertExtension Cabal.UnicodeSyntax = GLP.UnicodeSyntax
-convertExtension Cabal.ExistentialQuantification = GLP.ExistentialQuantification
-convertExtension Cabal.MagicHash = GLP.MagicHash
-convertExtension Cabal.EmptyDataDecls = GLP.EmptyDataDecls
-convertExtension Cabal.KindSignatures = GLP.KindSignatures
-convertExtension Cabal.RoleAnnotations = GLP.RoleAnnotations
-convertExtension Cabal.ParallelListComp = GLP.ParallelListComp
-convertExtension Cabal.TransformListComp = GLP.TransformListComp
-convertExtension Cabal.MonadComprehensions = GLP.MonadComprehensions
+convertExtension :: Cabal.KnownExtension -> Maybe GLP.Extension
+convertExtension Cabal.OverlappingInstances = Just GLP.OverlappingInstances
+convertExtension Cabal.UndecidableInstances = Just GLP.UndecidableInstances
+convertExtension Cabal.IncoherentInstances = Just GLP.IncoherentInstances
+convertExtension Cabal.UndecidableSuperClasses =
+  Just GLP.UndecidableSuperClasses
+convertExtension Cabal.MonomorphismRestriction =
+  Just GLP.MonomorphismRestriction
+convertExtension Cabal.MonoLocalBinds = Just GLP.MonoLocalBinds
+convertExtension Cabal.RelaxedPolyRec = Just GLP.RelaxedPolyRec
+convertExtension Cabal.ExtendedDefaultRules = Just GLP.ExtendedDefaultRules
+convertExtension Cabal.ForeignFunctionInterface =
+  Just GLP.ForeignFunctionInterface
+convertExtension Cabal.UnliftedFFITypes = Just GLP.UnliftedFFITypes
+convertExtension Cabal.InterruptibleFFI = Just GLP.InterruptibleFFI
+convertExtension Cabal.CApiFFI = Just GLP.CApiFFI
+convertExtension Cabal.GHCForeignImportPrim = Just GLP.GHCForeignImportPrim
+convertExtension Cabal.JavaScriptFFI = Just GLP.JavaScriptFFI
+convertExtension Cabal.ParallelArrays = Just GLP.ParallelArrays
+convertExtension Cabal.Arrows = Just GLP.Arrows
+convertExtension Cabal.TemplateHaskell = Just GLP.TemplateHaskell
+convertExtension Cabal.TemplateHaskellQuotes = Just GLP.TemplateHaskellQuotes
+convertExtension Cabal.QuasiQuotes = Just GLP.QuasiQuotes
+convertExtension Cabal.ImplicitParams = Just GLP.ImplicitParams
+convertExtension Cabal.ImplicitPrelude = Just GLP.ImplicitPrelude
+convertExtension Cabal.ScopedTypeVariables = Just GLP.ScopedTypeVariables
+convertExtension Cabal.AllowAmbiguousTypes = Just GLP.AllowAmbiguousTypes
+convertExtension Cabal.UnboxedTuples = Just GLP.UnboxedTuples
+convertExtension Cabal.UnboxedSums = Just GLP.UnboxedSums
+convertExtension Cabal.UnliftedNewtypes = Just GLP.UnliftedNewtypes
+convertExtension Cabal.BangPatterns = Just GLP.BangPatterns
+convertExtension Cabal.TypeFamilies = Just GLP.TypeFamilies
+convertExtension Cabal.TypeFamilyDependencies = Just GLP.TypeFamilyDependencies
+convertExtension Cabal.TypeInType = Just GLP.TypeInType
+convertExtension Cabal.OverloadedStrings = Just GLP.OverloadedStrings
+convertExtension Cabal.OverloadedLists = Just GLP.OverloadedLists
+convertExtension Cabal.NumDecimals = Just GLP.NumDecimals
+convertExtension Cabal.DisambiguateRecordFields =
+  Just GLP.DisambiguateRecordFields
+convertExtension Cabal.RecordWildCards = Just GLP.RecordWildCards
+convertExtension Cabal.ViewPatterns = Just GLP.ViewPatterns
+convertExtension Cabal.GADTs = Just GLP.GADTs
+convertExtension Cabal.GADTSyntax = Just GLP.GADTSyntax
+convertExtension Cabal.NPlusKPatterns = Just GLP.NPlusKPatterns
+convertExtension Cabal.DoAndIfThenElse = Just GLP.DoAndIfThenElse
+convertExtension Cabal.BlockArguments = Just GLP.BlockArguments
+convertExtension Cabal.RebindableSyntax = Just GLP.RebindableSyntax
+convertExtension Cabal.ConstraintKinds = Just GLP.ConstraintKinds
+convertExtension Cabal.PolyKinds = Just GLP.PolyKinds
+convertExtension Cabal.DataKinds = Just GLP.DataKinds
+convertExtension Cabal.InstanceSigs = Just GLP.InstanceSigs
+convertExtension Cabal.ApplicativeDo = Just GLP.ApplicativeDo
+convertExtension Cabal.StandaloneDeriving = Just GLP.StandaloneDeriving
+convertExtension Cabal.DeriveDataTypeable = Just GLP.DeriveDataTypeable
+convertExtension Cabal.AutoDeriveTypeable = Just GLP.AutoDeriveTypeable
+convertExtension Cabal.DeriveFunctor = Just GLP.DeriveFunctor
+convertExtension Cabal.DeriveTraversable = Just GLP.DeriveTraversable
+convertExtension Cabal.DeriveFoldable = Just GLP.DeriveFoldable
+convertExtension Cabal.DeriveGeneric = Just GLP.DeriveGeneric
+convertExtension Cabal.DefaultSignatures = Just GLP.DefaultSignatures
+convertExtension Cabal.DeriveAnyClass = Just GLP.DeriveAnyClass
+convertExtension Cabal.DeriveLift = Just GLP.DeriveLift
+convertExtension Cabal.DerivingStrategies = Just GLP.DerivingStrategies
+convertExtension Cabal.DerivingVia = Just GLP.DerivingVia
+convertExtension Cabal.TypeSynonymInstances = Just GLP.TypeSynonymInstances
+convertExtension Cabal.FlexibleContexts = Just GLP.FlexibleContexts
+convertExtension Cabal.FlexibleInstances = Just GLP.FlexibleInstances
+convertExtension Cabal.ConstrainedClassMethods =
+  Just GLP.ConstrainedClassMethods
+convertExtension Cabal.MultiParamTypeClasses = Just GLP.MultiParamTypeClasses
+convertExtension Cabal.NullaryTypeClasses = Just GLP.NullaryTypeClasses
+convertExtension Cabal.FunctionalDependencies = Just GLP.FunctionalDependencies
+convertExtension Cabal.UnicodeSyntax = Just GLP.UnicodeSyntax
+convertExtension Cabal.ExistentialQuantification =
+  Just GLP.ExistentialQuantification
+convertExtension Cabal.MagicHash = Just GLP.MagicHash
+convertExtension Cabal.EmptyDataDecls = Just GLP.EmptyDataDecls
+convertExtension Cabal.KindSignatures = Just GLP.KindSignatures
+convertExtension Cabal.RoleAnnotations = Just GLP.RoleAnnotations
+convertExtension Cabal.ParallelListComp = Just GLP.ParallelListComp
+convertExtension Cabal.TransformListComp = Just GLP.TransformListComp
+convertExtension Cabal.MonadComprehensions = Just GLP.MonadComprehensions
 convertExtension Cabal.GeneralizedNewtypeDeriving =
-  GLP.GeneralizedNewtypeDeriving
-convertExtension Cabal.RecursiveDo = GLP.RecursiveDo
-convertExtension Cabal.PostfixOperators = GLP.PostfixOperators
-convertExtension Cabal.TupleSections = GLP.TupleSections
-convertExtension Cabal.PatternGuards = GLP.PatternGuards
-convertExtension Cabal.LiberalTypeSynonyms = GLP.LiberalTypeSynonyms
-convertExtension Cabal.RankNTypes = GLP.RankNTypes
-convertExtension Cabal.ImpredicativeTypes = GLP.ImpredicativeTypes
-convertExtension Cabal.TypeOperators = GLP.TypeOperators
-convertExtension Cabal.ExplicitNamespaces = GLP.ExplicitNamespaces
-convertExtension Cabal.PackageImports = GLP.PackageImports
-convertExtension Cabal.ExplicitForAll = GLP.ExplicitForAll
-convertExtension Cabal.DatatypeContexts = GLP.DatatypeContexts
-convertExtension Cabal.NondecreasingIndentation = GLP.NondecreasingIndentation
-convertExtension Cabal.TraditionalRecordSyntax = GLP.TraditionalRecordSyntax
-convertExtension Cabal.LambdaCase = GLP.LambdaCase
-convertExtension Cabal.MultiWayIf = GLP.MultiWayIf
-convertExtension Cabal.BinaryLiterals = GLP.BinaryLiterals
-convertExtension Cabal.NegativeLiterals = GLP.NegativeLiterals
-convertExtension Cabal.HexFloatLiterals = GLP.HexFloatLiterals
-convertExtension Cabal.DuplicateRecordFields = GLP.DuplicateRecordFields
-convertExtension Cabal.OverloadedLabels = GLP.OverloadedLabels
-convertExtension Cabal.EmptyCase = GLP.EmptyCase
-convertExtension Cabal.PatternSynonyms = GLP.PatternSynonyms
-convertExtension Cabal.PartialTypeSignatures = GLP.PartialTypeSignatures
-convertExtension Cabal.NamedWildCards = GLP.NamedWildCards
-convertExtension Cabal.StaticPointers = GLP.StaticPointers
-convertExtension Cabal.TypeApplications = GLP.TypeApplications
-convertExtension Cabal.Strict = GLP.Strict
-convertExtension Cabal.StrictData = GLP.StrictData
-convertExtension Cabal.EmptyDataDeriving = GLP.EmptyDataDeriving
-convertExtension Cabal.NumericUnderscores = GLP.NumericUnderscores
-convertExtension Cabal.QuantifiedConstraints = GLP.QuantifiedConstraints
-convertExtension Cabal.StarIsType = GLP.StarIsType
-convertExtension Cabal.ImportQualifiedPost = GLP.ImportQualifiedPost
-convertExtension Cabal.CUSKs = GLP.CUSKs
-convertExtension Cabal.StandaloneKindSignatures = GLP.StandaloneKindSignatures
-convertExtension Cabal.Rank2Types = GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
-convertExtension Cabal.PolymorphicComponents = GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
-convertExtension Cabal.PatternSignatures = GLP.ScopedTypeVariables
-convertExtension Cabal.CPP = GLP.Cpp
-convertExtension Cabal.Generics = GLP.ImplicitPrelude -- XXX: This extension is no longer supported. This code is for make the code compile.
+  Just GLP.GeneralizedNewtypeDeriving
+convertExtension Cabal.RecursiveDo = Just GLP.RecursiveDo
+convertExtension Cabal.PostfixOperators = Just GLP.PostfixOperators
+convertExtension Cabal.TupleSections = Just GLP.TupleSections
+convertExtension Cabal.PatternGuards = Just GLP.PatternGuards
+convertExtension Cabal.LiberalTypeSynonyms = Just GLP.LiberalTypeSynonyms
+convertExtension Cabal.RankNTypes = Just GLP.RankNTypes
+convertExtension Cabal.ImpredicativeTypes = Just GLP.ImpredicativeTypes
+convertExtension Cabal.TypeOperators = Just GLP.TypeOperators
+convertExtension Cabal.ExplicitNamespaces = Just GLP.ExplicitNamespaces
+convertExtension Cabal.PackageImports = Just GLP.PackageImports
+convertExtension Cabal.ExplicitForAll = Just GLP.ExplicitForAll
+convertExtension Cabal.DatatypeContexts = Just GLP.DatatypeContexts
+convertExtension Cabal.NondecreasingIndentation =
+  Just GLP.NondecreasingIndentation
+convertExtension Cabal.TraditionalRecordSyntax =
+  Just GLP.TraditionalRecordSyntax
+convertExtension Cabal.LambdaCase = Just GLP.LambdaCase
+convertExtension Cabal.MultiWayIf = Just GLP.MultiWayIf
+convertExtension Cabal.BinaryLiterals = Just GLP.BinaryLiterals
+convertExtension Cabal.NegativeLiterals = Just GLP.NegativeLiterals
+convertExtension Cabal.HexFloatLiterals = Just GLP.HexFloatLiterals
+convertExtension Cabal.DuplicateRecordFields = Just GLP.DuplicateRecordFields
+convertExtension Cabal.OverloadedLabels = Just GLP.OverloadedLabels
+convertExtension Cabal.EmptyCase = Just GLP.EmptyCase
+convertExtension Cabal.PatternSynonyms = Just GLP.PatternSynonyms
+convertExtension Cabal.PartialTypeSignatures = Just GLP.PartialTypeSignatures
+convertExtension Cabal.NamedWildCards = Just GLP.NamedWildCards
+convertExtension Cabal.StaticPointers = Just GLP.StaticPointers
+convertExtension Cabal.TypeApplications = Just GLP.TypeApplications
+convertExtension Cabal.Strict = Just GLP.Strict
+convertExtension Cabal.StrictData = Just GLP.StrictData
+convertExtension Cabal.EmptyDataDeriving = Just GLP.EmptyDataDeriving
+convertExtension Cabal.NumericUnderscores = Just GLP.NumericUnderscores
+convertExtension Cabal.QuantifiedConstraints = Just GLP.QuantifiedConstraints
+convertExtension Cabal.StarIsType = Just GLP.StarIsType
+convertExtension Cabal.ImportQualifiedPost = Just GLP.ImportQualifiedPost
+convertExtension Cabal.CUSKs = Just GLP.CUSKs
+convertExtension Cabal.StandaloneKindSignatures =
+  Just GLP.StandaloneKindSignatures
+convertExtension Cabal.Rank2Types = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
+convertExtension Cabal.PolymorphicComponents = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
+convertExtension Cabal.PatternSignatures = Just GLP.ScopedTypeVariables
+convertExtension Cabal.CPP = Just GLP.Cpp
+convertExtension Cabal.Generics = Nothing -- This extension is no longer supported.
 convertExtension Cabal.DoRec = undefined
 convertExtension Cabal.GeneralisedNewtypeDeriving =
-  GLP.GeneralizedNewtypeDeriving
-convertExtension Cabal.ExtensibleRecords = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
-convertExtension Cabal.RestrictedTypeSynonyms = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
-convertExtension Cabal.HereDocuments = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
-convertExtension Cabal.MonoPatBinds = GLP.ImplicitPrelude -- FIXME: This extension has not effect.
-convertExtension Cabal.NewQualifiedOperators = GLP.ImplicitPrelude -- FIXME: This extension has no effect.
-convertExtension Cabal.XmlSyntax = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
-convertExtension Cabal.RegularPatterns = GLP.ImplicitPrelude -- FIXME: This extension is not supported by GHC.
-convertExtension Cabal.SafeImports = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
-convertExtension Cabal.Safe = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
-convertExtension Cabal.Trustworthy = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
-convertExtension Cabal.Unsafe = GLP.ImplicitPrelude -- FIXME: This extension is not supported by `ghc-lib-parser`.
-convertExtension Cabal.MonadFailDesugaring = GLP.ImplicitPrelude -- FIXME: This extension is enabled by default.
+  Just GLP.GeneralizedNewtypeDeriving
+convertExtension Cabal.ExtensibleRecords = Nothing -- This extension is supported by Hugs, but not by GHC.
+convertExtension Cabal.RestrictedTypeSynonyms = Nothing -- This extension is supported by Hugs, but not by GHC.
+convertExtension Cabal.HereDocuments = Nothing -- This extension is supported by Hugs, but not by GHC.
+convertExtension Cabal.MonoPatBinds = Nothing -- This extension has no effect. See https://hackage.haskell.org/package/Cabal-3.6.3.0/docs/Language-Haskell-Extension.html#t:Extension.
+convertExtension Cabal.NewQualifiedOperators = Nothing -- This extension is deprecated.
+convertExtension Cabal.XmlSyntax = Nothing -- This extension is not supported by GHC.
+convertExtension Cabal.RegularPatterns = Nothing -- This extension is not supported by GHC.
+convertExtension Cabal.SafeImports = Nothing -- This extension is not supported by 'ghc-lib-parser'.
+convertExtension Cabal.Safe = Nothing -- This extension is not supported by 'ghc-lib-parser'.
+convertExtension Cabal.Trustworthy = Nothing -- This extension is not supported by 'ghc-lib-parser'.
+convertExtension Cabal.Unsafe = Nothing -- This extension is not supported by 'ghc-lib-parser'.
+convertExtension Cabal.MonadFailDesugaring = Nothing -- This extension is enabled by default.
 #if MIN_VERSION_Cabal(3,6,0)
-convertExtension Cabal.OverloadedRecordDot = GLP.OverloadedRecordDot
-convertExtension Cabal.FieldSelectors = GLP.FieldSelectors
-convertExtension Cabal.LexicalNegation = GLP.LexicalNegation
-convertExtension Cabal.LinearTypes = GLP.LinearTypes
-convertExtension Cabal.UnliftedDatatypes = GLP.UnliftedDatatypes
-convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
+convertExtension Cabal.OverloadedRecordDot = Just GLP.OverloadedRecordDot
+convertExtension Cabal.FieldSelectors = Just GLP.FieldSelectors
+convertExtension Cabal.LexicalNegation = Just GLP.LexicalNegation
+convertExtension Cabal.LinearTypes = Just GLP.LinearTypes
+convertExtension Cabal.UnliftedDatatypes = Just GLP.UnliftedDatatypes
+convertExtension Cabal.QualifiedDo = Just GLP.QualifiedDo
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-convertExtension Cabal.RecordPuns = GLP.ImplicitPrelude -- FIXME: This extension is incorporated in GHC 2021.
-convertExtension Cabal.NamedFieldPuns = GLP.ImplicitPrelude -- FIXME: This extension is incorporated in GHC 2021.
-convertExtension Cabal.OverloadedRecordUpdate = GLP.OverloadedRecordUpdate
-convertExtension Cabal.AlternativeLayoutRule = GLP.AlternativeLayoutRule
+convertExtension Cabal.RecordPuns = Nothing -- This extension is incorporated in GHC2021.
+convertExtension Cabal.NamedFieldPuns = Just GLP.NamedFieldPuns -- This extension is incorporated in GHC2021.
+convertExtension Cabal.OverloadedRecordUpdate = Just GLP.OverloadedRecordUpdate
+convertExtension Cabal.AlternativeLayoutRule = Just GLP.AlternativeLayoutRule
 convertExtension Cabal.AlternativeLayoutRuleTransitional =
-  GLP.AlternativeLayoutRuleTransitional
-convertExtension Cabal.RelaxedLayout = GLP.RelaxedLayout
+  Just GLP.AlternativeLayoutRuleTransitional
+convertExtension Cabal.RelaxedLayout = Just GLP.RelaxedLayout
 #else
-convertExtension Cabal.RecordPuns = GLP.RecordPuns
-convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
+convertExtension Cabal.RecordPuns = Just GLP.RecordPuns
+convertExtension Cabal.NamedFieldPuns = Nothing -- This extension is not supported by 'ghc-lib-parser'.
 #endif

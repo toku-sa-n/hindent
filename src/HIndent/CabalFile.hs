@@ -170,7 +170,7 @@ implicitExtensions =
 extensionImplies :: Extension -> [Extension]
 extensionImplies (EnableExtension e) =
   toExtension <$>
-  filter (\(a, _, _) -> a == EC.convertExtension e) impliedXFlags
+  filter (\(a, _, _) -> Just a == EC.convertExtension e) impliedXFlags
   where
     toExtension (_, True, e')  = EnableExtension $ read $ show e'
     toExtension (_, False, e') = DisableExtension $ read $ show e'
