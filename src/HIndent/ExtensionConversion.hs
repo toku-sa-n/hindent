@@ -168,7 +168,15 @@ convertExtension Cabal.LinearTypes = GLP.LinearTypes
 convertExtension Cabal.UnliftedDatatypes = GLP.UnliftedDatatypes
 convertExtension Cabal.QualifiedDo = GLP.QualifiedDo
 #endif
-#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+convertExtension Cabal.RecordPuns = GLP.ImplicitPrelude -- FIXME: This extension is incorporated in GHC 2021.
+convertExtension Cabal.NamedFieldPuns = GLP.ImplicitPrelude -- FIXME: This extension is incorporated in GHC 2021.
+convertExtension Cabal.OverloadedRecordUpdate = GLP.OverloadedRecordUpdate
+convertExtension Cabal.AlternativeLayoutRule = GLP.AlternativeLayoutRule
+convertExtension Cabal.AlternativeLayoutRuleTransitional =
+  GLP.AlternativeLayoutRuleTransitional
+convertExtension Cabal.RelaxedLayout = GLP.RelaxedLayout
+#else
 convertExtension Cabal.RecordPuns = GLP.RecordPuns
 convertExtension Cabal.NamedFieldPuns = GLP.RecordPuns -- XXX: Is it correct?
 #endif
