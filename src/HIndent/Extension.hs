@@ -24,6 +24,6 @@ extensionImplies (Cabal.EnableExtension e) =
   toExtension <$>
   filter (\(a, _, _) -> Just a == EC.convertExtension e) GLP.impliedXFlags
   where
-    toExtension (_, True, e')  = Cabal.EnableExtension $ read $ show e'
-    toExtension (_, False, e') = Cabal.DisableExtension $ read $ show e'
+    toExtension (_, True, e')  = Cabal.EnableExtension $ readOrFail $ show e'
+    toExtension (_, False, e') = Cabal.DisableExtension $ readOrFail $ show e'
 extensionImplies _ = []
