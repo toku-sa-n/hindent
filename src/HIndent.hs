@@ -217,7 +217,7 @@ parserOptsFromExtensions opts =
   mkParserOpts
     opts'
     diagOpts
-    [] -- FIXME: What's this?
+    [] -- There are no supported languages and extensions (this list is used only in error messages)
     False -- Safe imports are off.
     False -- Haddock comments are treated as normal comments.
     True -- Comments are kept in an AST.
