@@ -20,12 +20,10 @@ import           Distribution.PackageDescription.Parsec
 #else
 import           Distribution.PackageDescription.Parse
 #endif
-import           GHC.Driver.Session                            (impliedXFlags,
-                                                                languageExtensions)
-import qualified GHC.Driver.Session                            as GLP
 import qualified GHC.LanguageExtensions.Type                   as GLP
+import           HIndent.Extension
 import qualified HIndent.Extension.Conversion                  as EC
-import           HIndent.Read
+import           HIndent.Language
 import           Language.Haskell.Extension
 import           System.Directory
 import           System.FilePath
@@ -148,30 +146,9 @@ getCabalExtensions srcpath = do
       Just (MkStanza bi _) -> do
         (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
-convertLanguage :: Language -> GLP.Language
-convertLanguage Haskell98           = GLP.Haskell98
-convertLanguage Haskell2010         = GLP.Haskell2010
-#if MIN_VERSION_Cabal(3,6,0)
-convertLanguage GHC2021             = GLP.GHC2021
-#endif
-convertLanguage (UnknownLanguage s) = error $ "Unknown language: " ++ s
-
 -- | Get extensions from the cabal file for this source path
 getCabalExtensionsForSourcePath :: FilePath -> IO [GLP.Extension]
 getCabalExtensionsForSourcePath srcpath = do
   (lang, exts) <- getCabalExtensions srcpath
   let allExts = exts ++ implicitExtensions (convertLanguage lang)
   return $ EC.uniqueExtensions $ concatMap extensionImplies allExts
-
-implicitExtensions :: GLP.Language -> [Extension]
-implicitExtensions =
-  fmap (EnableExtension . readOrFail . show) . languageExtensions . Just
-
-extensionImplies :: Extension -> [Extension]
-extensionImplies (EnableExtension e) =
-  toExtension <$>
-  filter (\(a, _, _) -> Just a == EC.convertExtension e) impliedXFlags
-  where
-    toExtension (_, True, e')  = EnableExtension $ read $ show e'
-    toExtension (_, False, e') = DisableExtension $ read $ show e'
-extensionImplies _ = []
