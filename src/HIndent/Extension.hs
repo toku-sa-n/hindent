@@ -22,7 +22,7 @@ implicitExtensions =
 extensionImplies :: Cabal.Extension -> [Cabal.Extension]
 extensionImplies (Cabal.EnableExtension e) =
   toExtension <$>
-  filter (\(a, _, _) -> Just a == EC.convertExtension e) GLP.impliedXFlags
+  filter (\(a, _, _) -> EC.convertExtension e == Just a) GLP.impliedXFlags
   where
     toExtension (_, True, e')  = Cabal.EnableExtension $ readOrFail $ show e'
     toExtension (_, False, e') = Cabal.DisableExtension $ readOrFail $ show e'
