@@ -34,7 +34,7 @@ library
                      HIndent.Applicative
                      HIndent.CabalFile
                      HIndent.CodeBlock
-                     HIndent.ExtensionConversion
+                     HIndent.Extension.Conversion
                      HIndent.ModulePreprocessing
                      HIndent.ModulePreprocessing.CommentRelocation
                      HIndent.Pretty
