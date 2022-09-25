@@ -39,6 +39,8 @@ modifyASTForPrettyPrinting m = relocateComments (beforeRelocation m) allComments
       resetModuleNameColumn .
       replaceAllNotUsedAnns . removeComments . sortExprLStmt . fixFixities
     allComments = listify (not . isEofComment . ac_tok . unLoc) m
+    isEofComment EpaEofComment = True
+    isEofComment _             = False
 
 -- | This function modifies the given module AST to apply fixities of infix
 -- operators defined in the 'base' package.
@@ -206,9 +208,3 @@ resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
     collectAnchor _ = True
 #endif
 resetLGRHSEndPosition x = x
-
--- | This functions returns 'True' if the given token is an Eof comment,
--- and 'False' otherwise.
-isEofComment :: EpaCommentTok -> Bool
-isEofComment EpaEofComment = True
-isEofComment _             = False
