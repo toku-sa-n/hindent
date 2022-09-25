@@ -143,13 +143,13 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
     f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereM (applyM h) g
+      everywhereM (applyM modifyAnns) g
       where
-        h :: EpAnn a -> WithComments (EpAnn a)
-        h epa@EpAnn {..}
+        modifyAnns :: EpAnn a -> WithComments (EpAnn a)
+        modifyAnns epa@EpAnn {..}
           | srcSpanStartCol (anchor entry) == srcSpanStartCol (anchor colAnc) =
             insertCommentsByPos (isAbove $ anchor entry) insertPriorComments epa
-        h x = pure x
+        modifyAnns x = pure x
         isAbove anc comAnc =
           srcSpanEndLine comAnc < srcSpanStartLine anc &&
           srcSpanStartLine (anchor whereAnn) <= srcSpanStartLine comAnc
