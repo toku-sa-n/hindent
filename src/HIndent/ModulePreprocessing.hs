@@ -153,20 +153,18 @@ closeEpAnnOfMatchMExt = everywhere closeEpAnn
 -- to locate comments correctly. A placeholder anchor is an anchor pointing
 -- on (-1, -1).
 closePlaceHolderEpAnns :: HsModule -> HsModule
-closePlaceHolderEpAnns = everywhere (applyForEpAnn closeEpAnn)
+closePlaceHolderEpAnns = everywhere closeEpAnn
   where
-    applyForEpAnn ::
+    closeEpAnn ::
          forall a. Typeable a
-      => (forall b. EpAnn b -> EpAnn b)
-      -> (a -> a)
-    applyForEpAnn f
+      => a
+      -> a
+    closeEpAnn x
       | App g _ <- typeRep @a
-      , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = f
-      | otherwise = id
-    closeEpAnn :: EpAnn a -> EpAnn a
-    closeEpAnn (EpAnn (Anchor sp _) _ _)
-      | srcSpanEndLine sp == -1 && srcSpanEndCol sp == -1 = EpAnnNotUsed
-    closeEpAnn x = x
+      , Just HRefl <- eqTypeRep g (typeRep @EpAnn)
+      , (EpAnn (Anchor sp _) _ _) <- x
+      , srcSpanEndLine sp == -1 && srcSpanEndCol sp == -1 = EpAnnNotUsed
+      | otherwise = x
 
 -- | This function removes all 'DocD's from the given module. They have
 -- haddocks, but the same information is stored in 'EpaCommentTok's. Thus,
