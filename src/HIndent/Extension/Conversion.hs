@@ -26,7 +26,7 @@ glpExtensionToCabalExtension = readOrFail . show
 -- list, only the most backward one has the effect.
 --
 -- If converting an extension fails due to neither GHC nor 'ghc-lib-parser'
--- not supporting or deprecation or removal, the extension is ignored.
+-- not supporting, or deprecation or removal, the extension is ignored.
 uniqueExtensions :: [Cabal.Extension] -> [GLP.Extension]
 uniqueExtensions [] = []
 uniqueExtensions ((Cabal.EnableExtension e):xs)
