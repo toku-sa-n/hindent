@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -43,16 +42,10 @@ import           Control.Monad.State
 import           Data.Function
 import           Data.List
 import           Generics.SYB          hiding (GT, typeOf, typeRep)
-import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           Type.Reflection
-
--- TODO: Merge this type with the same one in HIndent.Pretty'.
-data SigMethod
-  = Sig (LSig GhcPs)
-  | Method (LHsBindLR GhcPs GhcPs)
 
 data Wrapper =
   forall a. Typeable (EpAnn a) =>
@@ -149,55 +142,18 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
   where
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
-    f g@GRHSs {grhssLocalBinds = (HsValBinds x (ValBinds x'' methods sigs))} =
-      let sigsMethods =
-            sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
-          sortByLocation = sortBy (compare `on` getLocation)
-          getLocation (Sig x')    = realSrcSpan $ locA $ getLoc x'
-          getLocation (Method x') = realSrcSpan $ locA $ getLoc x'
-          newSigs =
-            concatMap
-              (\case
-                 Sig x'   -> [x']
-                 Method _ -> [])
-          newMethods =
-            concatMap
-              (\case
-                 Sig _     -> []
-                 Method x' -> [x'])
-       in do newSigMethods <- mapM locateCommentsForSigMethod sigsMethods
-             pure
-               g
-                 { grhssLocalBinds =
-                     HsValBinds
-                       x
-                       (ValBinds
-                          x''
-                          (listToBag $ newMethods newSigMethods)
-                          (newSigs newSigMethods))
-                 }
+    f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn _ AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
+      everywhereM (applyM (locateComments (srcSpanStartCol $ anchor colAnc))) g
     f x = pure x
-    locateCommentsForSigMethod :: SigMethod -> WithComments SigMethod
-    locateCommentsForSigMethod (Sig (L (SrcSpanAnn epa loc) sig)) = do
-      cs <- get
-      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa =
-            case epa of
-              EpAnn {} ->
-                epa {comments = insertPriorComments (comments epa) above}
-              _ -> undefined
-      put notAbove
-      pure (Sig (L (SrcSpanAnn newEpa loc) sig))
-    locateCommentsForSigMethod (Method (L (SrcSpanAnn epa loc) method)) = do
-      cs <- get
-      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa =
-            case epa of
-              EpAnn {} ->
-                epa {comments = insertPriorComments (comments epa) above}
-              _ -> undefined
-      put notAbove
-      pure (Method (L (SrcSpanAnn newEpa loc) method))
+    locateComments :: Int -> EpAnn a -> WithComments (EpAnn a)
+    locateComments col epa@EpAnn {..}
+      | srcSpanStartCol (anchor entry) == col = do
+        cs <- get
+        let (notAbove, above) = partitionAboveNotAbove cs entry
+            newEpa = epa {comments = insertPriorComments comments above}
+        put notAbove
+        pure newEpa
+    locateComments _ epa = pure epa
     partitionAboveNotAbove cs sp =
       fst $
       foldr
