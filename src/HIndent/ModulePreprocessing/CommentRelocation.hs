@@ -78,7 +78,7 @@ relocateComments = evalState . relocate
     relocate =
       relocatePragmas >=>
       relocateCommentsBeforePragmas >=>
-      relocateCommentsBefore >=>
+      relocateCommentsBeforeTopLevelDecls >=>
       relocateCommentsSameLineRev >=>
       relocateCommentsSameLine >=>
       relocateCommentsTopLevelWhereClause >=> relocateCommentsAfter
@@ -101,10 +101,9 @@ relocateCommentsBeforePragmas m@HsModule {hsmodAnn = ann}
   where
     startPosOfPragmas = anchor $ getLoc $ head $ priorComments $ comments ann
 
--- | This function scans the given AST from top to bottom and locates
--- comments in the comment pool before each node on it.
-relocateCommentsBefore :: HsModule -> WithComments HsModule
-relocateCommentsBefore = everywhereM (applyM f)
+-- | This function locates comments located before top-level declarations.
+relocateCommentsBeforeTopLevelDecls :: HsModule -> WithComments HsModule
+relocateCommentsBeforeTopLevelDecls = everywhereM (applyM f)
   where
     f epa@EpAnn {..} =
       insertCommentsByPos (isBefore $ anchor entry) insertPriorComments epa
