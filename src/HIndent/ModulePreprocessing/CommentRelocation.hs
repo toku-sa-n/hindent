@@ -297,13 +297,10 @@ everywhereMr f hm = do
            forall a. Typeable a
         => a
         -> ([Wrapper] -> [Wrapper])
-      collectEpAnn x =
-        case typeRep @a of
-          App g _ ->
-            case eqTypeRep g (typeRep @EpAnn) of
-              Just HRefl -> (Wrapper x :)
-              Nothing    -> id
-          _ -> id
+      collectEpAnn x
+        | App g _ <- typeRep @a
+        , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
+        | otherwise = id
       st ::
            forall a. Typeable a
         => a
