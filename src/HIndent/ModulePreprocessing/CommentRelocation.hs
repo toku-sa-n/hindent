@@ -58,7 +58,7 @@ data Wrapper =
   forall a. Typeable (EpAnn a) =>
             Wrapper (EpAnn a)
 
--- | A state type with comments.
+-- | 'State' with comments.
 type WithComments = State [LEpaComment]
 
 -- | This function collects all comments from the passed 'HsModule', and modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
