@@ -1,3 +1,4 @@
+-- | Operations related to language extensions.
 module HIndent.Extension
   ( implicitExtensions
   , extensionImplies
