@@ -61,9 +61,14 @@ data Wrapper =
 -- | 'State' with comments.
 type WithComments = State [LEpaComment]
 
--- | This function collects all comments from the passed 'HsModule', and modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
+-- | This function collects all comments from the passed 'HsModule', and
+-- modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
 --
--- This function solves the problem by collecting all 'LEpaComment's with 'listify', and iterates all nodes from top to bottom a few times. During the first iteration, this function adds comments above each node from the collected ones to the node. On the next iteration, it adds a comment on the same line. On the last iteration, it adds comments below them.
+-- This function solves the problem by collecting all 'LEpaComment's with
+-- 'listify', and iterates all nodes from top to bottom a few times. During
+-- the first iteration, this function adds comments above each node from
+-- the collected ones to the node. On the next iteration, it adds a comment
+-- on the same line. On the last iteration, it adds comments below them.
 relocateComments :: HsModule -> [LEpaComment] -> HsModule
 relocateComments = evalState . relocate
     -- TODO: I don't fully understand how does `collectAllComments` of the
