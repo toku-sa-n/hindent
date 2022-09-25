@@ -87,10 +87,10 @@ replaceAllNotUsedAnns = everywhere app
          forall a. Data a
       => (a -> a)
     app sp
-      | App g (App y z) <- typeRep @a =
+      | App g (App y z) <- typeRep @a
+      , Just HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
+      , Just HRefl <- eqTypeRep y (typeRep @EpAnn) =
         fromMaybe sp $ do
-          HRefl <- eqTypeRep g (typeRep @SrcSpanAnn')
-          HRefl <- eqTypeRep y (typeRep @EpAnn)
           let try :: Typeable b => b -> Maybe a
               try ann = do
                 HRefl <- eqTypeRep (typeOf ann) z
