@@ -176,6 +176,10 @@ removeAllDocDs x@HsModule {hsmodDecls = decls} =
     isDocD DocD {} = True
     isDocD _       = False
 
+-- | This function sets the position of the given 'LGRHS' to the end
+-- position of the last RHS in it.
+--
+-- See the documentation of 'resetLGRHSEndPositionInModule' for the reason.
 resetLGRHSEndPosition ::
      LGRHS GhcPs (LHsExpr GhcPs) -> LGRHS GhcPs (LHsExpr GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
