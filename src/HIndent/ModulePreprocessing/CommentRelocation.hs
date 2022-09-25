@@ -235,6 +235,15 @@ applyM f =
         Nothing    -> pure
     _ -> pure
 
+-- | This function drains comments whose positions satisfy the given
+-- predicate and inserts them to the given node using the given inserter.
+insertCommentsByPos ::
+     (RealSrcSpan -> Bool)
+  -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
+  -> EpAnn a
+  -> WithComments (EpAnn a)
+insertCommentsByPos cond = insertComments (cond . anchor . getLoc)
+
 insertComments ::
      (LEpaComment -> Bool)
   -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
@@ -244,15 +253,6 @@ insertComments cond inserter epa@EpAnn {..} = do
   coms <- drainComments cond
   pure $ epa {comments = inserter comments coms}
 insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
-
--- | This function drains comments whose positions satisfy the given
--- predicate and inserts them to the given node using the given inserter.
-insertCommentsByPos ::
-     (RealSrcSpan -> Bool)
-  -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
-  -> EpAnn a
-  -> WithComments (EpAnn a)
-insertCommentsByPos cond = insertComments (cond . anchor . getLoc)
 
 -- | This function inserts comments to `priorComments`.
 insertPriorComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
