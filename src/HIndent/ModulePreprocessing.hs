@@ -171,7 +171,7 @@ closePlaceHolderEpAnns = everywhere closeEpAnn
 -- we need to remove the duplication.
 removeAllDocDs :: HsModule -> HsModule
 removeAllDocDs x@HsModule {hsmodDecls = decls} =
-  x {hsmodDecls = filter (\(L _ r) -> not $ isDocD r) decls}
+  x {hsmodDecls = filter (not . isDocD . unLoc) decls}
   where
     isDocD DocD {} = True
     isDocD _       = False
