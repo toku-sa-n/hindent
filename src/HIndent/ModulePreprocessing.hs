@@ -1,4 +1,3 @@
--- | Module preprocessing before pretty-printing.
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
@@ -7,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
+-- | Module preprocessing before pretty-printing.
 module HIndent.ModulePreprocessing
   ( modifyASTForPrettyPrinting
   ) where
