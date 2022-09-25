@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -43,16 +42,10 @@ import           Control.Monad.State
 import           Data.Function
 import           Data.List
 import           Generics.SYB          hiding (GT, typeOf, typeRep)
-import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           Type.Reflection
-
--- TODO: Merge this type with the same one in HIndent.Pretty'.
-data SigMethod
-  = Sig (LSig GhcPs)
-  | Method (LHsBindLR GhcPs GhcPs)
 
 data Wrapper =
   forall a. Typeable (EpAnn a) =>
@@ -149,67 +142,18 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
   where
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
-    f g@GRHSs {grhssLocalBinds = (HsValBinds x (ValBinds x'' methods sigs))} =
-      let sigsMethods =
-            sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
-          sortByLocation = sortBy (compare `on` getLocation)
-          getLocation (Sig x')    = realSrcSpan $ locA $ getLoc x'
-          getLocation (Method x') = realSrcSpan $ locA $ getLoc x'
-          newSigs =
-            concatMap
-              (\case
-                 Sig x'   -> [x']
-                 Method _ -> [])
-          newMethods =
-            concatMap
-              (\case
-                 Sig _     -> []
-                 Method x' -> [x'])
-       in do newSigMethods <- mapM locateCommentsForSigMethod sigsMethods
-             pure
-               g
-                 { grhssLocalBinds =
-                     HsValBinds
-                       x
-                       (ValBinds
-                          x''
-                          (listToBag $ newMethods newSigMethods)
-                          (newSigs newSigMethods))
-                 }
+    f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
+      everywhereM (applyM modifyAnns) g
+      where
+        modifyAnns :: EpAnn a -> WithComments (EpAnn a)
+        modifyAnns epa@EpAnn {..}
+          | srcSpanStartCol (anchor entry) == srcSpanStartCol (anchor colAnc) =
+            insertCommentsByPos (isAbove $ anchor entry) insertPriorComments epa
+        modifyAnns x = pure x
+        isAbove anc comAnc =
+          srcSpanEndLine comAnc < srcSpanStartLine anc &&
+          srcSpanStartLine (anchor whereAnn) <= srcSpanStartLine comAnc
     f x = pure x
-    locateCommentsForSigMethod :: SigMethod -> WithComments SigMethod
-    locateCommentsForSigMethod (Sig (L (SrcSpanAnn epa loc) sig)) = do
-      cs <- get
-      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa =
-            case epa of
-              EpAnn {} ->
-                epa {comments = insertPriorComments (comments epa) above}
-              _ -> undefined
-      put notAbove
-      pure (Sig (L (SrcSpanAnn newEpa loc) sig))
-    locateCommentsForSigMethod (Method (L (SrcSpanAnn epa loc) method)) = do
-      cs <- get
-      let (notAbove, above) = partitionAboveNotAbove cs (entry epa)
-          newEpa =
-            case epa of
-              EpAnn {} ->
-                epa {comments = insertPriorComments (comments epa) above}
-              _ -> undefined
-      put notAbove
-      pure (Method (L (SrcSpanAnn newEpa loc) method))
-    partitionAboveNotAbove cs sp =
-      fst $
-      foldr
-        (\c@(L comSp _) ((ls, rs), lastSpan) ->
-           if anchor comSp `isAbove` anchor lastSpan
-             then ((ls, c : rs), comSp)
-             else ((c : ls, rs), lastSpan))
-        (([], []), sp) $
-      sortBy (compare `on` getLoc) cs
-    isAbove comAnc anc =
-      srcSpanStartCol comAnc == srcSpanStartCol anc &&
-      srcSpanEndLine comAnc + 1 == srcSpanStartLine anc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
