@@ -165,13 +165,10 @@ closePlaceHolderEpAnns = everywhere (applyForEpAnn closeEpAnn)
          forall a. Typeable a
       => (forall b. EpAnn b -> EpAnn b)
       -> (a -> a)
-    applyForEpAnn f =
-      case typeRep @a of
-        App g _ ->
-          case eqTypeRep g (typeRep @EpAnn) of
-            Just HRefl -> f
-            Nothing    -> id
-        _ -> id
+    applyForEpAnn f
+      | App g _ <- typeRep @a
+      , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = f
+      | otherwise = id
     closeEpAnn :: EpAnn a -> EpAnn a
     closeEpAnn (EpAnn (Anchor sp _) _ _)
       | srcSpanEndLine sp == -1 && srcSpanEndCol sp == -1 = EpAnnNotUsed
