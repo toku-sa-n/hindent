@@ -149,13 +149,11 @@ closeEpAnnOfMatchMExt = everywhere closeEpAnn
          forall a. Typeable a
       => a
       -> a
-    closeEpAnn x =
-      case typeRep @a of
-        App (App g h) _ ->
-          case (eqTypeRep g (typeRep @Match), eqTypeRep h (typeRep @GhcPs)) of
-            (Just HRefl, Just HRefl) -> x {m_ext = EpAnnNotUsed}
-            _                        -> x
-        _ -> x
+    closeEpAnn x
+      | App (App g h) _ <- typeRep @a
+      , Just HRefl <- eqTypeRep g (typeRep @Match)
+      , Just HRefl <- eqTypeRep h (typeRep @GhcPs) = x {m_ext = EpAnnNotUsed}
+      | otherwise = x
 
 -- | This function replaces all 'EpAnn's that contain placeholder anchors
 -- to locate comments correctly. A placeholder anchor is an anchor pointing
