@@ -142,28 +142,18 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
   where
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
-    f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn _ AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereM (applyM $ locateComments $ srcSpanStartCol $ anchor colAnc) g
+    f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
+      everywhereM (applyM h) g
+      where
+        h :: EpAnn a -> WithComments (EpAnn a)
+        h epa@EpAnn {..}
+          | srcSpanStartCol (anchor entry) == srcSpanStartCol (anchor colAnc) =
+            insertCommentsByPos (isAbove $ anchor entry) insertPriorComments epa
+        h x = pure x
+        isAbove anc comAnc =
+          srcSpanEndLine comAnc < srcSpanStartLine anc &&
+          srcSpanStartLine (anchor whereAnn) <= srcSpanStartLine comAnc
     f x = pure x
-    locateComments col epa@EpAnn {..}
-      | srcSpanStartCol (anchor entry) == col = do
-        cs <- get
-        let (notAbove, above) = partitionAboveNotAbove cs entry
-        put notAbove
-        pure epa {comments = insertPriorComments comments above}
-    locateComments _ epa = pure epa
-    partitionAboveNotAbove cs sp =
-      fst $
-      foldr
-        (\c@(L comSp _) ((ls, rs), lastSpan) ->
-           if anchor comSp `isAbove` anchor lastSpan
-             then ((ls, c : rs), comSp)
-             else ((c : ls, rs), lastSpan))
-        (([], []), sp) $
-      sortBy (compare `on` getLoc) cs
-    isAbove comAnc anc =
-      srcSpanStartCol comAnc == srcSpanStartCol anc &&
-      srcSpanEndLine comAnc + 1 == srcSpanStartLine anc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
