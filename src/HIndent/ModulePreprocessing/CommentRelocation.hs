@@ -81,6 +81,8 @@ relocatePragmas m@HsModule {hsmodAnn = epa@EpAnn {}} = do
 relocatePragmas m@HsModule {hsmodAnn = EpAnnNotUsed} = pure m
 
 -- | This function locates comments that are located before pragmas.
+--
+-- TODO: Do we need 'everywhereM'?
 relocateCommentsBeforePragmas :: HsModule -> WithComments HsModule
 relocateCommentsBeforePragmas m@HsModule {hsmodAnn = hsmodAnn}
   | pragmaExists m = do
