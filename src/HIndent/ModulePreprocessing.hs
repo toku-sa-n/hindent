@@ -70,10 +70,7 @@ sortExprLStmt m@HsModule {hsmodDecls = xs} = m {hsmodDecls = sorted}
 -- | This function removes all comments from the given module not to
 -- duplicate them on comment relocation.
 removeComments :: HsModule -> HsModule
-removeComments = everywhere (mkT remover)
-  where
-    remover (EpaComments _)           = emptyComments
-    remover (EpaCommentsBalanced _ _) = emptyComments
+removeComments = everywhere (mkT $ const emptyComments)
 
 -- | This function replaces all 'EpAnnNotUsed's in 'SrcSpanAnn''s with
 -- 'EpAnn's to make it possible to locate comments.
