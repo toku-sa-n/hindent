@@ -201,13 +201,13 @@ convertExtension Cabal.UnliftedDatatypes = Just GLP.UnliftedDatatypes
 convertExtension Cabal.QualifiedDo = Just GLP.QualifiedDo
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-convertExtension Cabal.RecordPuns = Nothing -- This extension is incorporated in GHC2021.
 convertExtension Cabal.NamedFieldPuns = Just GLP.NamedFieldPuns
 convertExtension Cabal.OverloadedRecordUpdate = Just GLP.OverloadedRecordUpdate
 convertExtension Cabal.AlternativeLayoutRule = Just GLP.AlternativeLayoutRule
 convertExtension Cabal.AlternativeLayoutRuleTransitional =
   Just GLP.AlternativeLayoutRuleTransitional
 convertExtension Cabal.RelaxedLayout = Just GLP.RelaxedLayout
+convertExtension Cabal.RecordPuns = Nothing -- This extension is incorporated in GHC2021.
 #else
 convertExtension Cabal.RecordPuns = Just GLP.RecordPuns
 convertExtension Cabal.NamedFieldPuns = Nothing -- This extension is not supported by 'ghc-lib-parser'.
