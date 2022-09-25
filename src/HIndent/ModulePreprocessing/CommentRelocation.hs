@@ -322,23 +322,20 @@ everywhereMr f hm = do
            forall a. Typeable a
         => a
         -> StateT [Int] WithComments a
-      setEpAnn x =
-        case typeRep @a of
-          App g g' ->
-            case eqTypeRep g (typeRep @EpAnn) of
-              Just HRefl -> do
-                i <- gets head
-                modify tail
-                case lookup i results of
-                  Just (Wrapper y) ->
-                    case typeOf y of
-                      App _ h ->
-                        case eqTypeRep g' h of
-                          Just HRefl -> pure y
-                          Nothing    -> error "Unmatched."
-                  Nothing -> error "Unmatched."
-              Nothing -> pure x
-          _ -> pure x
+      setEpAnn x
+        | App g g' <- typeRep @a
+        , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
+          i <- gets head
+          modify tail
+          case lookup i results of
+            Just (Wrapper y) ->
+              case typeOf y of
+                App _ h ->
+                  case eqTypeRep g' h of
+                    Just HRefl -> pure y
+                    Nothing    -> error "Unmatched."
+            Nothing -> error "Unmatched."
+        | otherwise = pure x
   evalStateT (everywhereM setEpAnn hm) [0 ..]
   where
     cmp :: EpAnn a -> EpAnn b -> Ordering
