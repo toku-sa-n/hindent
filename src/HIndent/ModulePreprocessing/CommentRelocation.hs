@@ -90,22 +90,16 @@ relocatePragmas m@HsModule {hsmodAnn = epa@EpAnn {}} = do
   return m {hsmodAnn = newAnn}
 relocatePragmas m = pure m
 
--- | This function locates comments that are located before pragmas.
---
--- TODO: Do we need 'everywhereM'?
+-- | This function locates comments that are located before pragmas to the
+-- module's EPA.
 relocateCommentsBeforePragmas :: HsModule -> WithComments HsModule
-relocateCommentsBeforePragmas m@HsModule {hsmodAnn = hsmodAnn}
+relocateCommentsBeforePragmas m@HsModule {hsmodAnn = ann}
   | pragmaExists m = do
-    newAnn <- everywhereM (applyM f) hsmodAnn
+    newAnn <- insertCommentsByPos (< startPosOfPragmas) insertPriorComments ann
     pure m {hsmodAnn = newAnn}
   | otherwise = pure m
   where
-    f :: EpAnn a -> WithComments (EpAnn a)
-    f epa@EpAnn {} =
-      insertCommentsByPos (< startPosOfPragmas) insertPriorComments epa
-    f EpAnnNotUsed = pure EpAnnNotUsed
-    startPosOfPragmas =
-      anchor $ getLoc $ head $ priorComments $ comments hsmodAnn
+    startPosOfPragmas = anchor $ getLoc $ head $ priorComments $ comments ann
 
 -- | This function scans the given AST from top to bottom and locates
 -- comments in the comment pool before each node on it.
