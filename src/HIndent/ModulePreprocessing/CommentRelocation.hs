@@ -150,9 +150,8 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
       | srcSpanStartCol (anchor entry) == col = do
         cs <- get
         let (notAbove, above) = partitionAboveNotAbove cs entry
-            newEpa = epa {comments = insertPriorComments comments above}
         put notAbove
-        pure newEpa
+        pure epa {comments = insertPriorComments comments above}
     locateComments _ epa = pure epa
     partitionAboveNotAbove cs sp =
       fst $
