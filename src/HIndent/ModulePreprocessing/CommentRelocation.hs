@@ -142,6 +142,8 @@ relocateCommentsSameLineRev = everywhereMr f
       srcSpanStartLine comAnc == srcSpanStartLine anc &&
       srcSpanStartLine comAnc == srcSpanEndLine anc
 
+-- | This function locates comments above the top-level declarations in
+-- a 'where' clause.
 relocateCommentsTopLevelWhereClause :: HsModule -> WithComments HsModule
 relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
   where
