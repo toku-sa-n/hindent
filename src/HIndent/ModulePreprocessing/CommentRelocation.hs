@@ -227,13 +227,10 @@ applyM ::
      forall a. Typeable a
   => (forall b. EpAnn b -> WithComments (EpAnn b))
   -> (a -> WithComments a)
-applyM f =
-  case typeRep @a of
-    App g _ ->
-      case eqTypeRep g (typeRep @EpAnn) of
-        Just HRefl -> f
-        Nothing    -> pure
-    _ -> pure
+applyM f
+  | App g _ <- typeRep @a
+  , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = f
+  | otherwise = pure
 
 -- | This function drains comments whose positions satisfy the given
 -- predicate and inserts them to the given node using the given inserter.
