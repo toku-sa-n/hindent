@@ -244,6 +244,8 @@ insertCommentsByPos ::
   -> WithComments (EpAnn a)
 insertCommentsByPos cond = insertComments (cond . anchor . getLoc)
 
+-- | This function drains comments that satisfy the given predicate and
+-- inserts them to the given node using the given inserter.
 insertComments ::
      (LEpaComment -> Bool)
   -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
