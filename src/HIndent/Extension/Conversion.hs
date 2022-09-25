@@ -11,6 +11,9 @@ import qualified GHC.LanguageExtensions     as GLP
 import           HIndent.Read
 import qualified Language.Haskell.Extension as Cabal
 
+-- | This function converts a value of the type 'Extension' defined in the
+-- 'ghc-lib-parser' package to the same value of the type 'Extension'
+-- defined in the 'Cabal' package.
 glpExtensionToCabalExtension :: GLP.Extension -> Cabal.Extension
 glpExtensionToCabalExtension = readOrFail . show
 
