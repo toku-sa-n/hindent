@@ -161,6 +161,17 @@ closeEpAnnOfMatchMExt = everywhere closeEpAnn
 closePlaceHolderEpAnns :: HsModule -> HsModule
 closePlaceHolderEpAnns = everywhere (applyForEpAnn closeEpAnn)
   where
+    applyForEpAnn ::
+         forall a. Typeable a
+      => (forall b. EpAnn b -> EpAnn b)
+      -> (a -> a)
+    applyForEpAnn f =
+      case typeRep @a of
+        App g _ ->
+          case eqTypeRep g (typeRep @EpAnn) of
+            Just HRefl -> f
+            Nothing    -> id
+        _ -> id
     closeEpAnn :: EpAnn a -> EpAnn a
     closeEpAnn (EpAnn (Anchor sp _) _ _)
       | srcSpanEndLine sp == -1 && srcSpanEndCol sp == -1 = EpAnnNotUsed
@@ -202,18 +213,6 @@ resetLGRHSEndPosition (L _ (GRHS ext@EpAnn {..} stmt body)) =
     collectAnchor _ = True
 #endif
 resetLGRHSEndPosition x = x
-
-applyForEpAnn ::
-     forall a. Typeable a
-  => (forall b. EpAnn b -> EpAnn b)
-  -> (a -> a)
-applyForEpAnn f =
-  case typeRep @a of
-    App g _ ->
-      case eqTypeRep g (typeRep @EpAnn) of
-        Just HRefl -> f
-        Nothing    -> id
-    _ -> id
 
 -- | This functions returns 'True' if the given token is an Eof comment,
 -- and 'False' otherwise.
