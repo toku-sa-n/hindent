@@ -23,8 +23,10 @@ import           HIndent.ModulePreprocessing.CommentRelocation
 import           Language.Haskell.GhclibParserEx.Fixity
 import           Type.Reflection
 
--- | This function modifies the given module AST for pretty-printing
--- easier.
+-- | This function modifies the given module AST for pretty-printing.
+--
+-- Pretty-printing a module without calling this function for it before may
+-- raise an error or not print it correctly.
 modifyASTForPrettyPrinting :: HsModule -> HsModule
 modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
   where
