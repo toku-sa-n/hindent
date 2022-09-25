@@ -172,14 +172,14 @@ convertExtension Cabal.ImportQualifiedPost = Just GLP.ImportQualifiedPost
 convertExtension Cabal.CUSKs = Just GLP.CUSKs
 convertExtension Cabal.StandaloneKindSignatures =
   Just GLP.StandaloneKindSignatures
-convertExtension Cabal.Rank2Types = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
-convertExtension Cabal.PolymorphicComponents = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
-convertExtension Cabal.PatternSignatures = Just GLP.ScopedTypeVariables
-convertExtension Cabal.CPP = Just GLP.Cpp
-convertExtension Cabal.Generics = Nothing -- This extension is no longer supported.
 convertExtension Cabal.DoRec = undefined
 convertExtension Cabal.GeneralisedNewtypeDeriving =
   Just GLP.GeneralizedNewtypeDeriving
+convertExtension Cabal.PatternSignatures = Just GLP.ScopedTypeVariables
+convertExtension Cabal.CPP = Just GLP.Cpp
+convertExtension Cabal.Rank2Types = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
+convertExtension Cabal.PolymorphicComponents = Just GLP.RankNTypes -- See https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/exts/rank_polymorphism.html.
+convertExtension Cabal.Generics = Nothing -- This extension is no longer supported.
 convertExtension Cabal.ExtensibleRecords = Nothing -- This extension is supported by Hugs, but not by GHC.
 convertExtension Cabal.RestrictedTypeSynonyms = Nothing -- This extension is supported by Hugs, but not by GHC.
 convertExtension Cabal.HereDocuments = Nothing -- This extension is supported by Hugs, but not by GHC.
