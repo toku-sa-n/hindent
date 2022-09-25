@@ -247,16 +247,12 @@ insertComments _ _ EpAnnNotUsed = pure EpAnnNotUsed
 
 -- | This function drains comments whose positions satisfy the given
 -- predicate and inserts them to the given node using the given inserter.
--- TODO: Remove duplications with 'insertComments'
 insertCommentsByPos ::
      (RealSrcSpan -> Bool)
   -> (EpAnnComments -> [LEpaComment] -> EpAnnComments)
   -> EpAnn a
   -> WithComments (EpAnn a)
-insertCommentsByPos cond inserter epa@EpAnn {..} = do
-  coms <- drainCommentsByPos cond
-  pure $ epa {comments = inserter comments coms}
-insertCommentsByPos _ _ EpAnnNotUsed = pure EpAnnNotUsed
+insertCommentsByPos cond = insertComments (cond . anchor . getLoc)
 
 -- | This function inserts comments to `priorComments`.
 insertPriorComments :: EpAnnComments -> [LEpaComment] -> EpAnnComments
@@ -278,12 +274,6 @@ drainComments cond = do
   let (xs, others) = partition cond coms
   put others
   return xs
-
--- | This function drains comments that satisfy the given predicate about
--- their positions.
-drainCommentsByPos :: (RealSrcSpan -> Bool) -> WithComments [LEpaComment]
-drainCommentsByPos cond =
-  drainComments (\(L commentAnchor _) -> cond $ anchor commentAnchor)
 
 -- | Right-associative 'everywhereM' in top-down manner.
 --
