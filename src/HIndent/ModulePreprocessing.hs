@@ -75,11 +75,6 @@ removeComments = everywhere (mkT remover)
 
 -- | This function replaces all 'EpAnnNotUsed's in 'SrcSpanAnn''s with
 -- 'EpAnn's to make it possible to locate comments.
---
--- FIXME: This function has a lot of problems.
--- * The indentation of the implementation is too deep.
--- * The implementation is too long.
--- * The implementation does not generalize 'a' of 'EpAnn a'.
 replaceAllNotUsedAnns :: HsModule -> HsModule
 replaceAllNotUsedAnns = everywhere app
   where
