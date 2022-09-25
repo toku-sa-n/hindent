@@ -88,7 +88,7 @@ relocatePragmas :: HsModule -> WithComments HsModule
 relocatePragmas m@HsModule {hsmodAnn = epa@EpAnn {}} = do
   newAnn <- insertComments (isPragma . ac_tok . unLoc) insertPriorComments epa
   return m {hsmodAnn = newAnn}
-relocatePragmas m@HsModule {hsmodAnn = EpAnnNotUsed} = pure m
+relocatePragmas m = pure m
 
 -- | This function locates comments that are located before pragmas.
 --
