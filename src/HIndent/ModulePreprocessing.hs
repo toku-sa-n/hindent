@@ -73,7 +73,7 @@ removeComments :: HsModule -> HsModule
 removeComments = everywhere (mkT $ const emptyComments)
 
 -- | This function replaces all 'EpAnnNotUsed's in 'SrcSpanAnn''s with
--- 'EpAnn's to make it possible to locate comments.
+-- 'EpAnn's to make it possible to locate comments on them.
 replaceAllNotUsedAnns :: HsModule -> HsModule
 replaceAllNotUsedAnns = everywhere app
   where
