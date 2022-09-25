@@ -143,7 +143,7 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
     f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn _ AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereM (applyM (locateComments (srcSpanStartCol $ anchor colAnc))) g
+      everywhereM (applyM $ locateComments $ srcSpanStartCol $ anchor colAnc) g
     f x = pure x
     locateComments col epa@EpAnn {..}
       | srcSpanStartCol (anchor entry) == col = do
