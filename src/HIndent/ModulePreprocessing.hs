@@ -28,9 +28,9 @@ import           Type.Reflection
 -- Pretty-printing a module without calling this function for it before may
 -- raise an error or not print it correctly.
 modifyASTForPrettyPrinting :: HsModule -> HsModule
-modifyASTForPrettyPrinting m = relocateComments (preprocessing m) allComments
+modifyASTForPrettyPrinting m = relocateComments (beforeRelocation m) allComments
   where
-    preprocessing =
+    beforeRelocation =
       resetLGRHSEndPositionInModule .
       removeAllDocDs .
       closeEpAnnOfMatchMExt .
