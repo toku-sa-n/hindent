@@ -235,10 +235,6 @@ everywhereMEpAnnsBackwards f hm = do
     collectEpAnnsInOrderEverywhereMTraverses =
       reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
       where
-        collectEpAnnsST ::
-             forall a. Typeable a
-          => a
-          -> StateT [Wrapper] WithComments a
         collectEpAnnsST x = do
           modify $ collectEpAnns x
           pure x
