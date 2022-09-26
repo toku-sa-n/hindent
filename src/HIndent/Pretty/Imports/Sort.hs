@@ -12,6 +12,11 @@ import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
 
+-- | The letter type of a 'Char'.
+--
+-- The order of constructors is important. HIndent sorts explicit imports
+-- from ones starting from a capital letter (e.g., data constructors),
+-- symbol identifiers, and functions.
 data LetterType
   = Capital
   | Symbol
