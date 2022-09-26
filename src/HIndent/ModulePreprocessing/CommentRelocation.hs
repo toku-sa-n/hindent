@@ -234,6 +234,22 @@ everywhereMEpAnnsBackwards f hm = do
   where
     collectEpAnnsInOrderEverywhereMTraverses =
       reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
+      where
+        collectEpAnnsST ::
+             forall a. Typeable a
+          => a
+          -> StateT [Wrapper] WithComments a
+        collectEpAnnsST x = do
+          modify $ collectEpAnns x
+          pure x
+        collectEpAnns ::
+             forall a. Typeable a
+          => a
+          -> ([Wrapper] -> [Wrapper])
+        collectEpAnns x
+          | App g _ <- typeRep @a
+          , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
+          | otherwise = id
     applyFunctionInOrderEPAEndPositions anns =
       forM sorted $ \(i, Wrapper x) -> do
         x' <- f x
@@ -261,21 +277,6 @@ everywhereMEpAnnsBackwards f hm = do
                 , Just HRefl <- eqTypeRep g' h -> pure y
               _ -> error "Unmatches"
           | otherwise = pure x
-    collectEpAnnsST ::
-         forall a. Typeable a
-      => a
-      -> StateT [Wrapper] WithComments a
-    collectEpAnnsST x = do
-      modify $ collectEpAnns x
-      pure x
-    collectEpAnns ::
-         forall a. Typeable a
-      => a
-      -> ([Wrapper] -> [Wrapper])
-    collectEpAnns x
-      | App g _ <- typeRep @a
-      , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
-      | otherwise = id
 
 -- | This function sorts comments by its location.
 sortCommentsByLocation :: [LEpaComment] -> [LEpaComment]
