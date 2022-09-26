@@ -48,10 +48,7 @@ sortVariants x = x
 
 compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
 compareImportEntities (L _ a) (L _ b) =
-  fromMaybe LT $ do
-    a' <- moduleName a
-    b' <- moduleName b
-    return $ compareIdentifier a' b'
+  fromMaybe LT $ compareIdentifier <$> moduleName a <*> moduleName b
 
 moduleName :: IE GhcPs -> Maybe String
 moduleName (IEVar _ wrapped)           = Just $ showOutputable wrapped
