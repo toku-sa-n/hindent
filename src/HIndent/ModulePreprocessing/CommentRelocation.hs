@@ -47,6 +47,8 @@ import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           Type.Reflection
 
+-- | A wrapper type used in everywhereMEpAnnsBackwards' to collect all
+-- 'EpAnn's to apply a function with them in order their positions.
 data Wrapper =
   forall a. Typeable (EpAnn a) =>
             Wrapper (EpAnn a)
