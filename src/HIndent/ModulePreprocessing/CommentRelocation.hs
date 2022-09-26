@@ -123,7 +123,7 @@ relocateCommentsSameLineAfterNode = everywhereM (applyM f)
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
 relocateCommentsSameLineRev :: HsModule -> WithComments HsModule
-relocateCommentsSameLineRev = everywhereMr f
+relocateCommentsSameLineRev = everywhereMFromBack f
   where
     f epa@EpAnn {..} =
       insertCommentsByPos
@@ -158,7 +158,7 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
-relocateCommentsAfter = everywhereMr f
+relocateCommentsAfter = everywhereMFromBack f
   where
     f epa@EpAnn {..} =
       insertCommentsByPos (isAfter $ anchor entry) insertFollowingComments epa
@@ -217,14 +217,15 @@ drainComments cond = do
   put others
   return xs
 
--- | Right-associative 'everywhereM' in top-down manner.
+-- | 'everywhereM' but applies the given function to EPAs in order their
+-- positions from backwards.
 --
 -- FIXME: This code is too hard to read.
-everywhereMr ::
+everywhereMFromBack ::
      (forall a. EpAnn a -> WithComments (EpAnn a))
   -> HsModule
   -> WithComments HsModule
-everywhereMr f hm = do
+everywhereMFromBack f hm = do
   let collectEpAnn ::
            forall a. Typeable a
         => a
@@ -257,13 +258,10 @@ everywhereMr f hm = do
           i <- gets head
           modify tail
           case lookup i results of
-            Just (Wrapper y) ->
-              case typeOf y of
-                App _ h ->
-                  case eqTypeRep g' h of
-                    Just HRefl -> pure y
-                    Nothing    -> error "Unmatched."
-            Nothing -> error "Unmatched."
+            Just (Wrapper y)
+              | App _ h <- typeOf y
+              , Just HRefl <- eqTypeRep g' h -> pure y
+            _ -> error "Unmatches"
         | otherwise = pure x
   evalStateT (everywhereM setEpAnn hm) [0 ..]
   where
