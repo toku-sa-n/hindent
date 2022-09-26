@@ -1,3 +1,4 @@
+-- | Import declaration sorting for pretty-printing.
 module HIndent.Pretty.Imports.Sort
   ( sortImportsByName
   , sortImportsByLocation
