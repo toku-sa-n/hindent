@@ -1,3 +1,4 @@
+-- | Printer combinators related to indent.
 module HIndent.Pretty.Combinators.Indent
   ( indentedBlock
   , indentedWithSpace
