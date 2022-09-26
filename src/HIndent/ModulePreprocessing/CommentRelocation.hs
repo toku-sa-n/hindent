@@ -243,7 +243,10 @@ everywhereMFromBack f hm = do
         pure x
   epAnns <- reverse <$> execStateT (everywhereM st hm) []
   let indexed = zip [0 :: Int ..] epAnns
-      sorted = sortBy (\(_, Wrapper a) (_, Wrapper b) -> cmp a b) indexed
+      sorted =
+        sortBy
+          (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
+          indexed
   results <-
     forM sorted $ \(i, Wrapper x) -> do
       x' <- f x
@@ -264,13 +267,15 @@ everywhereMFromBack f hm = do
             _ -> error "Unmatches"
         | otherwise = pure x
   evalStateT (everywhereM setEpAnn hm) [0 ..]
-  where
-    cmp :: EpAnn a -> EpAnn b -> Ordering
-    cmp (EpAnn a _ _) (EpAnn b _ _) = on compare (realSrcSpanEnd . anchor) b a
-    cmp EpAnnNotUsed EpAnnNotUsed   = EQ
-    cmp _ EpAnnNotUsed              = GT
-    cmp EpAnnNotUsed _              = LT
 
 -- | This function sorts comments by its location.
 sortCommentsByLocation :: [LEpaComment] -> [LEpaComment]
 sortCommentsByLocation = sortBy (compare `on` anchor . getLoc)
+
+-- | This function compares given EPAs by their end positions.
+compareEpaByEndPosition :: EpAnn a -> EpAnn b -> Ordering
+compareEpaByEndPosition (EpAnn a _ _) (EpAnn b _ _) =
+  on compare (realSrcSpanEnd . anchor) b a
+compareEpaByEndPosition EpAnnNotUsed EpAnnNotUsed = EQ
+compareEpaByEndPosition _ EpAnnNotUsed = GT
+compareEpaByEndPosition EpAnnNotUsed _ = LT
