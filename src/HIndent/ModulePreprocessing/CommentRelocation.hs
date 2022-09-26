@@ -228,52 +228,53 @@ everywhereMEpAnnsBackwards ::
   -> HsModule
   -> WithComments HsModule
 everywhereMEpAnnsBackwards f hm = do
-  let collectEpAnns ::
-           forall a. Typeable a
-        => a
-        -> ([Wrapper] -> [Wrapper])
-      collectEpAnns x
-        | App g _ <- typeRep @a
-        , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
-        | otherwise = id
-      collectEpAnnsST ::
-           forall a. Typeable a
-        => a
-        -> StateT [Wrapper] WithComments a
-      collectEpAnnsST x = do
-        modify $ collectEpAnns x
-        pure x
-  -- First, this function collects 'EpAnn's in order 'everywhereM'
-  -- traverses.
-  epAnns <- reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
-  let indexed = zip [0 :: Int ..] epAnns
-      sorted =
-        sortBy
-          (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
-          indexed
-  -- Then, it applies 'f' to the collected 'EpAnn's in order of their end
-  -- positions.
-  results <-
-    forM sorted $ \(i, Wrapper x) -> do
-      x' <- f x
-      pure (i, Wrapper x')
-  let setEpAnn ::
-           forall a. Typeable a
-        => a
-        -> StateT [Int] WithComments a
-      setEpAnn x
-        | App g g' <- typeRep @a
-        , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
-          i <- gets head
-          modify tail
-          case lookup i results of
-            Just (Wrapper y)
-              | App _ h <- typeOf y
-              , Just HRefl <- eqTypeRep g' h -> pure y
-            _ -> error "Unmatches"
-        | otherwise = pure x
-  -- Finally, it puts modified 'EpAnn's on the given module.
-  evalStateT (everywhereM setEpAnn hm) [0 ..]
+  epAnns <- collectEpAnnsInOrderEverywhereMTraverses
+  results <- applyFunctionInOrderEPAEndPositions epAnns
+  putModifiedEPAsToModule results
+  where
+    collectEpAnnsInOrderEverywhereMTraverses =
+      reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
+    applyFunctionInOrderEPAEndPositions anns =
+      let indexed = zip [0 :: Int ..] anns
+          sorted =
+            sortBy
+              (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
+              indexed
+       in forM sorted $ \(i, Wrapper x) -> do
+            x' <- f x
+            pure (i, Wrapper x')
+    putModifiedEPAsToModule anns =
+      let setEpAnn ::
+               forall a. Typeable a
+            => a
+            -> StateT [Int] WithComments a
+          setEpAnn x
+            | App g g' <- typeRep @a
+            , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
+              i <- gets head
+              modify tail
+              case lookup i anns of
+                Just (Wrapper y)
+                  | App _ h <- typeOf y
+                  , Just HRefl <- eqTypeRep g' h -> pure y
+                _ -> error "Unmatches"
+            | otherwise = pure x
+       in evalStateT (everywhereM setEpAnn hm) [0 ..]
+    collectEpAnnsST ::
+         forall a. Typeable a
+      => a
+      -> StateT [Wrapper] WithComments a
+    collectEpAnnsST x = do
+      modify $ collectEpAnns x
+      pure x
+    collectEpAnns ::
+         forall a. Typeable a
+      => a
+      -> ([Wrapper] -> [Wrapper])
+    collectEpAnns x
+      | App g _ <- typeRep @a
+      , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
+      | otherwise = id
 
 -- | This function sorts comments by its location.
 sortCommentsByLocation :: [LEpaComment] -> [LEpaComment]
