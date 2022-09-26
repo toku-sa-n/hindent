@@ -235,14 +235,15 @@ everywhereMEpAnnsBackwards f hm = do
     collectEpAnnsInOrderEverywhereMTraverses =
       reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
     applyFunctionInOrderEPAEndPositions anns =
-      let indexed = zip [0 :: Int ..] anns
-          sorted =
-            sortBy
-              (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
-              indexed
-       in forM sorted $ \(i, Wrapper x) -> do
-            x' <- f x
-            pure (i, Wrapper x')
+      forM sorted $ \(i, Wrapper x) -> do
+        x' <- f x
+        pure (i, Wrapper x')
+      where
+        indexed = zip [0 :: Int ..] anns
+        sorted =
+          sortBy
+            (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
+            indexed
     putModifiedEPAsToModule anns =
       let setEpAnn ::
                forall a. Typeable a
