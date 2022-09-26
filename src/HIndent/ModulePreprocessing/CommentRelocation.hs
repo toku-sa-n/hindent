@@ -244,23 +244,23 @@ everywhereMEpAnnsBackwards f hm = do
           sortBy
             (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
             indexed
-    putModifiedEPAsToModule anns =
-      let setEpAnn ::
-               forall a. Typeable a
-            => a
-            -> StateT [Int] WithComments a
-          setEpAnn x
-            | App g g' <- typeRep @a
-            , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
-              i <- gets head
-              modify tail
-              case lookup i anns of
-                Just (Wrapper y)
-                  | App _ h <- typeOf y
-                  , Just HRefl <- eqTypeRep g' h -> pure y
-                _ -> error "Unmatches"
-            | otherwise = pure x
-       in evalStateT (everywhereM setEpAnn hm) [0 ..]
+    putModifiedEPAsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
+      where
+        setEpAnn ::
+             forall a. Typeable a
+          => a
+          -> StateT [Int] WithComments a
+        setEpAnn x
+          | App g g' <- typeRep @a
+          , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
+            i <- gets head
+            modify tail
+            case lookup i anns of
+              Just (Wrapper y)
+                | App _ h <- typeOf y
+                , Just HRefl <- eqTypeRep g' h -> pure y
+              _ -> error "Unmatches"
+          | otherwise = pure x
     collectEpAnnsST ::
          forall a. Typeable a
       => a
