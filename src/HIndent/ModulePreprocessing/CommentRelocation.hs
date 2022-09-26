@@ -228,11 +228,10 @@ everywhereMEpAnnsBackwards ::
   -> HsModule
   -> WithComments HsModule
 everywhereMEpAnnsBackwards f hm =
-  collectEpAnnsInOrderEverywhereMTraverses >>=
-  applyFunctionInOrderEPAEndPositions >>=
+  collectEPAsInOrderEverywhereMTraverses >>= applyFunctionInOrderEPAEndPositions >>=
   putModifiedEPAsToModule
   where
-    collectEpAnnsInOrderEverywhereMTraverses =
+    collectEPAsInOrderEverywhereMTraverses =
       reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
       where
         collectEpAnnsST x = do
