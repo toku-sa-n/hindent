@@ -19,10 +19,7 @@ indentedBlock p = do
 indentedWithSpace :: Int64 -> Printer a -> Printer a
 indentedWithSpace i p = do
   level <- gets psIndentLevel
-  modify (\s -> s {psIndentLevel = level + i})
-  m <- p
-  modify (\s -> s {psIndentLevel = level})
-  return m
+  indentedWithLevel (level + i) p
 
 (|=>) :: Printer () -> Printer a -> Printer a
 hd |=> p = do
