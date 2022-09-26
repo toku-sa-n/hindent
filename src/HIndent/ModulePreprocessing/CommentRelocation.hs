@@ -123,7 +123,7 @@ relocateCommentsSameLineAfterNode = everywhereM (applyM f)
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
 relocateCommentsSameLineRev :: HsModule -> WithComments HsModule
-relocateCommentsSameLineRev = everywhereMFromBack f
+relocateCommentsSameLineRev = everywhereMEpAnnsBackwards f
   where
     f epa@EpAnn {..} =
       insertCommentsByPos
@@ -158,7 +158,7 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
 relocateCommentsAfter :: HsModule -> WithComments HsModule
-relocateCommentsAfter = everywhereMFromBack f
+relocateCommentsAfter = everywhereMEpAnnsBackwards f
   where
     f epa@EpAnn {..} =
       insertCommentsByPos (isAfter $ anchor entry) insertFollowingComments epa
@@ -221,11 +221,11 @@ drainComments cond = do
 -- positions from backwards.
 --
 -- FIXME: This code is too hard to read.
-everywhereMFromBack ::
+everywhereMEpAnnsBackwards ::
      (forall a. EpAnn a -> WithComments (EpAnn a))
   -> HsModule
   -> WithComments HsModule
-everywhereMFromBack f hm = do
+everywhereMEpAnnsBackwards f hm = do
   let collectEpAnn ::
            forall a. Typeable a
         => a
