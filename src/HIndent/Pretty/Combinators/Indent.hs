@@ -18,6 +18,8 @@ indentedBlock p = do
   indentSpaces <- getIndentSpaces
   indentedWithSpace indentSpaces p
 
+-- | This function runs the given printer with an additional indent. The
+-- indent has the specified number of spaces.
 indentedWithSpace :: Int64 -> Printer a -> Printer a
 indentedWithSpace i p = do
   level <- gets psIndentLevel
