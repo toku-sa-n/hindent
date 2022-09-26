@@ -228,27 +228,31 @@ everywhereMEpAnnsBackwards ::
   -> HsModule
   -> WithComments HsModule
 everywhereMEpAnnsBackwards f hm = do
-  let collectEpAnn ::
+  let collectEpAnns ::
            forall a. Typeable a
         => a
         -> ([Wrapper] -> [Wrapper])
-      collectEpAnn x
+      collectEpAnns x
         | App g _ <- typeRep @a
         , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
         | otherwise = id
-      st ::
+      collectEpAnnsST ::
            forall a. Typeable a
         => a
         -> StateT [Wrapper] WithComments a
-      st x = do
-        modify $ collectEpAnn x
+      collectEpAnnsST x = do
+        modify $ collectEpAnns x
         pure x
-  epAnns <- reverse <$> execStateT (everywhereM st hm) []
+  -- First, this function collects 'EpAnn's in order 'everywhereM'
+  -- traverses.
+  epAnns <- reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
   let indexed = zip [0 :: Int ..] epAnns
       sorted =
         sortBy
           (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
           indexed
+  -- Then, it applies 'f' to the collected 'EpAnn's in order of their end
+  -- positions.
   results <-
     forM sorted $ \(i, Wrapper x) -> do
       x' <- f x
@@ -268,6 +272,7 @@ everywhereMEpAnnsBackwards f hm = do
               , Just HRefl <- eqTypeRep g' h -> pure y
             _ -> error "Unmatches"
         | otherwise = pure x
+  -- Finally, it puts modified 'EpAnn's on the given module.
   evalStateT (everywhereM setEpAnn hm) [0 ..]
 
 -- | This function sorts comments by its location.
