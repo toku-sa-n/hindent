@@ -10,7 +10,6 @@ import           Data.Maybe
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
-import           HIndent.SrcSpan
 
 data LetterType
   = Capital
@@ -82,3 +81,7 @@ charToLetterType c
   | isLower c = Lower
   | isUpper c = Capital
   | otherwise = Symbol
+
+startLine :: SrcSpan -> Int
+startLine (RealSrcSpan x _) = srcSpanStartLine x
+startLine (UnhelpfulSpan _) = error "Ths src span is unavailable."
