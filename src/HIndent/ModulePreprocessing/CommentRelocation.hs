@@ -228,10 +228,11 @@ everywhereMEpAnnsBackwards ::
   -> HsModule
   -> WithComments HsModule
 everywhereMEpAnnsBackwards f hm =
-  collectEPAsInOrderEverywhereMTraverses >>= applyFunctionInOrderEPAEndPositions >>=
-  putModifiedEPAsToModule
+  collectEpAnnsInOrderEverywhereMTraverses >>=
+  applyFunctionInOrderEpAnnEndPositions >>=
+  putModifiedEpAnnsToModule
   where
-    collectEPAsInOrderEverywhereMTraverses =
+    collectEpAnnsInOrderEverywhereMTraverses =
       reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
       where
         collectEpAnnsST x = do
@@ -245,7 +246,7 @@ everywhereMEpAnnsBackwards f hm =
           | App g _ <- typeRep @a
           , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
           | otherwise = id
-    applyFunctionInOrderEPAEndPositions anns =
+    applyFunctionInOrderEpAnnEndPositions anns =
       forM sorted $ \(i, Wrapper x) -> do
         x' <- f x
         pure (i, Wrapper x')
@@ -255,7 +256,7 @@ everywhereMEpAnnsBackwards f hm =
           sortBy
             (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
             indexed
-    putModifiedEPAsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
+    putModifiedEpAnnsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
       where
         setEpAnn ::
              forall a. Typeable a
