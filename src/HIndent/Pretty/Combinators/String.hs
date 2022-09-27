@@ -14,7 +14,6 @@ import           HIndent.Types
 string :: String -> Printer ()
 string x = do
   eol <- gets psEolComment
-  hardFail <- gets psFitOnOneLine
   let addingNewline = eol && x /= "\n"
   when addingNewline newline
   st <- get
@@ -27,8 +26,6 @@ string x = do
         if additionalLines > 0
           then fromIntegral $ length $ concat $ take 1 $ reverse srclines
           else psColumn st + fromIntegral (length out)
-  when hardFail $
-    guard $ additionalLines == 0 && psColumn' <= configMaxColumns (psConfig st)
   modify
     (\s ->
        s

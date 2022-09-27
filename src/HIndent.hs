@@ -164,7 +164,6 @@ runPrinterStyle config m =
                 , psColumn = 0
                 , psLine = 1
                 , psConfig = config
-                , psFitOnOneLine = False
                 , psEolComment = False
                 }))))
 

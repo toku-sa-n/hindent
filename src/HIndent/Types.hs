@@ -43,23 +43,20 @@ newtype Printer a =
 -- | The state of the pretty printer.
 data PrintState =
   PrintState
-    { psIndentLevel  :: !Int64
+    { psIndentLevel :: !Int64
     -- ^ Current indentation level, i.e. every time there's a
     -- new-line, output this many spaces.
-    , psOutput       :: !Builder
+    , psOutput      :: !Builder
     -- ^ The current output bytestring builder.
-    , psNewline      :: !Bool
+    , psNewline     :: !Bool
     -- ^ Just outputted a newline?
-    , psColumn       :: !Int64
+    , psColumn      :: !Int64
     -- ^ Current column.
-    , psLine         :: !Int64
+    , psLine        :: !Int64
     -- ^ Current line number.
-    , psConfig       :: !Config
+    , psConfig      :: !Config
     -- ^ Configuration of max colums and indentation style.
-    , psFitOnOneLine :: !Bool
-    -- ^ Bail out if we need to print beyond the current line or
-    -- the maximum column.
-    , psEolComment   :: !Bool
+    , psEolComment  :: !Bool
     }
 
 -- | Configurations shared among the different styles. Styles may pay
