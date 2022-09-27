@@ -32,13 +32,12 @@ fetchPragma (EpaBlockComment c) =
     (_, _, _, [x]) -> Just x
     _              -> Nothing
   where
-    regexResult =
-      c =~ "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}" :: ( String
-                                                   , String
-                                                   , String
-                                                   , [String])
+    regexResult = c =~ pragmaRegex :: (String, String, String, [String])
 fetchPragma _ = Nothing
 
 isPragma :: EpaCommentTok -> Bool
-isPragma (EpaBlockComment c) = c =~ ("{-# +LANGUAGE +[a-zA-Z]+ +#-}" :: String)
+isPragma (EpaBlockComment c) = c =~ pragmaRegex
 isPragma _                   = False
+
+pragmaRegex :: String
+pragmaRegex = "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}"
