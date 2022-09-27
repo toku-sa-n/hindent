@@ -26,12 +26,10 @@ string "\n" = do
 string x = do
   eol <- gets psEolComment
   hardFail <- gets psFitOnOneLine
-  let addingNewline = eol && x /= "\n"
-  when addingNewline newline
+  when eol newline
   st <- get
-  let writingNewline = x == "\n"
-      out =
-        if psNewline st && not writingNewline
+  let out =
+        if psNewline st
           then replicate (fromIntegral $ psIndentLevel st) ' ' <> x
           else x
       psColumn' =
