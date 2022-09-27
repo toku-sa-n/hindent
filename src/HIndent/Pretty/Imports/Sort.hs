@@ -10,6 +10,7 @@ import           Data.Functor.Classes
 import           Data.List
 import           Data.Maybe
 import           GHC.Hs
+import           GHC.Stack
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Combinators
 
@@ -101,6 +102,6 @@ charToLetterType c
 
 -- | This function returns the start line of the given 'SrcSpan'. If it is
 -- not available, it raises an error.
-startLine :: SrcSpan -> Int
+startLine :: HasCallStack => SrcSpan -> Int
 startLine (RealSrcSpan x _) = srcSpanStartLine x
 startLine (UnhelpfulSpan _) = error "The src span is unavailable."
