@@ -182,7 +182,7 @@ printCommentOnSameLine :: Pretty a => a -> Printer ()
 printCommentOnSameLine (commentOnSameLine -> Just (L sp c)) = do
   col <- gets psColumn
   if col == 0
-    then indentedWithLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
+    then indentedWithFixedLevel (fromIntegral $ srcSpanStartCol $ anchor sp) $
          pretty c
     else do
       space
@@ -200,7 +200,7 @@ printCommentsAfter p =
       unless isThereCommentsOnSameLine newline
       forM_ xs $ \(L loc c) -> do
         let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
-        indentedWithLevel col $ pretty c
+        indentedWithFixedLevel col $ pretty c
         eolCommentsArePrinted
 
 -- | Pretty print including comments.

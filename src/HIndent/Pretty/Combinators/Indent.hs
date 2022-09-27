@@ -3,7 +3,7 @@ module HIndent.Pretty.Combinators.Indent
   ( indentedBlock
   , indentedWithSpace
   , (|=>)
-  , indentedWithLevel
+  , indentedWithFixedLevel
   , getIndentSpaces
   ) where
 
@@ -23,7 +23,7 @@ indentedBlock p = do
 indentedWithSpace :: Int64 -> Printer a -> Printer a
 indentedWithSpace i p = do
   level <- gets psIndentLevel
-  indentedWithLevel (level + i) p
+  indentedWithFixedLevel (level + i) p
 
 -- | This function runs the first printer, fixes the indent, and then runs
 -- the second one.
@@ -39,12 +39,12 @@ indentedWithSpace i p = do
 hd |=> p = do
   hd
   col <- gets psColumn
-  indentedWithLevel col p
+  indentedWithFixedLevel col p
 
 infixl 1 |=>
 
-indentedWithLevel :: Int64 -> Printer a -> Printer a
-indentedWithLevel i p = do
+indentedWithFixedLevel :: Int64 -> Printer a -> Printer a
+indentedWithFixedLevel i p = do
   l <- gets psIndentLevel
   modify (\s -> s {psIndentLevel = i})
   m <- p
