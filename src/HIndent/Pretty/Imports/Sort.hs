@@ -38,6 +38,8 @@ sortImportsByLocation = sortBy (flip compare `on` lineIdx)
 sortModules :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortModules = sortBy (compare `on` unLoc . ideclName . unLoc)
 
+-- | This function sorts explicit imports in the given import declaration
+-- by their names.
 sortExplicitImportsInDecl :: LImportDecl GhcPs -> LImportDecl GhcPs
 sortExplicitImportsInDecl (L l d@ImportDecl {ideclHiding = Just (x, imports)}) =
   L l d {ideclHiding = Just (x, sorted)}
