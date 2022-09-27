@@ -13,6 +13,7 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA
 
+-- | This function pretty-prints the module's pragmas.
 prettyPragmas :: HsModule -> Printer ()
 prettyPragmas = lined . fmap string . collectPragmas
 
