@@ -89,4 +89,4 @@ charToLetterType c
 
 startLine :: SrcSpan -> Int
 startLine (RealSrcSpan x _) = srcSpanStartLine x
-startLine (UnhelpfulSpan _) = error "Ths src span is unavailable."
+startLine (UnhelpfulSpan _) = error "The src span is unavailable."
