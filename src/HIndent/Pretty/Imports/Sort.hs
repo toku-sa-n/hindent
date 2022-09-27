@@ -65,6 +65,8 @@ compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
 compareImportEntities (L _ a) (L _ b) =
   fromMaybe LT $ compareIdentifier <$> moduleName a <*> moduleName b
 
+-- | This function returns a 'Just' value with the module name extracted
+-- from the import declaration. Otherwise, it returns a 'Nothing'.
 moduleName :: IE GhcPs -> Maybe String
 moduleName (IEVar _ wrapped)           = Just $ showOutputable wrapped
 moduleName (IEThingAbs _ wrapped)      = Just $ showOutputable wrapped
