@@ -99,6 +99,8 @@ charToLetterType c
   | isUpper c = Capital
   | otherwise = Symbol
 
+-- | This function returns the start line of the given 'SrcSpan'. If it is
+-- not available, it raises an error.
 startLine :: SrcSpan -> Int
 startLine (RealSrcSpan x _) = srcSpanStartLine x
 startLine (UnhelpfulSpan _) = error "The src span is unavailable."
