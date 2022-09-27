@@ -1933,9 +1933,15 @@ instance Pretty (IE GhcPs) where
 instance Pretty a => Pretty (FamEqn GhcPs a) where
   pretty' FamEqn {..} = do
     pretty feqn_tycon
-    spacePrefixed $ fmap output feqn_pats
+    spacePrefixed $ fmap pretty feqn_pats
     string " = "
     pretty feqn_rhs
+
+-- HsArg (LHsType GhcPs) (LHsType GhcPs)
+instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
+  pretty' (HsValArg x) = pretty x
+  pretty' HsTypeArg {} = undefined
+  pretty' HsArgPar {}  = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsQuote GhcPs) where
   pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
