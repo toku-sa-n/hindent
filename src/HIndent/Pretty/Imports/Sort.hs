@@ -37,11 +37,11 @@ sortModules :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortModules = sortBy (compare `on` unLoc . ideclName . unLoc)
 
 sortExplicitImportsInDecl :: LImportDecl GhcPs -> LImportDecl GhcPs
-sortExplicitImportsInDecl (L l d@ImportDecl {ideclHiding = Nothing}) = L l d
 sortExplicitImportsInDecl (L l d@ImportDecl {ideclHiding = Just (x, imports)}) =
   L l d {ideclHiding = Just (x, sorted)}
   where
     sorted = fmap (fmap sortVariants . sortExplicitImports) imports
+sortExplicitImportsInDecl x = x
 
 sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
 sortExplicitImports = sortBy compareImportEntities
