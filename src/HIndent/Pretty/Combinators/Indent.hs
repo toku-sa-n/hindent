@@ -25,6 +25,15 @@ indentedWithSpace i p = do
   level <- gets psIndentLevel
   indentedWithLevel (level + i) p
 
+-- | This function runs the first printer, fixes the indent, and then runs the second one.
+--
+-- For example,
+--
+-- > string "foo " |=> lined [string "bar", "baz"]
+--
+-- will be printed as below.
+-- foo bar
+--     baz
 (|=>) :: Printer () -> Printer a -> Printer a
 hd |=> p = do
   hd
