@@ -51,6 +51,8 @@ sortExplicitImportsInDecl x = x
 sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
 sortExplicitImports = sortBy compareImportEntities
 
+-- | This function sorts variants (e.g., data constructors and class
+-- methods) in the given explicit import by their names.
 sortVariants :: LIE GhcPs -> LIE GhcPs
 sortVariants (L l (IEThingWith x x' x'' xs)) =
   L l $ IEThingWith x x' x'' (sortWrappedNames xs)
