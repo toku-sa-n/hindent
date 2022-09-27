@@ -12,6 +12,13 @@ import           Control.Monad.RWS
 import qualified Data.ByteString.Builder as S
 import           HIndent.Types
 
+-- | This function prints the given string.
+--
+-- The string should not include '\n's. Use 'newline' to print a newline.
+--
+-- FIXME: This function should forbid 'x' having '\n's, but it is
+-- impossible because some functions call it with a string having them (I
+-- think it is because of 'output').
 string :: String -> Printer ()
 string "\n" = error "Use `newline`."
 string x = do
