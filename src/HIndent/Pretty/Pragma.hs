@@ -50,5 +50,6 @@ isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ pragmaRegex
 isPragma _                   = False
 
+-- | A regex to match against a pragma.
 pragmaRegex :: String
 pragmaRegex = "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}"
