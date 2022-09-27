@@ -22,8 +22,8 @@ prettyPragmas = lined . fmap string . collectPragmas
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
 
--- | This function collects pragma comments and modifies them into
--- 'String's.
+-- | This function collects pragma comments from the given module and
+-- modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   fmap (\x -> "{-# LANGUAGE " ++ x ++ " #-}") .
