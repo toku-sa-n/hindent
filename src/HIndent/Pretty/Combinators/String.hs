@@ -12,17 +12,7 @@ import qualified Data.ByteString.Builder as S
 import           HIndent.Types
 
 string :: String -> Printer ()
-string "\n" = do
-  gets psFitOnOneLine >>= guard . not
-  modify
-    (\s ->
-       s
-         { psOutput = psOutput s <> S.stringUtf8 "\n"
-         , psNewline = False
-         , psLine = psLine s + 1
-         , psEolComment = False
-         , psColumn = 0
-         })
+string "\n" = error "Use `newline`."
 string x = do
   eol <- gets psEolComment
   hardFail <- gets psFitOnOneLine
@@ -56,8 +46,16 @@ space = string " "
 
 newline :: Printer ()
 newline = do
-  string "\n"
-  modify (\s -> s {psNewline = True})
+  gets psFitOnOneLine >>= guard . not
+  modify
+    (\s ->
+       s
+         { psOutput = psOutput s <> S.stringUtf8 "\n"
+         , psNewline = True
+         , psLine = psLine s + 1
+         , psEolComment = False
+         , psColumn = 0
+         })
 
 blankline :: Printer ()
 blankline = newline >> newline
