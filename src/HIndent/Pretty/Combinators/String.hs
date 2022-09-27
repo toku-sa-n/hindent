@@ -31,7 +31,8 @@ string x = do
           else ""
       out = indentSpaces <> x
       psColumn' = psColumn st + fromIntegral (length out)
-  when hardFail $ guard $ psColumn' <= configMaxColumns (psConfig st)
+      columnFits = psColumn' <= configMaxColumns (psConfig st)
+  when hardFail $ guard columnFits
   modify
     (\s ->
        s
