@@ -27,19 +27,19 @@ pragmaExists = not . null . collectPragmas
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   fmap (\x -> "{-# LANGUAGE " ++ x ++ " #-}") .
-  mapMaybe fetchPragma . listify matchToComment . hsmodAnn
+  mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
 
-fetchPragma :: EpaCommentTok -> Maybe String
-fetchPragma (EpaBlockComment c) =
+extractPraGmergea :: EpaCommentTok -> Maybe String
+extractPraGmergea (EpaBlockComment c) =
   case regexResult of
     (_, _, _, [x]) -> Just x
     _              -> Nothing
   where
     regexResult = c =~ pragmaRegex :: (String, String, String, [String])
-fetchPragma _ = Nothing
+extractPraGmergea _ = Nothing
 
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ pragmaRegex
