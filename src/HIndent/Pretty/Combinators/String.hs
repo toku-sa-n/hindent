@@ -29,24 +29,16 @@ string x = do
         if psNewline st
           then replicate (fromIntegral $ psIndentLevel st) ' ' <> x
           else x
-      psColumn' =
-        if additionalLines > 0
-          then fromIntegral $ length $ last srclines
-          else psColumn st + fromIntegral (length out)
-  when hardFail $
-    guard $ additionalLines == 0 && psColumn' <= configMaxColumns (psConfig st)
+      psColumn' = psColumn st + fromIntegral (length out)
+  when hardFail $ guard $ psColumn' <= configMaxColumns (psConfig st)
   modify
     (\s ->
        s
          { psOutput = psOutput st <> S.stringUtf8 out
          , psNewline = False
-         , psLine = psLine st + fromIntegral additionalLines
          , psEolComment = False
          , psColumn = psColumn'
          })
-  where
-    srclines = lines x
-    additionalLines = length $ filter (== '\n') x
 
 -- | Equivalent to 'string " "'.
 space :: Printer ()
