@@ -28,12 +28,15 @@ collectPragmas =
 
 fetchPragma :: EpaCommentTok -> Maybe String
 fetchPragma (EpaBlockComment c) =
-  case c =~ "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}" :: ( String
-                                                    , String
-                                                    , String
-                                                    , [String]) of
+  case regexResult of
     (_, _, _, [x]) -> Just x
     _              -> Nothing
+  where
+    regexResult =
+      c =~ "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}" :: ( String
+                                                   , String
+                                                   , String
+                                                   , [String])
 fetchPragma _ = Nothing
 
 isPragma :: EpaCommentTok -> Bool
