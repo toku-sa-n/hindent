@@ -1,3 +1,4 @@
+-- | Pretty-printing pragmas
 module HIndent.Pretty.Pragma
   ( outputPragmas
   , pragmaExists
