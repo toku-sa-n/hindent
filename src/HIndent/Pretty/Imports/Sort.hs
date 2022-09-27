@@ -23,8 +23,8 @@ data LetterType
   | Lower
   deriving (Eq, Ord)
 
--- | This function sorts import declarations and their explicit imports by
--- their names.
+-- | This function sorts import declarations and explicit imports in them
+-- by their names.
 sortImportsByName :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortImportsByName = fmap sortExplicitImportsInDecl . sortModules
 
