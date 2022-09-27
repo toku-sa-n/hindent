@@ -1,3 +1,4 @@
+-- | 'read' implementation with a call stack and a clear message.
 module HIndent.Read
   ( readOrFail
   ) where
