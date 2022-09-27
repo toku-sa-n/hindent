@@ -32,6 +32,9 @@ collectPragmas =
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
 
+-- | This function returns a 'Just' value with the pragma extracted from
+-- the passed 'EpaCommentTok' if it has one. Otherwise, it returns
+-- a 'Nothing'.
 extractPraGmergea :: EpaCommentTok -> Maybe String
 extractPraGmergea (EpaBlockComment c) =
   case regexResult of
