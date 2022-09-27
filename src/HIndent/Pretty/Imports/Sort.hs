@@ -6,6 +6,7 @@ module HIndent.Pretty.Imports.Sort
 
 import           Data.Char
 import           Data.Function
+import           Data.Functor.Classes
 import           Data.List
 import           Data.Maybe
 import           GHC.Hs
@@ -75,12 +76,7 @@ moduleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
 moduleName _                           = Nothing
 
 compareIdentifier :: String -> String -> Ordering
-compareIdentifier [] _ = LT
-compareIdentifier _ [] = GT
-compareIdentifier (a:as) (b:bs) =
-  case compareChar a b of
-    EQ -> compareIdentifier as bs
-    x  -> x
+compareIdentifier = liftCompare compareChar
 
 compareChar :: Char -> Char -> Ordering
 compareChar a b =
