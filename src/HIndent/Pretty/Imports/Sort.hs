@@ -47,6 +47,7 @@ sortExplicitImportsInDecl (L l d@ImportDecl {ideclHiding = Just (x, imports)}) =
     sorted = fmap (fmap sortVariants . sortExplicitImports) imports
 sortExplicitImportsInDecl x = x
 
+-- | This function sorts the given explicit imports by their names.
 sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
 sortExplicitImports = sortBy compareImportEntities
 
