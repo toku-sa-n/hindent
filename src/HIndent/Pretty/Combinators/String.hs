@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 -- | Printer combinators related to print strings.
 module HIndent.Pretty.Combinators.String
   ( string
@@ -10,17 +12,14 @@ module HIndent.Pretty.Combinators.String
 
 import           Control.Monad.RWS
 import qualified Data.ByteString.Builder as S
+import           GHC.Stack
 import           HIndent.Types
 
 -- | This function prints the given string.
 --
--- The string should not include '\n's. Use 'newline' to print them.
---
--- FIXME: This function should forbid 'x' having '\n's, but it is
--- impossible because some functions call it with a string having them (I
--- think it is because of 'output').
-string :: String -> Printer ()
-string "\n" = error "Use `newline`."
+-- The string must not include '\n's. Use 'newline' to print them.
+string :: HasCallStack => String -> Printer ()
+string (('\n' `elem`) -> True) = error "Use `newline` to print '\\n's."
 string x = do
   eol <- gets psEolComment
   hardFail <- gets psFitOnOneLine
@@ -56,7 +55,7 @@ space = string " "
 -- | This function prints a '\n'.
 --
 -- Always call this function to print it because printing it requires
--- special handling. Do not call 'string' instead.
+-- special treatment. Do not call 'string' instead.
 newline :: Printer ()
 newline = do
   gets psFitOnOneLine >>= guard . not

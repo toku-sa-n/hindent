@@ -16,6 +16,7 @@ import           Data.Int
 import           GHC.Driver.Ppr
 #endif
 import           GHC.Driver.Session
+import           GHC.Stack
 import           GHC.Utils.Outputable                                hiding
                                                                      (brackets,
                                                                       comma,
@@ -27,7 +28,10 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
-output :: Outputable a => a -> Printer ()
+output ::
+     HasCallStack
+  => Outputable a =>
+       a -> Printer ()
 output = string . showOutputable
 
 showOutputable :: Outputable a => a -> String

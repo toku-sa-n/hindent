@@ -327,6 +327,27 @@ instance Pretty (HsDecl GhcPs) where
   pretty' RoleAnnotD {}  = undefined
 
 instance Pretty (TyClDecl GhcPs) where
+  pretty' (FamDecl _ FamilyDecl {..}) = do
+    string "type family "
+    pretty fdLName
+    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
+    case unLoc fdResultSig of
+      NoSig {} -> pure ()
+      TyVarSig {} -> do
+        string " = "
+        pretty fdResultSig
+      _ -> do
+        space
+        pretty fdResultSig
+    whenJust fdInjectivityAnn $ \x -> do
+      string " | "
+      pretty x
+    case fdInfo of
+      ClosedTypeFamily (Just xs) -> do
+        string " where"
+        newline
+        indentedBlock $ lined $ fmap pretty xs
+      _ -> pure ()
   pretty' SynDecl {..} = do
     string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
@@ -435,7 +456,6 @@ instance Pretty (TyClDecl GhcPs) where
       getLocation (Sig x)        = realSrcSpan $ locA $ getLoc x
       getLocation (Method x)     = realSrcSpan $ locA $ getLoc x
       getLocation (TypeFamily x) = realSrcSpan $ locA $ getLoc x
-  pretty' x = output x
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..} = pretty cid_inst
@@ -1111,7 +1131,7 @@ prettyHsType (HsOpTy _ l op r) =
 #endif
 prettyHsType (HsParTy _ inside) = parens $ pretty inside
 prettyHsType t@HsIParamTy {} = output t
-prettyHsType HsStarTy {} = undefined
+prettyHsType HsStarTy {} = string "*"
 prettyHsType HsKindSig {} = undefined
 prettyHsType (HsSpliceTy _ sp) = pretty sp
 prettyHsType HsDocTy {} = undefined
@@ -1433,9 +1453,18 @@ instance Pretty GRHSForMultiwayIf where
   commentsAfter (GRHSForMultiwayIf (GRHS x _ _)) = commentsAfter x
 
 instance Pretty EpaCommentTok where
-  pretty' (EpaLineComment c)  = string c
-  pretty' (EpaBlockComment c) = string c
-  pretty' _                   = undefined
+  pretty' (EpaLineComment c) = string c
+  pretty' (EpaBlockComment c) =
+    case lines c of
+      [] -> pure ()
+      [x] -> string x
+      (x:xs) -> do
+        string x
+        newline
+        -- 'indentedWithFixedLevel 0' is used because an 'EpaBlockComment'
+        -- contains indent spaces for all lines except the first one.
+        indentedWithFixedLevel 0 $ lined $ fmap string xs
+  pretty' _ = undefined
 
 instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
@@ -1797,13 +1826,19 @@ instance Pretty (FamilyDecl GhcPs) where
       pretty x
 
 instance Pretty (FamilyResultSig GhcPs) where
-  pretty' NoSig {}       = undefined
-  pretty' KindSig {}     = undefined
+  pretty' NoSig {} = pure ()
+  pretty' (KindSig _ x) = do
+    string ":: "
+    pretty x
   pretty' (TyVarSig _ x) = pretty x
 
 instance Pretty (HsTyVarBndr a GhcPs) where
   pretty' (UserTyVar _ _ x) = pretty x
-  pretty' KindedTyVar {}    = undefined
+  pretty' (KindedTyVar _ _ name ty) =
+    parens $ do
+      pretty name
+      string " :: "
+      pretty ty
 
 instance Pretty (InjectivityAnn GhcPs) where
   pretty' (InjectivityAnn _ from to) = do
@@ -1894,6 +1929,13 @@ instance Pretty ModuleName where
 
 instance Pretty (IE GhcPs) where
   pretty' = output
+
+instance Pretty a => Pretty (FamEqn GhcPs a) where
+  pretty' FamEqn {..} = do
+    pretty feqn_tycon
+    spacePrefixed $ fmap output feqn_pats
+    string " = "
+    pretty feqn_rhs
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsQuote GhcPs) where
   pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
