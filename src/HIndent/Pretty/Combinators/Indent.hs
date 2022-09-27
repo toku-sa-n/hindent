@@ -52,5 +52,6 @@ indentedWithFixedLevel i p = do
   modify (\s -> s {psIndentLevel = l})
   return m
 
+-- | This function returns the current indent level.
 getIndentSpaces :: Printer Int64
 getIndentSpaces = gets (configIndentSpaces . psConfig)
