@@ -60,6 +60,7 @@ sortVariants (L l (IEThingWith x x' x'' xs)) =
     sortWrappedNames = sortBy (compare `on` showOutputable)
 sortVariants x = x
 
+-- | This function compares two import declarations by their module names.
 compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
 compareImportEntities (L _ a) (L _ b) =
   fromMaybe LT $ compareIdentifier <$> moduleName a <*> moduleName b
