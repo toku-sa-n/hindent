@@ -49,6 +49,7 @@ string x = do
     srclines = lines x
     additionalLines = length $ filter (== '\n') x
 
+-- | Equivalent to 'string " "'.
 space :: Printer ()
 space = string " "
 
@@ -65,11 +66,14 @@ newline = do
          , psColumn = 0
          })
 
+-- | Equivalent to 'newline >> newline'.
 blankline :: Printer ()
 blankline = newline >> newline
 
+-- | Equivalent to 'string ","'.
 comma :: Printer ()
 comma = string ","
 
+-- | Equivalent to 'string "."'.
 dot :: Printer ()
 dot = string "."
