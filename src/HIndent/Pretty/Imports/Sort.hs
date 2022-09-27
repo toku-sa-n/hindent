@@ -92,6 +92,7 @@ compareChar a b =
     at = charToLetterType a
     bt = charToLetterType b
 
+-- | This function returns a 'LetterType' based on the given character.
 charToLetterType :: Char -> LetterType
 charToLetterType c
   | isLower c = Lower
