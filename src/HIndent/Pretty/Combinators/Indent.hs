@@ -25,7 +25,8 @@ indentedWithSpace i p = do
   level <- gets psIndentLevel
   indentedWithLevel (level + i) p
 
--- | This function runs the first printer, fixes the indent, and then runs the second one.
+-- | This function runs the first printer, fixes the indent, and then runs
+-- the second one.
 --
 -- For example,
 --
