@@ -12,6 +12,17 @@ import qualified Data.ByteString.Builder as S
 import           HIndent.Types
 
 string :: String -> Printer ()
+string "\n" = do
+  gets psFitOnOneLine >>= guard . not
+  modify
+    (\s ->
+       s
+         { psOutput = psOutput s <> S.stringUtf8 "\n"
+         , psNewline = False
+         , psLine = psLine s + 1
+         , psEolComment = False
+         , psColumn = 0
+         })
 string x = do
   eol <- gets psEolComment
   hardFail <- gets psFitOnOneLine
