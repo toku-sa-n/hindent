@@ -44,6 +44,8 @@ extractPraGmergea (EpaBlockComment c) =
     regexResult = c =~ pragmaRegex :: (String, String, String, [String])
 extractPraGmergea _ = Nothing
 
+-- | This function returns a 'True' if the passed 'EpaCommentTok' is
+-- a pragma. Otherwise, it returns a 'False'.
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ pragmaRegex
 isPragma _                   = False
