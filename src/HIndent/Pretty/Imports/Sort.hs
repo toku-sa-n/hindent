@@ -28,6 +28,7 @@ data LetterType
 sortImportsByName :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortImportsByName = fmap sortExplicitImportsInDecl . sortModules
 
+-- | This function sorts imports by their start line numbers.
 sortImportsByLocation :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortImportsByLocation = sortBy (flip compare `on` lineIdx)
   where
