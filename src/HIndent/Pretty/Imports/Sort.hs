@@ -80,6 +80,9 @@ moduleName _                           = Nothing
 compareIdentifier :: String -> String -> Ordering
 compareIdentifier = liftCompare compareChar
 
+-- | This function compares two characters by their types (capital, symbol,
+-- and lower). If both are the same type, then it compares them by the
+-- usual ordering.
 compareChar :: Char -> Char -> Ordering
 compareChar a b =
   case compare at bt of
