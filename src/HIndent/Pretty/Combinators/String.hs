@@ -25,10 +25,11 @@ string x = do
   hardFail <- gets psFitOnOneLine
   when eol newline
   st <- get
-  let out =
+  let indentSpaces =
         if psNewline st
-          then replicate (fromIntegral $ psIndentLevel st) ' ' <> x
-          else x
+          then replicate (fromIntegral $ psIndentLevel st) ' '
+          else ""
+      out = indentSpaces <> x
       psColumn' = psColumn st + fromIntegral (length out)
   when hardFail $ guard $ psColumn' <= configMaxColumns (psConfig st)
   modify
