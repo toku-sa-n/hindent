@@ -18,12 +18,10 @@ outputPragmas = lined . fmap string . collectPragmas
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
 
--- TODO: This function collects pragmas from the entire module, and it
--- should be slow. Limit the range to search for them.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   fmap (\x -> "{-# LANGUAGE " ++ x ++ " #-}") .
-  mapMaybe fetchPragma . listify matchToComment
+  mapMaybe fetchPragma . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment = const True
