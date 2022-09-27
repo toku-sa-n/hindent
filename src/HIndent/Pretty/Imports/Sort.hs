@@ -75,6 +75,8 @@ moduleName (IEThingAll _ wrapped)      = Just $ showOutputable wrapped
 moduleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
 moduleName _                           = Nothing
 
+-- | This function sorts two identifiers in order of capitals, symbols, and
+-- lowers.
 compareIdentifier :: String -> String -> Ordering
 compareIdentifier = liftCompare compareChar
 
