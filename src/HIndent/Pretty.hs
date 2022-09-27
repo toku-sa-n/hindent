@@ -234,7 +234,7 @@ instance Pretty HsModule where
     where
       printers = snd <$> filter fst pairs
       pairs =
-        [ (pragmaExists m, outputPragmas m)
+        [ (pragmaExists m, prettyPragmas m)
         , (moduleDeclarationExists m, outputModuleDeclaration m)
         , (importsExist m, outputImports m)
         , (declsExist m, outputDecls)

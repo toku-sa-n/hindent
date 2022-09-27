@@ -1,6 +1,6 @@
 -- | Pretty-printing pragmas
 module HIndent.Pretty.Pragma
-  ( outputPragmas
+  ( prettyPragmas
   , pragmaExists
   , isPragma
   ) where
@@ -13,8 +13,8 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA
 
-outputPragmas :: HsModule -> Printer ()
-outputPragmas = lined . fmap string . collectPragmas
+prettyPragmas :: HsModule -> Printer ()
+prettyPragmas = lined . fmap string . collectPragmas
 
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
