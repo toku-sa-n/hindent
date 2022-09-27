@@ -17,6 +17,8 @@ import           Text.Regex.TDFA
 prettyPragmas :: HsModule -> Printer ()
 prettyPragmas = lined . fmap string . collectPragmas
 
+-- | This function returns a 'True' if the module has pragmas. Otherwise,
+-- it returns a 'False'.
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
 
