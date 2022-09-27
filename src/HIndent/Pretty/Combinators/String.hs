@@ -1,3 +1,4 @@
+-- | Printer combinators related to print strings.
 module HIndent.Pretty.Combinators.String
   ( string
   , space
