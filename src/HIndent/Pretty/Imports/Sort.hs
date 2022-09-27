@@ -34,6 +34,7 @@ sortImportsByLocation = sortBy (flip compare `on` lineIdx)
   where
     lineIdx = startLine . locA . getLoc
 
+-- | This function sorts import declarations by their module names.
 sortModules :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
 sortModules = sortBy (compare `on` unLoc . ideclName . unLoc)
 
