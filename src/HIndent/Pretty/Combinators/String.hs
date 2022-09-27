@@ -53,6 +53,10 @@ string x = do
 space :: Printer ()
 space = string " "
 
+-- | This function prints a '\n'.
+--
+-- Always call this function to print it because printing it requires
+-- special handling. Do not call 'string' instead.
 newline :: Printer ()
 newline = do
   gets psFitOnOneLine >>= guard . not
