@@ -14,7 +14,7 @@ import           HIndent.Types
 
 -- | This function prints the given string.
 --
--- The string should not include '\n's. Use 'newline' to print a newline.
+-- The string should not include '\n's. Use 'newline' to print them.
 --
 -- FIXME: This function should forbid 'x' having '\n's, but it is
 -- impossible because some functions call it with a string having them (I
