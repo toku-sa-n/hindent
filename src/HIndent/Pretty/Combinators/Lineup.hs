@@ -47,6 +47,17 @@ tuple' = (<-|>) <$> hTuple <*> vTuple'
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . hCommaSep
 
+-- | Runs printers to construct a tuple where elements are aligned
+-- vertically.
+vTuple :: [Printer ()] -> Printer ()
+vTuple = vLineup ("(", ")")
+
+-- | Prints like ( a
+--               , b
+--               , c)
+vTuple' :: [Printer ()] -> Printer ()
+vTuple' = vLineup' ("(", ")")
+
 -- | Runs printers to construct a record in a line.
 hFields :: [Printer ()] -> Printer ()
 hFields = braces . hCommaSep
@@ -60,17 +71,6 @@ vFields = vLineup ("{", "}")
 -- last element.
 vFields' :: [Printer ()] -> Printer ()
 vFields' = vLineup' ("{", "}")
-
--- | Runs printers to construct a tuple where elements are aligned
--- vertically.
-vTuple :: [Printer ()] -> Printer ()
-vTuple = vLineup ("(", ")")
-
--- | Prints like ( a
---               , b
---               , c)
-vTuple' :: [Printer ()] -> Printer ()
-vTuple' = vLineup' ("(", ")")
 
 -- | Prints like [a, b, c]
 hList :: [Printer ()] -> Printer ()
