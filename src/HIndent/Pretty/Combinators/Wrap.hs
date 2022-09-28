@@ -50,6 +50,8 @@ backticksIfNotSymbol name
 wrapWithBars :: Printer a -> Printer a
 wrapWithBars = wrap "|" "|"
 
+-- | This function wraps the printer with @'[ @ and @]@ for a promoted
+-- list.
 promotedListBrackets :: Printer a -> Printer a
 promotedListBrackets = wrap "'[ " "]"
 
