@@ -1,6 +1,5 @@
 module HIndent.Pretty.Combinators
-  ( eolCommentsArePrinted
-  , startingColumn
+  ( startingColumn
   , printerLength
   ) where
 
@@ -8,9 +7,6 @@ import           Control.Monad.RWS                 hiding (state)
 import           Data.Int
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
-
-eolCommentsArePrinted :: Printer ()
-eolCommentsArePrinted = modify (\s -> s {psEolComment = True})
 
 startingColumn :: Printer Int64
 startingColumn = do

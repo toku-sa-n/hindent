@@ -41,6 +41,7 @@ library
                      HIndent.ModulePreprocessing.CommentRelocation
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
+                     HIndent.Pretty.Combinators.Comment
                      HIndent.Pretty.Combinators.Indent
                      HIndent.Pretty.Combinators.Lineup
                      HIndent.Pretty.Combinators.Op

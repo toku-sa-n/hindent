@@ -32,6 +32,7 @@ import           GHC.Types.Var
 import           GHC.Unit
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.Comment
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.Op
