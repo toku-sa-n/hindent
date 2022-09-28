@@ -221,8 +221,6 @@ drainComments cond = do
 
 -- | 'everywhereM' but applies the given function to EPAs in order their
 -- positions from backwards.
---
--- FIXME: This code is too hard to read.
 everywhereMEpAnnsBackwards ::
      (forall a. EpAnn a -> WithComments (EpAnn a))
   -> HsModule
