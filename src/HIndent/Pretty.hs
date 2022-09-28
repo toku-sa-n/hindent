@@ -167,8 +167,9 @@ printCommentsAnd (L l e) f = do
 -- | Prints comments that are before the given AST node.
 printCommentsBefore :: Pretty a => a -> Printer ()
 printCommentsBefore p =
-  forM_ (commentsBefore p) $ \x -> do
-    pretty x
+  forM_ (commentsBefore p) $ \(L loc c) -> do
+    let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
+    indentedWithFixedLevel col $ pretty c
     newline
 
 -- | Prints a comment that is on the same line as the given AST node if it exists.

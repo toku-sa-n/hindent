@@ -2110,6 +2110,7 @@ topLevelFunc2 = f . g
        comment -}
     f = undefined -- single line comment
     -- single line comment
+        -- Different size of indents
     g :: a
     g = undefined
 ```
