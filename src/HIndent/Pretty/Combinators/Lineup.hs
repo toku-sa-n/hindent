@@ -35,28 +35,25 @@ import           HIndent.Pretty.Combinators.Switch
 import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
 
--- | Apply 'hTuple' or 'vTuple' appropriately.
+-- | Applies 'hTuple' if the result fits in a line or 'vTuple' otherwise.
 tuple :: [Printer ()] -> Printer ()
 tuple = (<-|>) <$> hTuple <*> vTuple
 
--- | Apply 'hTuple' or 'vTuple'' appropriately.
+-- | Applies 'hTuple'' if the result fits in a line or 'vTuple'' otherwise.
 tuple' :: [Printer ()] -> Printer ()
 tuple' = (<-|>) <$> hTuple <*> vTuple'
 
--- | Prints like @(a, b, c)@.
+-- | Runs printers to construct a tuple in a line.
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . hCommaSep
 
--- | Prints like { a
---               , b
---               , c
---               }
+-- | Runs printers to construct a record where elements are aligned
+-- vertically.
 vFields :: [Printer ()] -> Printer ()
 vFields = vLineup ("{", "}")
 
--- | Prints like { a
---               , b
---               , c}
+-- | Similar to 'vFields', but the closing brace is in the same line as the
+-- last element.
 vFields' :: [Printer ()] -> Printer ()
 vFields' = vLineup' ("{", "}")
 
