@@ -153,6 +153,7 @@ spacePrefixed = mapM_ (space >>)
 newlinePrefixed :: [Printer ()] -> Printer ()
 newlinePrefixed = mapM_ (newline >>)
 
+-- | Runs printers with a prefix. The prefix is printed before the indent.
 prefixedLined :: String -> [Printer ()] -> Printer ()
 prefixedLined _ [] = return ()
 prefixedLined pref (x:xs) = do
