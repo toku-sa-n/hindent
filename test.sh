@@ -2,8 +2,8 @@
 
 for f in src/**/*.hs
 do
-    EXPECTED=$(mktemp --suffix=.hs)
-    ACTUAL=$(mktemp --suffix=.hs)
+    EXPECTED=$(mktemp --suffix=.expected.hs)
+    ACTUAL=$(mktemp --suffix=.actual.hs)
     cp $f $EXPECTED
     cp $f $ACTUAL
     echo -n "$f ..."
