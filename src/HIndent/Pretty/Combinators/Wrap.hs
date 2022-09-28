@@ -31,6 +31,7 @@ parensIfSymbol name
 braces :: Printer a -> Printer a
 braces = wrap "{" "}"
 
+-- | This function wraps the printer with brackets.
 brackets :: Printer a -> Printer a
 brackets = wrap "[" "]"
 
