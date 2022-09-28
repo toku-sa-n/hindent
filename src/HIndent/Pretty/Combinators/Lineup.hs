@@ -71,14 +71,12 @@ vFields = vLineup ("{", "}")
 vFields' :: [Printer ()] -> Printer ()
 vFields' = vLineup' ("{", "}")
 
--- | Prints like [a, b, c]
+-- | Runs printers to construct a list in a line.
 hList :: [Printer ()] -> Printer ()
 hList = brackets . vCommaSep
 
--- | Prints like [ a
---               , b
---               , c
---               ]
+-- | Runs printers to construct a list where elements are aligned
+-- vertically.
 vList :: [Printer ()] -> Printer ()
 vList = vLineup ("[", "]")
 
