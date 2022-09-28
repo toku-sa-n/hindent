@@ -1,4 +1,3 @@
--- TODO: Hide `prefixedLined` and `inter`.
 module HIndent.Pretty.Combinators.Lineup
   ( tuple
   , tuple'
