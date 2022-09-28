@@ -219,13 +219,20 @@ drainComments cond = do
   put others
   return xs
 
--- | 'everywhereM' but applies the given function to EPAs in order their
--- positions from backwards.
 everywhereMEpAnnsBackwards ::
      (forall a. EpAnn a -> WithComments (EpAnn a))
   -> HsModule
   -> WithComments HsModule
-everywhereMEpAnnsBackwards f hm =
+everywhereMEpAnnsBackwards = everywhereMEpAnnsInOrder compareEpaByEndPosition
+
+-- | 'everywhereM' but applies the given function to EPAs in order their
+-- positions from backwards.
+everywhereMEpAnnsInOrder ::
+     (forall a b. EpAnn a -> EpAnn b -> Ordering)
+  -> (forall a. EpAnn a -> WithComments (EpAnn a))
+  -> HsModule
+  -> WithComments HsModule
+everywhereMEpAnnsInOrder cmp f hm =
   collectEpAnnsInOrderEverywhereMTraverses >>=
   applyFunctionInOrderEpAnnEndPositions >>=
   putModifiedEpAnnsToModule
@@ -259,10 +266,7 @@ everywhereMEpAnnsBackwards f hm =
         pure (i, Wrapper x')
       where
         indexed = zip [0 :: Int ..] anns
-        sorted =
-          sortBy
-            (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
-            indexed
+        sorted = sortBy (\(_, Wrapper a) (_, Wrapper b) -> cmp a b) indexed
     putModifiedEpAnnsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
       where
         setEpAnn ::
