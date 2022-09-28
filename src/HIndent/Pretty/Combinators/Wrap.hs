@@ -55,6 +55,8 @@ wrapWithBars = wrap "|" "|"
 promotedListBrackets :: Printer a -> Printer a
 promotedListBrackets = wrap "'[ " "]"
 
+-- | This function wraps the printer with @'( @ and @)@ for a promoted
+-- tuple.
 promotedTupleParens :: Printer a -> Printer a
 promotedTupleParens = wrap "'( " ")"
 
