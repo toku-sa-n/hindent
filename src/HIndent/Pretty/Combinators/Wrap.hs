@@ -35,6 +35,7 @@ braces = wrap "{" "}"
 brackets :: Printer a -> Printer a
 brackets = wrap "[" "]"
 
+-- | This function wraps the printer with backticks.
 backticks :: Printer a -> Printer a
 backticks = wrap "`" "`"
 
