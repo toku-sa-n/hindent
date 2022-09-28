@@ -52,9 +52,8 @@ hTuple = parens . hCommaSep
 vTuple :: [Printer ()] -> Printer ()
 vTuple = vLineup ("(", ")")
 
--- | Prints like ( a
---               , b
---               , c)
+-- | Similar to 'vTuple', but the closing parenthesis is in the last
+-- element.
 vTuple' :: [Printer ()] -> Printer ()
 vTuple' = vLineup' ("(", ")")
 
