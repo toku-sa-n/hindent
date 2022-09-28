@@ -20,7 +20,8 @@ import           HIndent.Types
 parens :: Printer a -> Printer a
 parens = wrap "(" ")"
 
--- | Encloses the given printer if the given operator is symbol one.
+-- | This function wraps the printer with parentheses if the identifier
+-- contains only symbols.
 parensIfSymbol :: OccName -> Printer a -> Printer a
 parensIfSymbol name
   | isSymOcc name = parens
