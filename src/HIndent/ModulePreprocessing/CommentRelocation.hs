@@ -232,8 +232,11 @@ everywhereMEpAnnsBackwards f hm =
   applyFunctionInOrderEpAnnEndPositions >>=
   putModifiedEpAnnsToModule
   where
-    collectEpAnnsInOrderEverywhereMTraverses =
-      reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
+    collectEpAnnsInOrderEverywhereMTraverses
+      -- This function uses 'everywhereM' to collect 'EpAnn's because they
+      -- should be collected in the same order as 'putModifiedEpAnnsToModule'
+      -- puts them to the AST.
+     = reverse <$> execStateT (everywhereM collectEpAnnsST hm) []
       where
         collectEpAnnsST x = do
           modify $ collectEpAnns x
@@ -243,9 +246,15 @@ everywhereMEpAnnsBackwards f hm =
           => a
           -> ([Wrapper] -> [Wrapper])
         collectEpAnns x
+          -- If 'a' is 'EpAnn b' ('b' can be any type), wrap 'x' with a 'Wrapper'.
           | App g _ <- typeRep @a
           , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
           | otherwise = id
+    applyFunctionInOrderEpAnnEndPositions ::
+         [Wrapper]
+      -> WithComments [(Int, Wrapper)] -- ^ The first element of the tuple
+                                       -- indicates how many 'Wrapper's were there before 'everywhereM'
+                                       -- accessed the second element.
     applyFunctionInOrderEpAnnEndPositions anns =
       forM sorted $ \(i, Wrapper x) -> do
         x' <- f x
@@ -263,6 +272,7 @@ everywhereMEpAnnsBackwards f hm =
           => a
           -> StateT [Int] WithComments a
         setEpAnn x
+          -- This guard arm checks if 'a' is 'EpAnn b' ('b' can be any type).
           | App g g' <- typeRep @a
           , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = do
             i <- gets head
