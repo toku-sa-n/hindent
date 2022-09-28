@@ -43,7 +43,7 @@ tuple = (<-|>) <$> hTuple <*> vTuple
 tuple' :: [Printer ()] -> Printer ()
 tuple' = (<-|>) <$> hTuple <*> vTuple'
 
--- | Prints like (a, b, c).
+-- | Prints like @(a, b, c)@.
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . hCommaSep
 
