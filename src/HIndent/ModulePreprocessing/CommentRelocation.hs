@@ -223,7 +223,8 @@ everywhereMEpAnnsBackwards ::
      (forall a. EpAnn a -> WithComments (EpAnn a))
   -> HsModule
   -> WithComments HsModule
-everywhereMEpAnnsBackwards = everywhereMEpAnnsInOrder compareEpaByEndPosition
+everywhereMEpAnnsBackwards =
+  everywhereMEpAnnsInOrder (flip compareEpaByEndPosition)
 
 -- | 'everywhereM' but applies the given function to EPAs in order their
 -- positions from backwards.
@@ -293,7 +294,7 @@ sortCommentsByLocation = sortBy (compare `on` anchor . getLoc)
 -- | This function compares given EPAs by their end positions.
 compareEpaByEndPosition :: EpAnn a -> EpAnn b -> Ordering
 compareEpaByEndPosition (EpAnn a _ _) (EpAnn b _ _) =
-  on compare (realSrcSpanEnd . anchor) b a
+  on compare (realSrcSpanEnd . anchor) a b
 compareEpaByEndPosition EpAnnNotUsed EpAnnNotUsed = EQ
 compareEpaByEndPosition _ EpAnnNotUsed = GT
 compareEpaByEndPosition EpAnnNotUsed _ = LT
