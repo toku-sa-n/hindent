@@ -3,11 +3,11 @@ module HIndent.Pretty.Combinators.Lineup
   ( tuple
   , tuple'
   , hTuple
+  , vTuple
+  , vTuple'
   , hFields
   , vFields
   , vFields'
-  , vTuple
-  , vTuple'
   , hList
   , vList
   , hPromotedTuple
