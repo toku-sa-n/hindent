@@ -175,7 +175,7 @@ convertExtension Cabal.ImportQualifiedPost = Just GLP.ImportQualifiedPost
 convertExtension Cabal.CUSKs = Just GLP.CUSKs
 convertExtension Cabal.StandaloneKindSignatures =
   Just GLP.StandaloneKindSignatures
-convertExtension Cabal.DoRec = undefined
+convertExtension Cabal.DoRec = Just GLP.RecursiveDo -- 'DoRec' is deprecated.
 convertExtension Cabal.GeneralisedNewtypeDeriving =
   Just GLP.GeneralizedNewtypeDeriving
 convertExtension Cabal.PatternSignatures = Just GLP.ScopedTypeVariables
