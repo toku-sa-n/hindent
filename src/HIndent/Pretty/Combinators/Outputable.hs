@@ -1,3 +1,5 @@
+-- | Printer combinators for printing values of types implementing
+-- 'Outputable'.
 module HIndent.Pretty.Combinators.Outputable
   ( output
   , showOutputable
