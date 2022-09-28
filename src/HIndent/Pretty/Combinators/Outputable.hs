@@ -17,6 +17,7 @@ import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 --
 -- The use of this function should be avoided if possible because it may
 -- raise an error due to 'showPpr' returning a 'String' containing @\n@s.
+-- Use 'newline' to print @\n@s.
 output :: (HasCallStack, Outputable a) => a -> Printer ()
 output = string . showOutputable
 
