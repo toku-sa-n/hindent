@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
+-- | Printer combinators for switching printers depending on situations.
 module HIndent.Pretty.Combinators.Switch
   ( (<-|>)
   ) where
