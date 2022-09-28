@@ -157,7 +157,7 @@ prefixedLined :: String -> [Printer ()] -> Printer ()
 prefixedLined _ [] = return ()
 prefixedLined pref (x:xs) = do
   x
-  indentedWithSpace (fromIntegral (length pref * (-1))) $
+  indentedWithSpace (fromIntegral $ negate $ length pref) $
     forM_ xs $ \p -> do
       newline
       string pref |=> p
