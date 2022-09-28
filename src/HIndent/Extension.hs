@@ -4,6 +4,7 @@ module HIndent.Extension
   , extensionImplies
   ) where
 
+import           Data.Maybe
 import qualified GHC.Driver.Session           as GLP
 import           HIndent.Extension.Conversion
 import qualified HIndent.Extension.Conversion as EC
@@ -14,7 +15,7 @@ import qualified Language.Haskell.Extension   as Cabal
 -- (e.g., GHC2021) enables.
 implicitExtensions :: GLP.Language -> [Cabal.Extension]
 implicitExtensions =
-  fmap glpExtensionToCabalExtension . GLP.languageExtensions . Just
+  mapMaybe glpExtensionToCabalExtension . GLP.languageExtensions . Just
 
 -- | This function returns a list of extensions that the passed extension
 -- enables.
