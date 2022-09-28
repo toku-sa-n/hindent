@@ -46,6 +46,7 @@ backticksIfNotSymbol name
   | isSymOcc name = id
   | otherwise = backticks
 
+-- | This function wraps the printer with bars (|).
 wrapWithBars :: Printer a -> Printer a
 wrapWithBars = wrap "|" "|"
 
