@@ -61,10 +61,8 @@ vFields = vLineup ("{", "}")
 vFields' :: [Printer ()] -> Printer ()
 vFields' = vLineup' ("{", "}")
 
--- | Prints like ( a
---               , b
---               , c
---               )
+-- | Runs printers to construct a tuple where elements are aligned
+-- vertically.
 vTuple :: [Printer ()] -> Printer ()
 vTuple = vLineup ("(", ")")
 
