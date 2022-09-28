@@ -9,6 +9,8 @@ import           Data.Int
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 
+-- | Returns the column from which a new string is printed. It may be
+-- different from 'psColumn' immediately after printing a comment.
 startingColumn :: Printer Int64
 startingColumn = do
   before <- get
