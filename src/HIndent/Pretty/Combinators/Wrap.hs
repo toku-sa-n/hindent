@@ -27,6 +27,7 @@ parensIfSymbol name
   | isSymOcc name = parens
   | otherwise = id
 
+-- | This function wraps the printer with braces.
 braces :: Printer a -> Printer a
 braces = wrap "{" "}"
 
