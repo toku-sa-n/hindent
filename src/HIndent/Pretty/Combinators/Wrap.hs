@@ -1,3 +1,4 @@
+-- | Printer operators for wrapping texts with a prefix and a suffix.
 module HIndent.Pretty.Combinators.Wrap
   ( parens
   , parensIfSymbol
