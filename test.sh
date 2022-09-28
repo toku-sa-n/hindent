@@ -2,14 +2,17 @@
 
 for f in src/**/*.hs
 do
-    TMPFILE=$(mktemp --suffix=.hs)
-    cp $f $TMPFILE
+    EXPECTED=$(mktemp --suffix=.hs)
+    ACTUAL=$(mktemp --suffix=.hs)
+    cp $f $EXPECTED
+    cp $f $ACTUAL
     echo -n "$f ..."
-    hindent -- $TMPFILE > /dev/null
-    if ! (cabal build && cabal run hindent -- --validate $TMPFILE) > /dev/null
+    hindent -- $EXPECTED > /dev/null
+    cabal run hindent -- $ACTUAL > /dev/null
+    if ! diff $EXPECTED $ACTUAL > /dev/null
     then
         echo "$f is not formatted."
-        cabal run hindent < $TMPFILE | diff --unified=0 $TMPFILE -
+        vimdiff $EXPECTED $ACTUAL
         break
     fi
     echo " OK."
