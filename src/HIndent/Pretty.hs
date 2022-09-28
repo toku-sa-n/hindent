@@ -498,6 +498,12 @@ instance Pretty (Sig GhcPs) where
       pretty xs
       string " #-}"
   pretty' x = output x
+  commentsBefore (TypeSig x _ _) = commentsBefore x
+  commentsBefore _               = []
+  commentOnSameLine (TypeSig x _ _) = commentOnSameLine x
+  commentOnSameLine _               = Nothing
+  commentsAfter (TypeSig x _ _) = commentsAfter x
+  commentsAfter _               = []
 
 instance Pretty DeclSig where
   pretty' (DeclSig (TypeSig _ funName params)) = do
@@ -520,6 +526,9 @@ instance Pretty DeclSig where
           pretty $ HsSigTypeInsideDeclSig <$> hswc_body params
       printFunName = pretty $ head funName
   pretty' (DeclSig x) = pretty x
+  commentsBefore (DeclSig x) = commentsBefore x
+  commentOnSameLine (DeclSig x) = commentOnSameLine x
+  commentsAfter (DeclSig x) = commentsAfter x
 
 instance Pretty (HsDataDefn GhcPs) where
   pretty' HsDataDefn {..} =

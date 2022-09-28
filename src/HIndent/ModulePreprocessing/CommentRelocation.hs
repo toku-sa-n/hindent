@@ -145,7 +145,7 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
     f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereM (applyM modifyAnns) g
+      everywhereMEpAnnsForwards modifyAnns g
       where
         modifyAnns :: EpAnn a -> WithComments (EpAnn a)
         modifyAnns epa@EpAnn {..}
@@ -219,20 +219,29 @@ drainComments cond = do
   put others
   return xs
 
+everywhereMEpAnnsForwards ::
+     Data a
+  => (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
+everywhereMEpAnnsForwards = everywhereMEpAnnsInOrder compareEpaByEndPosition
+
 everywhereMEpAnnsBackwards ::
-     (forall a. EpAnn a -> WithComments (EpAnn a))
-  -> HsModule
-  -> WithComments HsModule
+     Data a
+  => (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
 everywhereMEpAnnsBackwards =
   everywhereMEpAnnsInOrder (flip compareEpaByEndPosition)
 
 -- | 'everywhereM' but applies the given function to EPAs in order their
 -- positions from backwards.
 everywhereMEpAnnsInOrder ::
-     (forall a b. EpAnn a -> EpAnn b -> Ordering)
-  -> (forall a. EpAnn a -> WithComments (EpAnn a))
-  -> HsModule
-  -> WithComments HsModule
+     Data a
+  => (forall b c. EpAnn b -> EpAnn c -> Ordering)
+  -> (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
 everywhereMEpAnnsInOrder cmp f hm =
   collectEpAnnsInOrderEverywhereMTraverses >>=
   applyFunctionInOrderEpAnnEndPositions >>=
