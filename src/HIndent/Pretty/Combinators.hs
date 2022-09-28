@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module HIndent.Pretty.Combinators
   ( eolCommentsArePrinted
   , startingColumn
