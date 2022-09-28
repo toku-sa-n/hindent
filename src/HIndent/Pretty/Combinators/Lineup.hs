@@ -80,11 +80,11 @@ hList = brackets . vCommaSep
 vList :: [Printer ()] -> Printer ()
 vList = vLineup ("[", "]")
 
--- | Prints like '( a, b, c).
+-- | Runs printers to construct a promoted tuple in a line.
 hPromotedTuple :: [Printer ()] -> Printer ()
 hPromotedTuple = promotedTupleParens . hCommaSep
 
--- | Prints like '[ a, b, c]
+-- | Runs printers to construct a promoted list in a line.
 hPromotedList :: [Printer ()] -> Printer ()
 hPromotedList = promotedListBrackets . hCommaSep
 
@@ -97,7 +97,7 @@ vLineup (prefix, suffix) ps =
     newline
     indentedWithSpace (-(fromIntegral (length prefix) + 1)) $ string suffix
 
--- | Similar to 'vLineup' but the suffix is on the same line as the last
+-- | Similar to 'vLineup' but the suffix is in the same line as the last
 -- element.
 vLineup' :: (String, String) -> [Printer ()] -> Printer ()
 vLineup' (prefix, suffix) ps =
@@ -106,44 +106,46 @@ vLineup' (prefix, suffix) ps =
     vCommaSep ps
     string suffix
 
+-- | Runs printers in a line with a space as the separator.
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space
 
+-- | Runs printers line by line.
 lined :: [Printer ()] -> Printer ()
 lined = inter newline
 
+-- | Runs printers with a blank line as the separator.
 blanklined :: [Printer ()] -> Printer ()
 blanklined = inter blankline
 
--- | Apply 'hBarSep' or 'vBarSep' appropriately.
+-- | Applies 'hBarSep' if the result fits in a line or 'vBarSep' otherwise.
 barSep :: [Printer ()] -> Printer ()
 barSep = (<-|>) <$> hBarSep <*> vBarSep
 
--- | Prints like 'a | b | c'.
+-- | Runs printers in a line with a bar as the separator.
 hBarSep :: [Printer ()] -> Printer ()
 hBarSep = inter (string " | ")
 
--- | Prints like a
---             | b
---             | c
+-- | Runs printers where each line except the first one has @| @ as
+-- a prefix.
 vBarSep :: [Printer ()] -> Printer ()
 vBarSep = prefixedLined "| "
 
--- | Apply 'hCommaSep' or 'vCommaSep'.
+-- | Applies 'hCommaSep' if the result fits in a line or 'vCommaSep'
+-- otherwise.
 commaSep :: [Printer ()] -> Printer ()
 commaSep = (<-|>) <$> hCommaSep <*> vCommaSep
 
--- | Prints like 'a, b, c'.
+-- | Runs printers in a line with a comma as the separator.
 hCommaSep :: [Printer ()] -> Printer ()
 hCommaSep = inter (string ", ")
 
--- | Prints like a
---             , b
---             , c.
+-- | Runs printers with each line except the first one has @, @ as
+-- a prefix.
 vCommaSep :: [Printer ()] -> Printer ()
 vCommaSep = prefixedLined ", "
 
--- | Prints each element after a space like ' a b c'
+-- | Prints each element after a space like.
 spacePrefixed :: [Printer ()] -> Printer ()
 spacePrefixed = mapM_ (space >>)
 
