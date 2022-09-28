@@ -4,8 +4,8 @@ module HIndent.Pretty.Combinators.Wrap
   , parensIfSymbol
   , braces
   , brackets
-  , tick
-  , tickIfNotSymbol
+  , backticks
+  , backticksIfNotSymbol
   , wrapWithBars
   , promotedListBrackets
   , promotedTupleParens
@@ -35,13 +35,13 @@ braces = wrap "{" "}"
 brackets :: Printer a -> Printer a
 brackets = wrap "[" "]"
 
-tick :: Printer a -> Printer a
-tick = wrap "`" "`"
+backticks :: Printer a -> Printer a
+backticks = wrap "`" "`"
 
-tickIfNotSymbol :: OccName -> Printer a -> Printer a
-tickIfNotSymbol name
+backticksIfNotSymbol :: OccName -> Printer a -> Printer a
+backticksIfNotSymbol name
   | isSymOcc name = id
-  | otherwise = tick
+  | otherwise = backticks
 
 wrapWithBars :: Printer a -> Printer a
 wrapWithBars = wrap "|" "|"

@@ -1872,14 +1872,14 @@ instance Pretty (HsForAllTelescope GhcPs) where
       _                                    -> undefined
 
 instance Pretty InfixOp where
-  pretty' (InfixOp (Unqual name)) = tickIfNotSymbol name $ output name
+  pretty' (InfixOp (Unqual name)) = backticksIfNotSymbol name $ output name
   pretty' (InfixOp (Qual modName name)) =
-    tickIfNotSymbol name $ do
+    backticksIfNotSymbol name $ do
       output modName
       string "."
       output name
   pretty' (InfixOp Orig {}) = undefined
-  pretty' (InfixOp (Exact name)) = tickIfNotSymbol occ $ output occ
+  pretty' (InfixOp (Exact name)) = backticksIfNotSymbol occ $ output occ
     where
       occ = occName name
 
