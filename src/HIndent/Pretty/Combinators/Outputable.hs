@@ -11,10 +11,7 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
-output ::
-     HasCallStack
-  => Outputable a =>
-       a -> Printer ()
+output :: (HasCallStack, Outputable a) => a -> Printer ()
 output = string . showOutputable
 
 showOutputable :: Outputable a => a -> String
