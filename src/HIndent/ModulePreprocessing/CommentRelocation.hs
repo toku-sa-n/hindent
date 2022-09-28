@@ -145,7 +145,7 @@ relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
     f :: GRHSs GhcPs (LHsExpr GhcPs)
       -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
     f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereM (applyM modifyAnns) g
+      everywhereMEpAnnsForwards modifyAnns g
       where
         modifyAnns :: EpAnn a -> WithComments (EpAnn a)
         modifyAnns epa@EpAnn {..}
@@ -219,13 +219,30 @@ drainComments cond = do
   put others
   return xs
 
+everywhereMEpAnnsForwards ::
+     Data a
+  => (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
+everywhereMEpAnnsForwards = everywhereMEpAnnsInOrder compareEpaByEndPosition
+
+everywhereMEpAnnsBackwards ::
+     Data a
+  => (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
+everywhereMEpAnnsBackwards =
+  everywhereMEpAnnsInOrder (flip compareEpaByEndPosition)
+
 -- | 'everywhereM' but applies the given function to EPAs in order their
 -- positions from backwards.
-everywhereMEpAnnsBackwards ::
-     (forall a. EpAnn a -> WithComments (EpAnn a))
-  -> HsModule
-  -> WithComments HsModule
-everywhereMEpAnnsBackwards f hm =
+everywhereMEpAnnsInOrder ::
+     Data a
+  => (forall b c. EpAnn b -> EpAnn c -> Ordering)
+  -> (forall b. EpAnn b -> WithComments (EpAnn b))
+  -> a
+  -> WithComments a
+everywhereMEpAnnsInOrder cmp f hm =
   collectEpAnnsInOrderEverywhereMTraverses >>=
   applyFunctionInOrderEpAnnEndPositions >>=
   putModifiedEpAnnsToModule
@@ -259,10 +276,7 @@ everywhereMEpAnnsBackwards f hm =
         pure (i, Wrapper x')
       where
         indexed = zip [0 :: Int ..] anns
-        sorted =
-          sortBy
-            (\(_, Wrapper a) (_, Wrapper b) -> compareEpaByEndPosition a b)
-            indexed
+        sorted = sortBy (\(_, Wrapper a) (_, Wrapper b) -> cmp a b) indexed
     putModifiedEpAnnsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
       where
         setEpAnn ::
@@ -289,7 +303,7 @@ sortCommentsByLocation = sortBy (compare `on` anchor . getLoc)
 -- | This function compares given EPAs by their end positions.
 compareEpaByEndPosition :: EpAnn a -> EpAnn b -> Ordering
 compareEpaByEndPosition (EpAnn a _ _) (EpAnn b _ _) =
-  on compare (realSrcSpanEnd . anchor) b a
+  on compare (realSrcSpanEnd . anchor) a b
 compareEpaByEndPosition EpAnnNotUsed EpAnnNotUsed = EQ
 compareEpaByEndPosition _ EpAnnNotUsed = GT
 compareEpaByEndPosition EpAnnNotUsed _ = LT
