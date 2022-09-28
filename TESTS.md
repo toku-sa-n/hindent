@@ -2108,7 +2108,7 @@ topLevelFunc2 = f . g
     {- multi
        line
        comment -}
-    f = undefined
+    f = undefined -- single line comment
     -- single line comment
     g :: a
     g = undefined
