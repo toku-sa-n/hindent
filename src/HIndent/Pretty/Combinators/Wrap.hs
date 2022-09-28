@@ -60,5 +60,6 @@ promotedListBrackets = wrap "'[ " "]"
 promotedTupleParens :: Printer a -> Printer a
 promotedTupleParens = wrap "'( " ")"
 
+-- | This function wraps the printer with the prefix and the suffix.
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p = string open |=> p <* string close
