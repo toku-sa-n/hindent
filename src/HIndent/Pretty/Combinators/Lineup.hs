@@ -163,5 +163,7 @@ prefixedLined pref (x:xs) = do
       newline
       string pref |=> p
 
+-- Inserts the first printer between each element of the list passed as the
+-- second argument and runs them.
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter separator = sequence_ . intersperse separator
