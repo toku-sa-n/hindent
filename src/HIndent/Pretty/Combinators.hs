@@ -1,24 +1,15 @@
 {-# LANGUAGE CPP #-}
 
 module HIndent.Pretty.Combinators
-  ( prefixed
-  , eolCommentsArePrinted
+  ( eolCommentsArePrinted
   , startingColumn
   , printerLength
   ) where
 
 import           Control.Monad.RWS                 hiding (state)
 import           Data.Int
-import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
-
--- | Prints the text passed as the first argument before the current
--- position and then the second argument.
-prefixed :: String -> Printer () -> Printer ()
-prefixed s p = do
-  indentedWithSpace (-(fromIntegral $ length s)) $ string s
-  p
 
 eolCommentsArePrinted :: Printer ()
 eolCommentsArePrinted = modify (\s -> s {psEolComment = True})

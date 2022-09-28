@@ -4,11 +4,13 @@ module HIndent.Pretty.Combinators.Indent
   , indentedWithSpace
   , (|=>)
   , indentedWithFixedLevel
+  , prefixed
   , getIndentSpaces
   ) where
 
 import           Control.Monad.State
 import           Data.Int
+import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 
 -- | This function runs the given printer with an additional indent. The
@@ -51,6 +53,13 @@ indentedWithFixedLevel i p = do
   m <- p
   modify (\s -> s {psIndentLevel = l})
   return m
+
+-- | Prints the text passed as the first argument before the current
+-- position and then the second argument.
+prefixed :: String -> Printer () -> Printer ()
+prefixed s p = do
+  indentedWithSpace (-(fromIntegral $ length s)) $ string s
+  p
 
 -- | This function returns the current indent level.
 getIndentSpaces :: Printer Int64
