@@ -47,7 +47,7 @@ tuple' = (<-|>) <$> hTuple <*> vTuple'
 hTuple :: [Printer ()] -> Printer ()
 hTuple = parens . hCommaSep
 
--- | Print like {a, b, c}.
+-- | Runs printers to construct a record in a line.
 hFields :: [Printer ()] -> Printer ()
 hFields = braces . hCommaSep
 
