@@ -1,3 +1,4 @@
+-- | A module to import all @HIndent.Pretty.Combinators.*@s.
 module HIndent.Pretty.Combinators
   ( module HIndent.Pretty.Combinators.Comment
   , module HIndent.Pretty.Combinators.Getter
