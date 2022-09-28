@@ -1,44 +1,17 @@
 {-# LANGUAGE CPP #-}
 
 module HIndent.Pretty.Combinators
-  ( output
-  , showOutputable
-  , prefixed
+  ( prefixed
   , eolCommentsArePrinted
   , startingColumn
   , printerLength
   ) where
 
-import           Control.Monad.RWS                                   hiding
-                                                                     (state)
+import           Control.Monad.RWS                 hiding (state)
 import           Data.Int
-#if MIN_VERSION_ghc_lib_parser(9,2,2)
-import           GHC.Driver.Ppr
-#endif
-import           GHC.Driver.Session
-import           GHC.Stack
-import           GHC.Utils.Outputable                                hiding
-                                                                     (brackets,
-                                                                      comma,
-                                                                      parens,
-                                                                      space,
-                                                                      (<>))
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
-import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
-
-output ::
-     HasCallStack
-  => Outputable a =>
-       a -> Printer ()
-output = string . showOutputable
-
-showOutputable :: Outputable a => a -> String
-showOutputable = showPpr dynFlags
-
-dynFlags :: DynFlags
-dynFlags = defaultDynFlags fakeSettings fakeLlvmConfig
 
 -- | Prints the text passed as the first argument before the current
 -- position and then the second argument.

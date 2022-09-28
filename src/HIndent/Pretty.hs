@@ -18,7 +18,7 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                      hiding (Infix, Prefix)
+import           Generics.SYB                          hiding (Infix, Prefix)
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
@@ -35,6 +35,7 @@ import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Combinators.Indent
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.Op
+import           HIndent.Pretty.Combinators.Outputable
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.Combinators.Switch
 import           HIndent.Pretty.Combinators.Wrap

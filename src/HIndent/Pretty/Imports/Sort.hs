@@ -12,7 +12,7 @@ import           Data.Maybe
 import           GHC.Hs
 import           GHC.Stack
 import           GHC.Types.SrcLoc
-import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Combinators.Outputable
 
 -- | The letter type of a 'Char'.
 --
