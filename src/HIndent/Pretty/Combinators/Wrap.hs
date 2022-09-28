@@ -39,6 +39,8 @@ brackets = wrap "[" "]"
 backticks :: Printer a -> Printer a
 backticks = wrap "`" "`"
 
+-- | This function wraps the printer with backticks if the identifier
+-- contains at least one non-symbol character.
 backticksIfNotSymbol :: OccName -> Printer a -> Printer a
 backticksIfNotSymbol name
   | isSymOcc name = id
