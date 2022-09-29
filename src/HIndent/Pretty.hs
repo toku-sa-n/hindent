@@ -1648,7 +1648,7 @@ instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (Pat GhcPs
   pretty' HsRecField {..} =
     (pretty hsRecFieldLbl >> string " = ") |=> pretty hsRecFieldArg
 
--- For record updates.
+-- | For record updates.
 instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecField {..} = horizontal <-|> vertical
     where
