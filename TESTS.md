@@ -700,6 +700,9 @@ f :: (forall a. Data a =>
   -> (forall a. Data a =>
                   a -> a)
 f = undefined
+
+g :: forall a b. a -> b
+g = undefined
 ```
 
 # Function declarations
