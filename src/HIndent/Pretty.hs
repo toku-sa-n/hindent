@@ -1893,9 +1893,10 @@ instance Pretty (HsForAllTelescope GhcPs) where
   pretty' HsForAllInvis {..} = do
     string "forall"
     forM_ hsf_invis_bndrs $ \case
-      (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty) >> dot
-      (L _ (UserTyVar _ InferredSpec _))   -> return ()
+      (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty)
+      (L l (UserTyVar _ InferredSpec ty))  -> space >> pretty (L l ty)
       _                                    -> undefined
+    dot
 
 instance Pretty InfixOp where
   pretty' (InfixOp (Unqual name)) = backticksIfNotSymbol name $ output name
