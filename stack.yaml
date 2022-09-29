@@ -1,5 +1,5 @@
 resolver: lts-19.23
-compiler: ghc-9.2.2
+compiler: ghc-9.2.4
 packages:
 - '.'
 extra-deps:
