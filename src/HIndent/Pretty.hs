@@ -1529,13 +1529,17 @@ prettyPat p@NPlusKPat {} = output p
 prettyPat p@SigPat {} = output p
 
 instance Pretty RecConPat where
-  pretty' (RecConPat HsRecFields {..}) = horizontal <-|> vertical
+  pretty' (RecConPat HsRecFields {..}) =
+    case rec_dotdot of
+      Just _  -> braces $ string ".."
+      Nothing -> horizontal <-|> vertical
     where
-      horizontal =
-        case rec_dotdot of
-          Just _  -> braces $ string ".."
-          Nothing -> hFields $ fmap (pretty . fmap RecConField) rec_flds
-      vertical = vFields $ fmap (pretty . fmap RecConField) rec_flds
+      horizontal = hFields $ fmap (pretty . fmap RecConField) rec_flds
+      vertical =
+        case rec_flds of
+          []  -> string "{}"
+          [x] -> braces $ pretty x
+          _   -> vFields $ fmap (pretty . fmap RecConField) rec_flds
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
