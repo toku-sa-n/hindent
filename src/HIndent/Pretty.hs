@@ -1072,9 +1072,18 @@ instance Pretty StmtLRInsideVerticalList where
     vBarSep $ fmap (pretty . ParStmtBlockInsideVerticalList) xs
   pretty' (StmtLRInsideVerticalList x) = pretty x
 
--- FIXME: Reconsider using a type variable. Using type variables may need
--- to define odd instances (e.g., Void).
-instance Pretty a => Pretty (HsRecFields GhcPs a) where
+-- | For pattern matching.
+instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (Pat GhcPs))) where
+  pretty' HsRecFields {..} = horizontal <-|> vertical
+    where
+      horizontal =
+        case rec_dotdot of
+          Just _  -> braces $ string ".."
+          Nothing -> hFields $ fmap pretty rec_flds
+      vertical = vFields $ fmap pretty rec_flds
+
+-- | For record updates
+instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecFields {..} = horizontal <-|> vertical
     where
       horizontal =
@@ -1634,9 +1643,13 @@ instance Pretty RecConField where
       string " = "
       pretty hfbRHS
 #else
--- FIXME: Reconsider using a type variable. Using type variables may need
--- to define odd instances (e.g., Void).
-instance (Pretty a, Pretty b) => Pretty (HsRecField' a b) where
+-- | For pattern matching against a record.
+instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (Pat GhcPs))) where
+  pretty' HsRecField {..} =
+    (pretty hsRecFieldLbl >> string " = ") |=> pretty hsRecFieldArg
+
+-- For record updates.
+instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecField {..} = horizontal <-|> vertical
     where
       horizontal = do
