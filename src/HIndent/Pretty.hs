@@ -1665,9 +1665,12 @@ instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr Gh
           indentedBlock $ pretty hsRecFieldArg
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
--- FIXME: Reconsider using a type variable. Using type variables may need
--- to define odd instances (e.g., Void).
-instance (Pretty a, Pretty b) => Pretty (HsFieldBind a b) where
+-- | For pattern matchings against records.
+instance Pretty (HsFieldBind (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs)) (GenLocated SrcSpanAnnA (Pat GhcPs))) where
+  pretty' HsFieldBind {..} = (pretty hfbLHS >> string " = ") |=> pretty hfbRHS
+
+-- | For record updates.
+instance Pretty (HsFieldBind (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs)) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsFieldBind {..} = horizontal <-|> vertical
     where
       horizontal = do
