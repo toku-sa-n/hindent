@@ -1329,13 +1329,14 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       ver = do
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHS _ [] body) = horizontal <-|> vertical
+  pretty' (GRHS _ [] body) = do
+    string " ="
+    horizontal <-|> vertical
     where
       horizontal = do
-        string " = "
+        space
         pretty body
       vertical = do
-        string " ="
         newline
         indentedBlock $ pretty body
   pretty' (GRHS _ guards body) = do
