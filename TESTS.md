@@ -1753,7 +1753,10 @@ ttuegel Record formatting applied to expressions with RecordWildCards #274
 
 ```haskell
 -- https://github.com/chrisdone/hindent/issues/274
-foo (Bar {..}) = Bar {..}
+foo (bar@Bar {..}) = Bar {..}
+
+resetModuleNameColumn m@HsModule {hsmodName = Just (L (SrcSpanAnn epa@EpAnn {..} sp) name)} =
+  m
 ```
 
 RecursiveDo `rec` and `mdo` keyword #328
