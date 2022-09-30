@@ -1,4 +1,4 @@
--- | Pretty-printing pragmas
+-- | Pretty-printing pragmas and 'GHC_OPTIONS'
 module HIndent.Pretty.Pragma
   ( prettyPragmas
   , pragmaExists
@@ -13,17 +13,17 @@ import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
 import           Text.Regex.TDFA
 
--- | This function pretty-prints the module's pragmas.
+-- | This function pretty-prints the module's pragmas and 'GHC_OPTIONS'.
 prettyPragmas :: HsModule -> Printer ()
 prettyPragmas = lined . fmap string . collectPragmas
 
--- | This function returns a 'True' if the module has pragmas. Otherwise,
--- it returns a 'False'.
+-- | This function returns a 'True' if the module has pragmas and
+-- 'GHC_OPTIONS'. Otherwise, it returns a 'False'.
 pragmaExists :: HsModule -> Bool
 pragmaExists = not . null . collectPragmas
 
--- | This function collects pragma comments from the given module and
--- modifies them into 'String's.
+-- | This function collects pragma comments and 'GHC_OPTIONS' from the
+-- given module and modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   fmap constructPragma .
@@ -35,9 +35,9 @@ collectPragmas =
     constructPragma (optionOrPragma, x) =
       "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}"
 
--- | This function returns a 'Just' value with the pragma extracted from
--- the passed 'EpaCommentTok' if it has one. Otherwise, it returns
--- a 'Nothing'.
+-- | This function returns a 'Just' value with the pragma or 'GHC_OPTIONS'
+-- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
+-- returns a 'Nothing'.
 extractPraGmergea :: EpaCommentTok -> Maybe (String, String)
 extractPraGmergea (EpaBlockComment c) =
   case regexResult of
@@ -48,11 +48,11 @@ extractPraGmergea (EpaBlockComment c) =
 extractPraGmergea _ = Nothing
 
 -- | This function returns a 'True' if the passed 'EpaCommentTok' is
--- a pragma. Otherwise, it returns a 'False'.
+-- a pragma or a 'GHC_OPTIONS'. Otherwise, it returns a 'False'.
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ pragmaRegex
 isPragma _                   = False
 
--- | A regex to match against a pragma.
+-- | A regex to match against a pragma or a 'GHC_OPTIONS'.
 pragmaRegex :: String
 pragmaRegex = "{-# +(LANGUAGE|OPTIONS_GHC) +([a-zA-Z0-9-]+) +#-}"
