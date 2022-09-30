@@ -141,30 +141,21 @@ relocateCommentsTopLevelWhereClause m@HsModule {..} = do
   hsmodDecls' <- mapM relocateCommentsDeclWhereClause hsmodDecls
   pure m {hsmodDecls = hsmodDecls'}
   where
-    relocateCommentsDeclWhereClause (L l (ValD ext (FunBind { fun_matches = MG {..}
-                                                            , ..
-                                                            }))) = do
+    relocateCommentsDeclWhereClause (L l (ValD ext fb@(FunBind {fun_matches = MG {..}}))) = do
       mg_alts' <- mapM (mapM relocateCommentsMatch) mg_alts
-      pure $
-        L l (ValD ext FunBind {fun_matches = MG {mg_alts = mg_alts', ..}, ..})
+      pure $ L l (ValD ext fb {fun_matches = MG {mg_alts = mg_alts', ..}})
     relocateCommentsDeclWhereClause x = pure x
-    relocateCommentsMatch (L l Match { m_grhss = GRHSs { grhssLocalBinds = (HsValBinds ext (ValBinds ext' binds sigs))
-                                                       , ..
-                                                       }
-                                     , ..
-                                     }) = do
+    relocateCommentsMatch (L l match@Match {m_grhss = gs@GRHSs {grhssLocalBinds = (HsValBinds ext (ValBinds ext' binds sigs))}}) = do
       (binds', sigs') <- relocateCommentsBindsSigs binds sigs
       pure $
         L
           l
-          Match
+          match
             { m_grhss =
-                GRHSs
+                gs
                   { grhssLocalBinds =
                       HsValBinds ext (ValBinds ext' binds' sigs')
-                  , ..
                   }
-            , ..
             }
     relocateCommentsMatch x = pure x
     relocateCommentsBindsSigs ::
