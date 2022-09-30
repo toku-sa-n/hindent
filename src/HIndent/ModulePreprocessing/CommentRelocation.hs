@@ -185,9 +185,7 @@ relocateCommentsTopLevelWhereClause m@HsModule {..} = do
         ( listToBag $ catMaybes $ filterBind bindsSigs'
         , catMaybes $ filterSig bindsSigs')
       where
-        bindsSigs =
-          sortBy (compare `on` srcSpanToRealSrcSpan . locA . getLoc) $
-          fmap (fmap Bind) (bagToList binds) ++ fmap (fmap Sig) sigs
+        bindsSigs = mkSortedLSigBindFamilyList sigs (bagToList binds) []
         filterBind =
           fmap
             (\case

@@ -14,7 +14,6 @@ module HIndent.Pretty
 
 import           Control.Monad
 import           Control.Monad.RWS
-import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Void
@@ -440,9 +439,7 @@ instance Pretty (TyClDecl GhcPs) where
           (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
           indentedBlock $ string " where"
       sigsMethodsFamilies =
-        sortBy (compare `on` realSrcSpan . locA . getLoc) $
-        fmap (fmap Sig) tcdSigs ++
-        fmap (fmap Bind) (bagToList tcdMeths) ++ fmap (fmap TypeFamily) tcdATs
+        mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..} = pretty cid_inst
@@ -1621,9 +1618,7 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
       -- TODO: Merge this where clause with the one in the 'ClassDecl' of
       -- 'TyClDecl'.
     where
-      sigsAndMethods =
-        sortBy (compare `on` realSrcSpan . locA . getLoc) $
-        fmap (fmap Sig) sigs ++ fmap (fmap Bind) (bagToList methods)
+      sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) []
   pretty' x = output x
 
 instance Pretty (HsTupArg GhcPs) where
