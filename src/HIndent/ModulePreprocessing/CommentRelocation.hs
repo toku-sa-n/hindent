@@ -105,19 +105,6 @@ relocateCommentsBeforeTopLevelDecls = everywhereM (applyM f)
       srcSpanStartCol comAnc == 1 &&
       srcSpanStartLine comAnc < srcSpanStartLine anc
 
--- | This function locates comments that start from the same line of nodes'
--- end lines.
-relocateCommentsSameLineAfterNode :: HsModule -> WithComments HsModule
-relocateCommentsSameLineAfterNode = everywhereM (applyM f)
-  where
-    f epa@EpAnn {..} =
-      insertCommentsByPos
-        (isOnSameLine $ anchor entry)
-        insertFollowingComments
-        epa
-    f EpAnnNotUsed = pure EpAnnNotUsed
-    isOnSameLine anc comAnc = srcSpanStartLine comAnc == srcSpanEndLine anc
-
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool above each node on it. Comments are
 -- stored in the 'followingComments' of 'EpaCommentsBalanced'.
@@ -133,6 +120,19 @@ relocateCommentsSameLineRev = everywhereMEpAnnsBackwards f
     isOnSameLine anc comAnc =
       srcSpanStartLine comAnc == srcSpanStartLine anc &&
       srcSpanStartLine comAnc == srcSpanEndLine anc
+
+-- | This function locates comments that start from the same line of nodes'
+-- end lines.
+relocateCommentsSameLineAfterNode :: HsModule -> WithComments HsModule
+relocateCommentsSameLineAfterNode = everywhereM (applyM f)
+  where
+    f epa@EpAnn {..} =
+      insertCommentsByPos
+        (isOnSameLine $ anchor entry)
+        insertFollowingComments
+        epa
+    f EpAnnNotUsed = pure EpAnnNotUsed
+    isOnSameLine anc comAnc = srcSpanStartLine comAnc == srcSpanEndLine anc
 
 -- | This function locates comments above the top-level declarations in
 -- a 'where' clause in the topmost declaration.
