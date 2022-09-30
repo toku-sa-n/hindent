@@ -41,9 +41,9 @@ import           GHC.Types.PkgQual
 -- TODO: Document why we declare data and newtypes, and not define
 -- functions instead.
 data SigMethodsFamily
-  = Sig (LSig GhcPs)
-  | Method (LHsBindLR GhcPs GhcPs)
-  | TypeFamily (LFamilyDecl GhcPs)
+  = Sig (Sig GhcPs)
+  | Method (HsBindLR GhcPs GhcPs)
+  | TypeFamily (FamilyDecl GhcPs)
 
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
@@ -444,13 +444,9 @@ instance Pretty (TyClDecl GhcPs) where
           (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
           indentedBlock $ string " where"
       sigsMethodsFamilies =
-        sortByLocation $
-        fmap Sig tcdSigs ++
-        fmap Method (bagToList tcdMeths) ++ fmap TypeFamily tcdATs
-      sortByLocation = sortBy (compare `on` getLocation)
-      getLocation (Sig x)        = realSrcSpan $ locA $ getLoc x
-      getLocation (Method x)     = realSrcSpan $ locA $ getLoc x
-      getLocation (TypeFamily x) = realSrcSpan $ locA $ getLoc x
+        sortBy (compare `on` realSrcSpan . locA . getLoc) $
+        fmap (fmap Sig) tcdSigs ++
+        fmap (fmap Method) (bagToList tcdMeths) ++ fmap (fmap TypeFamily) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..} = pretty cid_inst
@@ -1576,7 +1572,7 @@ instance Pretty (HsBracket GhcPs) where
   pretty' TExpBr {} = undefined
 #endif
 instance Pretty SigMethodsFamily where
-  pretty' (Sig x)        = pretty $ fmap DeclSig x
+  pretty' (Sig x)        = pretty $ DeclSig x
   pretty' (Method x)     = pretty x
   pretty' (TypeFamily x) = pretty x
 
@@ -1630,11 +1626,8 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
       -- 'TyClDecl'.
     where
       sigsAndMethods =
-        sortByLocation $ fmap Sig sigs ++ fmap Method (bagToList methods)
-      sortByLocation = sortBy (compare `on` getLocation)
-      getLocation (Sig x)       = realSrcSpan $ locA $ getLoc x
-      getLocation (Method x)    = realSrcSpan $ locA $ getLoc x
-      getLocation TypeFamily {} = undefined
+        sortBy (compare `on` realSrcSpan . locA . getLoc) $
+        fmap (fmap Sig) sigs ++ fmap (fmap Method) (bagToList methods)
   pretty' x = output x
 
 instance Pretty (HsTupArg GhcPs) where
