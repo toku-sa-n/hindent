@@ -78,7 +78,7 @@ vFields' = vLineup' ("{", "}")
 
 -- | Runs printers to construct a list in a line.
 hList :: [Printer ()] -> Printer ()
-hList = brackets . vCommaSep
+hList = brackets . hCommaSep
 
 -- | Runs printers to construct a list where elements are aligned
 -- vertically.
