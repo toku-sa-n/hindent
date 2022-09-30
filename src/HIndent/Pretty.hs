@@ -1009,10 +1009,7 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     case mc_fixity m_ctxt of
       Prefix -> do
         pretty m_ctxt
-        -- TODO: Use 'spacePrefixed'.
-        unless (null m_pats) $ do
-          space
-          spaced $ fmap pretty m_pats
+        spacePrefixed $ fmap pretty m_pats
         pretty m_grhss
       Infix -> do
         case (m_pats, m_ctxt) of
