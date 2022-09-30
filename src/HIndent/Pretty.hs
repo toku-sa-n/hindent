@@ -974,9 +974,7 @@ instance Pretty (ConDecl GhcPs) where
           newline
           string "-> "
           output con_res_ty
-  pretty' ConDeclH98 {..}
-    -- TODO: Refactor.
-   =
+  pretty' ConDeclH98 {..} =
     if con_forall
       then withForall
       else noForall
@@ -985,19 +983,10 @@ instance Pretty (ConDecl GhcPs) where
         (do string "forall "
             spaced $ fmap output con_ex_tvs
             string ". ") |=>
-        (do case con_mb_cxt of
-              Nothing -> return ()
-              Just (L _ []) -> return ()
-              Just (L l [x]) ->
-                printCommentsAnd (L l x) $ \_ -> do
-                  pretty x
-                  string " =>"
-                  newline
-              Just (L l xs) ->
-                printCommentsAnd (L l xs) $ \_ -> do
-                  hTuple $ fmap pretty xs
-                  string " =>"
-                  newline
+        (do whenJust con_mb_cxt $ \_ -> do
+              pretty $ Context con_mb_cxt
+              string " =>"
+              newline
             pretty con_name
             pretty con_args)
       noForall =
