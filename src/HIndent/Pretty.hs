@@ -978,25 +978,29 @@ instance Pretty (ConDecl GhcPs) where
     -- TODO: Refactor.
    =
     if con_forall
-      then (do string "forall "
-               spaced $ fmap output con_ex_tvs
-               string ". ") |=>
-           (do case con_mb_cxt of
-                 Nothing -> return ()
-                 Just (L _ []) -> return ()
-                 Just (L l [x]) ->
-                   printCommentsAnd (L l x) $ \_ -> do
-                     pretty x
-                     string " =>"
-                     newline
-                 Just (L l xs) ->
-                   printCommentsAnd (L l xs) $ \_ -> do
-                     hTuple $ fmap pretty xs
-                     string " =>"
-                     newline
-               pretty con_name
-               pretty con_args)
-      else do
+      then withForall
+      else noForall
+    where
+      withForall =
+        (do string "forall "
+            spaced $ fmap output con_ex_tvs
+            string ". ") |=>
+        (do case con_mb_cxt of
+              Nothing -> return ()
+              Just (L _ []) -> return ()
+              Just (L l [x]) ->
+                printCommentsAnd (L l x) $ \_ -> do
+                  pretty x
+                  string " =>"
+                  newline
+              Just (L l xs) ->
+                printCommentsAnd (L l xs) $ \_ -> do
+                  hTuple $ fmap pretty xs
+                  string " =>"
+                  newline
+            pretty con_name
+            pretty con_args)
+      noForall =
         case con_args of
           (InfixCon l r) ->
             spaced [pretty l, pretty $ fmap InfixOp con_name, pretty r]
