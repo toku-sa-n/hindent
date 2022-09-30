@@ -1,14 +1,14 @@
 #!/bin/zsh
 
-for f in ./**/*.hs
+for f in src/**/*.hs
 do
     EXPECTED=$(mktemp --suffix=.expected.hs)
     ACTUAL=$(mktemp --suffix=.actual.hs)
     cp $f $EXPECTED
     cp $f $ACTUAL
     echo -n "$f ..."
-    hindent -- $EXPECTED > /dev/null || (echo "The original HIndent failed." && continue)
-    cabal run hindent -- $ACTUAL > /dev/null || break
+    hindent -- $EXPECTED > /dev/null
+    cabal run hindent -- $ACTUAL > /dev/null
     if ! diff $EXPECTED $ACTUAL > /dev/null
     then
         echo "$f is not formatted."
