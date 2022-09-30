@@ -1023,12 +1023,13 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   commentOnSameLine Match {..} = commentOnSameLine m_ext
   commentsAfter Match {..} = commentsAfter m_ext
 
-instance Pretty MatchForCase
-  -- TODO: Do not forget to handle comments!
-                                             where
+instance Pretty MatchForCase where
   pretty' (MatchForCase Match {..}) = do
     mapM_ pretty m_pats
     pretty (GRHSsForCase m_grhss)
+  commentsBefore (MatchForCase x) = commentsBefore x
+  commentOnSameLine (MatchForCase x) = commentOnSameLine x
+  commentsAfter (MatchForCase x) = commentsAfter x
 
 instance Pretty MatchForLambda where
   pretty' (MatchForLambda Match {..}) = do
