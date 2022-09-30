@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -39,13 +40,21 @@ module HIndent.ModulePreprocessing.CommentRelocation
   ) where
 
 import           Control.Monad.State
+import           Data.Foldable
 import           Data.Function
 import           Data.List
+import           Data.Maybe
 import           Generics.SYB          hiding (GT, typeOf, typeRep)
+import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           Type.Reflection
+
+-- TODO: Merge this type with a similar type in 'HIndent.Pretty'.
+data BindOrSig
+  = Bind (HsBindLR GhcPs GhcPs)
+  | Sig (Sig GhcPs)
 
 -- | A wrapper type used in everywhereMEpAnnsBackwards' to collect all
 -- 'EpAnn's to apply a function with them in order their positions.
@@ -138,24 +147,85 @@ relocateCommentsSameLineRev = everywhereMEpAnnsBackwards f
       srcSpanStartLine comAnc == srcSpanEndLine anc
 
 -- | This function locates comments above the top-level declarations in
--- a 'where' clause.
+-- a 'where' clause in the topmost declaration.
 relocateCommentsTopLevelWhereClause :: HsModule -> WithComments HsModule
-relocateCommentsTopLevelWhereClause = everywhereM (mkM f)
+relocateCommentsTopLevelWhereClause m@HsModule {..} = do
+  hsmodDecls' <- mapM relocateCommentsDeclWhereClause hsmodDecls
+  pure m {hsmodDecls = hsmodDecls'}
   where
-    f :: GRHSs GhcPs (LHsExpr GhcPs)
-      -> WithComments (GRHSs GhcPs (LHsExpr GhcPs))
-    f g@GRHSs {grhssLocalBinds = (HsValBinds (EpAnn whereAnn AnnList {al_anchor = Just colAnc} _) ValBinds {})} =
-      everywhereMEpAnnsForwards modifyAnns g
+    relocateCommentsDeclWhereClause (L l (ValD ext (FunBind { fun_matches = MG {..}
+                                                            , ..
+                                                            }))) = do
+      mg_alts' <- mapM (mapM relocateCommentsMatch) mg_alts
+      pure $
+        L l (ValD ext FunBind {fun_matches = MG {mg_alts = mg_alts', ..}, ..})
+    relocateCommentsDeclWhereClause x = pure x
+    relocateCommentsMatch (L l Match { m_grhss = GRHSs { grhssLocalBinds = (HsValBinds ext (ValBinds ext' binds sigs))
+                                                       , ..
+                                                       }
+                                     , ..
+                                     }) = do
+      (binds', sigs') <- relocateCommentsBindsSigs binds sigs
+      pure $
+        L
+          l
+          Match
+            { m_grhss =
+                GRHSs
+                  { grhssLocalBinds =
+                      HsValBinds ext (ValBinds ext' binds' sigs')
+                  , ..
+                  }
+            , ..
+            }
+    relocateCommentsMatch x = pure x
+    relocateCommentsBindsSigs ::
+         LHsBindsLR GhcPs GhcPs
+      -> [LSig GhcPs]
+      -> WithComments (LHsBindsLR GhcPs GhcPs, [LSig GhcPs])
+    relocateCommentsBindsSigs binds sigs = do
+      bindsSigs' <- mapM addCommentsBeforeEpAnn bindsSigs
+      pure
+        ( listToBag $ catMaybes $ filterBind bindsSigs'
+        , catMaybes $ filterSig bindsSigs')
       where
-        modifyAnns :: EpAnn a -> WithComments (EpAnn a)
-        modifyAnns epa@EpAnn {..}
-          | srcSpanStartCol (anchor entry) == srcSpanStartCol (anchor colAnc) =
-            insertCommentsByPos (isAbove $ anchor entry) insertPriorComments epa
-        modifyAnns x = pure x
-        isAbove anc comAnc =
-          srcSpanEndLine comAnc < srcSpanStartLine anc &&
-          srcSpanStartLine (anchor whereAnn) <= srcSpanStartLine comAnc
-    f x = pure x
+        bindsSigs =
+          sortBy (compare `on` srcSpanToRealSrcSpan . locA . getLoc) $
+          fmap (fmap Bind) (bagToList binds) ++ fmap (fmap Sig) sigs
+        filterBind =
+          fmap
+            (\case
+               (L l (Bind x)) -> Just (L l x)
+               _              -> Nothing)
+        filterSig =
+          fmap
+            (\case
+               (L l (Sig x)) -> Just (L l x)
+               _             -> Nothing)
+    addCommentsBeforeEpAnn (L (SrcSpanAnn EpAnn {..} sp) x) = do
+      cs <- get
+      let (notAbove, above) =
+            partitionAboveNotAbove (sortCommentsByLocation cs) entry
+      put notAbove
+      pure $
+        L
+          (SrcSpanAnn
+             EpAnn {comments = insertPriorComments comments above, ..}
+             sp)
+          x
+    addCommentsBeforeEpAnn x = pure x
+    partitionAboveNotAbove cs sp =
+      fst $
+      foldr'
+        (\c@(L l _) ((ls, rs), lastSpan) ->
+           if anchor l `isAbove` anchor lastSpan
+             then ((ls, c : rs), l)
+             else ((c : ls, rs), lastSpan))
+        (([], []), sp)
+        cs
+    isAbove comAnc anc =
+      srcSpanStartCol comAnc == srcSpanStartCol anc &&
+      srcSpanEndLine comAnc + 1 == srcSpanStartLine anc
 
 -- | This function scans the given AST from bottom to top and locates
 -- comments in the comment pool after each node on it.
@@ -218,13 +288,6 @@ drainComments cond = do
   let (xs, others) = partition cond coms
   put others
   return xs
-
-everywhereMEpAnnsForwards ::
-     Data a
-  => (forall b. EpAnn b -> WithComments (EpAnn b))
-  -> a
-  -> WithComments a
-everywhereMEpAnnsForwards = everywhereMEpAnnsInOrder compareEpaByEndPosition
 
 everywhereMEpAnnsBackwards ::
      Data a
