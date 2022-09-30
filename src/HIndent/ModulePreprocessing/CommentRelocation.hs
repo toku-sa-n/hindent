@@ -44,17 +44,13 @@ import           Data.Foldable
 import           Data.Function
 import           Data.List
 import           Data.Maybe
-import           Generics.SYB          hiding (GT, typeOf, typeRep)
+import           Generics.SYB                 hiding (GT, typeOf, typeRep)
 import           GHC.Data.Bag
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
+import           HIndent.Pretty.SigBindFamily
 import           Type.Reflection
-
--- TODO: Merge this type with a similar type in 'HIndent.Pretty'.
-data BindOrSig
-  = Bind (HsBindLR GhcPs GhcPs)
-  | Sig (Sig GhcPs)
 
 -- | A wrapper type used in everywhereMEpAnnsBackwards' to collect all
 -- 'EpAnn's to apply a function with them in order their positions.
