@@ -26,7 +26,7 @@ pragmaExists = not . null . collectPragmas
 -- modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  fmap (\x -> "{-# LANGUAGE " ++ x ++ " #-}") .
+  fmap (\(optionOrPragma, x) -> "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}") .
   mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
@@ -35,11 +35,11 @@ collectPragmas =
 -- | This function returns a 'Just' value with the pragma extracted from
 -- the passed 'EpaCommentTok' if it has one. Otherwise, it returns
 -- a 'Nothing'.
-extractPraGmergea :: EpaCommentTok -> Maybe String
+extractPraGmergea :: EpaCommentTok -> Maybe (String, String)
 extractPraGmergea (EpaBlockComment c) =
   case regexResult of
-    (_, _, _, [x]) -> Just x
-    _              -> Nothing
+    (_, _, _, [optionOrPragma, x]) -> Just (optionOrPragma, x)
+    _                              -> Nothing
   where
     regexResult = c =~ pragmaRegex :: (String, String, String, [String])
 extractPraGmergea _ = Nothing
@@ -52,4 +52,4 @@ isPragma _                   = False
 
 -- | A regex to match against a pragma.
 pragmaRegex :: String
-pragmaRegex = "{-# +LANGUAGE +([a-zA-Z0-9]+) +#-}"
+pragmaRegex = "{-# +(LANGUAGE|OPTIONS_GHC) +([a-zA-Z0-9-]+) +#-}"
