@@ -402,10 +402,8 @@ instance Pretty (TyClDecl GhcPs) where
               _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
           string " | "
-          forM_ tcdFDs $ \(L _ (FunDep _ from to)) -> do
-            spaced $ fmap pretty from
-            string " -> "
-            spaced $ fmap pretty to
+          forM_ tcdFDs $ \(L _ (FunDep _ from to)) ->
+            spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
         unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
         string "class " |=> do
