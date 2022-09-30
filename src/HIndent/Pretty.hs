@@ -526,7 +526,7 @@ instance Pretty DeclSig where
         indentedBlock $
           indentedWithSpace 3 $
           pretty $ HsSigTypeInsideDeclSig <$> hswc_body params
-      printFunName = pretty $ head funName
+      printFunName = hCommaSep $ fmap pretty funName
   pretty' (DeclSig x) = pretty x
   commentsBefore (DeclSig x) = commentsBefore x
   commentOnSameLine (DeclSig x) = commentOnSameLine x
