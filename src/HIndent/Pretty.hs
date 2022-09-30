@@ -1100,12 +1100,6 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
 
 instance Pretty (HsType GhcPs) where
   pretty' = prettyHsType
-  commentsBefore (HsFunTy x _ _ _) = commentsBefore x
-  commentsBefore _                 = []
-  commentOnSameLine (HsFunTy x _ _ _) = commentOnSameLine x
-  commentOnSameLine _                 = Nothing
-  commentsAfter (HsFunTy x _ _ _) = commentsAfter x
-  commentsAfter _                 = []
 
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
