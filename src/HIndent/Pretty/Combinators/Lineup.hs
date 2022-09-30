@@ -5,6 +5,7 @@ module HIndent.Pretty.Combinators.Lineup
   , hTuple
   , vTuple
   , vTuple'
+  , hvFields
   , hFields
   , vFields
   , vFields'
@@ -56,6 +57,10 @@ vTuple = vLineup ("(", ")")
 -- element.
 vTuple' :: [Printer ()] -> Printer ()
 vTuple' = vLineup' ("(", ")")
+
+-- | Applies 'hFields' if the result fits in a line or 'vFields' otherwise.
+hvFields :: [Printer ()] -> Printer ()
+hvFields = (<-|>) <$> hFields <*> vFields
 
 -- | Runs printers to construct a record in a line.
 hFields :: [Printer ()] -> Printer ()

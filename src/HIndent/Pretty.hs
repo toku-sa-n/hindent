@@ -1092,13 +1092,11 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (Pat GhcPs))) where
 
 -- | For record updates
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' HsRecFields {..} = horizontal <-|> vertical
+  pretty' HsRecFields {..} = hvFields fieldPrinters
     where
-      horizontal =
-        case rec_dotdot of
-          Just _  -> braces $ string ".."
-          Nothing -> hFields $ fmap pretty rec_flds
-      vertical = vFields $ fmap pretty rec_flds
+      fieldPrinters =
+        fmap pretty rec_flds ++
+        maybeToList (fmap (const (string "..")) rec_dotdot)
 
 instance Pretty (HsType GhcPs) where
   pretty' = prettyHsType
@@ -1546,16 +1544,14 @@ prettyPat p@SigPat {} = output p
 
 instance Pretty RecConPat where
   pretty' (RecConPat HsRecFields {..}) =
-    case rec_dotdot of
-      Just _  -> braces $ string ".."
-      Nothing -> horizontal <-|> vertical
+    case fieldPrinters of
+      []  -> string "{}"
+      [x] -> braces x
+      xs  -> hvFields xs
     where
-      horizontal = hFields $ fmap (pretty . fmap RecConField) rec_flds
-      vertical =
-        case rec_flds of
-          []  -> string "{}"
-          [x] -> braces $ pretty x
-          _   -> vFields $ fmap (pretty . fmap RecConField) rec_flds
+      fieldPrinters =
+        fmap (pretty . fmap RecConField) rec_flds ++
+        maybeToList (fmap (const (string "..")) rec_dotdot)
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
