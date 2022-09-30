@@ -26,12 +26,14 @@ pragmaExists = not . null . collectPragmas
 -- modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  fmap (\(optionOrPragma, x) -> "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}") .
+  fmap constructPragma .
   mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment EpaBlockComment {} = True
     matchToComment _                  = False
+    constructPragma (optionOrPragma, x) =
+      "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}"
 
 -- | This function returns a 'Just' value with the pragma extracted from
 -- the passed 'EpaCommentTok' if it has one. Otherwise, it returns
