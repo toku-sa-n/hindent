@@ -981,18 +981,19 @@ instance Pretty (ConDecl GhcPs) where
       then (do string "forall "
                spaced $ fmap output con_ex_tvs
                string ". ") |=>
-      -- TODO: Handle comments.
            (do case con_mb_cxt of
                  Nothing -> return ()
                  Just (L _ []) -> return ()
-                 Just (L _ [x]) -> do
-                   pretty x
-                   string " =>"
-                   newline
-                 Just (L _ xs) -> do
-                   hTuple $ fmap pretty xs
-                   string " =>"
-                   newline
+                 Just (L l [x]) ->
+                   printCommentsAnd (L l x) $ \_ -> do
+                     pretty x
+                     string " =>"
+                     newline
+                 Just (L l xs) ->
+                   printCommentsAnd (L l xs) $ \_ -> do
+                     hTuple $ fmap pretty xs
+                     string " =>"
+                     newline
                pretty con_name
                pretty con_args)
       else do
