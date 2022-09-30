@@ -1,4 +1,3 @@
--- | Pretty printing.
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
@@ -8,6 +7,11 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE ViewPatterns        #-}
 
+-- | Pretty printing.
+--
+-- We define new types to pretty-print AST nodes rather than define
+-- functions to print comments easily using the 'Pretty' implementation of
+-- 'GenLocated'.
 module HIndent.Pretty
   ( pretty
   ) where
@@ -38,8 +42,6 @@ import           HIndent.Types
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Types.PkgQual
 #endif
--- TODO: Document why we declare data and newtypes, and not define
--- functions instead.
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
 
