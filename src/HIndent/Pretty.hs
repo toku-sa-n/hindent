@@ -960,44 +960,55 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten x                       = [x]
 #endif
 instance Pretty (ConDecl GhcPs) where
-  pretty' ConDeclGADT {..} = horizontal <-|> vertical
-    where
-      horizontal = do
-        output $ head con_names
-        string " :: "
-        pretty con_g_args
-        string " -> "
-        output con_res_ty
-      vertical = do
-        output $ head con_names
+  pretty' = prettyConDecl
+
+prettyConDecl :: ConDecl GhcPs -> Printer ()
+prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
+  where
+    horizontal = do
+      output $ head con_names
+      string " :: "
+      pretty con_g_args
+      string " -> "
+      output con_res_ty
+    vertical = do
+      output $ head con_names
+      newline
+      indentedBlock $ do
+        string ":: " |=> pretty con_g_args
         newline
-        indentedBlock $ do
-          string ":: " |=> pretty con_g_args
-          newline
-          string "-> "
-          output con_res_ty
-  pretty' ConDeclH98 {..} =
-    if con_forall
-      then withForall
-      else noForall
-    where
-      withForall =
-        (do string "forall "
-            spaced $ fmap output con_ex_tvs
-            string ". ") |=>
-        (do whenJust con_mb_cxt $ \_ -> do
-              pretty $ Context con_mb_cxt
-              string " =>"
-              newline
-            pretty con_name
-            pretty con_args)
-      noForall =
-        case con_args of
-          (InfixCon l r) ->
-            spaced [pretty l, pretty $ fmap InfixOp con_name, pretty r]
-          _ -> do
-            pretty con_name
-            pretty con_args
+        string "-> "
+        output con_res_ty
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyConDecl ConDeclH98 {con_forall = True, ..} =
+  (do string "forall "
+      spaced $ fmap output con_ex_tvs
+      string ". ") |=>
+  (do whenJust con_mb_cxt $ \c -> do
+        pretty $ Context c
+        string " =>"
+        newline
+      pretty con_name
+      pretty con_args)
+#else
+prettyConDecl ConDeclH98 {con_forall = True, ..} =
+  (do string "forall "
+      spaced $ fmap output con_ex_tvs
+      string ". ") |=>
+  (do whenJust con_mb_cxt $ \_ -> do
+        pretty $ Context con_mb_cxt
+        string " =>"
+        newline
+      pretty con_name
+      pretty con_args)
+#endif
+prettyConDecl ConDeclH98 {con_forall = False, ..} =
+  case con_args of
+    (InfixCon l r) ->
+      spaced [pretty l, pretty $ fmap InfixOp con_name, pretty r]
+    _ -> do
+      pretty con_name
+      pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' Match {..} =
