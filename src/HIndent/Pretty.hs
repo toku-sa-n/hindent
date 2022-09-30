@@ -1100,6 +1100,12 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
 
 instance Pretty (HsType GhcPs) where
   pretty' = prettyHsType
+  commentsBefore (HsFunTy x _ _ _) = commentsBefore x
+  commentsBefore _                 = []
+  commentOnSameLine (HsFunTy x _ _ _) = commentOnSameLine x
+  commentOnSameLine _                 = Nothing
+  commentsAfter (HsFunTy x _ _ _) = commentsAfter x
+  commentsAfter _                 = []
 
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
@@ -1220,6 +1226,9 @@ instance Pretty HsTypeInsideDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
+  commentsBefore (HsTypeInsideDeclSig x) = commentsBefore x
+  commentOnSameLine (HsTypeInsideDeclSig x) = commentOnSameLine x
+  commentsAfter (HsTypeInsideDeclSig x) = commentsAfter x
 #endif
 instance Pretty HsTypeInsideVerticalFuncSig where
   pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = noDeclSigV
@@ -1238,6 +1247,9 @@ instance Pretty HsTypeInsideVerticalDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
+  commentsBefore (HsTypeInsideVerticalDeclSig x) = commentsBefore x
+  commentOnSameLine (HsTypeInsideVerticalDeclSig x) = commentOnSameLine x
+  commentsAfter (HsTypeInsideVerticalDeclSig x) = commentsAfter x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
