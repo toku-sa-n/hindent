@@ -1622,8 +1622,6 @@ instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
-      -- TODO: Merge this where clause with the one in the 'ClassDecl' of
-      -- 'TyClDecl'.
     where
       sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) []
   pretty' x = output x
