@@ -409,15 +409,14 @@ instance Pretty (TyClDecl GhcPs) where
         unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
         string "class " |=> do
-          whenJust tcdCtxt $ \(L _ xs) ->
-            case xs -- TODO: Handle comments.
-                  of
+          whenJust tcdCtxt $ \ctx ->
+            printCommentsAnd ctx $ \case
               [] -> undefined
               [x] -> do
                 pretty x
                 string " =>"
                 newline
-              _ -> do
+              xs -> do
                 hTuple $ fmap pretty xs
                 string " =>"
                 newline
