@@ -1066,7 +1066,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
-  pretty' (ParStmt _ xs _ _) = barSep $ fmap pretty xs
+  pretty' (ParStmt _ xs _ _) = hvBarSep $ fmap pretty xs
   pretty' TransStmt {..} =
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {} = undefined
@@ -1134,7 +1134,7 @@ prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
       newline
       prefixed "-> " $ pretty b
 prettyHsType (HsListTy _ xs) = brackets $ pretty xs
-prettyHsType (HsTupleTy _ _ xs) = tuple' $ fmap pretty xs
+prettyHsType (HsTupleTy _ _ xs) = hvTuple' $ fmap pretty xs
 prettyHsType HsSumTy {} = undefined
   -- For `HsOpTy`, we do not need a single quote for the infix operator. An
   -- explicit promotion is necessary if there is a data constructor and
@@ -1302,7 +1302,7 @@ instance Pretty (HsMatchContext GhcPs) where
   pretty' x           = output x
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
-  pretty' (ParStmtBlock _ xs _ _) = commaSep $ fmap pretty xs
+  pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
 
 instance Pretty ParStmtBlockInsideVerticalList where
   pretty' (ParStmtBlockInsideVerticalList (ParStmtBlock _ xs _ _)) =
@@ -1773,8 +1773,8 @@ instance Pretty InfixApp where
 
 instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x)    = pretty x
-  pretty' (And xs)   = commaSep $ fmap pretty xs
-  pretty' (Or xs)    = barSep $ fmap pretty xs
+  pretty' (And xs)   = hvCommaSep $ fmap pretty xs
+  pretty' (Or xs)    = hvBarSep $ fmap pretty xs
   pretty' (Parens x) = parens $ pretty x
 
 instance Pretty (FieldLabelStrings GhcPs) where
@@ -1822,7 +1822,7 @@ instance Pretty (HsDerivingClause GhcPs) where
 
 instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
-  pretty' (DctMulti _ ts)  = tuple $ fmap pretty ts
+  pretty' (DctMulti _ ts)  = hvTuple $ fmap pretty ts
 
 instance Pretty OverlapMode where
   pretty' NoOverlap {}    = undefined

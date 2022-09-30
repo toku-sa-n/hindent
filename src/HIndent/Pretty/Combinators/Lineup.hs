@@ -1,7 +1,7 @@
 -- | Printer combinators for lining up multiple elements.
 module HIndent.Pretty.Combinators.Lineup
-  ( tuple
-  , tuple'
+  ( hvTuple
+  , hvTuple'
   , hTuple
   , vTuple
   , vTuple'
@@ -16,10 +16,10 @@ module HIndent.Pretty.Combinators.Lineup
   , spaced
   , lined
   , blanklined
-  , barSep
+  , hvBarSep
   , hBarSep
   , vBarSep
-  , commaSep
+  , hvCommaSep
   , hCommaSep
   , vCommaSep
   , spacePrefixed
@@ -37,12 +37,12 @@ import           HIndent.Pretty.Combinators.Wrap
 import           HIndent.Types
 
 -- | Applies 'hTuple' if the result fits in a line or 'vTuple' otherwise.
-tuple :: [Printer ()] -> Printer ()
-tuple = (<-|>) <$> hTuple <*> vTuple
+hvTuple :: [Printer ()] -> Printer ()
+hvTuple = (<-|>) <$> hTuple <*> vTuple
 
 -- | Applies 'hTuple'' if the result fits in a line or 'vTuple'' otherwise.
-tuple' :: [Printer ()] -> Printer ()
-tuple' = (<-|>) <$> hTuple <*> vTuple'
+hvTuple' :: [Printer ()] -> Printer ()
+hvTuple' = (<-|>) <$> hTuple <*> vTuple'
 
 -- | Runs printers to construct a tuple in a line.
 hTuple :: [Printer ()] -> Printer ()
@@ -124,8 +124,8 @@ blanklined :: [Printer ()] -> Printer ()
 blanklined = inter blankline
 
 -- | Applies 'hBarSep' if the result fits in a line or 'vBarSep' otherwise.
-barSep :: [Printer ()] -> Printer ()
-barSep = (<-|>) <$> hBarSep <*> vBarSep
+hvBarSep :: [Printer ()] -> Printer ()
+hvBarSep = (<-|>) <$> hBarSep <*> vBarSep
 
 -- | Runs printers in a line with a bar as the separator.
 hBarSep :: [Printer ()] -> Printer ()
@@ -138,8 +138,8 @@ vBarSep = prefixedLined "| "
 
 -- | Applies 'hCommaSep' if the result fits in a line or 'vCommaSep'
 -- otherwise.
-commaSep :: [Printer ()] -> Printer ()
-commaSep = (<-|>) <$> hCommaSep <*> vCommaSep
+hvCommaSep :: [Printer ()] -> Printer ()
+hvCommaSep = (<-|>) <$> hCommaSep <*> vCommaSep
 
 -- | Runs printers in a line with a comma as the separator.
 hCommaSep :: [Printer ()] -> Printer ()
