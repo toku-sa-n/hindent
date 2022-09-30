@@ -148,8 +148,7 @@ relocateCommentsTopLevelWhereClause m@HsModule {..} = do
     relocateCommentsMatch (L l match@Match {m_grhss = gs@GRHSs {grhssLocalBinds = (HsValBinds ext (ValBinds ext' binds sigs))}}) = do
       (binds', sigs') <- relocateCommentsBindsSigs binds sigs
       let localBinds = HsValBinds ext (ValBinds ext' binds' sigs')
-          gs' = gs {grhssLocalBinds = localBinds}
-      pure $ L l match {m_grhss = gs'}
+      pure $ L l match {m_grhss = gs {grhssLocalBinds = localBinds}}
     relocateCommentsMatch x = pure x
     relocateCommentsBindsSigs ::
          LHsBindsLR GhcPs GhcPs
