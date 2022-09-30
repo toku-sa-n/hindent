@@ -30,7 +30,8 @@ collectPragmas =
   mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
-    matchToComment = const True
+    matchToComment EpaBlockComment {} = True
+    matchToComment _                  = False
 
 -- | This function returns a 'Just' value with the pragma extracted from
 -- the passed 'EpaCommentTok' if it has one. Otherwise, it returns
