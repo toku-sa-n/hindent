@@ -1040,9 +1040,9 @@ instance Pretty MatchForLambda where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambda m_grhss]
-  commentsBefore (MatchForLambda Match {..}) = commentsBefore m_ext
-  commentOnSameLine (MatchForLambda Match {..}) = commentOnSameLine m_ext
-  commentsAfter (MatchForLambda Match {..}) = commentsAfter m_ext
+  commentsBefore (MatchForLambda x) = commentsBefore x
+  commentOnSameLine (MatchForLambda x) = commentOnSameLine x
+  commentsAfter (MatchForLambda x) = commentsAfter x
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' l@LastStmt {} = output l
