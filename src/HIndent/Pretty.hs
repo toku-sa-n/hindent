@@ -126,12 +126,24 @@ newtype HsTypeInsideDeclSig =
 
 newtype HsTypeInsideVerticalDeclSig =
   HsTypeInsideVerticalDeclSig (HsType GhcPs)
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
 -- | A wrapper type for type class constraints; e.g., (Eq a, Ord a) of (Eq
 -- a, Ord a) => [a] -> [a]. Either 'HorizontalContext' or 'VerticalContext'
 -- is used internally.
---
--- TODO: Define this type conditionally. Above GHC 9.4.1, remove `Maybe`.
+newtype Context =
+  Context (LHsContext GhcPs)
+
+-- | A wrapper type for printing a context horizontally.
+newtype HorizontalContext =
+  HorizontalContext (LHsContext GhcPs)
+
+-- | A wrapper type for printing a context vertically.
+newtype VerticalContext =
+  VerticalContext (LHsContext GhcPs)
+#else
+-- | A wrapper type for type class constraints; e.g., (Eq a, Ord a) of (Eq
+-- a, Ord a) => [a] -> [a]. Either 'HorizontalContext' or 'VerticalContext'
+-- is used internally.
 newtype Context =
   Context (Maybe (LHsContext GhcPs))
 
@@ -142,7 +154,7 @@ newtype HorizontalContext =
 -- | A wrapper type for printing a context vertically.
 newtype VerticalContext =
   VerticalContext (Maybe (LHsContext GhcPs))
-
+#endif
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -867,8 +879,8 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
         dot
         printCommentsAnd sig_body $ \case
           HsQualTy {..} -> do
-            (space >> pretty (HorizontalContext $ Just hst_ctxt)) <-|>
-              (newline >> pretty (VerticalContext $ Just hst_ctxt))
+            (space >> pretty (HorizontalContext hst_ctxt)) <-|>
+              (newline >> pretty (VerticalContext hst_ctxt))
             newline
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
@@ -886,10 +898,10 @@ instance Pretty HsSigTypeInsideDeclSig where
             printCommentsAnd sig_body $ \_ ->
               let hor = do
                     space
-                    pretty $ HorizontalContext $ Just hst_ctxt
+                    pretty $ HorizontalContext hst_ctxt
                   ver = do
                     newline
-                    pretty $ VerticalContext $ Just hst_ctxt
+                    pretty $ VerticalContext hst_ctxt
                in do hor <-|> ver
                      newline
                      prefixed "=> " $
@@ -1094,7 +1106,7 @@ prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
 prettyHsType HsQualTy {..} = notVer
   where
     notVer = do
-      pretty (Context $ Just hst_ctxt)
+      pretty (Context hst_ctxt)
       string " =>"
       newline
       indentedBlock $ pretty hst_body
@@ -1155,10 +1167,9 @@ prettyHsType XHsType {} = undefined
 instance Pretty HsTypeInsideInstDecl where
   pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
     where
-      hor =
-        spaced [pretty (Context $ Just hst_ctxt), string "=>", pretty hst_body]
+      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
       notVer = do
-        pretty (Context $ Just hst_ctxt)
+        pretty (Context hst_ctxt)
         string " =>"
         newline
         pretty hst_body
@@ -1167,10 +1178,9 @@ instance Pretty HsTypeInsideInstDecl where
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
     where
-      hor =
-        spaced [pretty (Context $ Just hst_ctxt), string "=>", pretty hst_body]
+      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
       sigVer = do
-        pretty (Context $ Just hst_ctxt)
+        pretty (Context hst_ctxt)
         newline
         prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
@@ -1908,7 +1918,27 @@ instance Pretty PrefixOp where
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
     where
       occ = occName name
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+instance Pretty Context where
+  pretty' (Context xs) =
+    pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
 
+instance Pretty HorizontalContext where
+  pretty' (HorizontalContext xs) =
+    constraintsParens $ printCommentsAnd xs (hCommaSep . fmap pretty)
+    where
+      constraintsParens =
+        case xs of
+          (L _ [])  -> parens
+          (L _ [_]) -> id
+          _         -> parens
+
+instance Pretty VerticalContext where
+  pretty' (VerticalContext (L _ [])) = undefined
+  pretty' (VerticalContext full@(L _ [x])) =
+    printCommentsAnd full (const $ pretty x)
+  pretty' (VerticalContext xs) = printCommentsAnd xs (vTuple . fmap pretty)
+#else
 instance Pretty Context where
   pretty' (Context xs) =
     pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
@@ -1931,7 +1961,7 @@ instance Pretty VerticalContext where
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
-
+#endif
 -- We need to print "module " together instead of (string "module " >>
 -- pretty (name :: ModuleName)) otherwise comments that are before the name
 -- will be printed in the same line as `module ` and the name in the next
