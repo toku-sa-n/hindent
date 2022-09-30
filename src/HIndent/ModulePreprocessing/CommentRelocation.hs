@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -43,7 +42,6 @@ import           Control.Monad.State
 import           Data.Foldable
 import           Data.Function
 import           Data.List
-import           Data.Maybe
 import           Generics.SYB                 hiding (GT, typeOf, typeRep)
 import           GHC.Data.Bag
 import           GHC.Hs
@@ -181,21 +179,9 @@ relocateCommentsTopLevelWhereClause m@HsModule {..} = do
       -> WithComments (LHsBindsLR GhcPs GhcPs, [LSig GhcPs])
     relocateCommentsBindsSigs binds sigs = do
       bindsSigs' <- mapM addCommentsBeforeEpAnn bindsSigs
-      pure
-        ( listToBag $ catMaybes $ filterBind bindsSigs'
-        , catMaybes $ filterSig bindsSigs')
+      pure (listToBag $ filterLBind bindsSigs', filterLSig bindsSigs')
       where
         bindsSigs = mkSortedLSigBindFamilyList sigs (bagToList binds) []
-        filterBind =
-          fmap
-            (\case
-               (L l (Bind x)) -> Just (L l x)
-               _              -> Nothing)
-        filterSig =
-          fmap
-            (\case
-               (L l (Sig x)) -> Just (L l x)
-               _             -> Nothing)
     addCommentsBeforeEpAnn (L (SrcSpanAnn EpAnn {..} sp) x) = do
       cs <- get
       let (notAbove, above) =

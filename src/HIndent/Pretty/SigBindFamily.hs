@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 -- | A module defining 'SigMethodFamily' and other related types and
 -- functions.
 module HIndent.Pretty.SigBindFamily
@@ -5,10 +7,13 @@ module HIndent.Pretty.SigBindFamily
   , LSigBindFamily
   , mkSortedLSigBindFamilyList
   , mkLSigBindFamilyList
+  , filterLSig
+  , filterLBind
   ) where
 
 import           Data.Function
 import           Data.List
+import           Data.Maybe
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 
@@ -41,3 +46,19 @@ mkLSigBindFamilyList ::
   -> [LSigBindFamily]
 mkLSigBindFamilyList sigs binds fams =
   fmap (fmap Sig) sigs ++ fmap (fmap Bind) binds ++ fmap (fmap TypeFamily) fams
+
+-- | Filters out 'Sig's and extract the wrapped values.
+filterLSig :: [LSigBindFamily] -> [LSig GhcPs]
+filterLSig =
+  mapMaybe
+    (\case
+       (L l (Sig x)) -> Just $ L l x
+       _             -> Nothing)
+
+-- | Filters out 'Bind's and extract the wrapped values.
+filterLBind :: [LSigBindFamily] -> [LHsBindLR GhcPs GhcPs]
+filterLBind =
+  mapMaybe
+    (\case
+       (L l (Bind x)) -> Just $ L l x
+       _              -> Nothing)
