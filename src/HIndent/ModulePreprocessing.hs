@@ -33,6 +33,7 @@ modifyASTForPrettyPrinting m = relocateComments (beforeRelocation m) allComments
     beforeRelocation =
       resetLGRHSEndPositionInModule .
       removeAllDocDs .
+      closeEpAnnOfHsFunTy .
       closeEpAnnOfMatchMExt .
       closePlaceHolderEpAnns .
       closeEpAnnOfFunBindFunId .
@@ -150,6 +151,18 @@ closeEpAnnOfMatchMExt = everywhere closeEpAnn
       , Just HRefl <- eqTypeRep g (typeRep @Match)
       , Just HRefl <- eqTypeRep h (typeRep @GhcPs) = x {m_ext = EpAnnNotUsed}
       | otherwise = x
+
+-- | This function replaces the 'EpAnn' of the first argument of 'HsFunTy'
+-- of 'HsType'.
+--
+-- 'HsFunTy' should not have any comments. Instead, its LHS and RHS should
+-- have them.
+closeEpAnnOfHsFunTy :: HsModule -> HsModule
+closeEpAnnOfHsFunTy = everywhere (mkT closeEpAnn)
+  where
+    closeEpAnn :: HsType GhcPs -> HsType GhcPs
+    closeEpAnn (HsFunTy _ p l r) = HsFunTy EpAnnNotUsed p l r
+    closeEpAnn x                 = x
 
 -- | This function replaces all 'EpAnn's that contain placeholder anchors
 -- to locate comments correctly. A placeholder anchor is an anchor pointing
