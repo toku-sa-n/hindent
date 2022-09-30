@@ -18,7 +18,7 @@ import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                hiding (Infix, Prefix)
+import           Generics.SYB                 hiding (Infix, Prefix)
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
@@ -34,17 +34,13 @@ import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
 import           HIndent.Pretty.Pragma
+import           HIndent.Pretty.SigBindFamily
 import           HIndent.Types
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Types.PkgQual
 #endif
 -- TODO: Document why we declare data and newtypes, and not define
 -- functions instead.
-data SigMethodsFamily
-  = Sig (Sig GhcPs)
-  | Method (HsBindLR GhcPs GhcPs)
-  | TypeFamily (FamilyDecl GhcPs)
-
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
 
@@ -446,7 +442,7 @@ instance Pretty (TyClDecl GhcPs) where
       sigsMethodsFamilies =
         sortBy (compare `on` realSrcSpan . locA . getLoc) $
         fmap (fmap Sig) tcdSigs ++
-        fmap (fmap Method) (bagToList tcdMeths) ++ fmap (fmap TypeFamily) tcdATs
+        fmap (fmap Bind) (bagToList tcdMeths) ++ fmap (fmap TypeFamily) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..} = pretty cid_inst
@@ -1571,9 +1567,9 @@ instance Pretty (HsBracket GhcPs) where
     pretty var
   pretty' TExpBr {} = undefined
 #endif
-instance Pretty SigMethodsFamily where
+instance Pretty SigBindFamily where
   pretty' (Sig x)        = pretty $ DeclSig x
-  pretty' (Method x)     = pretty x
+  pretty' (Bind x)       = pretty x
   pretty' (TypeFamily x) = pretty x
 
 instance Pretty EpaComment where
@@ -1627,7 +1623,7 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
     where
       sigsAndMethods =
         sortBy (compare `on` realSrcSpan . locA . getLoc) $
-        fmap (fmap Sig) sigs ++ fmap (fmap Method) (bagToList methods)
+        fmap (fmap Sig) sigs ++ fmap (fmap Bind) (bagToList methods)
   pretty' x = output x
 
 instance Pretty (HsTupArg GhcPs) where
