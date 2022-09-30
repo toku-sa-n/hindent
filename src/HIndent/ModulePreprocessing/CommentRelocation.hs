@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
--- | Comment relocation for pretty-printing them correctly.
+-- | Comment relocation for pretty-printing comments correctly.
 --
 -- HIndent gathers all comments above a function, an import, a module
 -- declaration, etc. For example, HIndent formats the following code
