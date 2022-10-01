@@ -34,6 +34,7 @@ import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
 import           GHC.Types.Var
 import           GHC.Unit
+import           GHC.Unit.Module.Warnings
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
@@ -324,7 +325,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' KindSigD {}    = undefined
   pretty' DefD {}        = undefined
   pretty' x@ForD {}      = output x
-  pretty' WarningD {}    = undefined
+  pretty' (WarningD _ x) = pretty x
   pretty' AnnD {}        = undefined
   pretty' RuleD {}       = undefined
   pretty' (SpliceD _ sp) = pretty sp
@@ -2008,3 +2009,16 @@ instance Pretty (HsQuote GhcPs) where
       else string "''"
     pretty x
 #endif
+instance Pretty (WarnDecls GhcPs) where
+  pretty' (Warnings _ _ x) = lined $ fmap pretty x
+
+instance Pretty (WarnDecl GhcPs) where
+  pretty' (Warning _ names (DeprecatedTxt _ reasons)) = do
+    string "{-# DEPRECATED"
+    newline
+    hCommaSep $ fmap pretty names
+    space
+    hCommaSep $ fmap pretty reasons
+    newline
+    string " #-}"
+  pretty' _ = undefined
