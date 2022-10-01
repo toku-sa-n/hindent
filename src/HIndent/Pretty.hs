@@ -443,8 +443,6 @@ prettyTyClDecl ClassDecl {..} = do
       when (isJust tcdCtxt) $ do
         newline
         indentedBlock $ string "where"
-      when (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
-        indentedBlock $ string " where"
     sigsMethodsFamilies =
       mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
