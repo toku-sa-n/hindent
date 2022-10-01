@@ -323,7 +323,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (ValD _ bind)  = pretty bind
   pretty' (SigD _ s)     = pretty $ DeclSig s
   pretty' KindSigD {}    = undefined
-  pretty' DefD {}        = undefined
+  pretty' x@DefD {}      = output x
   pretty' x@ForD {}      = output x
   pretty' (WarningD _ x) = pretty x
   pretty' AnnD {}        = undefined
