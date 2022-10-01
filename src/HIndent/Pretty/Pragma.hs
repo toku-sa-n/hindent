@@ -55,4 +55,5 @@ isPragma _                   = False
 
 -- | A regex to match against a pragma or a 'GHC_OPTIONS'.
 pragmaRegex :: String
-pragmaRegex = "{-# +(LANGUAGE|OPTIONS_GHC) +([a-zA-Z0-9-]+) +#-}"
+pragmaRegex =
+  "{-# +(LANGUAGE|OPTIONS_GHC|OPTIONS_HADDOCK) +([a-zA-Z0-9-]+) +#-}"
