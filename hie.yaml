@@ -1,25 +1,25 @@
 cradle:
-  stack:
-    - path: "././"
+  cabal:
+    - path: "./"
       component: "hindent:bench:S.md"
 
-    - path: "./src/"
-      component: "hindent:lib"
+    - path: "src/"
+      component: "lib:hindent"
 
-    - path: "./src/main/Main.hs"
+    - path: "src/main/Main.hs"
       component: "hindent:exe:hindent"
 
-    - path: "./src/main/Path/Find.hs"
+    - path: "src/main/Path/Find.hs"
       component: "hindent:exe:hindent"
 
-    - path: "./src/main/Paths_hindent.hs"
+    - path: "src/main/Paths_hindent.hs"
       component: "hindent:exe:hindent"
 
-    - path: "./src/main/"
+    - path: "src/main/"
       component: "hindent:test:hindent-test"
 
-    - path: "./src/main/Benchmark.hs"
+    - path: "src/main/Benchmark.hs"
       component: "hindent:bench:hindent-bench"
 
-    - path: "./src/main/Markdone.hs"
+    - path: "src/main/Markdone.hs"
       component: "hindent:bench:hindent-bench"
