@@ -333,67 +333,94 @@ instance Pretty (HsDecl GhcPs) where
   pretty' RoleAnnotD {}  = undefined
 
 instance Pretty (TyClDecl GhcPs) where
-  pretty' (FamDecl _ FamilyDecl {..}) = do
-    string "type family "
-    pretty fdLName
-    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
-    case unLoc fdResultSig of
-      NoSig {} -> pure ()
-      TyVarSig {} -> do
-        string " = "
-        pretty fdResultSig
-      _ -> do
-        space
-        pretty fdResultSig
-    whenJust fdInjectivityAnn $ \x -> do
-      string " | "
-      pretty x
-    case fdInfo of
-      ClosedTypeFamily (Just xs) -> do
-        string " where"
-        newline
-        indentedBlock $ lined $ fmap pretty xs
-      _ -> pure ()
-  pretty' SynDecl {..} = do
-    string "type "
-    -- TODO: Merge this case with the one in 'ClassDecl's branch.
-    case tcdFixity of
-      Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
-      Infix ->
-        case hsq_explicit tcdTyVars of
-          (l:r:xs) -> do
-            spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-            forM_ xs $ \x -> do
-              space
-              output x
-          _ -> error "Not enough parameters are given."
-    hor <-|> ver
-    where
-      hor = do
-        string " = "
-        pretty tcdRhs
-      ver =
-        indentedWithSpace 3 $ do
-          newline
-          string "= "
-          indentedBlock $ pretty tcdRhs
-  pretty' DataDecl {..} = do
-    case dd_ND tcdDataDefn of
-      DataType -> string "data "
-      NewType  -> string "newtype "
-    pretty tcdLName
-    forM_ (hsq_explicit tcdTyVars) $ \x -> do
+  pretty' = prettyTyClDecl
+
+prettyTyClDecl :: TyClDecl GhcPs -> Printer ()
+prettyTyClDecl (FamDecl _ FamilyDecl {..}) = do
+  string "type family "
+  pretty fdLName
+  spacePrefixed $ pretty <$> hsq_explicit fdTyVars
+  case unLoc fdResultSig of
+    NoSig {} -> pure ()
+    TyVarSig {} -> do
+      string " = "
+      pretty fdResultSig
+    _ -> do
       space
-      output x
-    pretty tcdDataDefn
-  pretty' ClassDecl {..} = do
-    if isJust tcdCtxt
-      then verHead
-      else horHead <-|> verHead
-    indentedBlock $ newlinePrefixed $ fmap pretty sigsMethodsFamilies
-    where
-      horHead = do
-        string "class "
+      pretty fdResultSig
+  whenJust fdInjectivityAnn $ \x -> do
+    string " | "
+    pretty x
+  case fdInfo of
+    ClosedTypeFamily (Just xs) -> do
+      string " where"
+      newline
+      indentedBlock $ lined $ fmap pretty xs
+    _ -> pure ()
+prettyTyClDecl SynDecl {..} = do
+  string "type "
+    -- TODO: Merge this case with the one in 'ClassDecl's branch.
+  case tcdFixity of
+    Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+    Infix ->
+      case hsq_explicit tcdTyVars of
+        (l:r:xs) -> do
+          spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
+          forM_ xs $ \x -> do
+            space
+            output x
+        _ -> error "Not enough parameters are given."
+  hor <-|> ver
+  where
+    hor = do
+      string " = "
+      pretty tcdRhs
+    ver =
+      indentedWithSpace 3 $ do
+        newline
+        string "= "
+        indentedBlock $ pretty tcdRhs
+prettyTyClDecl DataDecl {..} = do
+  case dd_ND tcdDataDefn of
+    DataType -> string "data "
+    NewType  -> string "newtype "
+  pretty tcdLName
+  forM_ (hsq_explicit tcdTyVars) $ \x -> do
+    space
+    output x
+  pretty tcdDataDefn
+prettyTyClDecl ClassDecl {..} = do
+  if isJust tcdCtxt
+    then verHead
+    else horHead <-|> verHead
+  indentedBlock $ newlinePrefixed $ fmap pretty sigsMethodsFamilies
+  where
+    horHead = do
+      string "class "
+      case tcdFixity of
+        Prefix ->
+          spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+        Infix ->
+          case hsq_explicit tcdTyVars of
+            (l:r:xs) -> do
+              parens $
+                spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
+              spacePrefixed $ fmap output xs
+            _ -> error "Not enough parameters are given."
+      unless (null tcdFDs) $ do
+        string " | "
+        forM_ tcdFDs $ \(L _ (FunDep _ from to)) ->
+          spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
+      unless (null sigsMethodsFamilies) $ string " where"
+    verHead = do
+      string "class " |=> do
+        whenJust tcdCtxt $ \ctx -> do
+          printCommentsAnd ctx $ \case
+            []  -> undefined
+            [x] -> pretty x
+            xs  -> hTuple $ fmap pretty xs
+          string " =>"
+          newline
         case tcdFixity of
           Prefix ->
             spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
@@ -404,49 +431,24 @@ instance Pretty (TyClDecl GhcPs) where
                   spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
                 spacePrefixed $ fmap output xs
               _ -> error "Not enough parameters are given."
-        unless (null tcdFDs) $ do
-          string " | "
-          forM_ tcdFDs $ \(L _ (FunDep _ from to)) ->
-            spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
-        unless (null sigsMethodsFamilies) $ string " where"
-      verHead = do
-        string "class " |=> do
-          whenJust tcdCtxt $ \ctx -> do
-            printCommentsAnd ctx $ \case
-              []  -> undefined
-              [x] -> pretty x
-              xs  -> hTuple $ fmap pretty xs
-            string " =>"
-            newline
-          case tcdFixity of
-            Prefix ->
-              spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
-            Infix ->
-              case hsq_explicit tcdTyVars of
-                (l:r:xs) -> do
-                  parens $
-                    spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-                  spacePrefixed $ fmap output xs
-                _ -> error "Not enough parameters are given."
-        unless (null tcdFDs) $ do
-          newline
-          indentedBlock $
-            string "| " |=>
-            vCommaSep
-              (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
-                 spaced $ fmap pretty from
-                 string " -> "
-                 spaced $ fmap pretty to)
-          newline
-          indentedBlock $ string "where"
-        when (isJust tcdCtxt) $ do
-          newline
-          indentedBlock $ string "where"
-        when
-          (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
-          indentedBlock $ string " where"
-      sigsMethodsFamilies =
-        mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
+      unless (null tcdFDs) $ do
+        newline
+        indentedBlock $
+          string "| " |=>
+          vCommaSep
+            (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
+               spaced $ fmap pretty from
+               string " -> "
+               spaced $ fmap pretty to)
+        newline
+        indentedBlock $ string "where"
+      when (isJust tcdCtxt) $ do
+        newline
+        indentedBlock $ string "where"
+      when (not (null sigsMethodsFamilies) && null tcdFDs && isNothing tcdCtxt) $
+        indentedBlock $ string " where"
+    sigsMethodsFamilies =
+      mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..} = pretty cid_inst
