@@ -474,11 +474,15 @@ instance Pretty (Sig GhcPs) where
           indentedWithSpace 3 $
           pretty $ HsSigTypeInsideVerticalFuncSig <$> hswc_body params
       printFunName = pretty $ head funName
-  pretty' (ClassOpSig _ isDefault funNames params) = do
-    when isDefault $ string "default "
+  pretty' (ClassOpSig _ True funNames params) = do
+    string "default "
     hCommaSep $ fmap pretty funNames
     string " :: "
-    printCommentsAnd params (pretty . sig_body)
+    printCommentsAnd params pretty
+  pretty' (ClassOpSig _ False funNames params) = do
+    hCommaSep $ fmap pretty funNames
+    string " :: "
+    printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
