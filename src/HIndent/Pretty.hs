@@ -2022,3 +2022,7 @@ instance Pretty (WarnDecl GhcPs) where
     newline
     string " #-}"
   pretty' _ = undefined
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
+  pretty' WithHsDocIdentifiers {..} = pretty hsDocString
+#endif
