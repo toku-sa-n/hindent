@@ -411,17 +411,13 @@ instance Pretty (TyClDecl GhcPs) where
         unless (null sigsMethodsFamilies) $ string " where"
       verHead = do
         string "class " |=> do
-          whenJust tcdCtxt $ \ctx ->
+          whenJust tcdCtxt $ \ctx -> do
             printCommentsAnd ctx $ \case
-              [] -> undefined
-              [x] -> do
-                pretty x
-                string " =>"
-                newline
-              xs -> do
-                hTuple $ fmap pretty xs
-                string " =>"
-                newline
+              []  -> undefined
+              [x] -> pretty x
+              xs  -> hTuple $ fmap pretty xs
+            string " =>"
+            newline
           case tcdFixity of
             Prefix ->
               spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
