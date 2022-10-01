@@ -541,15 +541,13 @@ instance Pretty (HsDataDefn GhcPs) where
         string " where"
         indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
       Nothing ->
-        indentedBlock $
-          -- TODO: Match directly against `dd_cons`.
-         do
-          case length dd_cons of
-            0 -> pure ()
-            1 -> do
+        indentedBlock $ do
+          case dd_cons of
+            [] -> pure ()
+            [x] -> do
               string " ="
               newline
-              pretty $ head dd_cons
+              pretty x
             _ -> do
               newline
               string "= " |=> vBarSep (fmap pretty dd_cons)
