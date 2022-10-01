@@ -380,7 +380,7 @@ instance Pretty (TyClDecl GhcPs) where
     case dd_ND tcdDataDefn of
       DataType -> string "data "
       NewType  -> string "newtype "
-    output tcdLName
+    pretty tcdLName
     forM_ (hsq_explicit tcdTyVars) $ \x -> do
       space
       output x
