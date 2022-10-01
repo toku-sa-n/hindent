@@ -436,10 +436,8 @@ prettyTyClDecl ClassDecl {..} = do
         indentedBlock $
           string "| " |=>
           vCommaSep
-            (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) -> do
-               spaced $ fmap pretty from
-               string " -> "
-               spaced $ fmap pretty to)
+            (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) ->
+               spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to)
         newline
         indentedBlock $ string "where"
       when (isJust tcdCtxt) $ do
