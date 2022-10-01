@@ -397,16 +397,7 @@ prettyTyClDecl ClassDecl {..} = do
   where
     horHead = do
       string "class "
-      case tcdFixity of
-        Prefix ->
-          spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
-        Infix ->
-          case hsq_explicit tcdTyVars of
-            (l:r:xs) -> do
-              parens $
-                spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-              spacePrefixed $ fmap output xs
-            _ -> error "Not enough parameters are given."
+      printNameAndTypeVariables
       unless (null tcdFDs) $ do
         string " | "
         forM_ tcdFDs $ \(L _ (FunDep _ from to)) ->
@@ -421,16 +412,7 @@ prettyTyClDecl ClassDecl {..} = do
             xs  -> hTuple $ fmap pretty xs
           string " =>"
           newline
-        case tcdFixity of
-          Prefix ->
-            spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
-          Infix ->
-            case hsq_explicit tcdTyVars of
-              (l:r:xs) -> do
-                parens $
-                  spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-                spacePrefixed $ fmap output xs
-              _ -> error "Not enough parameters are given."
+        printNameAndTypeVariables
       unless (null tcdFDs) $ do
         newline
         indentedBlock $
@@ -441,6 +423,17 @@ prettyTyClDecl ClassDecl {..} = do
       unless (null sigsMethodsFamilies) $ do
         newline
         indentedBlock $ string "where"
+    printNameAndTypeVariables =
+      case tcdFixity of
+        Prefix ->
+          spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+        Infix ->
+          case hsq_explicit tcdTyVars of
+            (l:r:xs) -> do
+              parens $
+                spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
+              spacePrefixed $ fmap output xs
+            _ -> error "Not enough parameters are given."
     sigsMethodsFamilies =
       mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
