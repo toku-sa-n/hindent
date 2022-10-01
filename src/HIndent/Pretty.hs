@@ -541,7 +541,9 @@ instance Pretty (HsDataDefn GhcPs) where
         string " where"
         indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
       Nothing ->
-        indentedBlock $ do
+        indentedBlock $
+          -- TODO: Match directly against `dd_cons`.
+         do
           case length dd_cons of
             0 -> pure ()
             1 -> do
@@ -1724,7 +1726,7 @@ instance Pretty (ConDeclField GhcPs) where
     -- also stored as comments, and printing both results in duplicated
     -- comments.
    = do
-    pretty $ head cd_fld_names
+    hCommaSep $ fmap pretty cd_fld_names
     string " :: "
     pretty cd_fld_type
 
