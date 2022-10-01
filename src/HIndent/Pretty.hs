@@ -426,9 +426,7 @@ instance Pretty (TyClDecl GhcPs) where
                 (l:r:xs) -> do
                   parens $
                     spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-                  forM_ xs $ \x -> do
-                    space
-                    output x
+                  spacePrefixed $ fmap output xs
                 _ -> error "Not enough parameters are given."
         unless (null tcdFDs) $ do
           newline
