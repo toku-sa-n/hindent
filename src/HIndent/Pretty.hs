@@ -396,7 +396,7 @@ instance Pretty (TyClDecl GhcPs) where
         string "class "
         case tcdFixity of
           Prefix ->
-            spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+            spaced $ pretty tcdLName : fmap pretty (hsq_explicit tcdTyVars)
           Infix ->
             case hsq_explicit tcdTyVars of
               (l:r:xs) -> do
@@ -424,7 +424,7 @@ instance Pretty (TyClDecl GhcPs) where
                 newline
           case tcdFixity of
             Prefix ->
-              spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+              spaced $ pretty tcdLName : fmap pretty (hsq_explicit tcdTyVars)
             Infix ->
               case hsq_explicit tcdTyVars of
                 (l:r:xs) -> do
