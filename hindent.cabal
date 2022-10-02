@@ -111,6 +111,7 @@ test-suite hindent-test
                    , monad-loops
                    , mtl
                    , bytestring
+                   , regex-tdfa
                    , utf8-string
                    , hspec
                    , directory

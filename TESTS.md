@@ -566,7 +566,7 @@ f = undefined
 
 `OverloadedRecordDot`
 
-```haskell
+```haskell from 9.2.2
 {-# LANGUAGE OverloadedRecordDot #-}
 
 data Rectangle =
