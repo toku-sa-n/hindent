@@ -21,7 +21,7 @@ import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 -- @\n@s. Use 'newline' to print @\n@s.
 --
 -- - ghc-lib-parser may change a type's implementation of 'Outputable',
--- causing a sudden test failure.
+-- causing a sudden test failure. It becomes a maintaince burden.
 output :: (HasCallStack, Outputable a) => a -> Printer ()
 output = string . showOutputable
 
