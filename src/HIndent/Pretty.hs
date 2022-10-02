@@ -271,6 +271,7 @@ instance Pretty HsModule where
       separator (SigD _ InlineSig {}) = newline
       separator _                     = blankline
       declsExist = not . null . hsmodDecls
+      -- TODO: Support 'configSortImports'.
       outputImports =
         blanklined .
         fmap (outputImportGroup . sortImportsByName) .
@@ -1795,9 +1796,10 @@ instance Pretty (ImportDecl GhcPs) where
       when x (string " hiding")
       (string " " >> hTuple explicitOrHidingImports) <-|>
         (newline >> indentedBlock (vTuple explicitOrHidingImports))
+      -- TODO: Handle comments.
     where
       explicitOrHidingImports =
-        output <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+        pretty <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
 
 packageName :: ImportDecl GhcPs -> Maybe StringLiteral
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -1963,7 +1965,26 @@ instance Pretty ModuleName where
     output name
 
 instance Pretty (IE GhcPs) where
-  pretty' = output
+  pretty' (IEVar _ name) = pretty name
+  pretty' (IEThingAbs _ name) = pretty name
+  pretty' (IEThingAll _ name) = do
+    pretty name
+    string "(..)"
+  -- FIXME: Currently, pretty-printing a 'IEThingWith' uses
+  -- 'ghc-lib-parser''s pretty-printer. However, we should avoid it because
+  -- 'ghc-lib-parser' may suddenly change how it prints, resulting in
+  -- unexpected test failures.
+  pretty' x@IEThingWith {} =
+    case lines $ showOutputable x of
+      [] -> pure ()
+      [x'] -> string x'
+      xs -> do
+        string $ head xs
+        indentedWithFixedLevel 0 $ newlinePrefixed $ string <$> tail xs
+  pretty' IEModuleContents {} = undefined
+  pretty' IEGroup {} = undefined
+  pretty' IEDoc {} = undefined
+  pretty' IEDocNamed {} = undefined
 
 instance Pretty a => Pretty (FamEqn GhcPs a) where
   pretty' FamEqn {..} = do
@@ -2013,3 +2034,8 @@ instance Pretty (WarnDecl GhcPs) where
 instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
   pretty' WithHsDocIdentifiers {..} = pretty hsDocString
 #endif
+-- | 'Pretty' for 'LIEWrappedName (IdP GhcPs)'
+instance Pretty (IEWrappedName RdrName) where
+  pretty' (IEName name) = pretty name
+  pretty' IEPattern {}  = undefined
+  pretty' IEType {}     = undefined
