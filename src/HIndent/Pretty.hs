@@ -1967,7 +1967,9 @@ instance Pretty ModuleName where
 instance Pretty (IE GhcPs) where
   pretty' (IEVar _ name) = pretty name
   pretty' (IEThingAbs _ name) = pretty name
-  pretty' x@IEThingAll {} = output x
+  pretty' (IEThingAll _ name) = do
+    pretty name
+    string "(..)"
   -- FIXME: Currently, pretty-printing a 'IEThingWith' uses
   -- 'ghc-lib-parser''s pretty-printer. However, we should avoid it because
   -- 'ghc-lib-parser' may suddenly change how it prints, resulting in
