@@ -23,6 +23,7 @@ import           Data.List
 import           Data.Maybe
 import           Data.Void
 import           Generics.SYB                 hiding (Infix, Prefix)
+import           GHC.Core.Coercion
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
@@ -320,20 +321,20 @@ instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
   commentsAfter (L l _) = commentsAfter l
 
 instance Pretty (HsDecl GhcPs) where
-  pretty' (TyClD _ d)     = pretty d
-  pretty' (InstD _ inst)  = pretty inst
-  pretty' (DerivD _ x)    = pretty x
-  pretty' (ValD _ bind)   = pretty bind
-  pretty' (SigD _ s)      = pretty $ DeclSig s
-  pretty' (KindSigD _ x)  = pretty x
-  pretty' (DefD _ x)      = pretty x
-  pretty' (ForD _ x)      = pretty x
-  pretty' (WarningD _ x)  = pretty x
-  pretty' (AnnD _ x)      = pretty x
-  pretty' (RuleD _ x)     = pretty x
-  pretty' (SpliceD _ sp)  = pretty sp
-  pretty' DocD {}         = return ()
-  pretty' x@RoleAnnotD {} = output x
+  pretty' (TyClD _ d)      = pretty d
+  pretty' (InstD _ inst)   = pretty inst
+  pretty' (DerivD _ x)     = pretty x
+  pretty' (ValD _ bind)    = pretty bind
+  pretty' (SigD _ s)       = pretty $ DeclSig s
+  pretty' (KindSigD _ x)   = pretty x
+  pretty' (DefD _ x)       = pretty x
+  pretty' (ForD _ x)       = pretty x
+  pretty' (WarningD _ x)   = pretty x
+  pretty' (AnnD _ x)       = pretty x
+  pretty' (RuleD _ x)      = pretty x
+  pretty' (SpliceD _ sp)   = pretty sp
+  pretty' DocD {}          = return ()
+  pretty' (RoleAnnotD _ x) = pretty x
 
 instance Pretty (TyClDecl GhcPs) where
   pretty' = prettyTyClDecl
@@ -2108,3 +2109,14 @@ instance Pretty (AnnProvenance GhcPs) where
   pretty' (ValueAnnProvenance x) = pretty x
   pretty' TypeAnnProvenance {}   = undefined
   pretty' ModuleAnnProvenance {} = undefined
+
+instance Pretty (RoleAnnotDecl GhcPs) where
+  pretty' (RoleAnnotDecl _ name roles) =
+    spaced $
+    [string "type role", pretty name] ++
+    fmap (maybe (string "_") pretty . unLoc) roles
+
+instance Pretty Role where
+  pretty' Nominal          = undefined
+  pretty' Representational = string "representational"
+  pretty' Phantom          = undefined
