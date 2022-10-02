@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-for f in **/*.hs
+for f in src/**/*.hs
 do
     ACTUAL=$(mktemp --suffix=.actual.hs)
     cp $f $ACTUAL
