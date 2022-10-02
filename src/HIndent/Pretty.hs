@@ -2036,8 +2036,10 @@ instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
 -- | 'Pretty' for 'LIEWrappedName (IdP GhcPs)'
 instance Pretty (IEWrappedName RdrName) where
   pretty' (IEName name) = pretty name
-  pretty' IEPattern {}  = undefined
-  pretty' IEType {}     = undefined
+  pretty' IEPattern {} = undefined
+  pretty' (IEType _ name) = do
+    string "type "
+    pretty name
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (DotFieldOcc GhcPs) where
   pretty' DotFieldOcc {..} = pretty dfoLabel

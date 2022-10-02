@@ -97,6 +97,14 @@ import Data.Text (a, b, c)
 import Data.Text hiding (a, b, c)
 ```
 
+Import with `ExplicitNamespaces`.
+
+```haskell
+{-# LANGUAGE ExplicitNamespaces #-}
+
+import Prlude (type FilePath)
+```
+
 Sorted
 
 ```haskell given
