@@ -321,7 +321,7 @@ instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d)     = pretty d
   pretty' (InstD _ inst)  = pretty inst
-  pretty' x@DerivD {}     = output x
+  pretty' (DerivD _ x)    = pretty x
   pretty' (ValD _ bind)   = pretty bind
   pretty' (SigD _ s)      = pretty $ DeclSig s
   pretty' x@KindSigD {}   = output x
@@ -2065,3 +2065,14 @@ instance Pretty (RuleDecl GhcPs) where
 
 instance Pretty OccName where
   pretty' = output
+
+instance Pretty (DerivDecl GhcPs)
+  -- TODO: Handle deriving strategies.
+                                       where
+  pretty' DerivDecl {..} = do
+    string "deriving instance "
+    pretty deriv_type
+
+-- | 'Pretty' for 'LHsSigWcType GhcPs'.
+instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsSigType GhcPs))) where
+  pretty' HsWC {..} = pretty hswc_body
