@@ -1,12 +1,10 @@
 #!/bin/zsh
 
-readonly INPUT=$(read -se)
-
 readonly EXPECTED=$(mktemp --suffix=.expected.hs)
 readonly ACTUAL=$(mktemp --suffix=.actual.hs)
 
-echo $INPUT > $EXPECTED
-echo $INPUT > $ACTUAL
+cat $1 > $EXPECTED
+cat $1 > $ACTUAL
 
 if ! hindent $EXPECTED
 then
@@ -19,5 +17,8 @@ then
     echo "The development version of HIndent failed to format the code."
     exit 1
 fi
+
+cat $EXPECTED
+cat $ACTUAL
 
 diff $EXPECTED $ACTUAL
