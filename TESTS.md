@@ -249,6 +249,17 @@ newtype Foo a =
 type role Foo representational
 ```
 
+`StandaloneKindSignatures`
+
+```haskell
+{-# LANGUAGE StandaloneKindSignatures #-}
+
+type Foo :: Type -> Type -> Type
+
+data Foo a b =
+  Foo a b
+```
+
 # Expressions
 
 A minus sign
