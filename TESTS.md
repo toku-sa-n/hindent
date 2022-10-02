@@ -238,6 +238,17 @@ data Foo =
 deriving instance Eq Foo
 ```
 
+Role annotation
+
+```haskell
+{-# LANGUAGE RoleAnnotations #-}
+
+newtype Foo a =
+  Foo a
+
+type role Foo representational
+```
+
 # Expressions
 
 A minus sign

@@ -319,20 +319,20 @@ instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
   commentsAfter (L l _) = commentsAfter l
 
 instance Pretty (HsDecl GhcPs) where
-  pretty' (TyClD _ d)    = pretty d
-  pretty' (InstD _ inst) = pretty inst
-  pretty' x@DerivD {}    = output x
-  pretty' (ValD _ bind)  = pretty bind
-  pretty' (SigD _ s)     = pretty $ DeclSig s
-  pretty' KindSigD {}    = undefined
-  pretty' x@DefD {}      = output x
-  pretty' x@ForD {}      = output x
-  pretty' (WarningD _ x) = pretty x
-  pretty' AnnD {}        = undefined
-  pretty' RuleD {}       = undefined
-  pretty' (SpliceD _ sp) = pretty sp
-  pretty' DocD {}        = return ()
-  pretty' RoleAnnotD {}  = undefined
+  pretty' (TyClD _ d)     = pretty d
+  pretty' (InstD _ inst)  = pretty inst
+  pretty' x@DerivD {}     = output x
+  pretty' (ValD _ bind)   = pretty bind
+  pretty' (SigD _ s)      = pretty $ DeclSig s
+  pretty' KindSigD {}     = undefined
+  pretty' x@DefD {}       = output x
+  pretty' x@ForD {}       = output x
+  pretty' (WarningD _ x)  = pretty x
+  pretty' AnnD {}         = undefined
+  pretty' RuleD {}        = undefined
+  pretty' (SpliceD _ sp)  = pretty sp
+  pretty' DocD {}         = return ()
+  pretty' x@RoleAnnotD {} = output x
 
 instance Pretty (TyClDecl GhcPs) where
   pretty' = prettyTyClDecl
