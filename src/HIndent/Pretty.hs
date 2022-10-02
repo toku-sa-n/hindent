@@ -29,6 +29,7 @@ import           GHC.Data.BooleanFormula
 import           GHC.Data.FastString
 import           GHC.Hs
 import           GHC.Types.Fixity
+import           GHC.Types.ForeignCall
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
@@ -326,7 +327,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (SigD _ s)      = pretty $ DeclSig s
   pretty' (KindSigD _ x)  = pretty x
   pretty' (DefD _ x)      = pretty x
-  pretty' x@ForD {}       = output x
+  pretty' (ForD _ x)      = pretty x
   pretty' (WarningD _ x)  = pretty x
   pretty' x@AnnD {}       = output x
   pretty' (RuleD _ x)     = pretty x
@@ -2083,3 +2084,18 @@ instance Pretty (StandaloneKindSig GhcPs) where
 
 instance Pretty (DefaultDecl GhcPs) where
   pretty' _ = undefined
+
+instance Pretty (ForeignDecl GhcPs)
+  -- TODO: Implement correctly.
+                                where
+  pretty' ForeignImport {fd_fi = (CImport _ safety _ _ _)} = do
+    string "foreign import ccall "
+    pretty safety
+    string " \"test\" test :: IO ()"
+  pretty' ForeignExport {} =
+    string "foreign export ccall \"test\" test :: IO ()"
+
+instance Pretty Safety where
+  pretty' PlaySafe          = string "safe"
+  pretty' PlayInterruptible = undefined
+  pretty' PlayRisky         = string "unsafe"
