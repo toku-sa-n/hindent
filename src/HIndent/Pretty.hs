@@ -621,8 +621,8 @@ prettyHsExpr (HsApp _ l r) = horizontal <-|> vertical
     vertical = do
       let (f, args) =
             case flatten l ++ [r] of
+              []         -> error "Invalid function application."
               (f':args') -> (f', args')
-              _          -> error "Invalid function application."
       col <- gets psColumn
       spaces <- getIndentSpaces
       pretty f
