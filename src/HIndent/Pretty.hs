@@ -1981,7 +1981,7 @@ instance Pretty (IE GhcPs) where
       xs -> do
         string $ head xs
         indentedWithFixedLevel 0 $ newlinePrefixed $ string <$> tail xs
-  pretty' IEModuleContents {} = undefined
+  pretty' (IEModuleContents _ name) = pretty name
   pretty' IEGroup {} = undefined
   pretty' IEDoc {} = undefined
   pretty' IEDocNamed {} = undefined
