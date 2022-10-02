@@ -18,7 +18,4 @@ then
     exit 1
 fi
 
-cat $EXPECTED
-cat $ACTUAL
-
 diff $EXPECTED $ACTUAL
