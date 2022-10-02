@@ -88,7 +88,7 @@ toSpec = go
     pendingForVersionMsg from =
       "The test is for GHC versions from " ++
       showVersion from ++
-      " but you are using GHC " ++ showVersion compilerVersion ++ "."
+      " but you are using GHC version " ++ showVersion compilerVersion ++ "."
     fromVersion :: String -> Maybe Version
     fromVersion s
       | (_, _, _, [x, y, z]) <-
