@@ -655,7 +655,7 @@ prettyHsExpr (HsPar _ _ expr _) = parens $ pretty expr
 prettyHsExpr (HsPar _ expr) = parens $ pretty expr
 #endif
 prettyHsExpr (SectionL _ l o) = spaced [pretty l, pretty (InfixExpr o)]
-prettyHsExpr (SectionR _ o r) = spaced [pretty (InfixExpr o), pretty r]
+prettyHsExpr (SectionR _ o r) = (pretty (InfixExpr o) >> space) |=> pretty r
 prettyHsExpr (ExplicitTuple _ full _) = horizontal <-|> vertical
   where
     horizontal = hTuple $ fmap pretty full
