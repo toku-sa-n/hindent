@@ -830,7 +830,7 @@ prettyHsExpr HsStatic {} = undefined
 prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined
 #endif
-prettyHsExpr HsPragE {} = undefined
+prettyHsExpr x@HsPragE {} = output x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined

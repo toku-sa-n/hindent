@@ -601,6 +601,12 @@ area :: Rectangle -> Int
 area r = r.width * r.height
 ```
 
+An expression with a SCC pragma
+
+```haskell
+foo = {-# SCC foo #-} undefined
+```
+
 # Template Haskell
 
 Expression brackets
