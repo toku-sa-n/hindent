@@ -7,27 +7,27 @@ packages:
 - completed:
     hackage: base-compat-0.12.2@sha256:85d820a15e3f00f1781ac939cb9cdccdcc6f38c43e4c74a6e83e5d75f67b61a0,6960
     pantry-tree:
-      size: 9038
       sha256: 67b3f19a22ea6de8aee52eb840225d8cb185c1530366cfe813a32229cf66118f
+      size: 9038
   original:
     hackage: base-compat-0.12.2
 - completed:
     hackage: base-compat-batteries-0.12.2@sha256:ecf0bb2b39be54f1ffa185d37663702b0651d34d1cdcc32d32bb8f7279396afe,8627
     pantry-tree:
-      size: 11169
       sha256: 542c975ff6d622880aa67aaf4dd9bbe403d6d8666b868681305751e85d50fb38
+      size: 11169
   original:
     hackage: base-compat-batteries-0.12.2
 - completed:
     hackage: ghc-lib-parser-9.2.3.20220527@sha256:f43ed294dd3fcd133037bc86e8976ada653c8ab0f248dfbddb3bf45c9ae14bff,12720
     pantry-tree:
-      size: 27578
       sha256: 6ee44184738ae0cdcbf6b8340fd7010fc8ccb9630fb0cda0c25225a9b4937294
+      size: 27578
   original:
     hackage: ghc-lib-parser-9.2.3.20220527
 snapshots:
 - completed:
+    sha256: f5d9002479d87103fd070f17cfe71fcd2147676f1e47a2dabca5ab91a42b846d
     size: 619399
     url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/23.yaml
-    sha256: f5d9002479d87103fd070f17cfe71fcd2147676f1e47a2dabca5ab91a42b846d
   original: lts-19.23
