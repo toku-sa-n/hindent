@@ -6,7 +6,6 @@ module HIndent.Pretty.Imports.Sort
 
 import           Data.Char
 import           Data.Function
-import           Data.Functor.Classes
 import           Data.List
 import           Data.Maybe
 import           GHC.Hs
@@ -79,7 +78,11 @@ moduleName _                           = Nothing
 -- | This function compares two identifiers in order of capitals, symbols,
 -- and lowers.
 compareIdentifier :: String -> String -> Ordering
-compareIdentifier = liftCompare compareChar
+compareIdentifier as@(a:_) bs@(b:_) =
+  case compareChar a b of
+    EQ -> compare as bs
+    x  -> x
+compareIdentifier _ _ = error "Either identifier is an empty string."
 
 -- | This function compares two characters by their types (capital, symbol,
 -- and lower). If both are the same type, then it compares them by the
