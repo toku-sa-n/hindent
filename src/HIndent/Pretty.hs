@@ -321,7 +321,7 @@ instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d)    = pretty d
   pretty' (InstD _ inst) = pretty inst
-  pretty' DerivD {}      = undefined
+  pretty' x@DerivD {}    = output x
   pretty' (ValD _ bind)  = pretty bind
   pretty' (SigD _ s)     = pretty $ DeclSig s
   pretty' KindSigD {}    = undefined

@@ -227,6 +227,17 @@ data Ty :: (* -> *) where
   TCon' :: (a :: *) -> a -> Ty a
 ```
 
+`StandaloneDeriving`
+
+```haskell
+{-# LANGUAGE StandaloneDeriving #-}
+
+data Foo =
+  Foo
+
+deriving instance Eq Foo
+```
+
 # Expressions
 
 A minus sign
