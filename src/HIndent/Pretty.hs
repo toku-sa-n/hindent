@@ -329,7 +329,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' x@ForD {}       = output x
   pretty' (WarningD _ x)  = pretty x
   pretty' x@AnnD {}       = output x
-  pretty' RuleD {}        = undefined
+  pretty' (RuleD _ x)     = pretty x
   pretty' (SpliceD _ sp)  = pretty sp
   pretty' DocD {}         = return ()
   pretty' x@RoleAnnotD {} = output x
@@ -2049,3 +2049,16 @@ instance Pretty (HsFieldLabel GhcPs) where
 #endif
 instance Pretty FastString where
   pretty' = output
+
+instance Pretty (RuleDecls GhcPs) where
+  pretty' HsRules {..} =
+    lined $ [string "{-# RULES"] ++ fmap pretty rds_rules ++ [string " #-}"]
+
+instance Pretty (RuleDecl GhcPs) where
+  pretty' HsRule {..} =
+    spaced
+      [ printCommentsAnd rd_name (doubleQuotes . pretty . snd)
+      , pretty rd_lhs
+      , string "="
+      , pretty rd_rhs
+      ]

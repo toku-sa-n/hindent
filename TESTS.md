@@ -268,6 +268,14 @@ Annotation decalration
 foo = undefined
 ```
 
+Rule declaration
+
+```haskell
+{-# RULES
+"foo/bar" foo = bar
+ #-}
+```
+
 # Expressions
 
 A minus sign
