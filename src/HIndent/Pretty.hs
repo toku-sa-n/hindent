@@ -676,8 +676,7 @@ prettyHsExpr (HsCase _ cond arms) = do
       newline
       indentedBlock $ pretty $ MatchGroupForCase arms
 prettyHsExpr (HsIf _ cond t f) = do
-  string "if "
-  pretty cond
+  string "if " |=> pretty cond
   indentedBlock $ do
     newline
     branch "then " t
