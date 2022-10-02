@@ -676,13 +676,8 @@ prettyHsExpr (HsCase _ cond arms) = do
       newline
       indentedBlock $ pretty $ MatchGroupForCase arms
 prettyHsExpr (HsIf _ cond t f) = do
-  string "if "
-  pretty cond
-  indentedBlock $ do
-    newline
-    branch "then " t
-    newline
-    branch "else " f
+  string "if " |=> pretty cond
+  indentedBlock $ newlinePrefixed [branch "then " t, branch "else " f]
   where
     branch :: String -> LHsExpr GhcPs -> Printer ()
     branch str e =
