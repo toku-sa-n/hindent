@@ -12,7 +12,7 @@ do
         if [ ! -z "$result" ]
         then
             echo "Failed to format $f."
-            break
+            exit 1
         fi
     fi
 
