@@ -328,7 +328,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' x@DefD {}       = output x
   pretty' x@ForD {}       = output x
   pretty' (WarningD _ x)  = pretty x
-  pretty' AnnD {}         = undefined
+  pretty' x@AnnD {}       = output x
   pretty' RuleD {}        = undefined
   pretty' (SpliceD _ sp)  = pretty sp
   pretty' DocD {}         = return ()

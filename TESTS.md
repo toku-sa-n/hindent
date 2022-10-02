@@ -260,6 +260,14 @@ data Foo a b =
   Foo a b
 ```
 
+Annotation decalration
+
+```haskell
+{-# ANN foo "annotation" #-}
+
+foo = undefined
+```
+
 # Expressions
 
 A minus sign
