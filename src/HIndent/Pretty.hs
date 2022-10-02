@@ -26,6 +26,7 @@ import           Generics.SYB                 hiding (Infix, Prefix)
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
+import           GHC.Data.FastString
 import           GHC.Hs
 import           GHC.Types.Fixity
 import           GHC.Types.Name
@@ -807,7 +808,10 @@ prettyHsExpr (RecordUpd _ name fields) = hor <-|> ver
       newline
       indentedBlock $ pretty hsRecFieldArg
 #endif
-prettyHsExpr HsGetField {} = undefined
+prettyHsExpr (HsGetField _ e f) = do
+  pretty e
+  dot
+  pretty f
 prettyHsExpr HsProjection {} = undefined
 prettyHsExpr (ExprWithTySig _ e sig) = do
   pretty e
@@ -2034,3 +2038,12 @@ instance Pretty (IEWrappedName RdrName) where
   pretty' (IEName name) = pretty name
   pretty' IEPattern {}  = undefined
   pretty' IEType {}     = undefined
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+instance Pretty (DotFieldOcc GhcPs) where
+  pretty' DotFieldOcc {..} = pretty dfoLabel
+#else
+instance Pretty (HsFieldLabel GhcPs) where
+  pretty' HsFieldLabel {..} = pretty hflLabel
+#endif
+instance Pretty FastString where
+  pretty' = output

@@ -556,6 +556,21 @@ f = undefined
                  }
 ```
 
+`OverloadedRecordDot`
+
+```haskell
+{-# LANGUAGE OverloadedRecordDot #-}
+
+data Rectangle =
+  Rectangle
+    { width :: Int
+    , height :: Int
+    }
+
+area :: Rectangle -> Int
+area r = r.width * r.height
+```
+
 # Template Haskell
 
 Expression brackets
