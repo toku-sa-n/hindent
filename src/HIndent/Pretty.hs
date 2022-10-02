@@ -329,7 +329,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (DefD _ x)      = pretty x
   pretty' (ForD _ x)      = pretty x
   pretty' (WarningD _ x)  = pretty x
-  pretty' x@AnnD {}       = output x
+  pretty' (AnnD _ x)      = pretty x
   pretty' (RuleD _ x)     = pretty x
   pretty' (SpliceD _ sp)  = pretty sp
   pretty' DocD {}         = return ()
@@ -2099,3 +2099,12 @@ instance Pretty Safety where
   pretty' PlaySafe          = string "safe"
   pretty' PlayInterruptible = undefined
   pretty' PlayRisky         = string "unsafe"
+
+instance Pretty (AnnDecl GhcPs) where
+  pretty' (HsAnnotation _ _ prov expr) =
+    spaced [string "{-# ANN", pretty prov, pretty expr, string "#-}"]
+
+instance Pretty (AnnProvenance GhcPs) where
+  pretty' (ValueAnnProvenance x) = pretty x
+  pretty' TypeAnnProvenance {}   = undefined
+  pretty' ModuleAnnProvenance {} = undefined
