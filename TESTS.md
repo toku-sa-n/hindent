@@ -641,6 +641,12 @@ An expression with a SCC pragma
 foo = {-# SCC foo #-} undefined
 ```
 
+A hole
+
+```haskell
+foo = 3 + _
+```
+
 # Template Haskell
 
 Expression brackets

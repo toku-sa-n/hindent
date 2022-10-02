@@ -586,7 +586,7 @@ instance Pretty (HsExpr GhcPs) where
 -- declaration well. That is why this function is defined.
 prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
-prettyHsExpr HsUnboundVar {} = undefined
+prettyHsExpr (HsUnboundVar _ x) = pretty x
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsConLikeOut {} = undefined
 prettyHsExpr HsRecFld {} = undefined
@@ -2062,3 +2062,6 @@ instance Pretty (RuleDecl GhcPs) where
       , string "="
       , pretty rd_rhs
       ]
+
+instance Pretty OccName where
+  pretty' = output
