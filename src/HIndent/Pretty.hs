@@ -28,6 +28,7 @@ import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Data.FastString
 import           GHC.Hs
+import           GHC.Stack
 import           GHC.Types.Fixity
 import           GHC.Types.Name
 import           GHC.Types.Name.Reader
@@ -584,11 +585,11 @@ instance Pretty (HsExpr GhcPs) where
 
 -- HIndent cannot handle CPP instructions inside a class instance
 -- declaration well. That is why this function is defined.
-prettyHsExpr :: HsExpr GhcPs -> Printer ()
+prettyHsExpr :: HasCallStack => HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prettyHsExpr (HsUnboundVar _ x) = pretty x
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsConLikeOut {} = undefined
+prettyHsExpr HsConLikeOut {} = error "This should not appear in an AST."
 prettyHsExpr HsRecFld {} = undefined
 #endif
 prettyHsExpr (HsOverLabel _ l) = do
