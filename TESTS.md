@@ -276,6 +276,13 @@ Rule declaration
  #-}
 ```
 
+Class declaration with an empty constraint
+
+```haskell
+class () =>
+      Foo a
+```
+
 # Expressions
 
 A minus sign

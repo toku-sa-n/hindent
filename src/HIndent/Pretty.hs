@@ -409,7 +409,7 @@ prettyTyClDecl ClassDecl {..} = do
       string "class " |=> do
         whenJust tcdCtxt $ \ctx -> do
           printCommentsAnd ctx $ \case
-            []  -> undefined
+            []  -> string "()"
             [x] -> pretty x
             xs  -> hTuple $ fmap pretty xs
           string " =>"
