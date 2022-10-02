@@ -324,7 +324,7 @@ instance Pretty (HsDecl GhcPs) where
   pretty' (DerivD _ x)    = pretty x
   pretty' (ValD _ bind)   = pretty bind
   pretty' (SigD _ s)      = pretty $ DeclSig s
-  pretty' x@KindSigD {}   = output x
+  pretty' (KindSigD _ x)  = pretty x
   pretty' x@DefD {}       = output x
   pretty' x@ForD {}       = output x
   pretty' (WarningD _ x)  = pretty x
@@ -2076,3 +2076,7 @@ instance Pretty (DerivDecl GhcPs)
 -- | 'Pretty' for 'LHsSigWcType GhcPs'.
 instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsSigType GhcPs))) where
   pretty' HsWC {..} = pretty hswc_body
+
+instance Pretty (StandaloneKindSig GhcPs) where
+  pretty' (StandaloneKindSig _ name kind) =
+    spaced [string "type", pretty name, string "::", pretty kind]
