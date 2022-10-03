@@ -365,11 +365,11 @@ prettyTyClDecl SynDecl {..} = do
   string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
   case tcdFixity of
-    Prefix -> spaced $ pretty tcdLName : fmap output (hsq_explicit tcdTyVars)
+    Prefix -> spaced $ pretty tcdLName : fmap pretty (hsq_explicit tcdTyVars)
     Infix ->
       case hsq_explicit tcdTyVars of
         (l:r:xs) -> do
-          spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
+          spaced [pretty l, pretty $ fmap InfixOp tcdLName, pretty r]
           forM_ xs $ \x -> do
             space
             output x
