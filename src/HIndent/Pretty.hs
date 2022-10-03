@@ -372,7 +372,7 @@ prettyTyClDecl SynDecl {..} = do
           spaced [pretty l, pretty $ fmap InfixOp tcdLName, pretty r]
           forM_ xs $ \x -> do
             space
-            output x
+            pretty x
         _ -> error "Not enough parameters are given."
   hor <-|> ver
   where
@@ -391,7 +391,7 @@ prettyTyClDecl DataDecl {..} = do
   pretty tcdLName
   forM_ (hsq_explicit tcdTyVars) $ \x -> do
     space
-    output x
+    pretty x
   pretty tcdDataDefn
 prettyTyClDecl ClassDecl {..} = do
   if isJust tcdCtxt
@@ -435,8 +435,8 @@ prettyTyClDecl ClassDecl {..} = do
           case hsq_explicit tcdTyVars of
             (l:r:xs) -> do
               parens $
-                spaced [output l, pretty $ fmap InfixOp tcdLName, output r]
-              spacePrefixed $ fmap output xs
+                spaced [pretty l, pretty $ fmap InfixOp tcdLName, pretty r]
+              spacePrefixed $ fmap pretty xs
             _ -> error "Not enough parameters are given."
     sigsMethodsFamilies =
       mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
