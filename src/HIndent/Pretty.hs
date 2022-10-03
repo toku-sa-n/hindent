@@ -442,8 +442,9 @@ prettyTyClDecl ClassDecl {..} = do
       mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
-  pretty' ClsInstD {..} = pretty cid_inst
-  pretty' x             = output x
+  pretty' ClsInstD {..}   = pretty cid_inst
+  pretty' DataFamInstD {} = undefined
+  pretty' TyFamInstD {..} = pretty tfid_inst
 
 instance Pretty (HsBind GhcPs) where
   pretty' FunBind {..} = pretty fun_matches
@@ -2120,3 +2121,8 @@ instance Pretty Role where
   pretty' Nominal          = undefined
   pretty' Representational = string "representational"
   pretty' Phantom          = undefined
+
+instance Pretty (TyFamInstDecl GhcPs) where
+  pretty' TyFamInstDecl {..} = do
+    string "type instance "
+    pretty tfid_eqn
