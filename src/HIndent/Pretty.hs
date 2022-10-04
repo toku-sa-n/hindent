@@ -530,7 +530,7 @@ instance Pretty (HsDataDefn GhcPs) where
     case dd_kindSig of
       Just kindSig -> do
         string " :: "
-        output kindSig
+        pretty kindSig
         string " where"
         indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
       Nothing ->
