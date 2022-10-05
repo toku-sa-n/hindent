@@ -22,7 +22,6 @@ import           Control.Monad.RWS
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                 hiding (Infix, Prefix)
 import           GHC.Core.Coercion
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
@@ -38,6 +37,7 @@ import           GHC.Types.SrcLoc
 import           GHC.Types.Var
 import           GHC.Unit
 import           GHC.Unit.Module.Warnings
+import           Generics.SYB                 hiding (Infix, Prefix)
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
@@ -127,6 +127,9 @@ newtype ParStmtBlockInsideVerticalList =
 
 newtype DeclSig =
   DeclSig (Sig GhcPs)
+
+-- | Top-level type family declaration, like @type family ID a :: *@.
+newtype DeclTypeFamily = DeclTypeFamily (FamilyDecl GhcPs)
 
 newtype HsTypeInsideDeclSig =
   HsTypeInsideDeclSig (HsType GhcPs)
@@ -340,27 +343,7 @@ instance Pretty (TyClDecl GhcPs) where
   pretty' = prettyTyClDecl
 
 prettyTyClDecl :: TyClDecl GhcPs -> Printer ()
-prettyTyClDecl (FamDecl _ FamilyDecl {..}) = do
-  string "type family "
-  pretty fdLName
-  spacePrefixed $ pretty <$> hsq_explicit fdTyVars
-  case unLoc fdResultSig of
-    NoSig {} -> pure ()
-    TyVarSig {} -> do
-      string " = "
-      pretty fdResultSig
-    _ -> do
-      space
-      pretty fdResultSig
-  whenJust fdInjectivityAnn $ \x -> do
-    string " | "
-    pretty x
-  case fdInfo of
-    ClosedTypeFamily (Just xs) -> do
-      string " where"
-      newline
-      indentedBlock $ lined $ fmap pretty xs
-    _ -> pure ()
+prettyTyClDecl (FamDecl _ x) = pretty $ DeclTypeFamily x
 prettyTyClDecl SynDecl {..} = do
   string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
@@ -1832,6 +1815,7 @@ instance Pretty OverlapMode where
 instance Pretty StringLiteral where
   pretty' = output
 
+-- | This instance is for type family declarations inside a class declaration.
 instance Pretty (FamilyDecl GhcPs) where
   pretty' FamilyDecl {..} = do
     string "type "
@@ -1842,6 +1826,29 @@ instance Pretty (FamilyDecl GhcPs) where
     whenJust fdInjectivityAnn $ \x -> do
       string " | "
       pretty x
+
+instance Pretty DeclTypeFamily where
+  pretty' (DeclTypeFamily FamilyDecl{..})=do
+    string "type family "
+    pretty fdLName
+    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
+    case unLoc fdResultSig of
+      NoSig {} -> pure ()
+      TyVarSig {} -> do
+        string " = "
+        pretty fdResultSig
+      _ -> do
+        space
+        pretty fdResultSig
+    whenJust fdInjectivityAnn $ \x -> do
+      string " | "
+      pretty x
+    case fdInfo of
+      ClosedTypeFamily (Just xs) -> do
+        string " where"
+        newline
+        indentedBlock $ lined $ fmap pretty xs
+      _ -> pure ()
 
 instance Pretty (FamilyResultSig GhcPs) where
   pretty' NoSig {} = pure ()
