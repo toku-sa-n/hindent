@@ -539,7 +539,7 @@ instance Pretty (HsDataDefn GhcPs) where
             lined $ fmap pretty dd_derivs
 
 instance Pretty HsDataDefnForDataInstance where
-  pretty' (HsDataDefnForDataInstance HsDataDefn {..}) = do
+  pretty' (HsDataDefnForDataInstance HsDataDefn {..}) =
     vBarSep $ fmap pretty dd_cons
 
 instance Pretty (ClsInstDecl GhcPs) where
