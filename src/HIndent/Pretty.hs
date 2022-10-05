@@ -166,7 +166,6 @@ newtype HorizontalContext =
 newtype VerticalContext =
   VerticalContext (Maybe (LHsContext GhcPs))
 #endif
-
 -- | 'HsDataDefn' for 'data instance'.
 newtype HsDataDefnForDataInstance =
   HsDataDefnForDataInstance (HsDataDefn GhcPs)
@@ -301,9 +300,8 @@ instance Pretty HsModule where
           groupImports' [[]] (x:xs) = groupImports' [[x]] xs
           groupImports' ([]:x:xs) (y:ys) = groupImports' ([y] : x : xs) ys
           groupImports' ((z:zs):xs) (y:ys)
-
             | z `isAdjacentTo` y = groupImports' ((y : z : zs) : xs) ys
-            | otherwise          = groupImports' ([y] : (z : zs) : xs) ys
+            | otherwise = groupImports' ([y] : (z : zs) : xs) ys
           a `isAdjacentTo` b =
             srcSpanEndLine (sp a) + 1 == srcSpanStartLine (sp b) ||
             srcSpanEndLine (sp b) + 1 == srcSpanStartLine (sp a)
@@ -441,9 +439,9 @@ instance Pretty (HsBind GhcPs) where
   pretty' PatBind {..} = do
     pretty pat_lhs
     pretty pat_rhs
-  pretty' VarBind{}=undefined
-  pretty' AbsBinds{}=undefined
-  pretty' PatSynBind{}=undefined
+  pretty' VarBind {} = undefined
+  pretty' AbsBinds {} = undefined
+  pretty' PatSynBind {} = undefined
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
   commentOnSameLine FunBind {..} = commentOnSameLine fun_id
@@ -541,7 +539,7 @@ instance Pretty (HsDataDefn GhcPs) where
             lined $ fmap pretty dd_derivs
 
 instance Pretty HsDataDefnForDataInstance where
-  pretty' (HsDataDefnForDataInstance HsDataDefn {..})=do
+  pretty' (HsDataDefnForDataInstance HsDataDefn {..}) = do
     vBarSep $ fmap pretty dd_cons
 
 instance Pretty (ClsInstDecl GhcPs) where
@@ -2024,11 +2022,12 @@ instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
 instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs))
   -- Current implementation adds two spaces after 'data instances'.
   -- This is intentional but needs to be fixed.
-                                                 where
+                                                where
   pretty' FamEqn {..} =
     spaced $
     [string "data instance ", pretty feqn_tycon] ++
-    fmap pretty feqn_pats ++ [string "=",pretty $ HsDataDefnForDataInstance feqn_rhs]
+    fmap pretty feqn_pats ++
+    [string "=", pretty $ HsDataDefnForDataInstance feqn_rhs]
 
 -- HsArg (LHsType GhcPs) (LHsType GhcPs)
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
@@ -2106,7 +2105,7 @@ instance Pretty OccName where
 
 instance Pretty (DerivDecl GhcPs)
   -- TODO: Handle deriving strategies.
-                                        where
+                                       where
   pretty' DerivDecl {..} = do
     string "deriving instance "
     pretty deriv_type
@@ -2124,7 +2123,7 @@ instance Pretty (DefaultDecl GhcPs) where
 
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
-                                 where
+                                where
   pretty' ForeignImport {fd_fi = (CImport _ safety _ _ _)} = do
     string "foreign import ccall "
     pretty safety
