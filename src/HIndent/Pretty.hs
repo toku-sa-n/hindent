@@ -441,7 +441,9 @@ instance Pretty (HsBind GhcPs) where
   pretty' PatBind {..} = do
     pretty pat_lhs
     pretty pat_rhs
-  pretty' x = output x
+  pretty' VarBind{}=undefined
+  pretty' AbsBinds{}=undefined
+  pretty' PatSynBind{}=undefined
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
   commentOnSameLine FunBind {..} = commentOnSameLine fun_id
