@@ -684,6 +684,12 @@ g =
     _ -> False
 ```
 
+Data family
+
+```haskell
+data family Foo a
+```
+
 # Type signatures
 
 Multiple function signatures at once

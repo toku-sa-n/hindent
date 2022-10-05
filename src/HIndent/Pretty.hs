@@ -1829,7 +1829,11 @@ instance Pretty (FamilyDecl GhcPs) where
 
 instance Pretty DeclTypeFamily where
   pretty' (DeclTypeFamily FamilyDecl{..})=do
-    string "type family "
+    string $ case fdInfo of
+                DataFamily->"data"
+                OpenTypeFamily->"type"
+                ClosedTypeFamily {}->"type"
+    string " family "
     pretty fdLName
     spacePrefixed $ pretty <$> hsq_explicit fdTyVars
     case unLoc fdResultSig of
