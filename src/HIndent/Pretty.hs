@@ -1999,7 +1999,7 @@ instance Pretty (IE GhcPs) where
   pretty' IEDoc {} = undefined
   pretty' IEDocNamed {} = undefined
 
-instance Pretty a => Pretty (FamEqn GhcPs a) where
+instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' FamEqn {..} = do
     pretty feqn_tycon
     spacePrefixed $ fmap pretty feqn_pats
