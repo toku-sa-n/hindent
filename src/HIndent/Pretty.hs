@@ -579,7 +579,7 @@ prettyHsExpr HsRecFld {} = undefined
 #endif
 prettyHsExpr (HsOverLabel _ l) = do
   string "#"
-  output l
+  pretty l
 prettyHsExpr HsIPVar {} = undefined
 prettyHsExpr full@HsOverLit {} = output full
 prettyHsExpr (HsLit _ l) = output l
