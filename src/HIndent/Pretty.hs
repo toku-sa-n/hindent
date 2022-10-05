@@ -435,19 +435,24 @@ instance Pretty (InstDecl GhcPs) where
   pretty' TyFamInstD {..}   = pretty tfid_inst
 
 instance Pretty (HsBind GhcPs) where
-  pretty' FunBind {..} = pretty fun_matches
-  pretty' PatBind {..} = do
-    pretty pat_lhs
-    pretty pat_rhs
-  pretty' VarBind {} = undefined
-  pretty' AbsBinds {} = undefined
-  pretty' PatSynBind {} = undefined
+  pretty' = prettyHsBind
   commentsBefore FunBind {..} = commentsBefore fun_id
   commentsBefore _            = []
   commentOnSameLine FunBind {..} = commentOnSameLine fun_id
   commentOnSameLine _            = Nothing
   commentsAfter FunBind {..} = commentsAfter fun_id
   commentsAfter _            = []
+
+prettyHsBind :: HsBind GhcPs -> Printer ()
+prettyHsBind FunBind {..} = pretty fun_matches
+prettyHsBind PatBind {..} = do
+  pretty pat_lhs
+  pretty pat_rhs
+prettyHsBind VarBind {} = undefined
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsBind AbsBinds {} = undefined
+#endif
+prettyHsBind PatSynBind {} = undefined
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
