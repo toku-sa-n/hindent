@@ -22,6 +22,7 @@ import           Control.Monad.RWS
 import           Data.List
 import           Data.Maybe
 import           Data.Void
+import           Generics.SYB                 hiding (Infix, Prefix)
 import           GHC.Core.Coercion
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
@@ -37,7 +38,6 @@ import           GHC.Types.SrcLoc
 import           GHC.Types.Var
 import           GHC.Unit
 import           GHC.Unit.Module.Warnings
-import           Generics.SYB                 hiding (Infix, Prefix)
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Imports.Sort
@@ -129,7 +129,8 @@ newtype DeclSig =
   DeclSig (Sig GhcPs)
 
 -- | Top-level type family declaration, like @type family ID a :: *@.
-newtype DeclTypeFamily = DeclTypeFamily (FamilyDecl GhcPs)
+newtype DeclTypeFamily =
+  DeclTypeFamily (FamilyDecl GhcPs)
 
 newtype HsTypeInsideDeclSig =
   HsTypeInsideDeclSig (HsType GhcPs)
@@ -165,6 +166,11 @@ newtype HorizontalContext =
 newtype VerticalContext =
   VerticalContext (Maybe (LHsContext GhcPs))
 #endif
+
+-- | 'HsDataDefn' for 'data instance'.
+newtype HsDataDefnForDataInstance =
+  HsDataDefnForDataInstance (HsDataDefn GhcPs)
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -295,8 +301,9 @@ instance Pretty HsModule where
           groupImports' [[]] (x:xs) = groupImports' [[x]] xs
           groupImports' ([]:x:xs) (y:ys) = groupImports' ([y] : x : xs) ys
           groupImports' ((z:zs):xs) (y:ys)
+
             | z `isAdjacentTo` y = groupImports' ((y : z : zs) : xs) ys
-            | otherwise = groupImports' ([y] : (z : zs) : xs) ys
+            | otherwise          = groupImports' ([y] : (z : zs) : xs) ys
           a `isAdjacentTo` b =
             srcSpanEndLine (sp a) + 1 == srcSpanStartLine (sp b) ||
             srcSpanEndLine (sp b) + 1 == srcSpanStartLine (sp a)
@@ -425,9 +432,9 @@ prettyTyClDecl ClassDecl {..} = do
       mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
 
 instance Pretty (InstDecl GhcPs) where
-  pretty' ClsInstD {..}   = pretty cid_inst
-  pretty' DataFamInstD {} = undefined
-  pretty' TyFamInstD {..} = pretty tfid_inst
+  pretty' ClsInstD {..}     = pretty cid_inst
+  pretty' DataFamInstD {..} = pretty dfid_inst
+  pretty' TyFamInstD {..}   = pretty tfid_inst
 
 instance Pretty (HsBind GhcPs) where
   pretty' FunBind {..} = pretty fun_matches
@@ -530,6 +537,10 @@ instance Pretty (HsDataDefn GhcPs) where
           unless (null dd_derivs) $ do
             newline
             lined $ fmap pretty dd_derivs
+
+instance Pretty HsDataDefnForDataInstance where
+  pretty' (HsDataDefnForDataInstance HsDataDefn {..})=do
+    vBarSep $ fmap pretty dd_cons
 
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
@@ -1828,11 +1839,12 @@ instance Pretty (FamilyDecl GhcPs) where
       pretty x
 
 instance Pretty DeclTypeFamily where
-  pretty' (DeclTypeFamily FamilyDecl{..})=do
-    string $ case fdInfo of
-                DataFamily->"data"
-                OpenTypeFamily->"type"
-                ClosedTypeFamily {}->"type"
+  pretty' (DeclTypeFamily FamilyDecl {..}) = do
+    string $
+      case fdInfo of
+        DataFamily          -> "data"
+        OpenTypeFamily      -> "type"
+        ClosedTypeFamily {} -> "type"
     string " family "
     pretty fdLName
     spacePrefixed $ pretty <$> hsq_explicit fdTyVars
@@ -2006,6 +2018,16 @@ instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
     string " = "
     pretty feqn_rhs
 
+-- | Pretty-print a 'data instance'.
+instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs))
+  -- Current implementation adds two spaces after 'data instances'.
+  -- This is intentional but needs to be fixed.
+                                                 where
+  pretty' FamEqn {..} =
+    spaced $
+    [string "data instance ", pretty feqn_tycon] ++
+    fmap pretty feqn_pats ++ [string "=",pretty $ HsDataDefnForDataInstance feqn_rhs]
+
 -- HsArg (LHsType GhcPs) (LHsType GhcPs)
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' (HsValArg x) = pretty x
@@ -2082,7 +2104,7 @@ instance Pretty OccName where
 
 instance Pretty (DerivDecl GhcPs)
   -- TODO: Handle deriving strategies.
-                                       where
+                                        where
   pretty' DerivDecl {..} = do
     string "deriving instance "
     pretty deriv_type
@@ -2100,7 +2122,7 @@ instance Pretty (DefaultDecl GhcPs) where
 
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
-                                where
+                                 where
   pretty' ForeignImport {fd_fi = (CImport _ safety _ _ _)} = do
     string "foreign import ccall "
     pretty safety
@@ -2137,3 +2159,6 @@ instance Pretty (TyFamInstDecl GhcPs) where
   pretty' TyFamInstDecl {..} = do
     string "type instance "
     pretty tfid_eqn
+
+instance Pretty (DataFamInstDecl GhcPs) where
+  pretty' DataFamInstDecl {..} = pretty dfid_eqn

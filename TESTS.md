@@ -684,10 +684,12 @@ g =
     _ -> False
 ```
 
-Data family
+Data family and instances
 
 ```haskell
 data family Foo a
+
+data instance  Foo Int = FInt
 ```
 
 # Type signatures
