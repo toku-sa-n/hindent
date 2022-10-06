@@ -291,6 +291,12 @@ Pattern synonym
 pattern Foo :: Int -> Int -> [Int]
 
 pattern Foo x y <- [x, y]
+
+pattern Single x = [x]
+
+pattern Anylist x = x
+
+{-# COMPLETE Single, Anylist #-}
 ```
 
 Specialised pragma

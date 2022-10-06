@@ -511,7 +511,12 @@ instance Pretty (Sig GhcPs) where
       string " #-}"
   pretty' (SCCFunSig _ _ name _) =
     spaced [string "{-# SCC", pretty name, string "#-}"]
-  pretty' CompleteMatchSig {} = undefined
+  pretty' (CompleteMatchSig _ _ names _) =
+    spaced
+      [ string "{-# COMPLETE"
+      , printCommentsAnd names (hCommaSep . fmap pretty)
+      , string "#-}"
+      ]
   commentsBefore (TypeSig x _ _) = commentsBefore x
   commentsBefore _               = []
   commentOnSameLine (TypeSig x _ _) = commentOnSameLine x
@@ -2200,7 +2205,7 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
       [ string "pattern"
       , pretty psb_id
       , pretty psb_args
-      , string "<-"
+      , pretty psb_dir
       , pretty psb_def
       ]
 
@@ -2236,3 +2241,7 @@ prettyInlineSpec NoUserInlinePrag = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyInlineSpec Opaque {}        = undefined
 #endif
+instance Pretty (HsPatSynDir GhcPs) where
+  pretty' Unidirectional           = string "<-"
+  pretty' ImplicitBidirectional    = string "="
+  pretty' ExplicitBidirectional {} = undefined
