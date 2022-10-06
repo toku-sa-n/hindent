@@ -22,6 +22,8 @@ import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 --
 -- - ghc-lib-parser may change a type's implementation of 'Outputable',
 -- causing a sudden test failure. It becomes a maintaince burden.
+--
+-- - All comments of the node's children are ignored.
 output :: (HasCallStack, Outputable a) => a -> Printer ()
 output = string . showOutputable
 
