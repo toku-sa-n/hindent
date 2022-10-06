@@ -1137,7 +1137,10 @@ prettyHsType HsQualTy {..} = notVer
       newline
       indentedBlock $ pretty hst_body
 #endif
-prettyHsType x@HsTyVar {} = output x
+prettyHsType (HsTyVar _ NotPromoted x) = pretty x
+prettyHsType (HsTyVar _ IsPromoted x) = do
+  string "'"
+  pretty x
 prettyHsType (HsAppTy _ l r) = spaced $ fmap pretty [l, r]
 prettyHsType HsAppKindTy {} = undefined
 prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
