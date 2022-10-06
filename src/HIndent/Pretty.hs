@@ -627,7 +627,7 @@ prettyHsExpr (HsOverLabel _ l) = do
   string "#"
   pretty l
 prettyHsExpr HsIPVar {} = undefined
-prettyHsExpr full@HsOverLit {} = output full
+prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = output l
 prettyHsExpr (HsLam _ body) = pretty $ MatchGroupForLambda body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -2245,3 +2245,17 @@ instance Pretty (HsPatSynDir GhcPs) where
   pretty' Unidirectional           = string "<-"
   pretty' ImplicitBidirectional    = string "="
   pretty' ExplicitBidirectional {} = undefined
+
+instance Pretty (HsOverLit GhcPs) where
+  pretty' OverLit {..} = pretty ol_val
+
+instance Pretty OverLitVal where
+  pretty' (HsIntegral x)   = pretty x
+  pretty' (HsFractional x) = pretty x
+  pretty' (HsIsString _ x) = pretty x
+
+instance Pretty IntegralLit where
+  pretty' IL {..} = string $ show il_value
+
+instance Pretty FractionalLit where
+  pretty' = output
