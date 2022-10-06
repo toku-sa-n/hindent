@@ -288,6 +288,8 @@ Pattern synonym
 ```haskell
 {-# LANGUAGE PatternSynonyms #-}
 
+pattern Foo :: Int -> Int -> [Int]
+
 pattern Foo x y <- [x, y]
 ```
 

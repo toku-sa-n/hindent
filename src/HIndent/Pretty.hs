@@ -475,7 +475,9 @@ instance Pretty (Sig GhcPs) where
           indentedWithSpace 3 $
           pretty $ HsSigTypeInsideVerticalFuncSig <$> hswc_body params
       printFunName = pretty $ head funName
-  pretty' PatSynSig {} = undefined
+  pretty' (PatSynSig _ names sig) =
+    spaced
+      [string "pattern", hCommaSep $ fmap pretty names, string "::", pretty sig]
   pretty' (ClassOpSig _ True funNames params) = do
     string "default "
     hCommaSep $ fmap pretty funNames
