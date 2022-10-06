@@ -293,6 +293,17 @@ pattern Foo :: Int -> Int -> [Int]
 pattern Foo x y <- [x, y]
 ```
 
+Specialised pragma
+
+```haskell
+{-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
+
+{-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
+
+lookup :: Eq k => [(k, v)] -> k -> Maybe v
+lookup = undefined
+```
+
 # Expressions
 
 A minus sign

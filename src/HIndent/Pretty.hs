@@ -495,7 +495,14 @@ instance Pretty (Sig GhcPs) where
     space
     pretty name
     string " #-}"
-  pretty' SpecSig {} = undefined
+  pretty' (SpecSig _ name sig _) =
+    spaced
+      [ string "{-# SPECIALISE"
+      , pretty name
+      , string "::"
+      , pretty $ head sig
+      , string "#-}"
+      ]
   pretty' SpecInstSig {} = undefined
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
