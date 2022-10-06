@@ -1072,9 +1072,9 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   pretty' (LastStmt _ x _ _) = pretty x
   pretty' (BindStmt _ pat body) = hor <-|> ver
     where
-      hor = spaced [output pat, string "<-", pretty body]
+      hor = spaced [pretty pat, string "<-", pretty body]
       ver = do
-        output pat
+        pretty pat
         string " <-"
         newline
         indentedBlock $ pretty body
