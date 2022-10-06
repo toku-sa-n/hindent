@@ -2223,7 +2223,13 @@ instance Pretty InlinePragma where
   pretty' InlinePragma {..} = pretty inl_inline
 
 instance Pretty InlineSpec where
-  pretty' Inline           = string "INLINE"
-  pretty' Inlinable        = undefined
-  pretty' NoInline         = string "NOINLINE"
-  pretty' NoUserInlinePrag = undefined
+  pretty' = prettyInlineSpec
+
+prettyInlineSpec :: InlineSpec -> Printer ()
+prettyInlineSpec Inline {}        = string "INLINE"
+prettyInlineSpec Inlinable {}     = undefined
+prettyInlineSpec NoInline {}      = string "NOINLINE"
+prettyInlineSpec NoUserInlinePrag = undefined
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyInlineSpec Opaque {}        = undefined
+#endif
