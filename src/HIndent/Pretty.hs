@@ -452,7 +452,7 @@ prettyHsBind VarBind {} = undefined
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsBind AbsBinds {} = undefined
 #endif
-prettyHsBind PatSynBind {} = undefined
+prettyHsBind (PatSynBind _ x) = pretty x
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
@@ -2168,3 +2168,19 @@ instance Pretty (TyFamInstDecl GhcPs) where
 
 instance Pretty (DataFamInstDecl GhcPs) where
   pretty' DataFamInstDecl {..} = pretty dfid_eqn
+
+instance Pretty (PatSynBind GhcPs GhcPs) where
+  pretty' PSB {..} =
+    spaced
+      [ string "pattern"
+      , pretty psb_id
+      , pretty psb_args
+      , string "<-"
+      , pretty psb_def
+      ]
+
+-- | 'Pretty' for 'HsPatSynDetails'.
+instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSynField GhcPs]) where
+  pretty' (PrefixCon _ xs) = spaced $ fmap pretty xs
+  pretty' RecCon {}        = undefined
+  pretty' InfixCon {}      = undefined

@@ -43,6 +43,7 @@ import qualified GHC.Parser                   as GLP
 import           GHC.Parser.Lexer             hiding (buffer)
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
+import           HIndent.Extension
 import qualified HIndent.Extension.Conversion as CE
 import           HIndent.ModulePreprocessing
 import           HIndent.Pretty
@@ -71,7 +72,10 @@ reformat config mexts mfilepath =
       let ls = S8.lines text
           prefix = findPrefix ls
           code = unlines' (map (stripPrefix prefix) ls)
-          allExts = fromMaybe allExtensions mexts ++ configExtensions config
+          allExts =
+            fromMaybe allExtensions mexts ++
+            configExtensions config ++
+            collectLanguageExtensionsFromSource (UTF8.toString code)
           opts = parserOptsFromExtensions $ CE.uniqueExtensions allExts
        in case parseModule mfilepath opts (UTF8.toString code) of
             POk _ m ->
