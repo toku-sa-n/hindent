@@ -22,13 +22,14 @@ import           Control.Monad.RWS
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                 hiding (Infix, Prefix)
+import           Generics.SYB                 hiding (Fixity, Infix, Prefix)
 import           GHC.Core.Coercion
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Data.FastString
 import           GHC.Hs
+import           GHC.Types.Basic
 import           GHC.Types.Fixity
 import           GHC.Types.ForeignCall
 import           GHC.Types.Name
@@ -474,6 +475,7 @@ instance Pretty (Sig GhcPs) where
           indentedWithSpace 3 $
           pretty $ HsSigTypeInsideVerticalFuncSig <$> hswc_body params
       printFunName = pretty $ head funName
+  pretty' PatSynSig {} = undefined
   pretty' (ClassOpSig _ True funNames params) = do
     string "default "
     hCommaSep $ fmap pretty funNames
@@ -483,11 +485,22 @@ instance Pretty (Sig GhcPs) where
     hCommaSep $ fmap pretty funNames
     string " :: "
     printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
+  pretty' IdSig {} = undefined
+  pretty' (FixSig _ x) = pretty x
+  pretty' (InlineSig _ name detail) = do
+    string "{-# "
+    pretty detail
+    space
+    pretty name
+    string " #-}"
+  pretty' SpecSig {} = undefined
+  pretty' SpecInstSig {} = undefined
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
       string " #-}"
-  pretty' x = output x
+  pretty' SCCFunSig {} = undefined
+  pretty' CompleteMatchSig {} = undefined
   commentsBefore (TypeSig x _ _) = commentsBefore x
   commentsBefore _               = []
   commentOnSameLine (TypeSig x _ _) = commentOnSameLine x
@@ -2184,3 +2197,24 @@ instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSy
   pretty' (PrefixCon _ xs) = spaced $ fmap pretty xs
   pretty' RecCon {}        = undefined
   pretty' InfixCon {}      = undefined
+
+instance Pretty (FixitySig GhcPs) where
+  pretty' (FixitySig _ names fixity) =
+    spaced [pretty fixity, hCommaSep $ fmap (pretty . fmap InfixOp) names]
+
+instance Pretty Fixity where
+  pretty' (Fixity _ level dir) = spaced [pretty dir, string $ show level]
+
+instance Pretty FixityDirection where
+  pretty' InfixL = string "infixl"
+  pretty' InfixR = undefined
+  pretty' InfixN = undefined
+
+instance Pretty InlinePragma where
+  pretty' InlinePragma {..} = pretty inl_inline
+
+instance Pretty InlineSpec where
+  pretty' Inline           = string "INLINE"
+  pretty' Inlinable        = undefined
+  pretty' NoInline         = string "NOINLINE"
+  pretty' NoUserInlinePrag = undefined
