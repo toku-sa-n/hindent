@@ -770,17 +770,10 @@ prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
     vertical = vList $ fmap pretty xs
 prettyHsExpr (RecordCon _ name fields) = horizontal <-|> vertical
   where
-    horizontal = do
-      name'
-      space
-      pretty fields
+    horizontal = spaced [pretty name, pretty fields]
     vertical = do
-      name'
+      pretty name
       (space >> pretty fields) <-|> (newline >> indentedBlock (pretty fields))
-    name' =
-      if head (showOutputable name) == ':'
-        then parens $ output name
-        else output name
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (RecordUpd _ name fields) = hor <-|> ver
   where
