@@ -937,7 +937,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         printCommentsAnd sig_body $ \case
           HsQualTy {..} -> do
@@ -953,7 +953,7 @@ instance Pretty HsSigTypeInsideDeclSig where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         case unLoc sig_body of
           HsQualTy {..} ->
@@ -984,19 +984,19 @@ prettyConDecl :: ConDecl GhcPs -> Printer ()
 prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
   where
     horizontal = do
-      output $ head con_names
+      pretty $ head con_names
       string " :: "
       pretty con_g_args
       string " -> "
-      output con_res_ty
+      pretty con_res_ty
     vertical = do
-      output $ head con_names
+      pretty $ head con_names
       newline
       indentedBlock $ do
         string ":: " |=> pretty con_g_args
         newline
         string "-> "
-        output con_res_ty
+        pretty con_res_ty
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyConDecl ConDeclH98 {con_forall = True, ..} =
   (do string "forall "
