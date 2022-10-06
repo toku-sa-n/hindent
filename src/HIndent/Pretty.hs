@@ -1166,7 +1166,9 @@ prettyHsType (HsOpTy _ l op r) =
   spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
 #endif
 prettyHsType (HsParTy _ inside) = parens $ pretty inside
-prettyHsType t@HsIParamTy {} = output t
+prettyHsType (HsIParamTy _ x ty) = do
+  string "?"
+  spaced [pretty x, string "::", pretty ty]
 prettyHsType HsStarTy {} = string "*"
 prettyHsType HsKindSig {} = undefined
 prettyHsType (HsSpliceTy _ sp) = pretty sp
@@ -2278,3 +2280,6 @@ instance Pretty (HsLit GhcPs) where
 
 instance Pretty (HsPragE GhcPs) where
   pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]
+
+instance Pretty HsIPName where
+  pretty' (HsIPName x) = pretty x
