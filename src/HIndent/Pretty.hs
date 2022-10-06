@@ -509,7 +509,8 @@ instance Pretty (Sig GhcPs) where
     string "{-# MINIMAL " |=> do
       pretty xs
       string " #-}"
-  pretty' SCCFunSig {} = undefined
+  pretty' (SCCFunSig _ _ name _) =
+    spaced [string "{-# SCC", pretty name, string "#-}"]
   pretty' CompleteMatchSig {} = undefined
   commentsBefore (TypeSig x _ _) = commentsBefore x
   commentsBefore _               = []

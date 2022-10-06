@@ -665,6 +665,10 @@ An expression with a SCC pragma
 
 ```haskell
 foo = {-# SCC foo #-} undefined
+
+{-# SCC bar #-}
+
+bar = undefined
 ```
 
 A hole
