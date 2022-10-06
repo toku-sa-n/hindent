@@ -1000,7 +1000,7 @@ prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyConDecl ConDeclH98 {con_forall = True, ..} =
   (do string "forall "
-      spaced $ fmap output con_ex_tvs
+      spaced $ fmap pretty con_ex_tvs
       string ". ") |=>
   (do whenJust con_mb_cxt $ \c -> do
         pretty $ Context c
@@ -1011,7 +1011,7 @@ prettyConDecl ConDeclH98 {con_forall = True, ..} =
 #else
 prettyConDecl ConDeclH98 {con_forall = True, ..} =
   (do string "forall "
-      spaced $ fmap output con_ex_tvs
+      spaced $ fmap pretty con_ex_tvs
       string ". ") |=>
   (do whenJust con_mb_cxt $ \_ -> do
         pretty $ Context con_mb_cxt
