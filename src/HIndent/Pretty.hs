@@ -628,7 +628,7 @@ prettyHsExpr (HsOverLabel _ l) = do
   pretty l
 prettyHsExpr HsIPVar {} = undefined
 prettyHsExpr (HsOverLit _ x) = pretty x
-prettyHsExpr (HsLit _ l) = output l
+prettyHsExpr (HsLit _ l) = pretty l
 prettyHsExpr (HsLam _ body) = pretty $ MatchGroupForLambda body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsLamCase _ _ matches) = do
@@ -2259,3 +2259,18 @@ instance Pretty IntegralLit where
 
 instance Pretty FractionalLit where
   pretty' = output
+
+instance Pretty (HsLit GhcPs) where
+  pretty' HsChar {}       = undefined
+  pretty' HsCharPrim {}   = undefined
+  pretty' (HsString _ x)  = doubleQuotes $ pretty x
+  pretty' HsStringPrim {} = undefined
+  pretty' HsInt {}        = undefined
+  pretty' HsIntPrim {}    = undefined
+  pretty' HsWordPrim {}   = undefined
+  pretty' HsInt64Prim {}  = undefined
+  pretty' HsWord64Prim {} = undefined
+  pretty' HsInteger {}    = undefined
+  pretty' HsRat {}        = undefined
+  pretty' HsFloatPrim {}  = undefined
+  pretty' HsDoublePrim {} = undefined
