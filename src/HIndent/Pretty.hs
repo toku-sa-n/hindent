@@ -859,7 +859,7 @@ prettyHsExpr HsStatic {} = undefined
 prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined
 #endif
-prettyHsExpr x@HsPragE {} = output x
+prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined
@@ -2275,3 +2275,6 @@ instance Pretty (HsLit GhcPs) where
   pretty' HsRat {}        = undefined
   pretty' HsFloatPrim {}  = undefined
   pretty' HsDoublePrim {} = undefined
+
+instance Pretty (HsPragE GhcPs) where
+  pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]
