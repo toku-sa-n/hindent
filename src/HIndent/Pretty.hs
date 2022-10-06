@@ -503,7 +503,8 @@ instance Pretty (Sig GhcPs) where
       , pretty $ head sig
       , string "#-}"
       ]
-  pretty' SpecInstSig {} = undefined
+  pretty' (SpecInstSig _ _ sig) =
+    spaced [string "{-# SPECIALISE instance", pretty sig, string "#-}"]
   pretty' (MinimalSig _ _ xs) =
     string "{-# MINIMAL " |=> do
       pretty xs
@@ -576,12 +577,13 @@ instance Pretty (ClsInstDecl GhcPs) where
         pretty x
         space
       pretty (fmap HsSigTypeInsideInstDecl cid_poly_ty) |=>
-        when bindsExist (string " where")
-    when bindsExist $ do
+        unless (null sigsAndMethods) (string " where")
+    unless (null sigsAndMethods) $ do
       newline
-      indentedBlock $ lined $ pretty <$> bagToList cid_binds
+      indentedBlock $ lined $ fmap pretty sigsAndMethods
     where
-      bindsExist = not $ isEmptyBag cid_binds
+      sigsAndMethods =
+        mkSortedLSigBindFamilyList cid_sigs (bagToList cid_binds) []
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)

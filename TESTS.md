@@ -300,6 +300,13 @@ Specialised pragma
 
 lookup :: Eq k => [(k, v)] -> k -> Maybe v
 lookup = undefined
+
+newtype Foo a =
+  Foo a
+
+instance (Show a) => Show (Foo a) where
+  {-# SPECIALISE instance Show (Foo String) #-}
+  show = undefined
 ```
 
 # Expressions
