@@ -283,6 +283,14 @@ class () =>
       Foo a
 ```
 
+Pattern synonym
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern Foo x y <- [x, y]
+```
+
 # Expressions
 
 A minus sign
