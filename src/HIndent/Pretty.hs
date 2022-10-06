@@ -677,7 +677,11 @@ prettyHsExpr (HsApp _ l r) = horizontal <-|> vertical
     insertComments cs (L s@SrcSpanAnn {ann = e@EpAnn {comments = cs'}} r') =
       L (s {ann = e {comments = cs <> cs'}}) r'
     insertComments _ x = x
-prettyHsExpr t@HsAppType {} = output t
+prettyHsExpr (HsAppType _ l r) = do
+  pretty l
+  space
+  string "@"
+  pretty r
 prettyHsExpr (OpApp _ l o r) = pretty (InfixApp l o r False)
 prettyHsExpr (NegApp _ x _) = do
   string "-"
@@ -2147,6 +2151,10 @@ instance Pretty (DerivDecl GhcPs)
 
 -- | 'Pretty' for 'LHsSigWcType GhcPs'.
 instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsSigType GhcPs))) where
+  pretty' HsWC {..} = pretty hswc_body
+
+-- | 'Pretty' for 'LHsWcType'
+instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' HsWC {..} = pretty hswc_body
 
 instance Pretty (StandaloneKindSig GhcPs) where
