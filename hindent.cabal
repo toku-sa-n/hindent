@@ -64,6 +64,7 @@ library
                    , monad-loops
                    , mtl
                    , bytestring
+                   , split
                    , utf8-string
                    , transformers
                    , exceptions
