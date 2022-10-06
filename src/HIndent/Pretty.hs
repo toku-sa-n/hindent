@@ -870,7 +870,7 @@ instance Pretty (HsSigType GhcPs) where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         space
       _ -> return ()
@@ -881,7 +881,7 @@ instance Pretty HsSigTypeInsideInstDecl where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         space
       _ -> return ()
@@ -892,7 +892,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         printCommentsAnd sig_body $ \case
           HsQualTy {..} -> do
@@ -908,7 +908,7 @@ instance Pretty HsSigTypeInsideDeclSig where
     case sig_bndrs of
       HsOuterExplicit _ xs -> do
         string "forall "
-        spaced $ fmap output xs
+        spaced $ fmap pretty xs
         dot
         case unLoc sig_body of
           HsQualTy {..} ->
