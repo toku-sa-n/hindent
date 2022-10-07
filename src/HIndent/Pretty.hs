@@ -2294,19 +2294,28 @@ instance Pretty FractionalLit where
   pretty' = output
 
 instance Pretty (HsLit GhcPs) where
-  pretty' x@(HsChar _ _)   = output x
-  pretty' HsCharPrim {}    = undefined
-  pretty' x@(HsString _ _) = output x
-  pretty' HsStringPrim {}  = undefined
-  pretty' HsInt {}         = undefined
-  pretty' HsIntPrim {}     = undefined
-  pretty' HsWordPrim {}    = undefined
-  pretty' HsInt64Prim {}   = undefined
-  pretty' HsWord64Prim {}  = undefined
-  pretty' HsInteger {}     = undefined
-  pretty' HsRat {}         = undefined
-  pretty' HsFloatPrim {}   = undefined
-  pretty' HsDoublePrim {}  = undefined
+  pretty' x@(HsChar _ _) = output x
+  pretty' HsCharPrim {} = undefined
+  pretty' x@(HsString _ _) =
+    case lines $ showOutputable x of
+      [] -> pure ()
+      [l] -> string l
+      (s:ss) ->
+        string "" |=> do
+          string s
+          newline
+          indentedWithSpace (-1) $
+            lined $ fmap (string . dropWhile (/= '\\')) ss
+  pretty' HsStringPrim {} = undefined
+  pretty' HsInt {} = undefined
+  pretty' HsIntPrim {} = undefined
+  pretty' HsWordPrim {} = undefined
+  pretty' HsInt64Prim {} = undefined
+  pretty' HsWord64Prim {} = undefined
+  pretty' HsInteger {} = undefined
+  pretty' HsRat {} = undefined
+  pretty' HsFloatPrim {} = undefined
+  pretty' HsDoublePrim {} = undefined
 
 instance Pretty (HsPragE GhcPs) where
   pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]

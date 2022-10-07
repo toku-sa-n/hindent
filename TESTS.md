@@ -693,6 +693,18 @@ A hole
 foo = 3 + _
 ```
 
+Multiple line string
+
+```haskell
+foo =
+  "hoge \
+ \ fuga"
+  where
+    bar =
+      "foo \
+     \ bar"
+```
+
 # Template Haskell
 
 Expression brackets
