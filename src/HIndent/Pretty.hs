@@ -2320,9 +2320,9 @@ instance Pretty HsIPName where
   pretty' (HsIPName x) = pretty x
 
 instance Pretty HsTyLit where
-  pretty' HsNumTy {}   = undefined
-  pretty' x@HsStrTy {} = output x
-  pretty' HsCharTy {}  = undefined
+  pretty' HsNumTy {}    = undefined
+  pretty' (HsStrTy _ x) = string $ show x
+  pretty' HsCharTy {}   = undefined
 
 instance Pretty (HsPatSigType GhcPs) where
   pretty' HsPS {..} = pretty hsps_body
