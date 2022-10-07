@@ -1170,7 +1170,7 @@ prettyHsType (HsIParamTy _ x ty) = do
   string "?"
   spaced [pretty x, string "::", pretty ty]
 prettyHsType HsStarTy {} = string "*"
-prettyHsType HsKindSig {} = undefined
+prettyHsType (HsKindSig _ t k) = spaced [pretty t, string "::", pretty k]
 prettyHsType (HsSpliceTy _ sp) = pretty sp
 prettyHsType HsDocTy {} = undefined
 prettyHsType (HsBangTy _ _ x) = do
@@ -1270,27 +1270,27 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
     inter (string " -> ") $
     flip fmap xs $ \case
-      (HsScaled _ x) -> output x
+      (HsScaled _ x) -> pretty x
   pretty' (RecConGADT xs _) =
     printCommentsAnd xs $ \xs' ->
       vFields' $
       flip fmap xs' $ \(L _ ConDeclField {..}) -> do
-        output $ head cd_fld_names
+        pretty $ head cd_fld_names
         string " :: "
-        output cd_fld_type
+        pretty cd_fld_type
 #else
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
     inter (string " -> ") $
     flip fmap xs $ \case
-      (HsScaled _ x) -> output x
+      (HsScaled _ x) -> pretty x
   pretty' (RecConGADT xs) =
     printCommentsAnd xs $ \xs' ->
       vFields' $
       flip fmap xs' $ \(L _ ConDeclField {..}) -> do
-        output $ head cd_fld_names
+        pretty $ head cd_fld_names
         string " :: "
-        output cd_fld_type
+        pretty cd_fld_type
 #endif
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
