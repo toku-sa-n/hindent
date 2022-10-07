@@ -2358,6 +2358,15 @@ ptek Reformatting of the {-# OVERLAPPING #-} pragma #386
 -- https://github.com/commercialhaskell/hindent/issues/386
 instance {-# OVERLAPPING #-} Arbitrary (Set Int) where
   arbitrary = undefined
+
+instance {-# OVERLAPPABLE #-} Arbitrary Int where
+  arbitrary = undefined
+
+instance {-# OVERLAPS #-} Arbitrary String where
+  arbitrary = undefined
+
+instance {-# INCOHERENT #-} Arbitrary String where
+  arbitrary = undefined
 ```
 
 cdsmith Quotes are dropped from package imports #480

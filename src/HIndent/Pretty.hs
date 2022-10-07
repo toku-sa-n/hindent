@@ -1888,10 +1888,10 @@ instance Pretty (DerivClauseTys GhcPs) where
 
 instance Pretty OverlapMode where
   pretty' NoOverlap {}    = undefined
-  pretty' Overlappable {} = undefined
+  pretty' Overlappable {} = string "{-# OVERLAPPABLE #-}"
   pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
-  pretty' Overlaps {}     = undefined
-  pretty' Incoherent {}   = undefined
+  pretty' Overlaps {}     = string "{-# OVERLAPS #-}"
+  pretty' Incoherent {}   = string "{-# INCOHERENT #-}"
 
 instance Pretty StringLiteral where
   pretty' = output
