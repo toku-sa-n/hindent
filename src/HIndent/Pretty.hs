@@ -2137,7 +2137,7 @@ instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
 -- | 'Pretty' for 'LIEWrappedName (IdP GhcPs)'
 instance Pretty (IEWrappedName RdrName) where
   pretty' (IEName name) = pretty name
-  pretty' IEPattern {} = undefined
+  pretty' (IEPattern _ name) = spaced [string "pattern", pretty name]
   pretty' (IEType _ name) = do
     string "type "
     pretty name

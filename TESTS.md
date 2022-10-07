@@ -105,6 +105,14 @@ Import with `ExplicitNamespaces`.
 import Prlude (type FilePath)
 ```
 
+Import a pattern
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
 Sorted
 
 ```haskell given
