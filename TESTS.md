@@ -323,6 +323,8 @@ Primitive type values
 a = 'a'
 
 b = "bbb\nbbb"
+
+c = '\n'
 ```
 
 A minus sign
