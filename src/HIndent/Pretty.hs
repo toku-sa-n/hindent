@@ -1582,10 +1582,7 @@ prettyPat ConPat {..} =
       pretty $ fmap InfixOp pat_con
       unlessSpecialOp (unLoc pat_con) space
       pretty b
-prettyPat (ViewPat _ l r) = do
-  pretty l
-  string " -> "
-  pretty r
+prettyPat (ViewPat _ l r) = spaced [pretty l, string "->", pretty r]
 prettyPat p@SplicePat {} = output p
 prettyPat p@LitPat {} = output p
 prettyPat (NPat _ x _ _) = output x
