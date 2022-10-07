@@ -233,6 +233,10 @@ printCommentsAfter p =
 
 -- | Pretty print including comments.
 --
+-- 'FastString' does not implement this class because it may contain @\n@s
+-- and each type that may contain a 'FastString' value needs their own
+-- handlings.
+--
 -- FIXME: 'Pretty' has a problem. It has two responsibilities; one is to
 -- print a given node pretty, and the other is to collect comments from the
 -- node.
@@ -635,7 +639,7 @@ prettyHsExpr HsRecFld {} = undefined
 #endif
 prettyHsExpr (HsOverLabel _ l) = do
   string "#"
-  pretty l
+  string $ unpackFS l
 prettyHsExpr HsIPVar {} = undefined
 prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = pretty l
@@ -2145,14 +2149,11 @@ instance Pretty (IEWrappedName RdrName) where
     pretty name
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (DotFieldOcc GhcPs) where
-  pretty' DotFieldOcc {..} = pretty dfoLabel
+  pretty' DotFieldOcc {..} = printCommentsAnd dfoLabel (string . unpackFS)
 #else
 instance Pretty (HsFieldLabel GhcPs) where
-  pretty' HsFieldLabel {..} = pretty hflLabel
+  pretty' HsFieldLabel {..} = printCommentsAnd hflLabel (string . unpackFS)
 #endif
-instance Pretty FastString where
-  pretty' = output
-
 instance Pretty (RuleDecls GhcPs) where
   pretty' HsRules {..} =
     lined $ [string "{-# RULES"] ++ fmap pretty rds_rules ++ [string " #-}"]
@@ -2160,7 +2161,7 @@ instance Pretty (RuleDecls GhcPs) where
 instance Pretty (RuleDecl GhcPs) where
   pretty' HsRule {..} =
     spaced
-      [ printCommentsAnd rd_name (doubleQuotes . pretty . snd)
+      [ printCommentsAnd rd_name (doubleQuotes . string . unpackFS . snd)
       , pretty rd_lhs
       , string "="
       , pretty rd_rhs
@@ -2288,7 +2289,7 @@ instance Pretty (HsOverLit GhcPs) where
 instance Pretty OverLitVal where
   pretty' (HsIntegral x)   = pretty x
   pretty' (HsFractional x) = pretty x
-  pretty' (HsIsString _ x) = pretty x
+  pretty' (HsIsString _ x) = string $ unpackFS x
 
 instance Pretty IntegralLit where
   pretty' IL {..} = string $ show il_value
@@ -2324,7 +2325,7 @@ instance Pretty (HsPragE GhcPs) where
   pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]
 
 instance Pretty HsIPName where
-  pretty' (HsIPName x) = pretty x
+  pretty' (HsIPName x) = string $ unpackFS x
 
 instance Pretty HsTyLit where
   pretty' HsNumTy {}    = undefined
