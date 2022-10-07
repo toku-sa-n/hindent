@@ -321,6 +321,8 @@ Primitive type values
 
 ```haskell
 a = 'a'
+
+b = "bbb\nbbb"
 ```
 
 A minus sign
