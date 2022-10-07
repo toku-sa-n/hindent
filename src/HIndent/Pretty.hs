@@ -1182,7 +1182,7 @@ prettyHsType (HsExplicitListTy _ _ xs) =
     [] -> string "'[]"
     _  -> hPromotedList $ fmap pretty xs
 prettyHsType (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
-prettyHsType (HsTyLit _ x) = output x
+prettyHsType (HsTyLit _ x) = pretty x
 prettyHsType HsWildCardTy {} = undefined
 prettyHsType XHsType {} = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -2285,3 +2285,8 @@ instance Pretty (HsPragE GhcPs) where
 
 instance Pretty HsIPName where
   pretty' (HsIPName x) = pretty x
+
+instance Pretty HsTyLit where
+  pretty' HsNumTy {}   = undefined
+  pretty' x@HsStrTy {} = output x
+  pretty' HsCharTy {}  = undefined
