@@ -1984,26 +1984,26 @@ instance Pretty (HsForAllTelescope GhcPs) where
     dot
 
 instance Pretty InfixOp where
-  pretty' (InfixOp (Unqual name)) = backticksIfNotSymbol name $ output name
+  pretty' (InfixOp (Unqual name)) = backticksIfNotSymbol name $ pretty name
   pretty' (InfixOp (Qual modName name)) =
     backticksIfNotSymbol name $ do
-      output modName
+      pretty modName
       string "."
-      output name
+      pretty name
   pretty' (InfixOp Orig {}) = undefined
-  pretty' (InfixOp (Exact name)) = backticksIfNotSymbol occ $ output occ
+  pretty' (InfixOp (Exact name)) = backticksIfNotSymbol occ $ pretty occ
     where
       occ = occName name
 
 instance Pretty PrefixOp where
-  pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ output name
+  pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ pretty name
   pretty' (PrefixOp (Qual modName name)) =
     parensIfSymbol name $ do
-      output modName
+      pretty modName
       string "."
-      output name
+      pretty name
   pretty' (PrefixOp Orig {}) = undefined
-  pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ output occ
+  pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ pretty occ
     where
       occ = occName name
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
