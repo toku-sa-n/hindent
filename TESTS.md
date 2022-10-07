@@ -1158,6 +1158,8 @@ Range
 
 ```haskell
 a = [1 ..]
+
+b = [1,3 ..]
 ```
 
 View pattern

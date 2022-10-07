@@ -1962,7 +1962,12 @@ instance Pretty (ArithSeqInfo GhcPs) where
     brackets $ do
       pretty from
       string " .."
-  pretty' FromThen {} = undefined
+  pretty' (FromThen from next) =
+    brackets $ do
+      pretty from
+      comma
+      pretty next
+      string " .."
   pretty' (FromTo from to) =
     brackets $ do
       pretty from
