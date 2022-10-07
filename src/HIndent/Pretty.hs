@@ -2187,7 +2187,8 @@ instance Pretty (StandaloneKindSig GhcPs) where
     spaced [string "type", pretty name, string "::", pretty kind]
 
 instance Pretty (DefaultDecl GhcPs) where
-  pretty' _ = undefined
+  pretty' (DefaultDecl _ xs) =
+    spaced [string "default", hTuple $ fmap pretty xs]
 
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.

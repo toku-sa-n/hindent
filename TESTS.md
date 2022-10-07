@@ -315,6 +315,12 @@ instance (Show a) => Show (Foo a) where
   show = undefined
 ```
 
+Default declaration
+
+```haskell
+default (Integer, Double)
+```
+
 # Expressions
 
 Primitive type values
