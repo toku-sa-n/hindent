@@ -171,6 +171,16 @@ newtype VerticalContext =
 newtype HsDataDefnForDataInstance =
   HsDataDefnForDataInstance (HsDataDefn GhcPs)
 
+-- | A wrapper type for pretty-printing a value of @ModuleName@ with the
+-- @module @ prefix.
+--
+-- Pretty-printing it via @(string "module " >> pretty (name ::
+-- ModuleName))@ locates comments before @name@ in the same line as @module
+-- @ and the name will be in the next line. This type is to avoid the
+-- problem.
+newtype ModuleNameWithPrefix =
+  ModuleNameWithPrefix ModuleName
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -261,12 +271,12 @@ instance Pretty HsModule where
       outputModuleDeclaration HsModule { hsmodName = Just name
                                        , hsmodExports = Nothing
                                        } = do
-        pretty name
+        pretty $ fmap ModuleNameWithPrefix name
         string " where"
       outputModuleDeclaration HsModule { hsmodName = Just name
                                        , hsmodExports = Just (L _ xs)
                                        } = do
-        pretty name
+        pretty $ fmap ModuleNameWithPrefix name
         newline
         indentedBlock $ do
           vTuple $ fmap pretty xs
@@ -2040,14 +2050,13 @@ instance Pretty VerticalContext where
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
 #endif
--- We need to print "module " together instead of (string "module " >>
--- pretty (name :: ModuleName)) otherwise comments that are before the name
--- will be printed in the same line as `module ` and the name in the next
--- line of it.
+-- Wrap a value of this type with 'ModulenameWithPrefix' to print it with
+-- the "module " prefix.
 instance Pretty ModuleName where
-  pretty' name = do
-    string "module "
-    output name
+  pretty' = output
+
+instance Pretty ModuleNameWithPrefix where
+  pretty' (ModuleNameWithPrefix name) = spaced [string "module", pretty name]
 
 instance Pretty (IE GhcPs) where
   pretty' (IEVar _ name) = pretty name
@@ -2066,7 +2075,7 @@ instance Pretty (IE GhcPs) where
       xs -> do
         string $ head xs
         indentedWithFixedLevel 0 $ newlinePrefixed $ string <$> tail xs
-  pretty' (IEModuleContents _ name) = pretty name
+  pretty' (IEModuleContents _ name) = pretty $ fmap ModuleNameWithPrefix name
   pretty' IEGroup {} = undefined
   pretty' IEDoc {} = undefined
   pretty' IEDocNamed {} = undefined
