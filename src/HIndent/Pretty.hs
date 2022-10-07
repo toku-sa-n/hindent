@@ -1584,9 +1584,12 @@ prettyPat ConPat {..} =
       pretty b
 prettyPat (ViewPat _ l r) = spaced [pretty l, string "->", pretty r]
 prettyPat (SplicePat _ x) = pretty x
-prettyPat p@LitPat {} = output p
-prettyPat (NPat _ x _ _) = output x
-prettyPat p@NPlusKPat {} = output p
+prettyPat (LitPat _ x) = pretty x
+prettyPat (NPat _ x _ _) = pretty x
+prettyPat (NPlusKPat _ n k _ _ _) = do
+  pretty n
+  string "+"
+  pretty k
 prettyPat p@SigPat {} = output p
 
 instance Pretty RecConPat where
