@@ -317,6 +317,12 @@ instance (Show a) => Show (Foo a) where
 
 # Expressions
 
+Primitive type values
+
+```haskell
+a = 'a'
+```
+
 A minus sign
 
 ```haskell

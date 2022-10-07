@@ -2299,7 +2299,7 @@ instance Pretty FractionalLit where
   pretty' = output
 
 instance Pretty (HsLit GhcPs) where
-  pretty' HsChar {}       = undefined
+  pretty' (HsChar _ x)    = singleQuotes $ string [x]
   pretty' HsCharPrim {}   = undefined
   pretty' (HsString _ x)  = doubleQuotes $ pretty x
   pretty' HsStringPrim {} = undefined

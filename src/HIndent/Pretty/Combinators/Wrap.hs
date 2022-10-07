@@ -3,6 +3,7 @@ module HIndent.Pretty.Combinators.Wrap
   ( parens
   , parensIfSymbol
   , braces
+  , singleQuotes
   , doubleQuotes
   , brackets
   , backticks
@@ -35,6 +36,10 @@ braces = wrap "{" "}"
 -- | This function wraps the printer with brackets.
 brackets :: Printer a -> Printer a
 brackets = wrap "[" "]"
+
+-- | Wraps with single quotes.
+singleQuotes :: Printer a -> Printer a
+singleQuotes = wrap "'" "'"
 
 -- | Wraps with double quotes.
 doubleQuotes :: Printer a -> Printer a
