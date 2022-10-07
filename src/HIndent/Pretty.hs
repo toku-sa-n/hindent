@@ -1878,7 +1878,7 @@ instance Pretty (HsDerivingClause GhcPs) where
   pretty' HsDerivingClause {..} = do
     string "deriving "
     whenJust deriv_clause_strategy $ \x -> do
-      output x
+      pretty x
       space
     pretty deriv_clause_tys
 
@@ -2342,3 +2342,8 @@ prettyIPBind (IPBind _ (Right _) _) = undefined
 prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
+instance Pretty (DerivStrategy GhcPs) where
+  pretty' StockStrategy {}    = undefined
+  pretty' AnyclassStrategy {} = string "anyclass"
+  pretty' NewtypeStrategy {}  = string "newtype"
+  pretty' ViaStrategy {}      = undefined
