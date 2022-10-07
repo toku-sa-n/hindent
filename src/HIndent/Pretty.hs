@@ -1538,7 +1538,12 @@ instance Pretty (HsSplice GhcPs) where
         case decoration of
           DollarSplice -> "$"
           BareSplice   -> ""
-  pretty' p@HsQuasiQuote {} = output p
+  pretty' (HsQuasiQuote _ _ l _ r) =
+    brackets $ do
+      pretty l
+      string "|"
+      pretty r
+      string "|"
   pretty' HsSpliced {} = undefined
 
 instance Pretty (Pat GhcPs) where
