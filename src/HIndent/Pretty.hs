@@ -1173,7 +1173,9 @@ prettyHsType HsStarTy {} = string "*"
 prettyHsType HsKindSig {} = undefined
 prettyHsType (HsSpliceTy _ sp) = pretty sp
 prettyHsType HsDocTy {} = undefined
-prettyHsType e@HsBangTy {} = output e
+prettyHsType (HsBangTy _ _ x) = do
+  string "!"
+  pretty x
 prettyHsType HsRecTy {} = undefined
 prettyHsType (HsExplicitListTy _ _ xs) =
   case xs of
