@@ -1323,10 +1323,24 @@ instance Pretty GRHSsForLambda where
       _ -> return ()
 
 instance Pretty (HsMatchContext GhcPs) where
-  pretty' FunRhs {..} = pretty mc_fun
-  pretty' CaseAlt     = return ()
-  pretty' LambdaExpr  = return ()
-  pretty' x           = output x
+  pretty' = prettyHsMatchContext
+
+prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
+prettyHsMatchContext FunRhs {..}       = pretty mc_fun
+prettyHsMatchContext LambdaExpr        = return ()
+prettyHsMatchContext CaseAlt           = return ()
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsMatchContext LamCaseAlt {}     = undefined
+#endif
+prettyHsMatchContext IfAlt {}          = undefined
+prettyHsMatchContext ArrowMatchCtxt {} = undefined
+prettyHsMatchContext PatBindRhs {}     = undefined
+prettyHsMatchContext PatBindGuards {}  = undefined
+prettyHsMatchContext RecUpd {}         = undefined
+prettyHsMatchContext StmtCtxt {}       = undefined
+prettyHsMatchContext ThPatSplice {}    = undefined
+prettyHsMatchContext ThPatQuote {}     = undefined
+prettyHsMatchContext PatSyn {}         = undefined
 
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
