@@ -1564,7 +1564,9 @@ prettyPat (ParPat _ _ inner _) = parens $ pretty inner
 #else
 prettyPat (ParPat _ inner) = parens $ pretty inner
 #endif
-prettyPat p@BangPat {} = output p
+prettyPat (BangPat _ x) = do
+  string "!"
+  pretty x
 prettyPat (ListPat _ xs) = hList $ fmap pretty xs
 prettyPat (TuplePat _ pats _) = hTuple $ fmap pretty pats
 prettyPat SumPat {} = undefined
