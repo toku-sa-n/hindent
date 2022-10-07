@@ -1550,7 +1550,7 @@ instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
 
 prettyPat :: Pat GhcPs -> Printer ()
-prettyPat p@WildPat {} = output p
+prettyPat WildPat {} = string "_"
 prettyPat p@VarPat {} = output p
 prettyPat p@LazyPat {} = output p
 prettyPat (AsPat _ a b) = do
