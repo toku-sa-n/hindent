@@ -1669,8 +1669,9 @@ instance Pretty (EpAnn a) where
   commentsAfter EpAnnNotUsed = []
 
 instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
-  pretty' (HsValBinds _ lr) = pretty lr
-  pretty' x                 = output x
+  pretty' (HsValBinds _ lr)  = pretty lr
+  pretty' (HsIPBinds _ x)    = pretty x
+  pretty' EmptyLocalBinds {} = undefined
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
@@ -2316,3 +2317,19 @@ instance Pretty HsTyLit where
 
 instance Pretty (HsPatSigType GhcPs) where
   pretty' HsPS {..} = pretty hsps_body
+
+instance Pretty (HsIPBinds GhcPs) where
+  pretty' (IPBinds _ xs) = lined $ fmap pretty xs
+
+instance Pretty (IPBind GhcPs) where
+  pretty' = prettyIPBind
+
+prettyIPBind :: IPBind GhcPs -> Printer ()
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyIPBind (IPBind _ l r) =
+  spaced [string "?" >> pretty l, string "=", pretty r]
+#else
+prettyIPBind (IPBind _ (Right _) _) = undefined
+prettyIPBind (IPBind _ (Left l) r) =
+  spaced [string "?" >> pretty l, string "=", pretty r]
+#endif
