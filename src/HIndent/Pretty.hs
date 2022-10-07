@@ -1681,7 +1681,7 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
 
 instance Pretty (HsTupArg GhcPs) where
   pretty' (Present _ e) = pretty e
-  pretty' Missing {}    = return () -- This appears in a tuple section.
+  pretty' Missing {}    = pure () -- This appears in a tuple section.
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty RecConField where
   pretty' (RecConField HsFieldBind {..}) = do
