@@ -1958,21 +1958,11 @@ instance Pretty (InjectivityAnn GhcPs) where
     spaced $ fmap pretty to
 
 instance Pretty (ArithSeqInfo GhcPs) where
-  pretty' (From from) =
-    brackets $ do
-      pretty from
-      string " .."
+  pretty' (From from) = brackets $ spaced [pretty from, string ".."]
   pretty' (FromThen from next) =
-    brackets $ do
-      pretty from
-      comma
-      pretty next
-      string " .."
+    brackets $ spaced [pretty from >> comma >> pretty next, string ".."]
   pretty' (FromTo from to) =
-    brackets $ do
-      pretty from
-      string " .. "
-      pretty to
+    brackets $ spaced [pretty from, string "..", pretty to]
   pretty' FromThenTo {} = undefined
 
 instance Pretty (HsForAllTelescope GhcPs) where
