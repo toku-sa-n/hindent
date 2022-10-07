@@ -1,5 +1,3 @@
-{-# LANGUAGE ViewPatterns #-}
-
 -- | Printer combinators related to print strings.
 module HIndent.Pretty.Combinators.String
   ( string
@@ -19,28 +17,31 @@ import           HIndent.Types
 --
 -- The string must not include '\n's. Use 'newline' to print them.
 string :: HasCallStack => String -> Printer ()
-string (('\n' `elem`) -> True) = error "Use `newline` to print '\\n's."
-string x = do
-  eol <- gets psEolComment
-  hardFail <- gets psFitOnOneLine
-  when eol newline
-  st <- get
-  let indentSpaces =
-        if psNewline st
-          then replicate (fromIntegral $ psIndentLevel st) ' '
-          else ""
-      out = indentSpaces <> x
-      psColumn' = psColumn st + fromIntegral (length out)
-      columnFits = psColumn' <= configMaxColumns (psConfig st)
-  when hardFail $ guard columnFits
-  modify
-    (\s ->
-       s
-         { psOutput = psOutput st <> S.stringUtf8 out
-         , psNewline = False
-         , psEolComment = False
-         , psColumn = psColumn'
-         })
+string x
+  | '\n' `elem` x =
+    error $
+    "You tried to print " ++ show x ++ ". Use `newline` to print '\\n's."
+  | otherwise = do
+    eol <- gets psEolComment
+    hardFail <- gets psFitOnOneLine
+    when eol newline
+    st <- get
+    let indentSpaces =
+          if psNewline st
+            then replicate (fromIntegral $ psIndentLevel st) ' '
+            else ""
+        out = indentSpaces <> x
+        psColumn' = psColumn st + fromIntegral (length out)
+        columnFits = psColumn' <= configMaxColumns (psConfig st)
+    when hardFail $ guard columnFits
+    modify
+      (\s ->
+         s
+           { psOutput = psOutput st <> S.stringUtf8 out
+           , psNewline = False
+           , psEolComment = False
+           , psColumn = psColumn'
+           })
 
 -- | Equivalent to 'string " "'.
 space :: Printer ()
