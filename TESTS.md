@@ -719,6 +719,16 @@ foo =
      \ bar"
 ```
 
+Quasi-quotes having multiple lines of body
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [s|First line
+Second line|]
+```
+
 # Template Haskell
 
 Expression brackets

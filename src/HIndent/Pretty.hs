@@ -1548,11 +1548,13 @@ instance Pretty (HsSplice GhcPs) where
         case decoration of
           DollarSplice -> "$"
           BareSplice   -> ""
+  -- Adding or removing spaces to the body of a quasi-quote modifies the
+  -- body. That is why 'r' is printed as-is.
   pretty' (HsQuasiQuote _ _ l _ r) =
     brackets $ do
       pretty l
       string "|"
-      pretty r
+      indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
       string "|"
   pretty' HsSpliced {} = undefined
 
