@@ -1590,7 +1590,7 @@ prettyPat (NPlusKPat _ n k _ _ _) = do
   pretty n
   string "+"
   pretty k
-prettyPat p@SigPat {} = output p
+prettyPat (SigPat _ l r) = spaced [pretty l, string "::", pretty r]
 
 instance Pretty RecConPat where
   pretty' (RecConPat HsRecFields {..}) =
@@ -2313,3 +2313,6 @@ instance Pretty HsTyLit where
   pretty' HsNumTy {}   = undefined
   pretty' x@HsStrTy {} = output x
   pretty' HsCharTy {}  = undefined
+
+instance Pretty (HsPatSigType GhcPs) where
+  pretty' HsPS {..} = pretty hsps_body
