@@ -251,10 +251,11 @@ Role annotation
 ```haskell
 {-# LANGUAGE RoleAnnotations #-}
 
-newtype Foo a =
-  Foo a
+type role Foo nominal
 
-type role Foo representational
+type role Bar representational
+
+type role Baz phantom
 ```
 
 `StandaloneKindSignatures`

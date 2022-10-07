@@ -2224,9 +2224,9 @@ instance Pretty (RoleAnnotDecl GhcPs) where
     fmap (maybe (string "_") pretty . unLoc) roles
 
 instance Pretty Role where
-  pretty' Nominal          = undefined
+  pretty' Nominal          = string "nominal"
   pretty' Representational = string "representational"
-  pretty' Phantom          = undefined
+  pretty' Phantom          = string "phantom"
 
 instance Pretty (TyFamInstDecl GhcPs) where
   pretty' TyFamInstDecl {..} = do
