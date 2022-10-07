@@ -1737,14 +1737,20 @@ Escaped newlines
   x
 ```
 
-A blank line is inserted after an `infixl`.
+`infix(l|r)?`
 
 ```haskell
 (^-^) = undefined
 
 infixl 1 ^-^
 
-f = undefined
+(^^) = undefined
+
+infixr 1 ^^
+
+(@@) = undefined
+
+infix 1 @@
 ```
 
 # Regression tests

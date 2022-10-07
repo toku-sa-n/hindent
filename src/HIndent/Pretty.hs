@@ -2257,8 +2257,8 @@ instance Pretty Fixity where
 
 instance Pretty FixityDirection where
   pretty' InfixL = string "infixl"
-  pretty' InfixR = undefined
-  pretty' InfixN = undefined
+  pretty' InfixR = string "infixr"
+  pretty' InfixN = string "infix"
 
 instance Pretty InlinePragma where
   pretty' InlinePragma {..} = pretty inl_inline
