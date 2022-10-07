@@ -1854,10 +1854,10 @@ instance Pretty (ImportDecl GhcPs) where
     whenJust (packageName decl) $ \x -> do
       pretty x
       space
-    output ideclName
+    pretty ideclName
     whenJust ideclAs $ \x -> do
       string " as "
-      output x
+      pretty x
     whenJust ideclHiding $ \(x, _) -> do
       when x (string " hiding")
       (string " " >> hTuple explicitOrHidingImports) <-|>
