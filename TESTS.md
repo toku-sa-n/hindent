@@ -1877,6 +1877,10 @@ sgraf812 top-level pragmas should not add an additional newline #255
 {-# INLINE f #-}
 f :: Int -> Int
 f n = n
+
+{-# INLINABLE g #-}
+g :: Int -> Int
+g n = n
 ```
 
 ivan-timokhin breaks code with type operators #277

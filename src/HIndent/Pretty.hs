@@ -2273,7 +2273,7 @@ instance Pretty InlineSpec where
 
 prettyInlineSpec :: InlineSpec -> Printer ()
 prettyInlineSpec Inline {}        = string "INLINE"
-prettyInlineSpec Inlinable {}     = undefined
+prettyInlineSpec Inlinable {}     = string "INLINABLE"
 prettyInlineSpec NoInline {}      = string "NOINLINE"
 prettyInlineSpec NoUserInlinePrag = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
