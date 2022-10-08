@@ -635,6 +635,8 @@ Type family instances
 
 ```haskell
 type instance Id Int = Int
+
+type instance Id _ = String
 ```
 
 Type family dependencies

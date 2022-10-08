@@ -1197,7 +1197,7 @@ prettyHsType (HsExplicitListTy _ _ xs) =
     _  -> hPromotedList $ fmap pretty xs
 prettyHsType (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
 prettyHsType (HsTyLit _ x) = pretty x
-prettyHsType HsWildCardTy {} = undefined
+prettyHsType HsWildCardTy {} = string "_"
 prettyHsType XHsType {} = undefined
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HsTypeInsideInstDecl where
