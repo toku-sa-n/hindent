@@ -2317,7 +2317,7 @@ instance Pretty (HsLit GhcPs) where
             lined $ fmap (string . dropWhile (/= '\\')) ss
   pretty' HsStringPrim {} = undefined
   pretty' HsInt {} = undefined
-  pretty' HsIntPrim {} = undefined
+  pretty' (HsIntPrim _ x) = string $ show x ++ "#"
   pretty' HsWordPrim {} = undefined
   pretty' HsInt64Prim {} = undefined
   pretty' HsWord64Prim {} = undefined

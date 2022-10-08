@@ -345,6 +345,8 @@ a = 'a'
 b = "bbb\nbbb"
 
 c = '\n'
+
+d = 0#
 ```
 
 A minus sign
