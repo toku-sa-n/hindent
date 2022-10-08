@@ -194,6 +194,7 @@ badExtensions =
   , Cabal.DoRec -- same
   , Cabal.TypeApplications -- since GHC
   , Cabal.OverloadedRecordDot -- Breaks 'a.b'
+  , Cabal.StaticPointers -- Steals the `static` keyword
   ] ++
   badExtensionsSinceGhc941
 

@@ -335,6 +335,12 @@ Default declaration
 default (Integer, Double)
 ```
 
+`static` is a valid identifier if `StaticPointers` is disabled.
+
+```haskell
+static = undefined
+```
+
 # Expressions
 
 Primitive type values
