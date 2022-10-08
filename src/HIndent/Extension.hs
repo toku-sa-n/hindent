@@ -49,4 +49,4 @@ collectLanguageExtensionsFromSource = concatMap lineToExt . lines
         mapMaybe strToExt $ concatMap (splitOn ",") exts
     strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
     strToExt s           = Cabal.EnableExtension <$> readMaybe s
-    regex = "{-# +LANGUAGE +([a-zA-Z0-9-,]+) +#-}"
+    regex = "{-# +LANGUAGE +([a-zA-Z0-9-, ]+) +#-}"
