@@ -2305,17 +2305,6 @@ instance Pretty FractionalLit where
 instance Pretty (HsLit GhcPs) where
   pretty' x@(HsChar _ _) = output x
   pretty' HsCharPrim {} = undefined
-  pretty' x@(HsString _ _) =
-    case lines $ showOutputable x of
-      [] -> pure ()
-      [l] -> string l
-      (s:ss) ->
-        string "" |=> do
-          string s
-          newline
-          indentedWithSpace (-1) $
-            lined $ fmap (string . dropWhile (/= '\\')) ss
-  pretty' HsStringPrim {} = undefined
   pretty' HsInt {} = undefined
   pretty' (HsIntPrim _ x) = string $ show x ++ "#"
   pretty' HsWordPrim {} = undefined
@@ -2327,6 +2316,21 @@ instance Pretty (HsLit GhcPs) where
     pretty x
     string "#"
   pretty' HsDoublePrim {} = undefined
+  pretty' x =
+    case x of
+      HsString {}     -> prettyString
+      HsStringPrim {} -> prettyString
+    where
+      prettyString =
+        case lines $ showOutputable x of
+          [] -> pure ()
+          [l] -> string l
+          (s:ss) ->
+            string "" |=> do
+              string s
+              newline
+              indentedWithSpace (-1) $
+                lined $ fmap (string . dropWhile (/= '\\')) ss
 
 instance Pretty (HsPragE GhcPs) where
   pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]
