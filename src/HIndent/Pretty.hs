@@ -2237,7 +2237,7 @@ instance Pretty (DataFamInstDecl GhcPs) where
   pretty' DataFamInstDecl {..} = pretty dfid_eqn
 
 instance Pretty (PatSynBind GhcPs GhcPs) where
-  pretty' PSB {..} =
+  pretty' PSB {..} = do
     spaced
       [ string "pattern"
       , pretty psb_id
@@ -2245,6 +2245,11 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
       , pretty psb_dir
       , pretty psb_def
       ]
+    case psb_dir of
+      ExplicitBidirectional matches -> do
+        newline
+        indentedBlock $ string "where " |=> pretty matches
+      _ -> pure ()
 
 -- | 'Pretty' for 'HsPatSynDetails'.
 instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSynField GhcPs]) where
@@ -2281,7 +2286,7 @@ prettyInlineSpec Opaque {}        = undefined
 instance Pretty (HsPatSynDir GhcPs) where
   pretty' Unidirectional           = string "<-"
   pretty' ImplicitBidirectional    = string "="
-  pretty' ExplicitBidirectional {} = undefined
+  pretty' ExplicitBidirectional {} = string "<-"
 
 instance Pretty (HsOverLit GhcPs) where
   pretty' OverLit {..} = pretty ol_val

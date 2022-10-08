@@ -292,7 +292,7 @@ class () =>
       Foo a
 ```
 
-Pattern synonym
+Pattern synonyms
 
 ```haskell
 {-# LANGUAGE PatternSynonyms #-}
@@ -306,6 +306,11 @@ pattern Single x = [x]
 pattern Anylist x = x
 
 {-# COMPLETE Single, Anylist #-}
+
+pattern Fst :: Int -> (Int, Int)
+
+pattern Fst x <- (x, x)
+  where Fst x = (x, 0)
 ```
 
 Specialised pragma
