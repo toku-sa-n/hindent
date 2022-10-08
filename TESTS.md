@@ -807,6 +807,17 @@ cppSplitBlocks inp = undefined
     spanCPPLines = undefined
 ```
 
+A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
+
+```haskell given
+f :: forall a.(Data a, Typeable a) => a
+```
+
+```haskell expect
+f :: forall a. (Data a, Typeable a)
+  => a
+```
+
 A `forall` type inside a where clause
 
 ```haskell

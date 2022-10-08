@@ -85,7 +85,8 @@ reformat config mexts mfilepath =
             PFailed st ->
               Left $
               "Parse failed near " ++
-              show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st)
+              show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st) ++
+              " extensions: " ++ show (CE.uniqueExtensions allExts)
     unlines' = S.concat . intersperse "\n"
     unlines'' = L.concat . intersperse "\n"
     addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
@@ -192,6 +193,7 @@ badExtensions =
   , Cabal.RecursiveDo -- steals the rec keyword
   , Cabal.DoRec -- same
   , Cabal.TypeApplications -- since GHC
+  , Cabal.OverloadedRecordDot -- Breaks 'a.b'
   ] ++
   badExtensionsSinceGhc941
 
