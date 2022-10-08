@@ -1238,6 +1238,12 @@ foo (f -> Just x) = print x
 foo _ = Nothing
 ```
 
+Pattern matching against a infix constructor with a module name prefix
+
+```haskell
+foo (a FOO.:@: b) = undefined
+```
+
 # Record syntax
 
 Pattern matching, short
