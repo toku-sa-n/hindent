@@ -351,6 +351,8 @@ d = 0#
 e = 3.3#
 
 f = "FOO"#
+
+g = 'c'#
 ```
 
 A minus sign
