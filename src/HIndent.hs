@@ -228,14 +228,14 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 -- Extensions stuff stolen from hlint
 -- | Consume an extensions list from arguments.
 getExtensions :: [Text] -> [Cabal.Extension]
-getExtensions = foldl f defaultExtensions . map T.unpack
+getExtensions = foldr (f . T.unpack) defaultExtensions
   where
-    f _ "Haskell98" = []
-    f a ('N':'o':x)
+    f "Haskell98" _ = []
+    f ('N':'o':x) a
       | Just x' <- readExtension x = delete x' a
-    f a x
+    f x a
       | Just x' <- readExtension x = x' : delete x' a
-    f _ x = error $ "Unknown extension: " ++ x
+    f x _ = error $ "Unknown extension: " ++ x
 
 -- | This function generates a 'ParserOpts' from te given extension. The
 -- 'StarIsType' extension is always enabled to compile a code using kinds
