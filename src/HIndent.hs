@@ -210,7 +210,7 @@ badExtensionsSinceGhc920 = []
 --
 -- With these extensions enabled, a few tests fail.
 badExtensionsSinceGhc941 :: [Cabal.KnownExtension]
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
+#if MIN_VERSION_GLASGOW_HASKELL(9,4,1,0)
 badExtensionsSinceGhc941 =
   [ Cabal.OverloadedRecordUpdate
   , Cabal.AlternativeLayoutRule
