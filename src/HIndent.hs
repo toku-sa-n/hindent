@@ -193,11 +193,19 @@ badExtensions =
   , Cabal.RecursiveDo -- steals the rec keyword
   , Cabal.DoRec -- same
   , Cabal.TypeApplications -- since GHC
-  , Cabal.OverloadedRecordDot -- Breaks 'a.b'
   , Cabal.StaticPointers -- Steals the `static` keyword
   ] ++
-  badExtensionsSinceGhc941
+  badExtensionsSinceGhc920 ++ badExtensionsSinceGhc941
 
+-- | Additional disabled extensions since GHC 9.2.0.
+badExtensionsSinceGhc920 :: [Cabal.KnownExtension]
+#if MIN_VERSION_GLASGOW_HASKELL(9,2,0,0)
+badExtensionsSinceGhc920 =
+  [ Cabal.OverloadedRecordDot -- Breaks 'a.b'
+  ]
+#else
+badExtensionsSinceGhc920 = []
+#endif
 -- | Additionally disabled extensions since GHC 9.4.1.
 --
 -- With these extensions enabled, a few tests fail.
