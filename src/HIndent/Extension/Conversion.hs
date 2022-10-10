@@ -35,10 +35,8 @@ uniqueExtensions [] = []
 uniqueExtensions ((Cabal.EnableExtension e):xs)
   | Just e' <- convertExtension e = e' : uniqueExtensions xs
   | otherwise = uniqueExtensions xs
-uniqueExtensions ((Cabal.DisableExtension e):xs)
-  | Just e' <- convertExtension e =
-    uniqueExtensions $ filter (/= readOrFail (show e')) xs
-  | otherwise = uniqueExtensions xs
+uniqueExtensions ((Cabal.DisableExtension e):xs) =
+  uniqueExtensions $ filter (/= readOrFail (show $ Cabal.EnableExtension e)) xs
 uniqueExtensions ((Cabal.UnknownExtension s):_) =
   error $ "Unknown extension: " ++ s
 
