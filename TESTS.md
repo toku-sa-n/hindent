@@ -2067,6 +2067,7 @@ paraseba Deriving strategies with multiple deriving clauses
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Foo where
@@ -2077,8 +2078,10 @@ import GHC.Generics
 newtype Number a =
   Number a
   deriving (Generic)
-  deriving newtype (Show, Eq)
+  deriving stock (Ord)
+  deriving newtype (Eq)
   deriving anyclass (Typeable)
+  deriving (Show) via a
 ```
 
 neongreen "{" is lost when formatting "Foo{}" #366

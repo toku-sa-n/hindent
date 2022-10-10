@@ -1891,6 +1891,10 @@ packageName _ = Nothing
 packageName = ideclPkgQual
 #endif
 instance Pretty (HsDerivingClause GhcPs) where
+  pretty' HsDerivingClause { deriv_clause_strategy = Just strategy@(L _ ViaStrategy {})
+                           , ..
+                           } =
+    spaced [string "deriving", pretty deriv_clause_tys, pretty strategy]
   pretty' HsDerivingClause {..} = do
     string "deriving "
     whenJust deriv_clause_strategy $ \x -> do
@@ -2372,7 +2376,9 @@ prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
 instance Pretty (DerivStrategy GhcPs) where
-  pretty' StockStrategy {}    = undefined
+  pretty' StockStrategy {} = string "stock"
   pretty' AnyclassStrategy {} = string "anyclass"
-  pretty' NewtypeStrategy {}  = string "newtype"
-  pretty' ViaStrategy {}      = undefined
+  pretty' NewtypeStrategy {} = string "newtype"
+  pretty' (ViaStrategy (XViaStrategyPs _ ty)) = do
+    string "via "
+    pretty ty
