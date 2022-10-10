@@ -311,6 +311,9 @@ pattern Fst :: Int -> (Int, Int)
 
 pattern Fst x <- (x, x)
   where Fst x = (x, 0)
+
+pattern x :| xs <- x : xs
+  where a :| b = a : b
 ```
 
 Specialised pragma

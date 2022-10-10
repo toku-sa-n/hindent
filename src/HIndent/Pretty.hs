@@ -181,6 +181,11 @@ newtype HsDataDefnForDataInstance =
 newtype ModuleNameWithPrefix =
   ModuleNameWithPrefix ModuleName
 
+-- | A wrapper for 'LPat' inside a pattern declaration. Here, all infix
+-- patterns have extra spaces around the operators, like x : xs.
+newtype PatInsidePatDecl =
+  PatInsidePatDecl (Pat GhcPs)
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -1565,6 +1570,11 @@ instance Pretty (HsSplice GhcPs) where
 instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
 
+instance Pretty PatInsidePatDecl where
+  pretty' (PatInsidePatDecl (ConPat {pat_args = (InfixCon l r), ..})) =
+    spaced [pretty l, pretty $ fmap InfixOp pat_con, pretty r]
+  pretty' (PatInsidePatDecl x) = pretty x
+
 prettyPat :: Pat GhcPs -> Printer ()
 prettyPat WildPat {} = string "_"
 prettyPat (VarPat _ x) = pretty x
@@ -2238,13 +2248,11 @@ instance Pretty (DataFamInstDecl GhcPs) where
 
 instance Pretty (PatSynBind GhcPs GhcPs) where
   pretty' PSB {..} = do
-    spaced
-      [ string "pattern"
-      , pretty psb_id
-      , pretty psb_args
-      , pretty psb_dir
-      , pretty psb_def
-      ]
+    string "pattern "
+    case psb_args of
+      InfixCon l r -> spaced [pretty l, pretty $ fmap InfixOp psb_id, pretty r]
+      _            -> spaced [pretty psb_id, pretty psb_args]
+    spacePrefixed [pretty psb_dir, pretty $ fmap PatInsidePatDecl psb_def]
     case psb_dir of
       ExplicitBidirectional matches -> do
         newline
@@ -2254,8 +2262,10 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
 -- | 'Pretty' for 'HsPatSynDetails'.
 instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSynField GhcPs]) where
   pretty' (PrefixCon _ xs) = spaced $ fmap pretty xs
-  pretty' RecCon {}        = undefined
-  pretty' InfixCon {}      = undefined
+  pretty' RecCon {} = undefined
+  pretty' InfixCon {} =
+    error
+      "Cannot handle here because `InfixCon` does not have the information of the constructor."
 
 instance Pretty (FixitySig GhcPs) where
   pretty' (FixitySig _ names fixity) =
