@@ -56,5 +56,5 @@ extractPragma _ = Nothing
 -- | This function returns a 'True' if the passed 'EpaCommentTok' is
 -- a pragma or a 'GHC_OPTIONS'. Otherwise, it returns a 'False'.
 isPragma :: EpaCommentTok -> Bool
-isPragma (EpaBlockComment c) = c =~ pragmaRegex
+isPragma (EpaBlockComment c) = match pragmaRegex c
 isPragma _                   = False

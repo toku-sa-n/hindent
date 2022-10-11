@@ -7,15 +7,16 @@ module HIndent.LanguageExtension
   , collectLanguageExtensionsFromSource
   ) where
 
+import           Data.Char
 import           Data.List.Split
 import           Data.Maybe
 import qualified GHC.Driver.Session                   as GLP
 import           HIndent.LanguageExtension.Conversion
 import qualified HIndent.LanguageExtension.Conversion as EC
+import           HIndent.Pragma
 import           HIndent.Read
 import qualified Language.Haskell.Extension           as Cabal
 import           Text.Read
-import           Text.Regex.TDFA
 
 -- | This function returns a list of extensions that the passed language
 -- (e.g., GHC2021) enables.
@@ -42,36 +43,10 @@ extensionImplies _ = []
 -- This function ignores language extensions not supported by Cabal.
 collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
 collectLanguageExtensionsFromSource =
-  mapMaybe strToExt .
-  concatMap collectExtensionsFromPragma . collectExtensionPragmas
+  mapMaybe (strToExt . stripSpaces) .
+  concatMap (splitOn ",") .
+  fmap snd . filter ((== "LANGUAGE") . fst) . extractPragmasFromCode
   where
+    stripSpaces = reverse . dropWhile isSpace . reverse . dropWhile isSpace
     strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
     strToExt s           = Cabal.EnableExtension <$> readMaybe s
-
--- | Collects all language extensions from the given pragma.
---
--- >>> collectExtensionsFromPragma "{-# LANGUAGE OverloadedStrings, CPP #-}"
--- ["OverloadedStrings"," CPP"]
-collectExtensionsFromPragma :: String -> [String]
-collectExtensionsFromPragma pragma
-  | (_, _, _, exts) :: (String, String, String, [String]) <-
-     pragma =~ pragmaRegex = concatMap (splitOn ",") exts
-
--- | Collects all language extension pragmas from the given 'String'.
---
--- >>> collectExtensionPragmas "{-# LANGUAGE OverloadedStrings #-}\n{-# LANGUAGE CPP #-}"
--- ["{-# LANGUAGE OverloadedStrings #-}", "{-# LANGUAGE CPP #-}"]
-collectExtensionPragmas :: String -> [String]
-collectExtensionPragmas l = afterSplit
-  where
-    afterSplit = getAllTextMatches (l =~ pragmaRegex) :: [String]
-
--- | A regex to match a pragma.
---
--- This pragma can be used to collect language extensions.
---
--- >>> "{-# LANGUAGE OverloadedStrings, CPP #-}" =~ pragmaRegex :: (String, String, String, [String])
--- ("","{-# LANGUAGE OverloadedStrings, CPP #-}","",["OverloadedStrings,
--- CPP"])
-pragmaRegex :: String
-pragmaRegex = "{-#[[:space:]]+LANGUAGE[[:space:]]+([^#]+)[[:space:]]+#-}"

@@ -1,20 +1,51 @@
 module HIndent.Pragma
-  ( extractPragmaNameAndElement
+  ( extractPragmasFromCode
+  , extractPragmaNameAndElement
   , pragmaRegex
   ) where
 
+import           Data.Maybe
 import           Text.Regex.TDFA
+
+-- | Extracts all pragmas from the given source code.
+extractPragmasFromCode :: String -> [(String, String)] -- ^ [(Pragma's name (e.g., @"LANGUAGE"@), Pragma's element (e.g., @"CPP, DerivingVia"@))]
+extractPragmasFromCode src =
+  mapMaybe
+    extractPragmaNameAndElement
+    (getAllTextMatches (match pragmaRegex src) :: [String])
 
 -- | Extracts the pragma's name and its element from the given pragma.
 --
 -- This function returns a 'Nothing' if it fails to extract them.
-extractPragmaNameAndElement :: String -> Maybe (String, String) -- ^ The first element is pragma's name (e.g., @"LANGUAGE"@), and the second one is pragma's elements (e.g., @["CPP", "PatternSynonyms"]@).
+extractPragmaNameAndElement :: String -> Maybe (String, String) -- ^ [(Pragma's name (e.g., @"LANGUAGE"@), Pragma's element (e.g., @"CPP, DerivingVia"@))]
 extractPragmaNameAndElement l
   | (_, _, _, [name, element]) <-
-     l =~ pragmaRegex :: (String, String, String, [String]) =
+     match pragmaRegex l :: (String, String, String, [String]) =
     Just (name, element)
 extractPragmaNameAndElement _ = Nothing
 
 -- | A regex to match against a pragma.
-pragmaRegex :: String
-pragmaRegex = "{-#[[:space:]]+([^[:space:]]+)[[:space:]]+([^#]+)[[:space:]]+#-}"
+pragmaRegex :: Regex
+pragmaRegex =
+  makeRegexOpts
+    compOption
+    execOption
+    "{-#[[:space:]]*([^[:space:]]+)[[:space:]]+([^#]+)#-}"
+
+-- | The option for matching against a pragma.
+execOption :: ExecOption
+execOption = ExecOption {captureGroups = True}
+
+-- | The option for matching against a pragma.
+--
+-- 'multiline' is set to 'False' to match against multiline pragmas, e.g.,
+-- @{-# LANGUAGE CPP\nOverloadedStrings #-}@.
+compOption :: CompOption
+compOption =
+  CompOption
+    { caseSensitive = True
+    , multiline = False
+    , rightAssoc = True
+    , newSyntax = True
+    , lastStarGreedy = True
+    }
