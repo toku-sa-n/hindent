@@ -41,12 +41,11 @@ extensionImplies _ = []
 --
 -- This function ignores language extensions not supported by Cabal.
 collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
-collectLanguageExtensionsFromSource = concatMap lineToExt . lines
+collectLanguageExtensionsFromSource l
+  | (_, _, _, exts) :: (String, String, String, [String]) <- l =~ regex =
+    mapMaybe strToExt $ concatMap (splitOn ",") exts
   where
-    lineToExt :: String -> [Cabal.Extension]
-    lineToExt l
-      | (_, _, _, exts) :: (String, String, String, [String]) <- l =~ regex =
-        mapMaybe strToExt $ concatMap (splitOn ",") exts
     strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
     strToExt s           = Cabal.EnableExtension <$> readMaybe s
-    regex = "{-# +LANGUAGE +([a-zA-Z0-9-, ]+) +#-}"
+    regex =
+      "{-#[[:space:]]+LANGUAGE[[:space:]]+([[:space:]a-zA-Z0-9-,]+)[[:space:]]+#-}"
