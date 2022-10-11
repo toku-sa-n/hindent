@@ -31,7 +31,7 @@ pragmaExists = not . null . collectPragmas
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   concatMap constructPragmas .
-  mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
+  mapMaybe extractPragma . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment EpaBlockComment {} = True
@@ -44,8 +44,8 @@ collectPragmas =
 -- | This function returns a 'Just' value with the pragma or 'GHC_OPTIONS'
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
 -- returns a 'Nothing'.
-extractPraGmergea :: EpaCommentTok -> Maybe (String, [String])
-extractPraGmergea (EpaBlockComment c) =
+extractPragma :: EpaCommentTok -> Maybe (String, [String])
+extractPragma (EpaBlockComment c) =
   case regexResult of
     (_, _, _, optionOrPragma:xs) ->
       Just (strip optionOrPragma, strip <$> concatMap (splitOn ",") xs)
@@ -53,7 +53,7 @@ extractPraGmergea (EpaBlockComment c) =
   where
     regexResult = c =~ pragmaRegex :: (String, String, String, [String])
     strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
-extractPraGmergea _ = Nothing
+extractPragma _ = Nothing
 
 -- | This function returns a 'True' if the passed 'EpaCommentTok' is
 -- a pragma or a 'GHC_OPTIONS'. Otherwise, it returns a 'False'.
