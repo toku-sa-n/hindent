@@ -21,9 +21,9 @@ import           Distribution.PackageDescription.Parsec
 import           Distribution.PackageDescription.Parse
 #endif
 import qualified GHC.LanguageExtensions.Type                   as GLP
-import           HIndent.Extension
-import qualified HIndent.Extension.Conversion                  as EC
 import           HIndent.Language
+import           HIndent.LanguageExtension
+import qualified HIndent.LanguageExtension.Conversion          as EC
 import           Language.Haskell.Extension
 import           System.Directory
 import           System.FilePath

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
 -- | Operations for converting extensions types.
-module HIndent.Extension.Conversion
+module HIndent.LanguageExtension.Conversion
   ( glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension

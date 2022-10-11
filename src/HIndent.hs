@@ -15,44 +15,44 @@ module HIndent
 
 import           Control.Monad.State.Strict
 import           Control.Monad.Trans.Maybe
-import           Data.ByteString              (ByteString)
-import qualified Data.ByteString              as S
-import           Data.ByteString.Builder      (Builder)
-import qualified Data.ByteString.Builder      as S
-import qualified Data.ByteString.Char8        as S8
-import qualified Data.ByteString.Internal     as S
-import qualified Data.ByteString.Lazy         as L
-import qualified Data.ByteString.Lazy.Char8   as L8
-import qualified Data.ByteString.Unsafe       as S
-import qualified Data.ByteString.UTF8         as UTF8
+import           Data.ByteString                      (ByteString)
+import qualified Data.ByteString                      as S
+import           Data.ByteString.Builder              (Builder)
+import qualified Data.ByteString.Builder              as S
+import qualified Data.ByteString.Char8                as S8
+import qualified Data.ByteString.Internal             as S
+import qualified Data.ByteString.Lazy                 as L
+import qualified Data.ByteString.Lazy.Char8           as L8
+import qualified Data.ByteString.Unsafe               as S
+import qualified Data.ByteString.UTF8                 as UTF8
 import           Data.Char
 import           Data.Either
 import           Data.Function
 import           Data.Functor.Identity
-import           Data.List                    hiding (stripPrefix)
+import           Data.List                            hiding (stripPrefix)
 import           Data.Maybe
 import           Data.Monoid
-import           Data.Text                    (Text)
-import qualified Data.Text                    as T
-import qualified GHC.Data.EnumSet             as ES
+import           Data.Text                            (Text)
+import qualified Data.Text                            as T
+import qualified GHC.Data.EnumSet                     as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
 import           GHC.Hs
-import qualified GHC.LanguageExtensions       as GLP
-import qualified GHC.Parser                   as GLP
-import           GHC.Parser.Lexer             hiding (buffer)
+import qualified GHC.LanguageExtensions               as GLP
+import qualified GHC.Parser                           as GLP
+import           GHC.Parser.Lexer                     hiding (buffer)
 import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
-import           HIndent.Extension
-import qualified HIndent.Extension.Conversion as CE
+import           HIndent.LanguageExtension
+import qualified HIndent.LanguageExtension.Conversion as CE
 import           HIndent.ModulePreprocessing
 import           HIndent.Pretty
 import           HIndent.Types
-import qualified Language.Haskell.Extension   as Cabal
+import qualified Language.Haskell.Extension           as Cabal
 import           Prelude
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Utils.Error
-import           GHC.Utils.Outputable         hiding (text, (<>))
+import           GHC.Utils.Outputable                 hiding (text, (<>))
 #endif
 -- | Format the given source.
 reformat ::

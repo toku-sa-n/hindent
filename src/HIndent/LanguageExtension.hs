@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Operations related to language extensions.
-module HIndent.Extension
+module HIndent.LanguageExtension
   ( implicitExtensions
   , extensionImplies
   , collectLanguageExtensionsFromSource
@@ -9,11 +9,11 @@ module HIndent.Extension
 
 import           Data.List.Split
 import           Data.Maybe
-import qualified GHC.Driver.Session           as GLP
-import           HIndent.Extension.Conversion
-import qualified HIndent.Extension.Conversion as EC
+import qualified GHC.Driver.Session                   as GLP
+import           HIndent.LanguageExtension.Conversion
+import qualified HIndent.LanguageExtension.Conversion as EC
 import           HIndent.Read
-import qualified Language.Haskell.Extension   as Cabal
+import qualified Language.Haskell.Extension           as Cabal
 import           Text.Read
 import           Text.Regex.TDFA
 
