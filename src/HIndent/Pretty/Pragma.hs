@@ -12,6 +12,7 @@ import           Data.Generics.Schemes
 import           Data.List.Split
 import           Data.Maybe
 import           GHC.Hs
+import           HIndent.Pragma
 import           HIndent.Pretty.Combinators.Lineup
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Types
@@ -60,8 +61,3 @@ extractPragma _ = Nothing
 isPragma :: EpaCommentTok -> Bool
 isPragma (EpaBlockComment c) = c =~ pragmaRegex
 isPragma _                   = False
-
--- | A regex to match against a pragma or a 'GHC_OPTIONS'.
-pragmaRegex :: String
-pragmaRegex =
-  "{-#[[:space:]]+(LANGUAGE|OPTIONS_GHC|OPTIONS_HADDOCK)[[:space:]]+([^#]+)[[:space:]]+#-}"
