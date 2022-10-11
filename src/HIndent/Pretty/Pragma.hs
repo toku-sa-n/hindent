@@ -1,11 +1,15 @@
 -- | Pretty-printing pragmas and 'GHC_OPTIONS'
+--
+-- TODO: Merge processes with 'HIndent.Extension'.
 module HIndent.Pretty.Pragma
   ( prettyPragmas
   , pragmaExists
   , isPragma
   ) where
 
+import           Data.Char
 import           Data.Generics.Schemes
+import           Data.List.Split
 import           Data.Maybe
 import           GHC.Hs
 import           HIndent.Pretty.Combinators.Lineup
@@ -26,25 +30,29 @@ pragmaExists = not . null . collectPragmas
 -- given module and modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  fmap constructPragma .
+  concatMap constructPragmas .
   mapMaybe extractPraGmergea . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment EpaBlockComment {} = True
     matchToComment _                  = False
-    constructPragma (optionOrPragma, x) =
+    constructPragmas (optionOrPragma, xs) =
+      fmap (constructPragma optionOrPragma) xs
+    constructPragma optionOrPragma x =
       "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}"
 
 -- | This function returns a 'Just' value with the pragma or 'GHC_OPTIONS'
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
 -- returns a 'Nothing'.
-extractPraGmergea :: EpaCommentTok -> Maybe (String, String)
+extractPraGmergea :: EpaCommentTok -> Maybe (String, [String])
 extractPraGmergea (EpaBlockComment c) =
   case regexResult of
-    (_, _, _, [optionOrPragma, x]) -> Just (optionOrPragma, x)
-    _                              -> Nothing
+    (_, _, _, optionOrPragma:xs) ->
+      Just (strip optionOrPragma, strip <$> concatMap (splitOn ",") xs)
+    _ -> Nothing
   where
     regexResult = c =~ pragmaRegex :: (String, String, String, [String])
+    strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 extractPraGmergea _ = Nothing
 
 -- | This function returns a 'True' if the passed 'EpaCommentTok' is
@@ -56,4 +64,4 @@ isPragma _                   = False
 -- | A regex to match against a pragma or a 'GHC_OPTIONS'.
 pragmaRegex :: String
 pragmaRegex =
-  "{-# +(LANGUAGE|OPTIONS_GHC|OPTIONS_HADDOCK) +([a-zA-Z0-9-]+) +#-}"
+  "{-#[[:space:]]+(LANGUAGE|OPTIONS_GHC|OPTIONS_HADDOCK)[[:space:]]+([^#]+)[[:space:]]+#-}"

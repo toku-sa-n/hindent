@@ -92,6 +92,21 @@ Collect multiple extensions correctly
 import Language.C.Types (pattern TypeName)
 ```
 
+Collect multiple extensions separated by commas correctly
+
+```haskell given
+{-# LANGUAGE CPP, PatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
+```haskell expect
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
 # Imports
 
 Import lists

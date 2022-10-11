@@ -55,14 +55,14 @@ collectLanguageExtensionsFromSource =
 collectExtensionsFromPragma :: String -> [String]
 collectExtensionsFromPragma pragma
   | (_, _, _, exts) :: (String, String, String, [String]) <-
-     pragma =~ pragmaRegex = exts
+     pragma =~ pragmaRegex = concatMap (splitOn ",") exts
 
 -- | Collects all language extension pragmas from the given 'String'.
 --
 -- >>> collectExtensionPragmas "{-# LANGUAGE OverloadedStrings #-}\n{-# LANGUAGE CPP #-}"
 -- ["{-# LANGUAGE OverloadedStrings #-}", "{-# LANGUAGE CPP #-}"]
 collectExtensionPragmas :: String -> [String]
-collectExtensionPragmas l = concatMap (splitOn ",") afterSplit
+collectExtensionPragmas l = afterSplit
   where
     afterSplit = getAllTextMatches (l =~ pragmaRegex) :: [String]
 
