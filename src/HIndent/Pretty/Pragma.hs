@@ -7,9 +7,7 @@ module HIndent.Pretty.Pragma
   , isPragma
   ) where
 
-import           Data.Char
 import           Data.Generics.Schemes
-import           Data.List.Split
 import           Data.Maybe
 import           GHC.Hs
 import           HIndent.Pragma
@@ -46,15 +44,8 @@ collectPragmas =
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
 -- returns a 'Nothing'.
 extractPragma :: EpaCommentTok -> Maybe (String, [String])
-extractPragma (EpaBlockComment c) =
-  case regexResult of
-    (_, _, _, optionOrPragma:xs) ->
-      Just (strip optionOrPragma, strip <$> concatMap (splitOn ",") xs)
-    _ -> Nothing
-  where
-    regexResult = c =~ pragmaRegex :: (String, String, String, [String])
-    strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
-extractPragma _ = Nothing
+extractPragma (EpaBlockComment c) = collectPragmaNameAndElements c
+extractPragma _                   = Nothing
 
 -- | This function returns a 'True' if the passed 'EpaCommentTok' is
 -- a pragma or a 'GHC_OPTIONS'. Otherwise, it returns a 'False'.
