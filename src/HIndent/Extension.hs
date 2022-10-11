@@ -41,11 +41,37 @@ extensionImplies _ = []
 --
 -- This function ignores language extensions not supported by Cabal.
 collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
-collectLanguageExtensionsFromSource l
-  | (_, _, _, exts) :: (String, String, String, [String]) <- l =~ regex =
-    mapMaybe strToExt $ concatMap (splitOn ",") exts
+collectLanguageExtensionsFromSource =
+  mapMaybe strToExt .
+  concatMap collectExtensionsFromPragma . collectExtensionPragmas
   where
     strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
     strToExt s           = Cabal.EnableExtension <$> readMaybe s
-    regex =
-      "{-#[[:space:]]+LANGUAGE[[:space:]]+([[:space:]a-zA-Z0-9-,]+)[[:space:]]+#-}"
+
+-- | Collects all language extensions from the given pragma.
+--
+-- >>> collectExtensionsFromPragma "{-# LANGUAGE OverloadedStrings, CPP #-}"
+-- ["OverloadedStrings"," CPP"]
+collectExtensionsFromPragma :: String -> [String]
+collectExtensionsFromPragma pragma
+  | (_, _, _, exts) :: (String, String, String, [String]) <-
+     pragma =~ pragmaRegex = exts
+
+-- | Collects all language extension pragmas from the given 'String'.
+--
+-- >>> collectExtensionPragmas "{-# LANGUAGE OverloadedStrings #-}\n{-# LANGUAGE CPP #-}"
+-- ["{-# LANGUAGE OverloadedStrings #-}", "{-# LANGUAGE CPP #-}"]
+collectExtensionPragmas :: String -> [String]
+collectExtensionPragmas l = concatMap (splitOn ",") afterSplit
+  where
+    afterSplit = getAllTextMatches (l =~ pragmaRegex) :: [String]
+
+-- | A regex to match a pragma.
+--
+-- This pragma can be used to collect language extensions.
+--
+-- >>> "{-# LANGUAGE OverloadedStrings, CPP #-}" =~ pragmaRegex :: (String, String, String, [String])
+-- ("","{-# LANGUAGE OverloadedStrings, CPP #-}","",["OverloadedStrings,
+-- CPP"])
+pragmaRegex :: String
+pragmaRegex = "{-#[[:space:]]+LANGUAGE[[:space:]]+([^#]+)[[:space:]]+#-}"

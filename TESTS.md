@@ -83,6 +83,15 @@ module X
     ) where
 ```
 
+Collect multiple extensions correctly
+
+```haskell
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE PatternSynonyms #-}
+
+import Language.C.Types (pattern TypeName)
+```
+
 # Imports
 
 Import lists
