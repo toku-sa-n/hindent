@@ -1,17 +1,19 @@
 module HIndent.Pragma
-  ( collectPragmaNameAndElement
+  ( extractPragmaNameAndElement
   , pragmaRegex
   ) where
 
 import           Text.Regex.TDFA
 
--- | Collects pragmas from the given 'String'.
-collectPragmaNameAndElement :: String -> Maybe (String, String) -- ^ The first element is pragma's name (e.g., @"LANGUAGE"@), and the second one is pragma's elements (e.g., @["CPP", "PatternSynonyms"]@).
-collectPragmaNameAndElement l
+-- | Extracts the pragma's name and its element from the given pragma.
+--
+-- This function returns a 'Nothing' if it fails to extract them.
+extractPragmaNameAndElement :: String -> Maybe (String, String) -- ^ The first element is pragma's name (e.g., @"LANGUAGE"@), and the second one is pragma's elements (e.g., @["CPP", "PatternSynonyms"]@).
+extractPragmaNameAndElement l
   | (_, _, _, [name, element]) <-
      l =~ pragmaRegex :: (String, String, String, [String]) =
     Just (name, element)
-collectPragmaNameAndElement _ = Nothing
+extractPragmaNameAndElement _ = Nothing
 
 -- | A regex to match against a pragma.
 pragmaRegex :: String

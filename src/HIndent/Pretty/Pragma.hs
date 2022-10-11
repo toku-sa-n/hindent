@@ -48,7 +48,7 @@ collectPragmas =
 -- returns a 'Nothing'.
 extractPragma :: EpaCommentTok -> Maybe (String, [String])
 extractPragma (EpaBlockComment c) =
-  second (fmap strip . splitOn ",") <$> collectPragmaNameAndElement c
+  second (fmap strip . splitOn ",") <$> extractPragmaNameAndElement c
   where
     strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 extractPragma _ = Nothing
