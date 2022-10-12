@@ -1105,7 +1105,8 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   pretty' (ParStmt _ xs _ _) = hvBarSep $ fmap pretty xs
   pretty' TransStmt {..} =
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
-  pretty' RecStmt {} = undefined
+  pretty' RecStmt {..} =
+    string "rec " |=> printCommentsAnd recS_stmts (lined . fmap pretty)
   commentsBefore (LetStmt l _) = commentsBefore l
   commentsBefore _             = []
   commentsAfter (LetStmt l _) = commentsAfter l
