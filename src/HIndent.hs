@@ -129,7 +129,9 @@ testAst x =
     POk _ m   -> Right $ modifyASTForPrettyPrinting m
     PFailed _ -> Left "Parse failed."
   where
-    exts = CE.uniqueExtensions allExtensions
+    exts =
+      CE.uniqueExtensions $
+      collectLanguageExtensionsFromSource $ UTF8.toString x
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
