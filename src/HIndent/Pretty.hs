@@ -1983,7 +1983,9 @@ instance Pretty (ArithSeqInfo GhcPs) where
     brackets $ spaced [pretty from >> comma >> pretty next, string ".."]
   pretty' (FromTo from to) =
     brackets $ spaced [pretty from, string "..", pretty to]
-  pretty' FromThenTo {} = undefined
+  pretty' (FromThenTo from next to) =
+    brackets $
+    spaced [pretty from >> comma >> pretty next, string "..", pretty to]
 
 instance Pretty (HsForAllTelescope GhcPs) where
   pretty' HsForAllVis {..} = do
