@@ -21,8 +21,7 @@ import           Text.Regex.TDFA  hiding (empty)
 -- recognized as such.
 extractPragmasFromCode :: String -> [(String, String)] -- ^ [(Pragma's name (e.g., @"LANGUAGE"@), Pragma's element (e.g., @"CPP, DerivingVia"@))]
 extractPragmasFromCode =
-  mapMaybe extractPragmaNameAndElement .
-  mapMaybe extractBlockComment . lexModule
+  mapMaybe extractPragmaNameAndElement . mapMaybe extractBlockComment . lexCode
   where
     extractBlockComment (ITblockComment c _) = Just c
     extractBlockComment _                    = Nothing

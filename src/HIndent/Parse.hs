@@ -2,7 +2,7 @@
 
 module HIndent.Parse
   ( parseModule
-  , lexModule
+  , lexCode
   ) where
 
 import           Data.Maybe
@@ -34,8 +34,8 @@ parseModule filepath exts src =
     buffer = stringToStringBuffer src
 
 -- | Lexically analyze the given code.
-lexModule :: HasCallStack => String -> [Token]
-lexModule code
+lexCode :: HasCallStack => String -> [Token]
+lexCode code
   | POk _ tokens <-
      lexTokenStream
        (parserOptsFromExtensions [])
