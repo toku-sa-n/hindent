@@ -7,16 +7,10 @@ module HIndent.Pragma
   ) where
 
 import           Data.Maybe
-import           GHC.Data.EnumSet
-import           GHC.Data.FastString
-import           GHC.Data.StringBuffer
 import           GHC.Parser.Lexer
-import           GHC.Types.SrcLoc
-import           Text.Regex.TDFA       hiding (empty)
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-import           GHC.Utils.Error
-import           GHC.Utils.Outputable  hiding (empty, text, (<>))
-#endif
+import           HIndent.Parse
+import           Text.Regex.TDFA  hiding (empty)
+
 -- | Extracts all pragmas from the given source code.
 --
 -- FIXME: The function is slow because it lexicographically analyzes the
@@ -68,22 +62,3 @@ compOption =
     , newSyntax = True
     , lastStarGreedy = True
     }
-
--- TODO: Merge with parsing codes in the 'HIndent' module.
-lexModule :: String -> [Token]
-lexModule code
-  | POk _ tokens <-
-     lexTokenStream
-       parserOpts
-       (stringToStringBuffer code)
-       (mkRealSrcLoc (mkFastString "<interactive>") 1 1) = fmap unLoc tokens
-  | otherwise = error "Failed to lex the code."
-
-parserOpts :: ParserOpts
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-parserOpts = mkParserOpts empty diagOpts [] False False True False
-  where
-    diagOpts = DiagOpts empty empty False False Nothing defaultSDocContext
-#else
-parserOpts = mkParserOpts empty empty False False True False
-#endif

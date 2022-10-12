@@ -39,6 +39,7 @@ library
                      HIndent.LanguageExtension.Conversion
                      HIndent.ModulePreprocessing
                      HIndent.ModulePreprocessing.CommentRelocation
+                     HIndent.Parse
                      HIndent.Pragma
                      HIndent.Pretty
                      HIndent.Pretty.Combinators
