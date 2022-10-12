@@ -33,6 +33,7 @@ parseModule filepath exts src =
       mkRealSrcLoc (mkFastString $ fromMaybe "<interactive>" filepath) 1 1
     buffer = stringToStringBuffer src
 
+-- | Lexically analyze the given code.
 lexModule :: HasCallStack => String -> [Token]
 lexModule code
   | POk _ tokens <-
