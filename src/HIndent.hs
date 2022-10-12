@@ -7,7 +7,6 @@
 module HIndent
   ( reformat
   , prettyPrint
-  , defaultExtensions
   , testAst
   ) where
 
@@ -165,49 +164,6 @@ runPrinterStyle config m =
 allExtensions :: [Cabal.Extension]
 allExtensions = fmap Cabal.EnableExtension [minBound ..]
 
--- | Default extensions.
-defaultExtensions :: [Cabal.Extension]
-defaultExtensions = fmap Cabal.EnableExtension $ [minBound ..] \\ badExtensions
-
--- | Extensions which steal too much syntax.
-badExtensions :: [Cabal.KnownExtension]
-badExtensions =
-  [ Cabal.Arrows -- steals proc
-  , Cabal.TransformListComp -- steals the group keyword
-  , Cabal.XmlSyntax
-  , Cabal.RegularPatterns -- steals a-b
-  , Cabal.UnboxedTuples -- breaks (#) lens operator
-    -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
-  , Cabal.PatternSynonyms -- steals the pattern keyword
-  , Cabal.RecursiveDo -- steals the rec keyword
-  , Cabal.DoRec -- same
-  , Cabal.TypeApplications -- since GHC
-  , Cabal.StaticPointers -- Steals the `static` keyword
-  ] ++
-  badExtensionsSinceGhc920 ++ badExtensionsSinceGhc941
-
--- | Additional disabled extensions since GHC 9.2.0.
-badExtensionsSinceGhc920 :: [Cabal.KnownExtension]
-#if MIN_VERSION_GLASGOW_HASKELL(9,2,0,0)
-badExtensionsSinceGhc920 =
-  [ Cabal.OverloadedRecordDot -- Breaks 'a.b'
-  ]
-#else
-badExtensionsSinceGhc920 = []
-#endif
--- | Additionally disabled extensions since GHC 9.4.1.
---
--- With these extensions enabled, a few tests fail.
-badExtensionsSinceGhc941 :: [Cabal.KnownExtension]
-#if MIN_VERSION_GLASGOW_HASKELL(9,4,1,0)
-badExtensionsSinceGhc941 =
-  [ Cabal.OverloadedRecordUpdate
-  , Cabal.AlternativeLayoutRule
-  , Cabal.AlternativeLayoutRuleTransitional
-  ]
-#else
-badExtensionsSinceGhc941 = []
-#endif
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
   | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)

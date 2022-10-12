@@ -2,20 +2,32 @@
 
 -- | Operations for converting extensions types.
 module HIndent.LanguageExtension.Conversion
-  ( readCabalExtension
+  ( getExtensions
   , glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
+  , defaultExtensions
   ) where
 
+import           Data.List
+import           Data.Text                  hiding (filter, foldr)
+import qualified Data.Text                  as T
 import qualified GHC.LanguageExtensions     as GLP
 import           HIndent.Read
+import           HIndent.Types
 import qualified Language.Haskell.Extension as Cabal
 import           Text.Read
 
-readCabalExtension :: String -> Maybe Cabal.Extension
-readCabalExtension ('N':'o':xs) = Cabal.DisableExtension <$> readMaybe xs
-readCabalExtension xs           = Cabal.EnableExtension <$> readMaybe xs
+-- | Consume an extensions list from arguments.
+getExtensions :: [Text] -> [Cabal.Extension]
+getExtensions = foldr (f . T.unpack) defaultExtensions
+  where
+    f "Haskell98" _ = []
+    f ('N':'o':x) a
+      | Just x' <- readExtension x = delete x' a
+    f x a
+      | Just x' <- readExtension x = x' : delete x' a
+    f x _ = error $ "Unknown extension: " ++ x
 
 -- | Converts a value of the type 'Extension' defined in the
 -- 'ghc-lib-parser' package to the same value of the type 'Extension'
@@ -217,4 +229,47 @@ convertExtension Cabal.RecordPuns = Nothing -- This extension is incorporated in
 #else
 convertExtension Cabal.RecordPuns = Just GLP.RecordPuns
 convertExtension Cabal.NamedFieldPuns = Nothing -- This extension is not supported by 'ghc-lib-parser'.
+#endif
+-- | Default extensions.
+defaultExtensions :: [Cabal.Extension]
+defaultExtensions = fmap Cabal.EnableExtension $ [minBound ..] \\ badExtensions
+
+-- | Extensions which steal too much syntax.
+badExtensions :: [Cabal.KnownExtension]
+badExtensions =
+  [ Cabal.Arrows -- steals proc
+  , Cabal.TransformListComp -- steals the group keyword
+  , Cabal.XmlSyntax
+  , Cabal.RegularPatterns -- steals a-b
+  , Cabal.UnboxedTuples -- breaks (#) lens operator
+    -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
+  , Cabal.PatternSynonyms -- steals the pattern keyword
+  , Cabal.RecursiveDo -- steals the rec keyword
+  , Cabal.DoRec -- same
+  , Cabal.TypeApplications -- since GHC
+  , Cabal.StaticPointers -- Steals the `static` keyword
+  ] ++
+  badExtensionsSinceGhc920 ++ badExtensionsSinceGhc941
+
+-- | Additional disabled extensions since GHC 9.2.0.
+badExtensionsSinceGhc920 :: [Cabal.KnownExtension]
+#if MIN_VERSION_GLASGOW_HASKELL(9,2,0,0)
+badExtensionsSinceGhc920 =
+  [ Cabal.OverloadedRecordDot -- Breaks 'a.b'
+  ]
+#else
+badExtensionsSinceGhc920 = []
+#endif
+-- | Additionally disabled extensions since GHC 9.4.1.
+--
+-- With these extensions enabled, a few tests fail.
+badExtensionsSinceGhc941 :: [Cabal.KnownExtension]
+#if MIN_VERSION_GLASGOW_HASKELL(9,4,1,0)
+badExtensionsSinceGhc941 =
+  [ Cabal.OverloadedRecordUpdate
+  , Cabal.AlternativeLayoutRule
+  , Cabal.AlternativeLayoutRuleTransitional
+  ]
+#else
+badExtensionsSinceGhc941 = []
 #endif

@@ -123,7 +123,7 @@ options config =
             metavar "STYLE") :: Parser String)
     exts =
       fmap
-        (mapMaybe (readCabalExtension . T.unpack))
+        getExtensions
         (many
            (T.pack <$>
             strOption
