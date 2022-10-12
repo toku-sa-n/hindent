@@ -22,6 +22,7 @@ import           Foreign.C.Error
 import           GHC.IO.Exception
 import           HIndent
 import           HIndent.CabalFile
+import           HIndent.LanguageExtension.Conversion
 import qualified HIndent.LanguageExtension.Conversion as EC
 import           HIndent.Types
 import           Language.Haskell.Extension
@@ -122,7 +123,7 @@ options config =
             metavar "STYLE") :: Parser String)
     exts =
       fmap
-        getExtensions
+        (mapMaybe (readCabalExtension . T.unpack))
         (many
            (T.pack <$>
             strOption

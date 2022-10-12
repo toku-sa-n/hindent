@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -9,7 +8,6 @@ module HIndent
   ( reformat
   , prettyPrint
   , defaultExtensions
-  , getExtensions
   , testAst
   ) where
 
@@ -32,8 +30,6 @@ import           Data.Functor.Identity
 import           Data.List                            hiding (stripPrefix)
 import           Data.Maybe
 import           Data.Monoid
-import           Data.Text                            (Text)
-import qualified Data.Text                            as T
 import qualified GHC.Data.EnumSet                     as ES
 import           GHC.Data.FastString
 import           GHC.Data.StringBuffer
@@ -223,19 +219,6 @@ s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
   | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
   | otherwise = Nothing
-
---------------------------------------------------------------------------------
--- Extensions stuff stolen from hlint
--- | Consume an extensions list from arguments.
-getExtensions :: [Text] -> [Cabal.Extension]
-getExtensions = foldr (f . T.unpack) defaultExtensions
-  where
-    f "Haskell98" _ = []
-    f ('N':'o':x) a
-      | Just x' <- readExtension x = delete x' a
-    f x a
-      | Just x' <- readExtension x = x' : delete x' a
-    f x _ = error $ "Unknown extension: " ++ x
 
 -- | This function generates a 'ParserOpts' from te given extension. The
 -- 'StarIsType' extension is always enabled to compile a code using kinds

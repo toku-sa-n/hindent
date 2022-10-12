@@ -2,7 +2,8 @@
 
 -- | Operations for converting extensions types.
 module HIndent.LanguageExtension.Conversion
-  ( glpExtensionToCabalExtension
+  ( readCabalExtension
+  , glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
   ) where
@@ -11,6 +12,10 @@ import qualified GHC.LanguageExtensions     as GLP
 import           HIndent.Read
 import qualified Language.Haskell.Extension as Cabal
 import           Text.Read
+
+readCabalExtension :: String -> Maybe Cabal.Extension
+readCabalExtension ('N':'o':xs) = Cabal.DisableExtension <$> readMaybe xs
+readCabalExtension xs           = Cabal.EnableExtension <$> readMaybe xs
 
 -- | Converts a value of the type 'Extension' defined in the
 -- 'ghc-lib-parser' package to the same value of the type 'Extension'
