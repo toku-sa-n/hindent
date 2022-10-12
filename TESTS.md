@@ -99,6 +99,17 @@ Collect multiple extensions separated by commas correctly
     PatternSynonyms #-}
 
 import Foo (pattern Bar)
+
+-- Do not collect pragma-like things.
+-- {-# LANGUAGE StaticPointers #-}
+{-
+
+{-# LANGUAGE StaticPointers #-}
+
+-}
+-- @static@ is no longer a valid identifier
+-- once the above language extension is enabled.
+static = 3
 ```
 
 ```haskell expect
@@ -107,6 +118,17 @@ import Foo (pattern Bar)
 {-# LANGUAGE PatternSynonyms #-}
 
 import Foo (pattern Bar)
+
+-- Do not collect pragma-like things.
+-- {-# LANGUAGE StaticPointers #-}
+{-
+
+{-# LANGUAGE StaticPointers #-}
+
+-}
+-- @static@ is no longer a valid identifier
+-- once the above language extension is enabled.
+static = 3
 ```
 
 # Imports
