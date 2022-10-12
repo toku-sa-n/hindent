@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module HIndent.Pragma
   ( extractPragmasFromCode
   , extractPragmaNameAndElement
@@ -11,7 +13,10 @@ import           GHC.Data.StringBuffer
 import           GHC.Parser.Lexer
 import           GHC.Types.SrcLoc
 import           Text.Regex.TDFA       hiding (empty)
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+import           GHC.Utils.Error
+import           GHC.Utils.Outputable  hiding (empty, text, (<>))
+#endif
 -- | Extracts all pragmas from the given source code.
 --
 -- FIXME: The function is slow because it lexicographically analyzes the
@@ -75,4 +80,10 @@ lexModule code
   | otherwise = error "Failed to lex the code."
 
 parserOpts :: ParserOpts
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+parserOpts = mkParserOpts empty diagOpts [] False False True False
+  where
+    diagOpts = DiagOpts empty empty False False Nothing defaultSDocContext
+#else
 parserOpts = mkParserOpts empty empty False False True False
+#endif
