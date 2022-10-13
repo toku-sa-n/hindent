@@ -378,6 +378,8 @@ pattern Fst x <- (x, x)
 
 pattern x :| xs <- x : xs
   where a :| b = a : b
+
+pattern Pair {x, y} = (x, y)
 ```
 
 Specialised pragma

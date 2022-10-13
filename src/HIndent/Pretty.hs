@@ -2274,7 +2274,7 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
 -- | 'Pretty' for 'HsPatSynDetails'.
 instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSynField GhcPs]) where
   pretty' (PrefixCon _ xs) = spaced $ fmap pretty xs
-  pretty' RecCon {} = undefined
+  pretty' (RecCon rec) = hFields $ fmap pretty rec
   pretty' InfixCon {} =
     error
       "Cannot handle here because `InfixCon` does not have the information of the constructor."
@@ -2390,3 +2390,6 @@ instance Pretty (DerivStrategy GhcPs) where
   pretty' (ViaStrategy (XViaStrategyPs _ ty)) = do
     string "via "
     pretty ty
+
+instance Pretty (RecordPatSynField GhcPs) where
+  pretty' RecordPatSynField {..} = pretty recordPatSynField
