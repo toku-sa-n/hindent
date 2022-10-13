@@ -17,6 +17,7 @@ import           HIndent.Pragma
 import           HIndent.Read
 import qualified Language.Haskell.Extension           as Cabal
 import           Text.Read
+import           Text.Regex.TDFA
 
 -- | This function returns a list of extensions that the passed language
 -- (e.g., GHC2021) enables.
@@ -37,16 +38,42 @@ extensionImplies (Cabal.EnableExtension e) =
     toExtension (_, False, e') = Cabal.DisableExtension $ readOrFail $ show e'
 extensionImplies _ = []
 
+collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
+collectLanguageExtensionsFromSource =
+  (++) <$> collectLanguageExtensionsSpecifiedViaLanguagePragma <*>
+  collectLanguageExtensionsFromSourceViaOptionsPragma
+
 -- | Collects language extensions enabled or disabled by @{-# LANGUAGE FOO
 -- #-}@.
 --
 -- This function ignores language extensions not supported by Cabal.
-collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
-collectLanguageExtensionsFromSource =
+collectLanguageExtensionsSpecifiedViaLanguagePragma ::
+     String -> [Cabal.Extension]
+collectLanguageExtensionsSpecifiedViaLanguagePragma =
   mapMaybe (strToExt . stripSpaces) .
   concatMap (splitOn ",") .
   fmap snd . filter ((== "LANGUAGE") . fst) . extractPragmasFromCode
+
+collectLanguageExtensionsFromSourceViaOptionsPragma ::
+     String -> [Cabal.Extension]
+collectLanguageExtensionsFromSourceViaOptionsPragma =
+  mapMaybe (strToExt . stripSpaces) .
+  concatMap extractLanguageExtensionsFromOptions .
+  fmap snd .
+  filter ((`elem` ["OPTIONS", "OPTIONS_GHC"]) . fst) . extractPragmasFromCode
+
+extractLanguageExtensionsFromOptions :: String -> [String]
+extractLanguageExtensionsFromOptions options =
+  fmap
+    trimXOption
+    (getAllTextMatches (options =~ "-X[^,[:space:]]+") :: [String])
   where
-    stripSpaces = reverse . dropWhile isSpace . reverse . dropWhile isSpace
-    strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
-    strToExt s           = Cabal.EnableExtension <$> readMaybe s
+    trimXOption ('-':'X':xs) = xs
+    trimXOption _ = error "Unreachable: the option must have the `-X` prefix."
+
+stripSpaces :: String -> String
+stripSpaces = reverse . dropWhile isSpace . reverse . dropWhile isSpace
+
+strToExt :: String -> Maybe Cabal.Extension
+strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
+strToExt s           = Cabal.EnableExtension <$> readMaybe s

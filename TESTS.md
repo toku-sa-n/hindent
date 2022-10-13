@@ -42,6 +42,22 @@ Pragmas, GHC options, and haddock options.
 module Foo where
 ```
 
+Accept pragmas via `OPTIONS -XFOO`
+
+```haskell
+{-# OPTIONS -XPatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
+Accept pragmas via `OPTIONS_GHC -XFOO`
+
+```haskell
+{-# OPTIONS_GHC -XPatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
 A pragma's length is adjusted automatically
 
 ```haskell given
