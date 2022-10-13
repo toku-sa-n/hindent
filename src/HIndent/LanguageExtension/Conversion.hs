@@ -82,6 +82,7 @@ badExtensions =
   , Cabal.XmlSyntax
   , Cabal.RegularPatterns -- steals a-b
   , Cabal.UnboxedTuples -- breaks (#) lens operator
+  , Cabal.UnboxedSums -- Same as 'UnboxedTuples'
     -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
   , Cabal.PatternSynonyms -- steals the pattern keyword
   , Cabal.RecursiveDo -- steals the rec keyword

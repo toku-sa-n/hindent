@@ -1045,6 +1045,12 @@ g :: forall a b. a -> b
 g = undefined
 ```
 
+An infix operator containing `#`
+
+```haskell
+(#!) :: Int -> Int -> Int
+```
+
 # Function declarations
 
 Prefix notation for operators
