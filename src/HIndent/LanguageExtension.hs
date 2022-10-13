@@ -38,6 +38,7 @@ extensionImplies (Cabal.EnableExtension e) =
     toExtension (_, False, e') = Cabal.DisableExtension $ readOrFail $ show e'
 extensionImplies _ = []
 
+-- | Collect pragmas specified in the source code.
 collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
 collectLanguageExtensionsFromSource =
   (++) <$> collectLanguageExtensionsSpecifiedViaLanguagePragma <*>
