@@ -54,6 +54,8 @@ collectLanguageExtensionsSpecifiedViaLanguagePragma =
   concatMap (splitOn ",") .
   fmap snd . filter ((== "LANGUAGE") . fst) . extractPragmasFromCode
 
+-- | Extracts the language extensions specified by @-XFOO@ from @OPTIONS@
+-- or @OPTIONS_GHC@ pragmas
 collectLanguageExtensionsFromSourceViaOptionsPragma ::
      String -> [Cabal.Extension]
 collectLanguageExtensionsFromSourceViaOptionsPragma =
@@ -62,6 +64,8 @@ collectLanguageExtensionsFromSourceViaOptionsPragma =
   fmap snd .
   filter ((`elem` ["OPTIONS", "OPTIONS_GHC"]) . fst) . extractPragmasFromCode
 
+-- | Extracts the language extensions specified in the '-XFOO' format from
+-- the given string
 extractLanguageExtensionsFromOptions :: String -> [String]
 extractLanguageExtensionsFromOptions options =
   fmap
@@ -71,9 +75,12 @@ extractLanguageExtensionsFromOptions options =
     trimXOption ('-':'X':xs) = xs
     trimXOption _ = error "Unreachable: the option must have the `-X` prefix."
 
+-- | Removes spaces before and after the string.
 stripSpaces :: String -> String
 stripSpaces = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 
+-- | Converts the given string to an extension, or returns a 'Nothing' on
+-- fail.
 strToExt :: String -> Maybe Cabal.Extension
 strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
 strToExt s           = Cabal.EnableExtension <$> readMaybe s
