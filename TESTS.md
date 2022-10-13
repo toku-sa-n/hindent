@@ -818,6 +818,16 @@ f =
 Second line|]
 ```
 
+Quasi-quotes containing top-level declarations
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [d| f :: Int -> Int
+      f = undefined |]
+```
+
 `RecursiveDo`
 
 ```haskell

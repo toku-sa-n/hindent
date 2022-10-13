@@ -1636,7 +1636,12 @@ instance Pretty (HsBracket GhcPs) where
     brackets $ do
       string "p"
       wrapWithBars $ pretty expr
-  pretty' DecBrL {} = undefined
+  pretty' (DecBrL _ decls) =
+    brackets $
+    string "d| " |=> do
+      lined $ fmap pretty decls
+      space
+      string "|"
   pretty' DecBrG {} = undefined
   pretty' (TypBr _ expr) =
     brackets $ do
