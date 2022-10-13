@@ -2222,7 +2222,7 @@ instance Pretty (ForeignDecl GhcPs)
 
 instance Pretty Safety where
   pretty' PlaySafe          = string "safe"
-  pretty' PlayInterruptible = undefined
+  pretty' PlayInterruptible = string "interruptible"
   pretty' PlayRisky         = string "unsafe"
 
 instance Pretty (AnnDecl GhcPs) where
