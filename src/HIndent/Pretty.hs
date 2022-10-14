@@ -764,7 +764,29 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
-prettyHsExpr (HsDo _ ListComp {} _) = undefined
+-- TODO: Refactor. This branch uses the same code as 'MonadComp'.
+prettyHsExpr (HsDo _ ListComp {} xs) = horizontal <-|> vertical
+  where
+    horizontal =
+      brackets $ do
+        printCommentsAnd xs (pretty . head)
+        string " | "
+        printCommentsAnd xs (hCommaSep . fmap pretty . tail)
+    vertical =
+      if null $ unLoc xs
+        then string "[]"
+        else printCommentsAnd
+               xs
+               (\xs' ->
+                  let (lastStmt, others) = (head xs', tail xs')
+                   in do string "[ "
+                         pretty $ fmap StmtLRInsideVerticalList lastStmt
+                         newline
+                         forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                           string p |=> pretty (fmap StmtLRInsideVerticalList x)
+                           newline
+                         string "]")
+    stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
 -- While the name contains "Monad", this branch seems to be for list comprehensions.
 prettyHsExpr (HsDo _ MonadComp xs) = horizontal <-|> vertical
   where
