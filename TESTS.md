@@ -840,6 +840,10 @@ f = do
   rec b <- a c
       c <- a b
   return $ b + c
+
+g = mdo
+  foo
+  bar
 ```
 
 `UnboxedSums`
