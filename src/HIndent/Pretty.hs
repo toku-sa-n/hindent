@@ -2154,22 +2154,18 @@ instance Pretty (WarnDecls GhcPs) where
   pretty' (Warnings _ _ x) = lined $ fmap pretty x
 
 instance Pretty (WarnDecl GhcPs) where
-  pretty' (Warning _ names (DeprecatedTxt _ reasons)) = do
-    string "{-# DEPRECATED"
-    newline
-    hCommaSep $ fmap pretty names
-    space
-    hCommaSep $ fmap pretty reasons
-    newline
-    string " #-}"
-  pretty' (Warning _ names (WarningTxt _ reasons)) = do
-    string "{-# WARNING"
-    newline
-    hCommaSep $ fmap pretty names
-    space
-    hCommaSep $ fmap pretty reasons
-    newline
-    string " #-}"
+  pretty' (Warning _ names deprecatedOrWarning) =
+    case deprecatedOrWarning of
+      DeprecatedTxt _ reasons -> prettyWithTitleReasons "DEPRECATED" reasons
+      WarningTxt _ reasons    -> prettyWithTitleReasons "WARNING" reasons
+    where
+      prettyWithTitleReasons title reasons =
+        lined
+          [ string $ "{-# " ++ title
+          , spaced
+              [hCommaSep $ fmap pretty names, hCommaSep $ fmap pretty reasons]
+          , string " #-}"
+          ]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
   pretty' WithHsDocIdentifiers {..} = pretty hsDocString
