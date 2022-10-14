@@ -778,7 +778,7 @@ prettyHsExpr (HsDo _ ty xs) =
     MonadComp {}    -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
     DoExpr {}       -> doExprWith "do"
     MDoExpr {}      -> doExprWith "mdo"
-    GhciStmtCtxt {} -> undefined
+    GhciStmtCtxt {} -> error "We're not using GHCi, are we?"
   where
     listComp = horizontal <-|> vertical
       where
@@ -814,7 +814,7 @@ prettyHsExpr (HsDo _ ty xs) =
     DoExpr {}        -> doExprWith "do"
     MDoExpr {}       -> doExprWith "mdo"
     ArrowExpr {}     -> undefined
-    GhciStmtCtxt {}  -> undefined
+    GhciStmtCtxt {}  -> error "We're not using GHCi, are we?"
     PatGuard {}      -> undefined
     ParStmtCtxt {}   -> undefined
     TransStmtCtxt {} -> undefined
