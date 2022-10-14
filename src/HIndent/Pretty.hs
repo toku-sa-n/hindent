@@ -2162,7 +2162,14 @@ instance Pretty (WarnDecl GhcPs) where
     hCommaSep $ fmap pretty reasons
     newline
     string " #-}"
-  pretty' _ = undefined
+  pretty' (Warning _ names (WarningTxt _ reasons)) = do
+    string "{-# WARNING"
+    newline
+    hCommaSep $ fmap pretty names
+    space
+    hCommaSep $ fmap pretty reasons
+    newline
+    string " #-}"
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
   pretty' WithHsDocIdentifiers {..} = pretty hsDocString

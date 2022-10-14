@@ -1133,6 +1133,14 @@ giveUp "Never give up."
 giveUp = undefined
 ```
 
+A `WARNING`.
+
+```haskell
+{-# WARNING
+debugCode "The use of 'debugCode'"
+ #-}
+```
+
 Guards and pattern guards
 
 ``` haskell
