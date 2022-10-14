@@ -764,60 +764,42 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
--- TODO: Refactor. This branch uses the same code as 'MonadComp'.
-prettyHsExpr (HsDo _ ListComp {} xs) = horizontal <-|> vertical
+prettyHsExpr (HsDo _ ty xs) =
+  case ty of
+    ListComp {}      -> listComp
+    MonadComp {}     -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
+    DoExpr {}        -> doExpr
+    MDoExpr {}       -> undefined
+    ArrowExpr {}     -> undefined
+    GhciStmtCtxt {}  -> undefined
+    PatGuard {}      -> undefined
+    ParStmtCtxt {}   -> undefined
+    TransStmtCtxt {} -> undefined
   where
-    horizontal =
-      brackets $ do
-        printCommentsAnd xs (pretty . head)
-        string " | "
-        printCommentsAnd xs (hCommaSep . fmap pretty . tail)
-    vertical =
-      if null $ unLoc xs
-        then string "[]"
-        else printCommentsAnd
-               xs
-               (\xs' ->
-                  let (lastStmt, others) = (head xs', tail xs')
-                   in do string "[ "
-                         pretty $ fmap StmtLRInsideVerticalList lastStmt
-                         newline
-                         forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                           string p |=> pretty (fmap StmtLRInsideVerticalList x)
-                           newline
-                         string "]")
-    stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
--- While the name contains "Monad", this branch seems to be for list comprehensions.
-prettyHsExpr (HsDo _ MonadComp xs) = horizontal <-|> vertical
-  where
-    horizontal =
-      brackets $ do
-        printCommentsAnd xs (pretty . head)
-        string " | "
-        printCommentsAnd xs (hCommaSep . fmap pretty . tail)
-    vertical =
-      if null $ unLoc xs
-        then string "[]"
-        else printCommentsAnd
-               xs
-               (\xs' ->
-                  let (lastStmt, others) = (head xs', tail xs')
-                   in do string "[ "
-                         pretty $ fmap StmtLRInsideVerticalList lastStmt
-                         newline
-                         forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                           string p |=> pretty (fmap StmtLRInsideVerticalList x)
-                           newline
-                         string "]")
-    stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
-prettyHsExpr (HsDo _ (DoExpr _) xs) =
-  string "do " |=> printCommentsAnd xs (lined . fmap pretty)
-prettyHsExpr (HsDo _ MDoExpr {} _) = undefined
-prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
-prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = undefined
-prettyHsExpr (HsDo _ PatGuard {} _) = undefined
-prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
-prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
+    listComp = horizontal <-|> vertical
+      where
+        horizontal =
+          brackets $ do
+            printCommentsAnd xs (pretty . head)
+            string " | "
+            printCommentsAnd xs (hCommaSep . fmap pretty . tail)
+        vertical =
+          if null $ unLoc xs
+            then string "[]"
+            else printCommentsAnd
+                   xs
+                   (\xs' ->
+                      let (lastStmt, others) = (head xs', tail xs')
+                       in do string "[ "
+                             pretty $ fmap StmtLRInsideVerticalList lastStmt
+                             newline
+                             forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                               string p |=>
+                                 pretty (fmap StmtLRInsideVerticalList x)
+                               newline
+                             string "]")
+        stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
+    doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
     horizontal = brackets $ hCommaSep $ fmap pretty xs
