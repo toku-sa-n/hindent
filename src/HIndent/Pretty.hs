@@ -764,6 +764,43 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
+
+-- TODO: Refactor.
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsExpr (HsDo _ ty xs) =
+  case ty of
+    ListComp {}     -> listComp
+    MonadComp {}    -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
+    DoExpr {}       -> doExpr
+    MDoExpr {}      -> undefined
+    GhciStmtCtxt {} -> undefined
+  where
+    listComp = horizontal <-|> vertical
+      where
+        horizontal =
+          brackets $
+          spaced
+            [ printCommentsAnd xs (pretty . head)
+            , string "|"
+            , printCommentsAnd xs (hCommaSep . fmap pretty . tail)
+            ]
+        vertical =
+          case unLoc xs of
+            [] -> string "[]"
+            (lastStmt:others) ->
+              printCommentsAnd
+                xs
+                (\_ -> do
+                   string "[ "
+                   pretty $ fmap StmtLRInsideVerticalList lastStmt
+                   newline
+                   forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                     string p |=> pretty (fmap StmtLRInsideVerticalList x)
+                     newline
+                   string "]")
+        stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
+    doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
+#else
 prettyHsExpr (HsDo _ ty xs) =
   case ty of
     ListComp {}      -> listComp
@@ -801,6 +838,7 @@ prettyHsExpr (HsDo _ ty xs) =
                    string "]")
         stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
     doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
+#endif
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
     horizontal = brackets $ hCommaSep $ fmap pretty xs
