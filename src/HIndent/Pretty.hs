@@ -750,6 +750,11 @@ prettyHsExpr (HsIf _ cond t f) = do
           string "do"
           newline
           indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
+        (L _ (HsDo _ MDoExpr {} xs)) -> do
+          string str
+          string "mdo"
+          newline
+          indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
         _ -> string str |=> pretty e
 prettyHsExpr (HsMultiIf _ guards) =
   string "if " |=> lined (fmap (pretty . fmap GRHSForMultiwayIf) guards)
@@ -771,8 +776,8 @@ prettyHsExpr (HsDo _ ty xs) =
   case ty of
     ListComp {}     -> listComp
     MonadComp {}    -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
-    DoExpr {}       -> doExpr
-    MDoExpr {}      -> undefined
+    DoExpr {}       -> doExprWith "do"
+    MDoExpr {}      -> doExprWith "mdo"
     GhciStmtCtxt {} -> undefined
   where
     listComp = horizontal <-|> vertical
@@ -799,14 +804,15 @@ prettyHsExpr (HsDo _ ty xs) =
                      newline
                    string "]")
         stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
-    doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
+    doExprWith pref =
+      (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #else
 prettyHsExpr (HsDo _ ty xs) =
   case ty of
     ListComp {}      -> listComp
     MonadComp {}     -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
-    DoExpr {}        -> doExpr
-    MDoExpr {}       -> undefined
+    DoExpr {}        -> doExprWith "do"
+    MDoExpr {}       -> doExprWith "mdo"
     ArrowExpr {}     -> undefined
     GhciStmtCtxt {}  -> undefined
     PatGuard {}      -> undefined
@@ -837,7 +843,8 @@ prettyHsExpr (HsDo _ ty xs) =
                      newline
                    string "]")
         stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
-    doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
+    doExprWith pref =
+      (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #endif
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
@@ -1433,11 +1440,28 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     string " = do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))) = do
+    string " = mdo"
+    newline
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       string " = do"
+      hor <-|> ver
+    where
+      hor = do
+        space
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body))) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " = mdo"
       hor <-|> ver
     where
       hor = do
@@ -1478,11 +1502,21 @@ instance Pretty GRHSForCase where
     string " -> do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
+    string " -> mdo"
+    newline
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       string " -> do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " -> mdo "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForCase (GRHS _ [] body)) = horizontal <-|> vertical
     where
@@ -1521,11 +1555,27 @@ instance Pretty GRHSForLambda where
         string "-> do"
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) =
+    hor <-|> ver
+    where
+      hor = do
+        string "-> mdo "
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        string "-> mdo"
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       string " -> do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " -> mdo "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForLambda (GRHS _ [] body)) = horizontal <-|> vertical
     where
@@ -1558,11 +1608,21 @@ instance Pretty GRHSForMultiwayIf where
     string " -> do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
+    string " -> mdo"
+    newline
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) =
     indentedBlock $ do
       string "| "
       inter (comma >> newline) $ fmap pretty guards
       string " -> do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) =
+    indentedBlock $ do
+      string "| "
+      inter (comma >> newline) $ fmap pretty guards
+      string " -> mdo "
       printCommentsAnd body (mapM_ pretty)
   pretty' (GRHSForMultiwayIf (GRHS _ [] body)) = horizontal <-|> vertical
     where
@@ -1879,6 +1939,9 @@ instance Pretty InfixApp where
             (HsDo _ DoExpr {} _) -> do
               indentedWithSpace 3 (newline >> pretty (InfixExpr op)) -- 3 for "do "
               return space
+            (HsDo _ MDoExpr {} _) -> do
+              indentedWithSpace 4 (newline >> pretty (InfixExpr op)) -- 4 for "mdo "
+              return space
             _ -> do
               space
               pretty (InfixExpr op)
@@ -1886,6 +1949,10 @@ instance Pretty InfixApp where
         case unLoc rhs of
           (HsDo _ (DoExpr _) xs) -> do
             string " do"
+            newline
+            indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
+          (HsDo _ (MDoExpr _) xs) -> do
+            string " mdo"
             newline
             indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
           HsLam {} -> do
