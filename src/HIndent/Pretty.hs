@@ -764,9 +764,8 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
-prettyHsExpr (HsDo _ (DoExpr _) xs) =
-  string "do " |=> printCommentsAnd xs (lined . fmap pretty)
-  -- While the name contains "Monad", this branch seems to be for list comprehensions.
+prettyHsExpr (HsDo _ ListComp {} _) = undefined
+-- While the name contains "Monad", this branch seems to be for list comprehensions.
 prettyHsExpr (HsDo _ MonadComp xs) = horizontal <-|> vertical
   where
     horizontal =
@@ -789,7 +788,14 @@ prettyHsExpr (HsDo _ MonadComp xs) = horizontal <-|> vertical
                            newline
                          string "]")
     stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
-prettyHsExpr HsDo {} = undefined
+prettyHsExpr (HsDo _ (DoExpr _) xs) =
+  string "do " |=> printCommentsAnd xs (lined . fmap pretty)
+prettyHsExpr (HsDo _ MDoExpr {} _) = undefined
+prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
+prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = undefined
+prettyHsExpr (HsDo _ PatGuard {} _) = undefined
+prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
+prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
     horizontal = brackets $ hCommaSep $ fmap pretty xs
