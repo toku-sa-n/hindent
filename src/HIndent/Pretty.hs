@@ -779,25 +779,26 @@ prettyHsExpr (HsDo _ ty xs) =
     listComp = horizontal <-|> vertical
       where
         horizontal =
-          brackets $ do
-            printCommentsAnd xs (pretty . head)
-            string " | "
-            printCommentsAnd xs (hCommaSep . fmap pretty . tail)
+          brackets $
+          spaced
+            [ printCommentsAnd xs (pretty . head)
+            , string "|"
+            , printCommentsAnd xs (hCommaSep . fmap pretty . tail)
+            ]
         vertical =
-          if null $ unLoc xs
-            then string "[]"
-            else printCommentsAnd
-                   xs
-                   (\xs' ->
-                      let (lastStmt, others) = (head xs', tail xs')
-                       in do string "[ "
-                             pretty $ fmap StmtLRInsideVerticalList lastStmt
-                             newline
-                             forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                               string p |=>
-                                 pretty (fmap StmtLRInsideVerticalList x)
-                               newline
-                             string "]")
+          case unLoc xs of
+            [] -> string "[]"
+            (lastStmt:others) ->
+              printCommentsAnd
+                xs
+                (\_ -> do
+                   string "[ "
+                   pretty $ fmap StmtLRInsideVerticalList lastStmt
+                   newline
+                   forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
+                     string p |=> pretty (fmap StmtLRInsideVerticalList x)
+                     newline
+                   string "]")
         stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
     doExpr = string "do " |=> printCommentsAnd xs (lined . fmap pretty)
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
