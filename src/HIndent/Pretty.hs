@@ -13,6 +13,10 @@
 -- functions to print comments easily using the 'Pretty' implementation of
 -- 'GenLocated'. However, some instances define top-level functions to
 -- handle CPP.
+--
+-- Some value constructors never appear in an AST. GHC has three stages for
+-- using an AST: parsing, renaming, and type checking, and GHC uses these
+-- constructors only in remaining and type checking.
 module HIndent.Pretty
   ( pretty
   ) where
@@ -468,9 +472,9 @@ prettyHsBind FunBind {..} = pretty fun_matches
 prettyHsBind PatBind {..} = do
   pretty pat_lhs
   pretty pat_rhs
-prettyHsBind VarBind {} = undefined
+prettyHsBind VarBind {} = error "This value only appears after type checking."
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsBind AbsBinds {} = undefined
+prettyHsBind AbsBinds {} = error "This value only appears after renaming."
 #endif
 prettyHsBind (PatSynBind _ x) = pretty x
 
