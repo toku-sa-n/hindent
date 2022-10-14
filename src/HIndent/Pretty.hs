@@ -510,7 +510,7 @@ instance Pretty (Sig GhcPs) where
     hCommaSep $ fmap pretty funNames
     string " :: "
     printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
-  pretty' IdSig {} = undefined
+  pretty' IdSig {} = error "This constructor should not appear in an AST."
   pretty' (FixSig _ x) = pretty x
   pretty' (InlineSig _ name detail) = do
     string "{-# "
@@ -643,8 +643,10 @@ prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prettyHsExpr (HsUnboundVar _ x) = pretty x
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsConLikeOut {} = undefined
-prettyHsExpr HsRecFld {} = undefined
+prettyHsExpr HsConLikeOut {} =
+  error "This constructor only appears after type checking."
+prettyHsExpr HsRecFld {} =
+  error "This constructor should appear only after renaming."
 #endif
 prettyHsExpr (HsOverLabel _ l) = do
   string "#"
@@ -725,7 +727,8 @@ prettyHsExpr (ExplicitTuple _ full _) = horizontal <-|> vertical
       fmap (\e -> unless (isMissing e) (space |=> pretty e)) full
     isMissing Missing {} = True
     isMissing _          = False
-prettyHsExpr ExplicitSum {} = undefined
+prettyHsExpr (ExplicitSum _ _ _ expr) =
+  unboxedSums $ spaced [string "|", pretty expr]
 prettyHsExpr (HsCase _ cond arms) = do
   string "case " |=> do
     pretty cond

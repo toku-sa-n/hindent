@@ -11,6 +11,7 @@ module HIndent.Pretty.Combinators.Wrap
   , wrapWithBars
   , promotedListBrackets
   , promotedTupleParens
+  , unboxedSums
   ) where
 
 import           GHC.Types.Name
@@ -69,6 +70,10 @@ promotedListBrackets = wrap "'[ " "]"
 -- tuple.
 promotedTupleParens :: Printer a -> Printer a
 promotedTupleParens = wrap "'( " ")"
+
+-- | Wraps with @(# @ and @ #)@.
+unboxedSums :: Printer a -> Printer a
+unboxedSums = wrap "(# " " #)"
 
 -- | This function wraps the printer with the prefix and the suffix.
 wrap :: String -> String -> Printer a -> Printer a

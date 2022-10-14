@@ -842,6 +842,14 @@ f = do
   return $ b + c
 ```
 
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f = (# | Bool #)
+```
+
 # Template Haskell
 
 Expression brackets
