@@ -935,7 +935,8 @@ prettyHsExpr HsRnBracketOut {} = undefined
 prettyHsExpr HsTcBracketOut {} = undefined
 #endif
 prettyHsExpr (HsSpliceE _ x) = pretty x
-prettyHsExpr HsProc {} = undefined
+prettyHsExpr (HsProc _ pat body) =
+  spaced [string "proc", pretty pat, string "->", pretty body]
 prettyHsExpr HsStatic {} = undefined
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsTick {} = undefined
@@ -1174,6 +1175,25 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
   commentsBefore _             = []
   commentsAfter (LetStmt l _) = commentsAfter l
   commentsAfter _             = []
+
+instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
+  pretty' (LastStmt _ x _ _) = pretty x
+  pretty' (BindStmt _ pat body) = hor <-|> ver
+    where
+      hor = spaced [pretty pat, string "<-", pretty body]
+      ver = do
+        pretty pat
+        string " <-"
+        newline
+        indentedBlock $ pretty body
+  pretty' ApplicativeStmt {} = undefined
+  pretty' (BodyStmt _ body _ _) = pretty body
+  pretty' (LetStmt _ l) = string "let " |=> pretty l
+  pretty' (ParStmt _ xs _ _) = hvBarSep $ fmap pretty xs
+  pretty' TransStmt {..} =
+    vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
+  pretty' RecStmt {..} =
+    string "rec " |=> printCommentsAnd recS_stmts (lined . fmap pretty)
 
 instance Pretty StmtLRInsideVerticalList where
   pretty' (StmtLRInsideVerticalList (ParStmt _ xs _ _)) =
@@ -2524,3 +2544,24 @@ instance Pretty (DerivStrategy GhcPs) where
 
 instance Pretty (RecordPatSynField GhcPs) where
   pretty' RecordPatSynField {..} = pretty recordPatSynField
+
+instance Pretty (HsCmdTop GhcPs) where
+  pretty' (HsCmdTop _ cmd) = pretty cmd
+
+instance Pretty (HsCmd GhcPs)
+  -- TODO: Handle arrow type (@-<@ and @-<<@).
+  -- TODO: Handle right-to-left or left-to-right.
+                                                  where
+  pretty' (HsCmdArrApp _ f arg _ _) = spaced [pretty f, string "-<", pretty arg]
+  pretty' HsCmdArrForm {} = undefined
+  pretty' HsCmdApp {} = undefined
+  pretty' HsCmdLam {} = undefined
+  pretty' HsCmdPar {} = undefined
+  pretty' HsCmdCase {} = undefined
+  pretty' HsCmdLamCase {} = undefined
+  pretty' HsCmdIf {} = undefined
+  pretty' HsCmdLet {} = undefined
+  pretty' (HsCmdDo _ stmts) = do
+    string "do"
+    newline
+    indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)

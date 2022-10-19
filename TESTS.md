@@ -854,6 +854,16 @@ g = mdo
 f = (# | Bool #)
 ```
 
+`Arrows`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc foo -> do
+    bar -< baz
+```
+
 # Template Haskell
 
 Expression brackets
