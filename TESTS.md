@@ -670,14 +670,6 @@ g (x:xs) = x
 g' ((:) x _) = x
 ```
 
-Type application
-
-```haskell
-{-# LANGUAGE TypeApplications #-}
-
-fun @Int 12
-```
-
 Transform list comprehensions
 
 ```haskell
@@ -767,21 +759,6 @@ f = undefined
                  }
 ```
 
-`OverloadedRecordDot`
-
-```haskell from 9.2.2
-{-# LANGUAGE OverloadedRecordDot #-}
-
-data Rectangle =
-  Rectangle
-    { width :: Int
-    , height :: Int
-    }
-
-area :: Rectangle -> Int
-area r = r.width * r.height
-```
-
 An expression with a SCC pragma
 
 ```haskell
@@ -809,6 +786,14 @@ foo =
       "foo \
      \ bar"
 ```
+
+Implicit value
+
+```haskell
+foo = ?undefined
+```
+
+## Extensions
 
 Quasi-quotes having multiple lines of body
 
@@ -864,10 +849,27 @@ f =
     bar -< baz
 ```
 
-Implicit value
+`OverloadedRecordDot`
+
+```haskell from 9.2.2
+{-# LANGUAGE OverloadedRecordDot #-}
+
+data Rectangle =
+  Rectangle
+    { width :: Int
+    , height :: Int
+    }
+
+area :: Rectangle -> Int
+area r = r.width * r.height
+```
+
+Type application
 
 ```haskell
-foo = ?undefined
+{-# LANGUAGE TypeApplications #-}
+
+fun @Int 12
 ```
 
 # Template Haskell
