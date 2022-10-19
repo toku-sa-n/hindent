@@ -9,10 +9,7 @@
 
 -- | Pretty printing.
 --
--- We define new types to pretty-print AST nodes rather than define
--- functions to print comments easily using the 'Pretty' implementation of
--- 'GenLocated'. However, some instances define top-level functions to
--- handle CPP.
+-- Some instances define top-level functions to handle CPP.
 --
 -- Some value constructors never appear in an AST. GHC has three stages for
 -- using an AST: parsing, renaming, and type checking, and GHC uses these
