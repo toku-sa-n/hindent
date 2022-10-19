@@ -637,8 +637,6 @@ instance Pretty (HsExpr GhcPs) where
   commentsAfter (HsApp x _ _) = commentsAfter x
   commentsAfter _             = []
 
--- HIndent cannot handle CPP instructions inside a class instance
--- declaration well. That is why this function is defined.
 prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prettyHsExpr (HsUnboundVar _ x) = pretty x
