@@ -795,26 +795,6 @@ foo = ?undefined
 
 ## Extensions
 
-Quasi-quotes having multiple lines of body
-
-```haskell
-{-# LANGUAGE QuasiQuotes #-}
-
-f =
-  [s|First line
-Second line|]
-```
-
-Quasi-quotes containing top-level declarations
-
-```haskell
-{-# LANGUAGE QuasiQuotes #-}
-
-f =
-  [d| f :: Int -> Int
-      f = undefined |]
-```
-
 `RecursiveDo`
 
 ```haskell
@@ -870,6 +850,28 @@ Type application
 {-# LANGUAGE TypeApplications #-}
 
 fun @Int 12
+```
+
+### Quasi-quotes
+
+Body has multiple lines.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [s|First line
+Second line|]
+```
+
+Body has a top-level declaration.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [d| f :: Int -> Int
+      f = undefined |]
 ```
 
 # Template Haskell
