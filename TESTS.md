@@ -864,6 +864,12 @@ f =
     bar -< baz
 ```
 
+Implicit value
+
+```haskell
+foo = ?undefined
+```
+
 # Template Haskell
 
 Expression brackets

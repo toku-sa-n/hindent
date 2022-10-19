@@ -649,7 +649,9 @@ prettyHsExpr HsRecFld {} =
 prettyHsExpr (HsOverLabel _ l) = do
   string "#"
   string $ unpackFS l
-prettyHsExpr HsIPVar {} = undefined
+prettyHsExpr (HsIPVar _ var) = do
+  string "?"
+  pretty var
 prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = pretty l
 prettyHsExpr (HsLam _ body) = pretty $ MatchGroupForLambda body
