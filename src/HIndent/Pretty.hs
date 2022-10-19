@@ -190,6 +190,9 @@ newtype ModuleNameWithPrefix =
 newtype PatInsidePatDecl =
   PatInsidePatDecl (Pat GhcPs)
 
+newtype LambdaCase =
+  LambdaCase (MatchGroup GhcPs (LHsExpr GhcPs))
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -656,21 +659,9 @@ prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = pretty l
 prettyHsExpr (HsLam _ body) = pretty $ MatchGroupForLambda body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsLamCase _ _ matches) = do
-  string "\\case"
-  if null $ unLoc $ mg_alts matches
-    then string " {}"
-    else do
-      newline
-      indentedBlock $ pretty $ MatchGroupForCase matches
+prettyHsExpr (HsLamCase _ _ matches) = pretty $ LambdaCase matches
 #else
-prettyHsExpr (HsLamCase _ matches) = do
-  string "\\case"
-  if null $ unLoc $ mg_alts matches
-    then string " {}"
-    else do
-      newline
-      indentedBlock $ pretty $ MatchGroupForCase matches
+prettyHsExpr (HsLamCase _ matches) = pretty $ LambdaCase matches
 #endif
 prettyHsExpr (HsApp _ l r) = horizontal <-|> vertical
   where
@@ -948,6 +939,15 @@ prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #endif
+instance Pretty LambdaCase where
+  pretty' (LambdaCase matches) = do
+    string "\\case"
+    if null $ unLoc $ mg_alts matches
+      then string " {}"
+      else do
+        newline
+        indentedBlock $ pretty $ MatchGroupForCase matches
+
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
     case sig_bndrs of
