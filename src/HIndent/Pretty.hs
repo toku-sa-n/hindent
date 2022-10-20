@@ -627,26 +627,15 @@ prettyHsExpr (HsDo _ MonadComp {} (L _ [])) =
 prettyHsExpr (HsDo _ MonadComp {} (L l (lhs:rhs))) =
   pretty $ L l $ ListComprehension lhs rhs
 prettyHsExpr (HsDo _ DoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Do
+prettyHsExpr (HsDo _ MDoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Mdo
 prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = error "We're not using GHCi, are we?"
--- TODO: Refactor.
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsDo _ ty xs) =
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsExpr (HsDo _ ty _) =
   case ty of
-    MDoExpr {} -> doExprWith "mdo"
-  where
-    doExprWith pref =
-      (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
-#else
-prettyHsExpr (HsDo _ ty xs) =
-  case ty of
-    MDoExpr {}       -> doExprWith "mdo"
     ArrowExpr {}     -> undefined
     PatGuard {}      -> undefined
     ParStmtCtxt {}   -> undefined
     TransStmtCtxt {} -> undefined
-  where
-    doExprWith pref =
-      (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #endif
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
