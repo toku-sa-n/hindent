@@ -42,6 +42,7 @@ module HIndent.Pretty.Types
   , ListComprehension(..)
   , DoExpression(..)
   , DoOrMdo(..)
+  , LetIn(..)
   ) where
 
 import           GHC.Hs
@@ -201,6 +202,13 @@ data DoExpression =
   DoExpression
     { doStmts :: [ExprLStmt GhcPs]
     , doOrMdo :: DoOrMdo
+    }
+
+-- | Use this type to pretty-print a @let ... in ...@ expression.
+data LetIn =
+  LetIn
+    { letBinds :: HsLocalBinds GhcPs
+    , inExpr   :: LHsExpr GhcPs
     }
 
 data DoOrMdo

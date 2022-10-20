@@ -607,15 +607,9 @@ prettyHsExpr (HsIf _ cond t f) = do
 prettyHsExpr (HsMultiIf _ guards) =
   string "if " |=> lined (fmap (pretty . fmap GRHSForMultiwayIf) guards)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsLet _ _ binds _ exprs) = do
-  string "let " |=> pretty binds
-  newline
-  string " in " |=> pretty exprs
+prettyHsExpr (HsLet _ _ binds _ exprs) = pretty $ LetIn binds exprs
 #else
-prettyHsExpr (HsLet _ binds exprs) = do
-  string "let " |=> pretty binds
-  newline
-  string " in " |=> pretty exprs
+prettyHsExpr (HsLet _ binds exprs) = pretty $ LetIn binds exprs
 #endif
 prettyHsExpr (HsDo _ ListComp {} (L _ [])) =
   error "Not enough arguments are passed to pretty-print a list comprehension."
@@ -2391,3 +2385,7 @@ instance Pretty DoExpression where
         case doOrMdo of
           Do  -> "do"
           Mdo -> "mdo"
+
+instance Pretty LetIn where
+  pretty' LetIn {..} =
+    lined [string "let " |=> pretty letBinds, string " in " |=> pretty inExpr]
