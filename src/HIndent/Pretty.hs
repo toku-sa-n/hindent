@@ -617,31 +617,26 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
-
+prettyHsExpr (HsDo _ ListComp {} (L _ [])) = undefined
+prettyHsExpr (HsDo _ ListComp {} (L l (lhs:rhs))) =
+  pretty $ L l $ ListComprehension lhs rhs
+-- While the name contains 'Monad', 'MonadComp' is for list comprehensions.
+prettyHsExpr (HsDo _ MonadComp {} (L _ [])) = undefined
+prettyHsExpr (HsDo _ MonadComp {} (L l (lhs:rhs))) =
+  pretty $ L l $ ListComprehension lhs rhs
 -- TODO: Refactor.
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsDo _ ty xs) =
   case ty of
-    ListComp {}     -> listComp
-    MonadComp {}    -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
     DoExpr {}       -> doExprWith "do"
     MDoExpr {}      -> doExprWith "mdo"
     GhciStmtCtxt {} -> error "We're not using GHCi, are we?"
   where
-    listComp =
-      case xs of
-        L _ [] ->
-          error "Not enough parameters are given for a list comprehension."
-        L l (lhs:rhs) ->
-          pretty $
-          L l $ ListComprehension {listCompLhs = lhs, listCompRhs = rhs}
     doExprWith pref =
       (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #else
 prettyHsExpr (HsDo _ ty xs) =
   case ty of
-    ListComp {}      -> listComp
-    MonadComp {}     -> listComp -- While the name contains 'Monad', this branch is for list comprehension.
     DoExpr {}        -> doExprWith "do"
     MDoExpr {}       -> doExprWith "mdo"
     ArrowExpr {}     -> undefined
@@ -650,13 +645,6 @@ prettyHsExpr (HsDo _ ty xs) =
     ParStmtCtxt {}   -> undefined
     TransStmtCtxt {} -> undefined
   where
-    listComp =
-      case xs of
-        L _ [] ->
-          error "Not enough parameters are given for a list comprehension."
-        L l (lhs:rhs) ->
-          pretty $
-          L l $ ListComprehension {listCompLhs = lhs, listCompRhs = rhs}
     doExprWith pref =
       (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #endif
