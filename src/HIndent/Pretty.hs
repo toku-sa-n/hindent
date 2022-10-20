@@ -724,15 +724,14 @@ prettyHsExpr (HsSpliceE _ x) = pretty x
 prettyHsExpr (HsProc _ pat body) =
   spaced [string "proc", pretty pat, string "->", pretty body]
 prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
-#if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsTick {} = undefined
-prettyHsExpr HsBinTick {} = undefined
-#endif
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
+#else
+prettyHsExpr HsTick {} = undefined
+prettyHsExpr HsBinTick {} = undefined
 #endif
 instance Pretty LambdaCase where
   pretty' (LambdaCase matches) = do
