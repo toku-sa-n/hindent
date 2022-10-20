@@ -706,7 +706,10 @@ prettyHsExpr (HsGetField _ e f) = do
   pretty e
   dot
   pretty f
-prettyHsExpr HsProjection {} = undefined
+prettyHsExpr HsProjection {..} =
+  forM_ proj_flds $ \x -> do
+    string "."
+    pretty x
 prettyHsExpr (ExprWithTySig _ e sig) = do
   pretty e
   string " :: "

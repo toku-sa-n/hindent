@@ -842,6 +842,8 @@ data Rectangle =
 
 area :: Rectangle -> Int
 area r = r.width * r.height
+
+foo = (.x.y)
 ```
 
 Type application
