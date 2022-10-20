@@ -707,6 +707,7 @@ prettyHsExpr (HsGetField _ e f) = do
   dot
   pretty f
 prettyHsExpr HsProjection {..} =
+  parens $
   forM_ proj_flds $ \x -> do
     string "."
     pretty x
