@@ -723,7 +723,7 @@ prettyHsExpr HsTcBracketOut {} = undefined
 prettyHsExpr (HsSpliceE _ x) = pretty x
 prettyHsExpr (HsProc _ pat body) =
   spaced [string "proc", pretty pat, string "->", pretty body]
-prettyHsExpr HsStatic {} = undefined
+prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined

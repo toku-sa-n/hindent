@@ -854,6 +854,14 @@ Type application
 fun @Int 12
 ```
 
+`StaticPointers`
+
+```haskell
+{-# LANGUAGE StaticPointers #-}
+
+f = static 1
+```
+
 ### Quasi-quotes
 
 Body has multiple lines.
