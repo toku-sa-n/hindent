@@ -950,7 +950,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
         string " <-"
         newline
         indentedBlock $ pretty body
-  pretty' ApplicativeStmt {} = undefined
+  pretty' ApplicativeStmt {} = error "This should appear only after renaming."
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
