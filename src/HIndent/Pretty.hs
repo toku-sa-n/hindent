@@ -617,11 +617,13 @@ prettyHsExpr (HsLet _ binds exprs) = do
   newline
   string " in " |=> pretty exprs
 #endif
-prettyHsExpr (HsDo _ ListComp {} (L _ [])) = undefined
+prettyHsExpr (HsDo _ ListComp {} (L _ [])) =
+  error "Not enough arguments are passed to pretty-print a list comprehension."
 prettyHsExpr (HsDo _ ListComp {} (L l (lhs:rhs))) =
   pretty $ L l $ ListComprehension lhs rhs
 -- While the name contains 'Monad', 'MonadComp' is for list comprehensions.
-prettyHsExpr (HsDo _ MonadComp {} (L _ [])) = undefined
+prettyHsExpr (HsDo _ MonadComp {} (L _ [])) =
+  error "Not enough arguments are passed to pretty-print a list comprehension."
 prettyHsExpr (HsDo _ MonadComp {} (L l (lhs:rhs))) =
   pretty $ L l $ ListComprehension lhs rhs
 prettyHsExpr (HsDo _ DoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Do
