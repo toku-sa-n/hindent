@@ -1012,7 +1012,6 @@ instance Pretty (HsType GhcPs) where
 
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsType HsQualTy {..} = notVer
   where
     notVer = do
@@ -1020,15 +1019,6 @@ prettyHsType HsQualTy {..} = notVer
       string " =>"
       newline
       indentedBlock $ pretty hst_body
-#else
-prettyHsType HsQualTy {..} = notVer
-  where
-    notVer = do
-      pretty (Context hst_ctxt)
-      string " =>"
-      newline
-      indentedBlock $ pretty hst_body
-#endif
 prettyHsType (HsTyVar _ NotPromoted x) = pretty x
 prettyHsType (HsTyVar _ IsPromoted x) = do
   string "'"
