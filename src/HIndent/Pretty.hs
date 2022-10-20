@@ -500,12 +500,6 @@ instance Pretty (HsExpr GhcPs) where
 prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
 prettyHsExpr (HsUnboundVar _ x) = pretty x
-#if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsConLikeOut {} =
-  error "This constructor only appears after type checking."
-prettyHsExpr HsRecFld {} =
-  error "This constructor should appear only after renaming."
-#endif
 prettyHsExpr (HsOverLabel _ l) = do
   string "#"
   string $ unpackFS l
@@ -623,12 +617,6 @@ prettyHsExpr (HsDo _ MonadComp {} (L l (lhs:rhs))) =
 prettyHsExpr (HsDo _ DoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Do
 prettyHsExpr (HsDo _ MDoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Mdo
 prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = error "We're not using GHCi, are we?"
-#if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
-prettyHsExpr (HsDo _ PatGuard {} _) = undefined
-prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
-prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
-#endif
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
     horizontal = brackets $ hCommaSep $ fmap pretty xs
@@ -716,11 +704,6 @@ prettyHsExpr (ExprWithTySig _ e sig) = do
   string " :: "
   pretty $ hswc_body sig
 prettyHsExpr (ArithSeq _ _ x) = pretty x
-#if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsBracket _ inner) = pretty inner
-prettyHsExpr HsRnBracketOut {} = undefined
-prettyHsExpr HsTcBracketOut {} = undefined
-#endif
 prettyHsExpr (HsSpliceE _ x) = pretty x
 prettyHsExpr (HsProc _ pat body) =
   spaced [string "proc", pretty pat, string "->", pretty body]
@@ -731,8 +714,19 @@ prettyHsExpr HsRecSel {} = undefined
 prettyHsExpr HsTypedBracket {} = undefined
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #else
+prettyHsExpr HsConLikeOut {} =
+  error "This constructor only appears after type checking."
+prettyHsExpr HsRecFld {} =
+  error "This constructor should appear only after renaming."
+prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
+prettyHsExpr (HsDo _ PatGuard {} _) = undefined
+prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
+prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
 prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined
+prettyHsExpr (HsBracket _ inner) = pretty inner
+prettyHsExpr HsRnBracketOut {} = undefined
+prettyHsExpr HsTcBracketOut {} = undefined
 #endif
 instance Pretty LambdaCase where
   pretty' (LambdaCase matches) = do
