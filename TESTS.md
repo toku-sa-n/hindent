@@ -937,6 +937,14 @@ Multiple function signatures at once
 a, b, c :: Int
 ```
 
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f :: (# Int | Bool | String #)
+```
+
 A long signature inside a where clause
 
 ```haskell

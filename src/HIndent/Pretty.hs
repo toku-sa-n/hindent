@@ -1044,7 +1044,7 @@ prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
       prefixed "-> " $ pretty b
 prettyHsType (HsListTy _ xs) = brackets $ pretty xs
 prettyHsType (HsTupleTy _ _ xs) = hvTuple' $ fmap pretty xs
-prettyHsType HsSumTy {} = undefined
+prettyHsType (HsSumTy _ xs) = unboxedSums $ hBarSep $ fmap pretty xs
   -- For `HsOpTy`, we do not need a single quote for the infix operator. An
   -- explicit promotion is necessary if there is a data constructor and
   -- a type with the same name. However, infix data constructors never
