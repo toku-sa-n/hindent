@@ -624,12 +624,10 @@ prettyHsExpr (HsDo _ DoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Do
 prettyHsExpr (HsDo _ MDoExpr {} (L l xs)) = pretty $ L l $ DoExpression xs Mdo
 prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = error "We're not using GHCi, are we?"
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsDo _ ty _) =
-  case ty of
-    ArrowExpr {}     -> undefined
-    PatGuard {}      -> undefined
-    ParStmtCtxt {}   -> undefined
-    TransStmtCtxt {} -> undefined
+prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
+prettyHsExpr (HsDo _ PatGuard {} _) = undefined
+prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
+prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
 #endif
 prettyHsExpr (ExplicitList _ xs) = horizontal <-|> vertical
   where
