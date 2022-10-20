@@ -39,6 +39,7 @@ module HIndent.Pretty.Types
   , ModuleNameWithPrefix(..)
   , PatInsidePatDecl(..)
   , LambdaCase(..)
+  , ListComprehension(..)
   ) where
 
 import           GHC.Hs
@@ -185,3 +186,10 @@ newtype PatInsidePatDecl =
 
 newtype LambdaCase =
   LambdaCase (MatchGroup GhcPs (LHsExpr GhcPs))
+
+-- | Use this type to pretty-print a list comprehension.
+data ListComprehension =
+  ListComprehension
+    { listCompLhs :: ExprLStmt GhcPs -- ^ @f x@ of @[f x| x <- xs]@.
+    , listCompRhs :: [ExprLStmt GhcPs] -- ^ @x <- xs@ of @[f x| x <- xs]@.
+    }

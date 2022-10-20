@@ -628,30 +628,13 @@ prettyHsExpr (HsDo _ ty xs) =
     MDoExpr {}      -> doExprWith "mdo"
     GhciStmtCtxt {} -> error "We're not using GHCi, are we?"
   where
-    listComp = horizontal <-|> vertical
-      where
-        horizontal =
-          brackets $
-          spaced
-            [ printCommentsAnd xs (pretty . head)
-            , string "|"
-            , printCommentsAnd xs (hCommaSep . fmap pretty . tail)
-            ]
-        vertical =
-          case unLoc xs of
-            [] -> string "[]"
-            (lastStmt:others) ->
-              printCommentsAnd
-                xs
-                (\_ -> do
-                   string "[ "
-                   pretty $ fmap StmtLRInsideVerticalList lastStmt
-                   newline
-                   forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                     string p |=> pretty (fmap StmtLRInsideVerticalList x)
-                     newline
-                   string "]")
-        stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
+    listComp =
+      case xs of
+        L _ [] ->
+          error "Not enough parameters are given for a list comprehension."
+        L l (lhs:rhs) ->
+          pretty $
+          L l $ ListComprehension {listCompLhs = lhs, listCompRhs = rhs}
     doExprWith pref =
       (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #else
@@ -667,30 +650,13 @@ prettyHsExpr (HsDo _ ty xs) =
     ParStmtCtxt {}   -> undefined
     TransStmtCtxt {} -> undefined
   where
-    listComp = horizontal <-|> vertical
-      where
-        horizontal =
-          brackets $
-          spaced
-            [ printCommentsAnd xs (pretty . head)
-            , string "|"
-            , printCommentsAnd xs (hCommaSep . fmap pretty . tail)
-            ]
-        vertical =
-          case unLoc xs of
-            [] -> string "[]"
-            (lastStmt:others) ->
-              printCommentsAnd
-                xs
-                (\_ -> do
-                   string "[ "
-                   pretty $ fmap StmtLRInsideVerticalList lastStmt
-                   newline
-                   forM_ (stmtsAndPrefixes others) $ \(p, x) -> do
-                     string p |=> pretty (fmap StmtLRInsideVerticalList x)
-                     newline
-                   string "]")
-        stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
+    listComp =
+      case xs of
+        L _ [] ->
+          error "Not enough parameters are given for a list comprehension."
+        L l (lhs:rhs) ->
+          pretty $
+          L l $ ListComprehension {listCompLhs = lhs, listCompRhs = rhs}
     doExprWith pref =
       (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
 #endif
@@ -2422,3 +2388,20 @@ instance Pretty (HsCmd GhcPs)
     string "do"
     newline
     indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
+
+instance Pretty ListComprehension where
+  pretty' ListComprehension {..} = horizontal <-|> vertical
+    where
+      horizontal =
+        brackets $
+        spaced
+          [pretty listCompLhs, string "|", hCommaSep $ fmap pretty listCompRhs]
+      vertical = do
+        string "[ "
+        pretty $ fmap StmtLRInsideVerticalList listCompLhs
+        newline
+        forM_ (stmtsAndPrefixes listCompRhs) $ \(p, x) -> do
+          string p |=> pretty (fmap StmtLRInsideVerticalList x)
+          newline
+        string "]"
+      stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
