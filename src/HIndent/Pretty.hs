@@ -624,13 +624,13 @@ prettyHsExpr (HsDo _ ListComp {} (L l (lhs:rhs))) =
 prettyHsExpr (HsDo _ MonadComp {} (L _ [])) = undefined
 prettyHsExpr (HsDo _ MonadComp {} (L l (lhs:rhs))) =
   pretty $ L l $ ListComprehension lhs rhs
+prettyHsExpr (HsDo _ GhciStmtCtxt {} _) = error "We're not using GHCi, are we?"
 -- TODO: Refactor.
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsDo _ ty xs) =
   case ty of
-    DoExpr {}       -> doExprWith "do"
-    MDoExpr {}      -> doExprWith "mdo"
-    GhciStmtCtxt {} -> error "We're not using GHCi, are we?"
+    DoExpr {}  -> doExprWith "do"
+    MDoExpr {} -> doExprWith "mdo"
   where
     doExprWith pref =
       (string pref >> space) |=> printCommentsAnd xs (lined . fmap pretty)
@@ -640,7 +640,6 @@ prettyHsExpr (HsDo _ ty xs) =
     DoExpr {}        -> doExprWith "do"
     MDoExpr {}       -> doExprWith "mdo"
     ArrowExpr {}     -> undefined
-    GhciStmtCtxt {}  -> error "We're not using GHCi, are we?"
     PatGuard {}      -> undefined
     ParStmtCtxt {}   -> undefined
     TransStmtCtxt {} -> undefined
