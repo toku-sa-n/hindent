@@ -40,6 +40,8 @@ module HIndent.Pretty.Types
   , PatInsidePatDecl(..)
   , LambdaCase(..)
   , ListComprehension(..)
+  , DoExpression(..)
+  , DoOrMdo(..)
   ) where
 
 import           GHC.Hs
@@ -193,3 +195,14 @@ data ListComprehension =
     { listCompLhs :: ExprLStmt GhcPs -- ^ @f x@ of @[f x| x <- xs]@.
     , listCompRhs :: [ExprLStmt GhcPs] -- ^ @x <- xs@ of @[f x| x <- xs]@.
     }
+
+-- | Use this type to pretty-print a do expression.
+data DoExpression =
+  DoExpression
+    { doStmts :: [ExprLStmt GhcPs]
+    , doOrMdo :: DoOrMdo
+    }
+
+data DoOrMdo
+  = Do
+  | Mdo
