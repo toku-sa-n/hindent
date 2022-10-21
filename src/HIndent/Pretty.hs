@@ -721,7 +721,7 @@ prettyHsExpr (HsDo _ ArrowExpr {} _) = notUsedInParsedStage
 prettyHsExpr (HsDo _ PatGuard {} _) = error "PatGuard should never appear here."
 prettyHsExpr (HsDo _ ParStmtCtxt {} _) =
   error "ParStmtCtxt should never appear here."
-prettyHsExpr (HsDo _ TransStmtCtxt {} _) = undefined
+prettyHsExpr (HsDo _ TransStmtCtxt {} _) = notUsedInParsedStage
 prettyHsExpr HsTick {} = undefined
 prettyHsExpr HsBinTick {} = undefined
 prettyHsExpr (HsBracket _ inner) = pretty inner
