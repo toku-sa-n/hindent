@@ -937,12 +937,6 @@ data instance  Foo Int = FInt
 
 # Type signatures
 
-Multiple function signatures at once
-
-```haskell
-a, b, c :: Int
-```
-
 `UnboxedSums`
 
 ```haskell
@@ -960,17 +954,6 @@ cppSplitBlocks inp = undefined
     spanCPPLines ::
          [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
     spanCPPLines = undefined
-```
-
-A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
-
-```haskell given
-f :: forall a.(Data a, Typeable a) => a
-```
-
-```haskell expect
-f :: forall a. (Data a, Typeable a)
-  => a
 ```
 
 A `forall` type inside a where clause
@@ -994,23 +977,49 @@ f = undefined
     ggg = undefined
 ```
 
+Default signatures
+
+```haskell
+-- https://github.com/chrisdone/hindent/issues/283
+class Foo a where
+  bar :: a -> a -> a
+  default bar :: Monoid a =>
+    a -> a -> a
+  bar = mappend
+```
+
+Class methods with constraints
+
+```haskell
+class Foo f where
+  myEq :: (Eq a) => f a -> f a -> Bool
+```
+
+## Top-level function signatures
+
+Multiple function signatures at once
+
+```haskell
+a, b, c :: Int
+```
+
+A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
+
+```haskell given
+f :: forall a.(Data a, Typeable a) => a
+```
+
+```haskell expect
+f :: forall a. (Data a, Typeable a)
+  => a
+```
+
 Long argument list should line break
 
 ```haskell
 longLongFunction ::
      ReaderT r (WriterT w (StateT s m)) a
   -> StateT s (WriterT w (ReaderT r m)) a
-```
-
-Class constraints should leave `::` on same line
-
-``` haskell
--- see https://github.com/chrisdone/hindent/pull/266#issuecomment-244182805
-fun ::
-     (Class a, Class b)
-  => fooooooooooo bar mu zot
-  -> fooooooooooo bar mu zot
-  -> c
 ```
 
 Class constraints
@@ -1038,24 +1047,6 @@ Quasiquotes in types
 fun :: [a|bc|]
 ```
 
-Default signatures
-
-```haskell
--- https://github.com/chrisdone/hindent/issues/283
-class Foo a where
-  bar :: a -> a -> a
-  default bar :: Monoid a =>
-    a -> a -> a
-  bar = mappend
-```
-
-Class methods with constraints
-
-```haskell
-class Foo f where
-  myEq :: (Eq a) => f a -> f a -> Bool
-```
-
 Implicit parameters
 
 ```haskell
@@ -1080,24 +1071,15 @@ b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
 b = undefined
 ```
 
-Promoted list with a tuple (issue #348)
+Class constraints should leave `::` on same line
 
-```haskell
-a :: A '[ '( a, b, c, d)]
-a = undefined
-
--- nested promoted tuples.
-b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
-b = undefined
-```
-
-Prefix promoted symbol type constructor
-
-```haskell
-a :: '(T.:->) 'True 'False
-b :: (T.:->) 'True 'False
-c :: '(:->) 'True 'False
-d :: (:->) 'True 'False
+``` haskell
+-- see https://github.com/chrisdone/hindent/pull/266#issuecomment-244182805
+fun ::
+     (Class a, Class b)
+  => fooooooooooo bar mu zot
+  -> fooooooooooo bar mu zot
+  -> c
 ```
 
 `forall` type
@@ -1117,6 +1099,26 @@ An infix operator containing `#`
 
 ```haskell
 (#!) :: Int -> Int -> Int
+```
+
+Prefix promoted symbol type constructor
+
+```haskell
+a :: '(T.:->) 'True 'False
+b :: (T.:->) 'True 'False
+c :: '(:->) 'True 'False
+d :: (:->) 'True 'False
+```
+
+Promoted list with a tuple (issue #348)
+
+```haskell
+a :: A '[ '( a, b, c, d)]
+a = undefined
+
+-- nested promoted tuples.
+b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
+b = undefined
 ```
 
 # Function declarations
