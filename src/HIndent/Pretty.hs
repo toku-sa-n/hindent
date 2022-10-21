@@ -1047,7 +1047,9 @@ prettyHsType (HsIParamTy _ x ty) = do
 prettyHsType HsStarTy {} = string "*"
 prettyHsType (HsKindSig _ t k) = spaced [pretty t, string "::", pretty k]
 prettyHsType (HsSpliceTy _ sp) = pretty sp
-prettyHsType HsDocTy {} = undefined
+prettyHsType HsDocTy {} =
+  error
+    "An AST node of this type never appears in an AST because haddock comments are treated as normal ones."
 prettyHsType (HsBangTy _ _ x) = do
   string "!"
   pretty x
