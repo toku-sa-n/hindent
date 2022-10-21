@@ -1825,7 +1825,7 @@ instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctMulti _ ts)  = hvTuple $ fmap pretty ts
 
 instance Pretty OverlapMode where
-  pretty' NoOverlap {}    = undefined
+  pretty' NoOverlap {}    = notUsedInParsedStage
   pretty' Overlappable {} = string "{-# OVERLAPPABLE #-}"
   pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
   pretty' Overlaps {}     = string "{-# OVERLAPS #-}"
