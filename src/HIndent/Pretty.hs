@@ -1204,9 +1204,6 @@ prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 prettyHsMatchContext FunRhs {..}       = pretty mc_fun
 prettyHsMatchContext LambdaExpr        = return ()
 prettyHsMatchContext CaseAlt           = return ()
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsMatchContext LamCaseAlt {}     = undefined
-#endif
 prettyHsMatchContext IfAlt {}          = undefined
 prettyHsMatchContext ArrowMatchCtxt {} = undefined
 prettyHsMatchContext PatBindRhs {}     = undefined
@@ -1216,7 +1213,9 @@ prettyHsMatchContext StmtCtxt {}       = undefined
 prettyHsMatchContext ThPatSplice {}    = undefined
 prettyHsMatchContext ThPatQuote {}     = undefined
 prettyHsMatchContext PatSyn {}         = undefined
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsMatchContext LamCaseAlt {}     = undefined
+#endif
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
 
