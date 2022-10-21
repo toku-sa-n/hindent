@@ -1014,9 +1014,7 @@ prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
 prettyHsType HsQualTy {..} = do
   pretty $ Context hst_ctxt
-  string " =>"
-  newline
-  indentedBlock $ pretty hst_body
+  lined [string " =>", indentedBlock $ pretty hst_body]
 prettyHsType (HsTyVar _ NotPromoted x) = pretty x
 prettyHsType (HsTyVar _ IsPromoted x) = do
   string "'"
