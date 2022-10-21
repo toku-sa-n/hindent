@@ -937,56 +937,6 @@ data instance  Foo Int = FInt
 
 # Type signatures
 
-A long signature inside a where clause
-
-```haskell
-cppSplitBlocks :: ByteString -> [CodeBlock]
-cppSplitBlocks inp = undefined
-  where
-    spanCPPLines ::
-         [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
-    spanCPPLines = undefined
-```
-
-A `forall` type inside a where clause
-
-```haskell
-replaceAllNotUsedAnns :: HsModule -> HsModule
-replaceAllNotUsedAnns = everywhere app
-  where
-    app ::
-         forall a. Data a
-      => (a -> a)
-    app = undefined
-
-f :: a
-f = undefined
-  where
-    ggg ::
-         forall a. Typeable a
-      => a
-      -> a
-    ggg = undefined
-```
-
-Default signatures
-
-```haskell
--- https://github.com/chrisdone/hindent/issues/283
-class Foo a where
-  bar :: a -> a -> a
-  default bar :: Monoid a =>
-    a -> a -> a
-  bar = mappend
-```
-
-Class methods with constraints
-
-```haskell
-class Foo f where
-  myEq :: (Eq a) => f a -> f a -> Bool
-```
-
 ## Top-level function signatures
 
 Multiple function signatures at once
@@ -1102,6 +1052,60 @@ Promoted list with a tuple (issue #348)
 a :: A '[ '( a, b, c, d)]
 -- nested promoted tuples.
 b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
+```
+
+## Class declarations
+
+Class methods with constraints
+
+```haskell
+class Foo f where
+  myEq :: (Eq a) => f a -> f a -> Bool
+```
+
+Default signatures
+
+```haskell
+-- https://github.com/chrisdone/hindent/issues/283
+class Foo a where
+  bar :: a -> a -> a
+  default bar :: Monoid a =>
+    a -> a -> a
+  bar = mappend
+```
+
+## Function signatures inside a where clause
+
+A long signature inside a where clause
+
+```haskell
+cppSplitBlocks :: ByteString -> [CodeBlock]
+cppSplitBlocks inp = undefined
+  where
+    spanCPPLines ::
+         [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
+    spanCPPLines = undefined
+```
+
+A `forall` type inside a where clause
+
+```haskell
+replaceAllNotUsedAnns :: HsModule -> HsModule
+replaceAllNotUsedAnns = everywhere app
+  where
+    app ::
+         forall a. Data a
+      => (a -> a)
+    app = undefined
+
+f :: a
+f = undefined
+  where
+    ggg ::
+         forall a. Typeable a
+      => a
+      -> a
+    ggg = undefined
 ```
 
 ## Extensions
