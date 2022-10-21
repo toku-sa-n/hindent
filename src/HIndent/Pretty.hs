@@ -722,8 +722,8 @@ prettyHsExpr (HsDo _ PatGuard {} _) = error "PatGuard should never appear here."
 prettyHsExpr (HsDo _ ParStmtCtxt {} _) =
   error "ParStmtCtxt should never appear here."
 prettyHsExpr (HsDo _ TransStmtCtxt {} _) = notUsedInParsedStage
-prettyHsExpr HsTick {} = undefined
-prettyHsExpr HsBinTick {} = undefined
+prettyHsExpr HsTick {} = forHpc
+prettyHsExpr HsBinTick {} = forHpc
 prettyHsExpr (HsBracket _ inner) = pretty inner
 prettyHsExpr HsRnBracketOut {} = undefined
 prettyHsExpr HsTcBracketOut {} = undefined
@@ -2374,3 +2374,7 @@ notUsedInParsedStage :: HasCallStack => a
 notUsedInParsedStage =
   error
     "This AST should never appears in an AST. It only appears in the renaming or type checked stages."
+
+-- | Marks an AST node as it is used only for Haskell Program Coverage.
+forHpc :: HasCallStack => a
+forHpc = error "This AST type is for the use of Haskell Program Coverage."
