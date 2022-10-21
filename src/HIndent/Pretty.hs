@@ -1459,14 +1459,10 @@ instance Pretty (SpliceDecl GhcPs) where
 
 instance Pretty (HsSplice GhcPs) where
   pretty' HsTypedSplice {} = undefined
-  pretty' (HsUntypedSplice _ decoration _ body) = do
-    string prefix
+  pretty' (HsUntypedSplice _ DollarSplice _ body) = do
+    string "$"
     pretty body
-    where
-      prefix =
-        case decoration of
-          DollarSplice -> "$"
-          BareSplice   -> ""
+  pretty' (HsUntypedSplice _ BareSplice _ body) = pretty body
   -- Adding or removing spaces to the body of a quasi-quote modifies the
   -- body. That is why 'r' is printed as-is.
   pretty' (HsQuasiQuote _ _ l _ r) =
