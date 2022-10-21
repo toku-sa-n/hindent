@@ -890,6 +890,12 @@ f =
       f = undefined |]
 ```
 
+Typed quote.
+
+```haskell
+f = [|| a ||]
+```
+
 # Template Haskell
 
 Expression brackets

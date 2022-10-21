@@ -712,7 +712,7 @@ prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr HsRecSel {} = notUsedInParsedStage
-prettyHsExpr HsTypedBracket {} = undefined
+prettyHsExpr (HsTypedBracket _ inner) = typedBrackets $ pretty inner
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #else
 prettyHsExpr HsConLikeOut {} = notUsedInParsedStage
@@ -1559,7 +1559,7 @@ instance Pretty (HsBracket GhcPs) where
   pretty' (VarBr _ False var) = do
     string "''"
     pretty var
-  pretty' TExpBr {} = undefined
+  pretty' (TExpBr _ x) = typedBrackets $ pretty x
 #endif
 instance Pretty SigBindFamily where
   pretty' (Sig x)        = pretty $ DeclSig x
