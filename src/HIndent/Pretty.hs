@@ -710,7 +710,7 @@ prettyHsExpr (HsProc _ pat body) =
 prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsRecSel {} = undefined
+prettyHsExpr HsRecSel {} = error "This only appears from the renaming stage."
 prettyHsExpr HsTypedBracket {} = undefined
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #else
