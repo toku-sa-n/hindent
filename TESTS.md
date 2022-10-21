@@ -937,14 +937,6 @@ data instance  Foo Int = FInt
 
 # Type signatures
 
-`UnboxedSums`
-
-```haskell
-{-# LANGUAGE UnboxedSums #-}
-
-f :: (# Int | Bool | String #)
-```
-
 A long signature inside a where clause
 
 ```haskell
@@ -1119,6 +1111,16 @@ a = undefined
 -- nested promoted tuples.
 b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
 b = undefined
+```
+
+## Extensions
+
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f :: (# Int | Bool | String #)
 ```
 
 # Function declarations
