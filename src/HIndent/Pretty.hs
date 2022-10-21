@@ -1024,10 +1024,7 @@ prettyHsType HsAppKindTy {} = undefined
 prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
   where
     hor = spaced [pretty a, string "->", pretty b]
-    noDeclSigV = do
-      pretty a
-      newline
-      prefixed "-> " $ pretty b
+    noDeclSigV = lined [pretty a, prefixed "-> " $ pretty b]
 prettyHsType (HsListTy _ xs) = brackets $ pretty xs
 prettyHsType (HsTupleTy _ _ xs) = hvTuple' $ fmap pretty xs
 prettyHsType (HsSumTy _ xs) = unboxedSums $ hBarSep $ fmap pretty xs
