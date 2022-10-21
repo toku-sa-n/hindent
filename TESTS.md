@@ -1056,11 +1056,8 @@ Promoted list (issue #348)
 
 ```haskell
 a :: A '[ 'True]
-a = undefined
-
 -- nested promoted list with multiple elements.
 b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
-b = undefined
 ```
 
 Class constraints should leave `::` on same line
@@ -1081,10 +1078,7 @@ f :: (forall a. Data a =>
                   a -> a)
   -> (forall a b. Data a =>
                     a -> b)
-f = undefined
-
 g :: forall a b. a -> b
-g = undefined
 ```
 
 An infix operator containing `#`
@@ -1106,11 +1100,8 @@ Promoted list with a tuple (issue #348)
 
 ```haskell
 a :: A '[ '( a, b, c, d)]
-a = undefined
-
 -- nested promoted tuples.
 b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
-b = undefined
 ```
 
 ## Extensions
