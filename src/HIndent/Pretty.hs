@@ -38,7 +38,6 @@ import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
-import           GHC.Types.Var
 import           GHC.Unit
 import           GHC.Unit.Module.Warnings
 import           HIndent.Applicative
@@ -1911,11 +1910,8 @@ instance Pretty (HsForAllTelescope GhcPs) where
     spaced $ fmap pretty hsf_vis_bndrs
     dot
   pretty' HsForAllInvis {..} = do
-    string "forall"
-    forM_ hsf_invis_bndrs $ \case
-      (L l (UserTyVar _ SpecifiedSpec ty)) -> space >> pretty (L l ty)
-      (L l (UserTyVar _ InferredSpec ty))  -> space >> pretty (L l ty)
-      _                                    -> undefined
+    string "forall "
+    spaced $ fmap pretty hsf_invis_bndrs
     dot
 
 instance Pretty InfixOp where
