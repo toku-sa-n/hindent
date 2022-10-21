@@ -725,8 +725,8 @@ prettyHsExpr (HsDo _ TransStmtCtxt {} _) = notUsedInParsedStage
 prettyHsExpr HsTick {} = forHpc
 prettyHsExpr HsBinTick {} = forHpc
 prettyHsExpr (HsBracket _ inner) = pretty inner
-prettyHsExpr HsRnBracketOut {} = undefined
-prettyHsExpr HsTcBracketOut {} = undefined
+prettyHsExpr HsRnBracketOut {} = notUsedInParsedStage
+prettyHsExpr HsTcBracketOut {} = notUsedInParsedStage
 #endif
 instance Pretty LambdaCase where
   pretty' (LambdaCase matches) = do
