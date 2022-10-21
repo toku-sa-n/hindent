@@ -975,7 +975,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) wher
         string " <-"
         newline
         indentedBlock $ pretty body
-  pretty' ApplicativeStmt {} = undefined
+  pretty' ApplicativeStmt {} = notUsedInParsedStage
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
   pretty' (ParStmt _ xs _ _) = hvBarSep $ fmap pretty xs
