@@ -30,6 +30,7 @@ import           GHC.Data.Bag
 import           GHC.Data.BooleanFormula
 import           GHC.Data.FastString
 import           GHC.Hs
+import           GHC.Stack
 import           GHC.Types.Basic
 import           GHC.Types.Fixity
 import           GHC.Types.ForeignCall
@@ -332,9 +333,9 @@ prettyHsBind FunBind {..} = pretty fun_matches
 prettyHsBind PatBind {..} = do
   pretty pat_lhs
   pretty pat_rhs
-prettyHsBind VarBind {} = error "This value only appears after type checking."
+prettyHsBind VarBind {} = notUsedInParsedStage
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsBind AbsBinds {} = error "This value only appears after renaming."
+prettyHsBind AbsBinds {} = notUsedInParsedStage
 #endif
 prettyHsBind (PatSynBind _ x) = pretty x
 
@@ -370,7 +371,7 @@ instance Pretty (Sig GhcPs) where
     hCommaSep $ fmap pretty funNames
     string " :: "
     printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
-  pretty' IdSig {} = error "This constructor should not appear in an AST."
+  pretty' IdSig {} = notUsedInParsedStage
   pretty' (FixSig _ x) = pretty x
   pretty' (InlineSig _ name detail) = do
     string "{-# "
@@ -710,14 +711,12 @@ prettyHsExpr (HsProc _ pat body) =
 prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsRecSel {} = error "This only appears from the renaming stage."
+prettyHsExpr HsRecSel {} = neverAppearsInAst
 prettyHsExpr HsTypedBracket {} = undefined
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #else
-prettyHsExpr HsConLikeOut {} =
-  error "This constructor only appears after type checking."
-prettyHsExpr HsRecFld {} =
-  error "This constructor should appear only after renaming."
+prettyHsExpr HsConLikeOut {} = notUsedInParsedStage
+prettyHsExpr HsRecFld {} = notUsedInParsedStage
 prettyHsExpr (HsDo _ ArrowExpr {} _) = undefined
 prettyHsExpr (HsDo _ PatGuard {} _) = undefined
 prettyHsExpr (HsDo _ ParStmtCtxt {} _) = undefined
@@ -950,7 +949,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
         string " <-"
         newline
         indentedBlock $ pretty body
-  pretty' ApplicativeStmt {} = error "This should appear only after renaming."
+  pretty' ApplicativeStmt {} = notUsedInParsedStage
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
@@ -2366,3 +2365,11 @@ instance Pretty DoExpression where
 instance Pretty LetIn where
   pretty' LetIn {..} =
     lined [string "let " |=> pretty letBinds, string " in " |=> pretty inExpr]
+
+-- | Marks an AST node as never appearing in the AST.
+--
+-- Some AST node types are only used in the renaming or type-checking phase.
+notUsedInParsedStage :: HasCallStack => a
+notUsedInParsedStage =
+  error
+    "This AST should never appears in an AST. It only appears in the renaming or type checked stages."
