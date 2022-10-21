@@ -1051,7 +1051,7 @@ prettyHsType HsDocTy {} = undefined
 prettyHsType (HsBangTy _ _ x) = do
   string "!"
   pretty x
-prettyHsType HsRecTy {} = undefined
+prettyHsType (HsRecTy _ xs) = hvFields $ fmap pretty xs
 prettyHsType (HsExplicitListTy _ _ xs) =
   case xs of
     [] -> string "'[]"

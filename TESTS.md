@@ -240,6 +240,12 @@ import Direction
 
 # Declarations
 
+A record inside a function signature
+
+```haskell
+url :: r {url :: String} => r -> Integer
+```
+
 Type declaration
 
 ``` haskell
