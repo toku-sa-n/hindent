@@ -2290,26 +2290,32 @@ instance Pretty (RecordPatSynField GhcPs) where
 instance Pretty (HsCmdTop GhcPs) where
   pretty' (HsCmdTop _ cmd) = pretty cmd
 
-instance Pretty (HsCmd GhcPs)
-  -- TODO: Handle right-to-left or left-to-right.
-                                                  where
-  pretty' (HsCmdArrApp _ f arg HsHigherOrderApp _) =
-    spaced [pretty f, string "-<<", pretty arg]
-  pretty' (HsCmdArrApp _ f arg HsFirstOrderApp _) =
-    spaced [pretty f, string "-<", pretty arg]
-  pretty' (HsCmdArrForm _ f _ _ args) =
-    bananaBrackets $ spaced $ pretty f : fmap pretty args
-  pretty' HsCmdApp {} = undefined
-  pretty' HsCmdLam {} = undefined
-  pretty' (HsCmdPar _ x) = parens $ pretty x
-  pretty' HsCmdCase {} = undefined
-  pretty' HsCmdLamCase {} = undefined
-  pretty' HsCmdIf {} = undefined
-  pretty' HsCmdLet {} = undefined
-  pretty' (HsCmdDo _ stmts) = do
-    string "do"
-    newline
-    indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
+instance Pretty (HsCmd GhcPs) where
+  pretty' = prettyHsCmd
+
+-- TODO: Handle right-to-left or left-to-right.
+prettyHsCmd :: HsCmd GhcPs -> Printer ()
+prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp _) =
+  spaced [pretty f, string "-<<", pretty arg]
+prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp _) =
+  spaced [pretty f, string "-<", pretty arg]
+prettyHsCmd (HsCmdArrForm _ f _ _ args) =
+  bananaBrackets $ spaced $ pretty f : fmap pretty args
+prettyHsCmd HsCmdApp {} = undefined
+prettyHsCmd HsCmdLam {} = undefined
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsCmd (HsCmdPar _ _ x _) = parens $ pretty x
+#else
+prettyHsCmd (HsCmdPar _ x) = parens $ pretty x
+#endif
+prettyHsCmd HsCmdCase {} = undefined
+prettyHsCmd HsCmdLamCase {} = undefined
+prettyHsCmd HsCmdIf {} = undefined
+prettyHsCmd HsCmdLet {} = undefined
+prettyHsCmd (HsCmdDo _ stmts) = do
+  string "do"
+  newline
+  indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
 
 instance Pretty ListComprehension where
   pretty' ListComprehension {..} = horizontal <-|> vertical
