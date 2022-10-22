@@ -2131,7 +2131,8 @@ instance Pretty (AnnDecl GhcPs) where
     spaced [string "{-# ANN", pretty name, pretty expr, string "#-}"]
   pretty' (HsAnnotation _ _ (TypeAnnProvenance name) expr) =
     spaced [string "{-# ANN type", pretty name, pretty expr, string "#-}"]
-  pretty' _ = undefined
+  pretty' (HsAnnotation _ _ ModuleAnnProvenance expr) =
+    spaced [string "{-# ANN module", pretty expr, string "#-}"]
 
 instance Pretty (RoleAnnotDecl GhcPs) where
   pretty' (RoleAnnotDecl _ name roles) =

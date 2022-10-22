@@ -427,6 +427,12 @@ data Foo =
   Foo
 ```
 
+Module annotation.
+
+```haskell
+{-# ANN module "annotation" #-}
+```
+
 ## Pattern matchings
 
 Unboxed sum pattern matching.
