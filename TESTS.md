@@ -240,14 +240,6 @@ import Direction
 
 # Declarations
 
-Unboxed sum pattern matching.
-
-```haskell
-{-# LANGUAGE UnboxedSums #-}
-
-f (# x | | | #) = undefined
-```
-
 A record inside a function signature
 
 ```haskell
@@ -422,6 +414,87 @@ default (Integer, Double)
 
 ```haskell
 static = undefined
+```
+
+## Pattern matchings
+
+Unboxed sum pattern matching.
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f (# x | | | #) = undefined
+```
+
+Pattern matching against a infix constructor with a module name prefix
+
+```haskell
+foo (a FOO.:@: b) = undefined
+```
+
+## Pattern matchings against records
+
+Short
+
+```haskell
+fun Rec {alpha = beta, gamma = delta, epsilon = zeta, eta = theta, iota = kappa} = do
+  beta + delta + zeta + theta + kappa
+```
+
+Long
+
+```haskell
+fun Rec { alpha = beta
+        , gamma = delta
+        , epsilon = zeta
+        , eta = theta
+        , iota = kappa
+        , lambda = mu
+        } =
+  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+```
+
+Another long one
+
+```haskell
+resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
+                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
+                                } = undefined
+```
+
+### Symbol constructors
+
+Short
+
+```haskell
+fun ((:..?) {}) = undefined
+```
+
+Long
+
+```
+fun (:..?) { alpha = beta
+           , gamma = delta
+           , epsilon = zeta
+           , eta = theta
+           , iota = kappa
+           , lambda = mu
+           } =
+  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+```
+
+### Symbol fields
+
+Normal
+
+```haskell
+f (X {(..?) = x}) = x
+```
+
+Punned
+
+```haskell
+f' (X {(..?)}) = (..?)
 ```
 
 # Expressions
@@ -1418,73 +1491,6 @@ View pattern
 ```haskell
 foo (f -> Just x) = print x
 foo _ = Nothing
-```
-
-Pattern matching against a infix constructor with a module name prefix
-
-```haskell
-foo (a FOO.:@: b) = undefined
-```
-
-# Record syntax
-
-Pattern matching, short
-
-```haskell
-fun Rec {alpha = beta, gamma = delta, epsilon = zeta, eta = theta, iota = kappa} = do
-  beta + delta + zeta + theta + kappa
-```
-
-Pattern matching, long
-
-```haskell
-fun Rec { alpha = beta
-        , gamma = delta
-        , epsilon = zeta
-        , eta = theta
-        , iota = kappa
-        , lambda = mu
-        } =
-  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
-```
-
-Another pattern matching, long
-
-```haskell
-resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
-                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
-                                } = undefined
-```
-
-Symbol constructor, short
-
-```haskell
-fun ((:..?) {}) = undefined
-```
-
-Symbol constructor, long
-
-```
-fun (:..?) { alpha = beta
-           , gamma = delta
-           , epsilon = zeta
-           , eta = theta
-           , iota = kappa
-           , lambda = mu
-           } =
-  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
-```
-
-Symbol field
-
-```haskell
-f (X {(..?) = x}) = x
-```
-
-Punned symbol field
-
-```haskell
-f' (X {(..?)}) = (..?)
 ```
 
 # Johan Tibell compatibility checks
