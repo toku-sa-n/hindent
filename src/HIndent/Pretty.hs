@@ -2279,12 +2279,10 @@ prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
 instance Pretty (DerivStrategy GhcPs) where
-  pretty' StockStrategy {} = string "stock"
-  pretty' AnyclassStrategy {} = string "anyclass"
-  pretty' NewtypeStrategy {} = string "newtype"
-  pretty' (ViaStrategy (XViaStrategyPs _ ty)) = do
-    string "via "
-    pretty ty
+  pretty' StockStrategy {}                    = string "stock"
+  pretty' AnyclassStrategy {}                 = string "anyclass"
+  pretty' NewtypeStrategy {}                  = string "newtype"
+  pretty' (ViaStrategy (XViaStrategyPs _ ty)) = string "via " >> pretty ty
 
 instance Pretty (RecordPatSynField GhcPs) where
   pretty' RecordPatSynField {..} = pretty recordPatSynField
