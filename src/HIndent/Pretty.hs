@@ -2032,21 +2032,11 @@ instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSp
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsQuote GhcPs) where
   pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
-  pretty' (PatBr _ x) =
-    brackets $ do
-      string "p"
-      wrapWithBars $ pretty x
+  pretty' (PatBr _ x) = brackets $ string "p" >> wrapWithBars (pretty x)
   pretty' (DecBrL _ decls) =
-    brackets $
-    string "d| " |=> do
-      lined $ fmap pretty decls
-      space
-      string "|"
+    brackets $ string "d| " |=> lined (fmap pretty decls) >> string " |"
   pretty' DecBrG {} = notUsedInParsedStage
-  pretty' (TypBr _ x) =
-    brackets $ do
-      string "t"
-      wrapWithBars $ pretty x
+  pretty' (TypBr _ x) = brackets $ string "t" >> wrapWithBars (pretty x)
   pretty' (VarBr _ True x) = string "'" >> pretty x
   pretty' (VarBr _ False x) = string "''" >> pretty x
 #endif
