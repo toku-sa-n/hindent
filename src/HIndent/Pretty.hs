@@ -1945,11 +1945,11 @@ instance Pretty PrefixOp where
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ pretty occ
     where
       occ = occName name
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
+
 instance Pretty Context where
   pretty' (Context xs) =
     pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HorizontalContext where
   pretty' (HorizontalContext xs) =
     constraintsParens $ printCommentsAnd xs (hCommaSep . fmap pretty)
@@ -1966,10 +1966,6 @@ instance Pretty VerticalContext where
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext xs) = printCommentsAnd xs (vTuple . fmap pretty)
 #else
-instance Pretty Context where
-  pretty' (Context xs) =
-    pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
-
 instance Pretty HorizontalContext where
   pretty' (HorizontalContext xs) =
     constraintsParens $ mapM_ (`printCommentsAnd` (hCommaSep . fmap pretty)) xs
