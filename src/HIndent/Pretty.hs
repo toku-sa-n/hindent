@@ -2274,7 +2274,7 @@ prettyIPBind :: IPBind GhcPs -> Printer ()
 prettyIPBind (IPBind _ l r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #else
-prettyIPBind (IPBind _ (Right _) _) = undefined
+prettyIPBind (IPBind _ (Right _) _) = notUsedInParsedStage
 prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
