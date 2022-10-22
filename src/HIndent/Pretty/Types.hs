@@ -12,13 +12,17 @@ module HIndent.Pretty.Types
   , InfixApp(..)
   , MatchGroupForCase(..)
   , MatchGroupForLambda(..)
+  , MatchGroupForLambdaInProc(..)
   , MatchForCase(..)
   , MatchForLambda(..)
+  , MatchForLambdaInProc(..)
   , GRHSsForCase(..)
   , GRHSsForLambda(..)
+  , GRHSsForLambdaInProc(..)
   , GRHSForCase(..)
   , GRHSForMultiwayIf(..)
   , GRHSForLambda(..)
+  , GRHSForLambdaInProc(..)
   , RecConPat(..)
   , RecConField(..)
   , HsSigTypeInsideInstDecl(..)
@@ -76,17 +80,29 @@ newtype MatchGroupForCase =
 newtype MatchGroupForLambda =
   MatchGroupForLambda (MatchGroup GhcPs (LHsExpr GhcPs))
 
+-- | 'MatchGroup' inside a lambda of a @proc@ expression.
+newtype MatchGroupForLambdaInProc =
+  MatchGroupForLambdaInProc (MatchGroup GhcPs (LHsCmd GhcPs))
+
 newtype MatchForCase =
   MatchForCase (Match GhcPs (LHsExpr GhcPs))
 
 newtype MatchForLambda =
   MatchForLambda (Match GhcPs (LHsExpr GhcPs))
 
+-- | 'Match' for a lambda inside a @proc@ expression.
+newtype MatchForLambdaInProc =
+  MatchForLambdaInProc (Match GhcPs (LHsCmd GhcPs))
+
 newtype GRHSsForCase =
   GRHSsForCase (GRHSs GhcPs (LHsExpr GhcPs))
 
 newtype GRHSsForLambda =
   GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
+
+-- | 'GRHSs' for a lambda inside a @proc@ expression.
+newtype GRHSsForLambdaInProc =
+  GRHSsForLambdaInProc (GRHSs GhcPs (LHsCmd GhcPs))
 
 newtype GRHSForCase =
   GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
@@ -96,6 +112,9 @@ newtype GRHSForMultiwayIf =
 
 newtype GRHSForLambda =
   GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
+
+newtype GRHSForLambdaInProc =
+  GRHSForLambdaInProc (GRHS GhcPs (LHsCmd GhcPs))
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))

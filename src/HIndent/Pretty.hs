@@ -485,6 +485,10 @@ instance Pretty MatchGroupForLambda where
   pretty' (MatchGroupForLambda MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambda))
 
+instance Pretty MatchGroupForLambdaInProc where
+  pretty' (MatchGroupForLambdaInProc MG {..}) =
+    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambdaInProc))
+
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
   commentsBefore (HsVar _ x)   = commentsBefore x
@@ -939,6 +943,19 @@ instance Pretty MatchForLambda where
   commentOnSameLine (MatchForLambda x) = commentOnSameLine x
   commentsAfter (MatchForLambda x) = commentsAfter x
 
+instance Pretty MatchForLambdaInProc where
+  pretty' (MatchForLambdaInProc Match {..}) = do
+    string "\\"
+    unless (null m_pats) $
+      case unLoc $ head m_pats of
+        LazyPat {} -> space
+        BangPat {} -> space
+        _          -> return ()
+    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambdaInProc m_grhss]
+  commentsBefore (MatchForLambdaInProc Match {..}) = commentsBefore m_ext
+  commentOnSameLine (MatchForLambdaInProc Match {..}) = commentOnSameLine m_ext
+  commentsAfter (MatchForLambdaInProc Match {..}) = commentsAfter m_ext
+
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
   pretty' (BindStmt _ pat body) = hor <-|> ver
@@ -1196,6 +1213,16 @@ instance Pretty GRHSsForLambda where
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
 
+instance Pretty GRHSsForLambdaInProc where
+  pretty' (GRHSsForLambdaInProc GRHSs {..}) = do
+    mapM_ (pretty . fmap GRHSForLambdaInProc) grhssGRHSs
+    case grhssLocalBinds of
+      (HsValBinds epa lr) ->
+        indentedBlock $
+        newlinePrefixed
+          [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
+      _ -> return ()
+
 instance Pretty (HsMatchContext GhcPs) where
   pretty' = prettyHsMatchContext
 
@@ -1333,6 +1360,49 @@ instance Pretty GRHSForCase where
   commentsBefore (GRHSForCase (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForCase (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForCase (GRHS x _ _)) = commentsAfter x
+
+instance Pretty GRHSForLambdaInProc where
+  pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =
+    hor <-|> ver
+    where
+      hor = do
+        string "-> do "
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        string "-> do"
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForLambdaInProc (GRHS _ guards (L _ (HsCmdDo _ body)))) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " -> do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForLambdaInProc (GRHS _ [] body)) = horizontal <-|> vertical
+    where
+      horizontal = do
+        string "-> "
+        pretty body
+      vertical = do
+        string "->"
+        newline
+        indentedBlock $ pretty body
+  pretty' (GRHSForLambdaInProc (GRHS _ guards body)) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      horizontal <-|> vertical
+    where
+      horizontal = do
+        string " -> "
+        pretty body
+      vertical = do
+        string " ->"
+        newline
+        indentedBlock $ pretty body
+  commentsBefore (GRHSForLambdaInProc (GRHS x _ _)) = commentsBefore x
+  commentOnSameLine (GRHSForLambdaInProc (GRHS x _ _)) = commentOnSameLine x
+  commentsAfter (GRHSForLambdaInProc (GRHS x _ _)) = commentsAfter x
 
 instance Pretty GRHSForLambda where
   pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) =
@@ -2293,7 +2363,6 @@ instance Pretty (HsCmdTop GhcPs) where
 instance Pretty (HsCmd GhcPs) where
   pretty' = prettyHsCmd
 
--- TODO: Handle right-to-left or left-to-right.
 prettyHsCmd :: HsCmd GhcPs -> Printer ()
 prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp True) =
   spaced [pretty f, string "-<<", pretty arg]
@@ -2306,7 +2375,7 @@ prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp False) =
 prettyHsCmd (HsCmdArrForm _ f _ _ args) =
   bananaBrackets $ spaced $ pretty f : fmap pretty args
 prettyHsCmd HsCmdApp {} = undefined
-prettyHsCmd HsCmdLam {} = undefined
+prettyHsCmd (HsCmdLam _ x) = pretty $ MatchGroupForLambdaInProc x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsCmd (HsCmdPar _ _ x _) = parens $ pretty x
 #else

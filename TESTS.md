@@ -1027,6 +1027,14 @@ f =
 f = proc g -> (|foo (bar -< g) (baz -< g)|)
 ```
 
+Lambda equation.
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f = proc g -> \x -> x -< g
+```
+
 ### Quasi-quotes
 
 Body has multiple lines.
