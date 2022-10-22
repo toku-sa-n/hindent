@@ -22,14 +22,6 @@ Double shebangs
 main = pure ()
 ```
 
-Extension pragmas
-
-```haskell
-{-# LANGUAGE TypeApplications #-}
-
-fun @Int 12
-```
-
 Pragmas, GHC options, and haddock options.
 
 ```haskell
