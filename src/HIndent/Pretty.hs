@@ -2059,11 +2059,8 @@ instance Pretty (HsQuote GhcPs) where
     brackets $ do
       string "t"
       wrapWithBars $ pretty x
-  pretty' (VarBr _ isSingle x) = do
-    if isSingle
-      then string "'"
-      else string "''"
-    pretty x
+  pretty' (VarBr _ True x) = string "'" >> pretty x
+  pretty' (VarBr _ False x) = string "''" >> pretty x
 #endif
 instance Pretty (WarnDecls GhcPs) where
   pretty' (Warnings _ _ x) = lined $ fmap pretty x
