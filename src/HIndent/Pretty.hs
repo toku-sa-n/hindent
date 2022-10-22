@@ -2074,7 +2074,7 @@ instance Pretty (HsFieldLabel GhcPs) where
 #endif
 instance Pretty (RuleDecls GhcPs) where
   pretty' HsRules {..} =
-    lined $ [string "{-# RULES"] ++ fmap pretty rds_rules ++ [string " #-}"]
+    lined $ string "{-# RULES" : fmap pretty rds_rules ++ [string " #-}"]
 
 instance Pretty (RuleDecl GhcPs) where
   pretty' HsRule {..} =
