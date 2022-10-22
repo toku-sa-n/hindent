@@ -1471,7 +1471,7 @@ instance Pretty (HsSplice GhcPs) where
       pretty l
       wrapWithBars $
         indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
-  pretty' HsSpliced {} = undefined
+  pretty' HsSpliced {} = notUsedInParsedStage
 
 instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
