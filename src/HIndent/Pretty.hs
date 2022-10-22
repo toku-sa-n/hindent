@@ -2193,12 +2193,14 @@ instance Pretty InlineSpec where
   pretty' = prettyInlineSpec
 
 prettyInlineSpec :: InlineSpec -> Printer ()
-prettyInlineSpec Inline {}        = string "INLINE"
-prettyInlineSpec Inlinable {}     = string "INLINABLE"
-prettyInlineSpec NoInline {}      = string "NOINLINE"
-prettyInlineSpec NoUserInlinePrag = undefined
+prettyInlineSpec Inline {} = string "INLINE"
+prettyInlineSpec Inlinable {} = string "INLINABLE"
+prettyInlineSpec NoInline {} = string "NOINLINE"
+prettyInlineSpec NoUserInlinePrag =
+  error
+    "This branch is executed if the inline pragma is not written, but executing this branch means that the pragma is already about to be output, so something goes wrong."
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyInlineSpec Opaque {}        = undefined
+prettyInlineSpec Opaque {} = undefined
 #endif
 instance Pretty (HsPatSynDir GhcPs) where
   pretty' Unidirectional           = string "<-"
