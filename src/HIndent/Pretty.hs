@@ -2127,13 +2127,11 @@ instance Pretty Safety where
   pretty' PlayRisky         = string "unsafe"
 
 instance Pretty (AnnDecl GhcPs) where
-  pretty' (HsAnnotation _ _ prov expr) =
-    spaced [string "{-# ANN", pretty prov, pretty expr, string "#-}"]
-
-instance Pretty (AnnProvenance GhcPs) where
-  pretty' (ValueAnnProvenance x) = pretty x
-  pretty' TypeAnnProvenance {}   = undefined
-  pretty' ModuleAnnProvenance {} = undefined
+  pretty' (HsAnnotation _ _ (ValueAnnProvenance name) expr) =
+    spaced [string "{-# ANN", pretty name, pretty expr, string "#-}"]
+  pretty' (HsAnnotation _ _ (TypeAnnProvenance name) expr) =
+    spaced [string "{-# ANN type", pretty name, pretty expr, string "#-}"]
+  pretty' _ = undefined
 
 instance Pretty (RoleAnnotDecl GhcPs) where
   pretty' (RoleAnnotDecl _ name roles) =

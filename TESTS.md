@@ -339,14 +339,6 @@ data Foo a b =
   Foo a b
 ```
 
-Annotation decalration
-
-```haskell
-{-# ANN foo "annotation" #-}
-
-foo = undefined
-```
-
 Rule declaration
 
 ```haskell
@@ -414,6 +406,25 @@ default (Integer, Double)
 
 ```haskell
 static = undefined
+```
+
+## `ANN` pragmas
+
+Value annotation.
+
+```haskell
+{-# ANN foo "annotation" #-}
+
+foo = undefined
+```
+
+Type annotation.
+
+```haskell
+{-# ANN type Foo "annotation" #-}
+
+data Foo =
+  Foo
 ```
 
 ## Pattern matchings
