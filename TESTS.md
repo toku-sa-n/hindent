@@ -811,6 +811,7 @@ Closed type families
 
 ```haskell
 type family Closed (a :: k) :: Bool where
+  Closed (x @Int) = 'Int
   Closed x = 'True
 ```
 

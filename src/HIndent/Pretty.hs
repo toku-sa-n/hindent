@@ -1019,7 +1019,7 @@ prettyHsType (HsTyVar _ IsPromoted x) = do
   string "'"
   pretty x
 prettyHsType (HsAppTy _ l r) = spaced $ fmap pretty [l, r]
-prettyHsType HsAppKindTy {} = undefined
+prettyHsType (HsAppKindTy _ l r) = pretty l >> string " @" >> pretty r
 prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
   where
     hor = spaced [pretty a, string "->", pretty b]
