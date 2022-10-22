@@ -1469,9 +1469,8 @@ instance Pretty (HsSplice GhcPs) where
   pretty' (HsQuasiQuote _ _ l _ r) =
     brackets $ do
       pretty l
-      string "|"
-      indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
-      string "|"
+      wrapWithBars $
+        indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
   pretty' HsSpliced {} = undefined
 
 instance Pretty (Pat GhcPs) where
