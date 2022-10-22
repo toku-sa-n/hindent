@@ -2,6 +2,7 @@
 module HIndent.Pretty.Combinators.Wrap
   ( parens
   , parensIfSymbol
+  , bananaBrackets
   , braces
   , singleQuotes
   , doubleQuotes
@@ -30,6 +31,10 @@ parensIfSymbol :: OccName -> Printer a -> Printer a
 parensIfSymbol name
   | isSymOcc name = parens
   | otherwise = id
+
+-- | Wraps with "(|" and "|)"
+bananaBrackets :: Printer a -> Printer a
+bananaBrackets = wrap "(|" "|)"
 
 -- | This function wraps the printer with braces.
 braces :: Printer a -> Printer a
