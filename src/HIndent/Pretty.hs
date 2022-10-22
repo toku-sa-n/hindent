@@ -1544,27 +1544,13 @@ instance Pretty RecConPat where
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
-  pretty' (PatBr _ expr) =
-    brackets $ do
-      string "p"
-      wrapWithBars $ pretty expr
+  pretty' (PatBr _ expr) = brackets $ string "p" >> wrapWithBars (pretty expr)
   pretty' (DecBrL _ decls) =
-    brackets $
-    string "d| " |=> do
-      lined $ fmap pretty decls
-      space
-      string "|"
+    brackets $ string "d| " |=> lined (fmap pretty decls) >> string " |"
   pretty' DecBrG {} = notUsedInParsedStage
-  pretty' (TypBr _ expr) =
-    brackets $ do
-      string "t"
-      wrapWithBars $ pretty expr
-  pretty' (VarBr _ True var) = do
-    string "'"
-    pretty var
-  pretty' (VarBr _ False var) = do
-    string "''"
-    pretty var
+  pretty' (TypBr _ expr) = brackets $ string "t" >> wrapWithBars (pretty expr)
+  pretty' (VarBr _ True var) = string "'" >> pretty var
+  pretty' (VarBr _ False var) = string "''" >> pretty var
   pretty' (TExpBr _ x) = typedBrackets $ pretty x
 #endif
 instance Pretty SigBindFamily where
