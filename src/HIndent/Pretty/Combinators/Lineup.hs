@@ -22,6 +22,7 @@ module HIndent.Pretty.Combinators.Lineup
   , hvCommaSep
   , hCommaSep
   , vCommaSep
+  , hDotSep
   , spacePrefixed
   , newlinePrefixed
   , prefixedLined
@@ -149,6 +150,10 @@ hCommaSep = inter (string ", ")
 -- a prefix.
 vCommaSep :: [Printer ()] -> Printer ()
 vCommaSep = prefixedLined ", "
+
+-- | Runs printers with a dot as the separator.
+hDotSep :: [Printer ()] -> Printer ()
+hDotSep = inter (string ".")
 
 -- | Prints each element after a space like.
 spacePrefixed :: [Printer ()] -> Printer ()

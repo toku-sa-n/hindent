@@ -940,6 +940,15 @@ area r = r.width * r.height
 foo = (.x.y)
 ```
 
+`OverloadedRecordUpdate`
+
+```haskell from 9.2.0
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedRecordUpdate #-}
+
+foo = bar {baz.qux = 1}
+```
+
 Type application
 
 ```haskell

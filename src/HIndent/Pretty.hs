@@ -1768,7 +1768,7 @@ instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Parens x) = parens $ pretty x
 
 instance Pretty (FieldLabelStrings GhcPs) where
-  pretty' _ = undefined
+  pretty' (FieldLabelStrings xs) = hDotSep $ fmap pretty xs
 
 instance Pretty (AmbiguousFieldOcc GhcPs) where
   pretty' (Unambiguous _ name) = pretty name
