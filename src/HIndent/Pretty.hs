@@ -1961,7 +1961,7 @@ instance Pretty HorizontalContext where
           _         -> parens
 
 instance Pretty VerticalContext where
-  pretty' (VerticalContext (L _ [])) = undefined
+  pretty' (VerticalContext (L _ [])) = string "()"
   pretty' (VerticalContext full@(L _ [x])) =
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext xs) = printCommentsAnd xs (vTuple . fmap pretty)
@@ -1978,8 +1978,8 @@ instance Pretty HorizontalContext where
           Just _         -> parens
 
 instance Pretty VerticalContext where
-  pretty' (VerticalContext Nothing) = undefined
-  pretty' (VerticalContext (Just (L _ []))) = undefined
+  pretty' (VerticalContext Nothing) = pure ()
+  pretty' (VerticalContext (Just (L _ []))) = string "()"
   pretty' (VerticalContext (Just full@(L _ [x]))) =
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext (Just xs)) =
