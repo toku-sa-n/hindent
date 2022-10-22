@@ -2226,13 +2226,13 @@ instance Pretty (HsLit GhcPs) where
   pretty' x@HsCharPrim {} = output x
   pretty' HsInt {} = notUsedInParsedStage
   pretty' (HsIntPrim _ x) = string $ show x ++ "#"
-  pretty' HsWordPrim {} = undefined
-  pretty' HsInt64Prim {} = undefined
-  pretty' HsWord64Prim {} = undefined
-  pretty' HsInteger {} = undefined
-  pretty' HsRat {} = undefined
+  pretty' HsWordPrim {} = notUsedInParsedStage
+  pretty' HsInt64Prim {} = notUsedInParsedStage
+  pretty' HsWord64Prim {} = notUsedInParsedStage
+  pretty' HsInteger {} = notUsedInParsedStage
+  pretty' HsRat {} = notUsedInParsedStage
   pretty' (HsFloatPrim _ x) = pretty x >> string "#"
-  pretty' HsDoublePrim {} = undefined
+  pretty' HsDoublePrim {} = notUsedInParsedStage
   pretty' x =
     case x of
       HsString {}     -> prettyString
