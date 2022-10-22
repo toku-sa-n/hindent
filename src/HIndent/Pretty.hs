@@ -1554,7 +1554,7 @@ instance Pretty (HsBracket GhcPs) where
       lined $ fmap pretty decls
       space
       string "|"
-  pretty' DecBrG {} = undefined
+  pretty' DecBrG {} = notUsedInParsedStage
   pretty' (TypBr _ expr) =
     brackets $ do
       string "t"
