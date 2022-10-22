@@ -2291,10 +2291,12 @@ instance Pretty (HsCmdTop GhcPs) where
   pretty' (HsCmdTop _ cmd) = pretty cmd
 
 instance Pretty (HsCmd GhcPs)
-  -- TODO: Handle arrow type (@-<@ and @-<<@).
   -- TODO: Handle right-to-left or left-to-right.
                                                   where
-  pretty' (HsCmdArrApp _ f arg _ _) = spaced [pretty f, string "-<", pretty arg]
+  pretty' (HsCmdArrApp _ f arg HsHigherOrderApp _) =
+    spaced [pretty f, string "-<<", pretty arg]
+  pretty' (HsCmdArrApp _ f arg HsFirstOrderApp _) =
+    spaced [pretty f, string "-<", pretty arg]
   pretty' HsCmdArrForm {} = undefined
   pretty' HsCmdApp {} = undefined
   pretty' HsCmdLam {} = undefined

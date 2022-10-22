@@ -953,16 +953,6 @@ g = mdo
 f = (# | Bool #)
 ```
 
-`Arrows`
-
-```haskell
-{-# LANGUAGE Arrows #-}
-
-f =
-  proc foo -> do
-    bar -< baz
-```
-
 `OverloadedRecordDot`
 
 ```haskell from 9.2.2
@@ -1003,6 +993,26 @@ fun @Int 12
 {-# LANGUAGE StaticPointers #-}
 
 f = static 1
+```
+
+### Arrows
+
+`-<`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc foo -> do
+    bar -< baz
+```
+
+`-<<`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f = proc foo -> f foo -<< foo
 ```
 
 ### Quasi-quotes
