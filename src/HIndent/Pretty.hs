@@ -1457,7 +1457,9 @@ instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
 
 instance Pretty (HsSplice GhcPs) where
-  pretty' HsTypedSplice {} = undefined
+  pretty' (HsTypedSplice _ _ _ body) = do
+    string "$$"
+    pretty body
   pretty' (HsUntypedSplice _ DollarSplice _ body) = do
     string "$"
     pretty body

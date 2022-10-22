@@ -799,6 +799,12 @@ Implicit value
 foo = ?undefined
 ```
 
+Typed splice
+
+```haskell
+foo = $$bar
+```
+
 ## Extensions
 
 `RecursiveDo`
