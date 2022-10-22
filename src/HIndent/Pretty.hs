@@ -2224,7 +2224,7 @@ instance Pretty FractionalLit where
 instance Pretty (HsLit GhcPs) where
   pretty' x@(HsChar _ _) = output x
   pretty' x@HsCharPrim {} = output x
-  pretty' HsInt {} = undefined
+  pretty' HsInt {} = notUsedInParsedStage
   pretty' (HsIntPrim _ x) = string $ show x ++ "#"
   pretty' HsWordPrim {} = undefined
   pretty' HsInt64Prim {} = undefined
