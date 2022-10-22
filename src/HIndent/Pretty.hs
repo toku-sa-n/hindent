@@ -2011,9 +2011,12 @@ instance Pretty (IE GhcPs) where
         string $ head xs
         indentedWithFixedLevel 0 $ newlinePrefixed $ string <$> tail xs
   pretty' (IEModuleContents _ name) = pretty $ fmap ModuleNameWithPrefix name
-  pretty' IEGroup {} = undefined
-  pretty' IEDoc {} = undefined
-  pretty' IEDocNamed {} = undefined
+  pretty' IEGroup {} =
+    error "Never appears as doc comments are treated as normal ones."
+  pretty' IEDoc {} =
+    error "Never appears as doc comments are treated as normal ones."
+  pretty' IEDocNamed {} =
+    error "Never appears as doc comments are treated as normal ones."
 
 instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' FamEqn {..} = do
