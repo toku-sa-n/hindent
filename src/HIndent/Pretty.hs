@@ -1501,7 +1501,14 @@ prettyPat (BangPat _ x) = do
   pretty x
 prettyPat (ListPat _ xs) = hList $ fmap pretty xs
 prettyPat (TuplePat _ pats _) = hTuple $ fmap pretty pats
-prettyPat SumPat {} = undefined
+prettyPat (SumPat _ x position numElem) = do
+  string "(#"
+  forM_ [1 .. numElem] $ \idx -> do
+    if idx == position
+      then string " " >> pretty x >> string " "
+      else string " "
+    when (idx < numElem) $ string "|"
+  string "#)"
 prettyPat ConPat {..} =
   case pat_args of
     PrefixCon _ as -> do

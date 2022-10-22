@@ -240,6 +240,14 @@ import Direction
 
 # Declarations
 
+Unboxed sum pattern matching.
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f (# x | | | #) = undefined
+```
+
 A record inside a function signature
 
 ```haskell
