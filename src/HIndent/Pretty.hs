@@ -2062,11 +2062,9 @@ instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
 #endif
 -- | 'Pretty' for 'LIEWrappedName (IdP GhcPs)'
 instance Pretty (IEWrappedName RdrName) where
-  pretty' (IEName name) = pretty name
+  pretty' (IEName name)      = pretty name
   pretty' (IEPattern _ name) = spaced [string "pattern", pretty name]
-  pretty' (IEType _ name) = do
-    string "type "
-    pretty name
+  pretty' (IEType _ name)    = string "type " >> pretty name
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (DotFieldOcc GhcPs) where
   pretty' DotFieldOcc {..} = printCommentsAnd dfoLabel (string . unpackFS)
