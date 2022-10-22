@@ -1464,8 +1464,8 @@ instance Pretty (HsSplice GhcPs) where
     string "$"
     pretty body
   pretty' (HsUntypedSplice _ BareSplice _ body) = pretty body
-  -- Adding or removing spaces to the body of a quasi-quote modifies the
-  -- body. That is why 'r' is printed as-is.
+  -- The body of a quasi-quote must not be changed by a formatter.
+  -- Changing it will modify the actual behavior of the code.
   pretty' (HsQuasiQuote _ _ l _ r) =
     brackets $ do
       pretty l
