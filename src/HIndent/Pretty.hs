@@ -1609,7 +1609,7 @@ instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
     where
       sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) []
-  pretty' XValBindsLR {} = undefined
+  pretty' XValBindsLR {} = notUsedInParsedStage
 
 instance Pretty (HsTupArg GhcPs) where
   pretty' (Present _ e) = pretty e
