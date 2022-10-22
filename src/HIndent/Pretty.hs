@@ -1599,9 +1599,11 @@ instance Pretty (EpAnn a) where
   commentsAfter EpAnnNotUsed = []
 
 instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
-  pretty' (HsValBinds _ lr)  = pretty lr
-  pretty' (HsIPBinds _ x)    = pretty x
-  pretty' EmptyLocalBinds {} = undefined
+  pretty' (HsValBinds _ lr) = pretty lr
+  pretty' (HsIPBinds _ x) = pretty x
+  pretty' EmptyLocalBinds {} =
+    error
+      "This branch indicates that the bind is empty, but since calling this code means that let or where has already been output, it cannot be handled here. It should be handled higher up in the AST."
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
