@@ -414,17 +414,12 @@ Value annotation.
 
 ```haskell
 {-# ANN foo "annotation" #-}
-
-foo = undefined
 ```
 
 Type annotation.
 
 ```haskell
 {-# ANN type Foo "annotation" #-}
-
-data Foo =
-  Foo
 ```
 
 Module annotation.
