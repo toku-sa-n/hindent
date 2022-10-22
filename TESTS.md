@@ -1015,6 +1015,14 @@ f =
 f = proc foo -> f foo -<< foo
 ```
 
+`(| ... |)`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f = proc g -> (|foo (bar -< g) (baz -< g)|)
+```
+
 ### Quasi-quotes
 
 Body has multiple lines.

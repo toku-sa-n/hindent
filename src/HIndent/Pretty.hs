@@ -2297,10 +2297,11 @@ instance Pretty (HsCmd GhcPs)
     spaced [pretty f, string "-<<", pretty arg]
   pretty' (HsCmdArrApp _ f arg HsFirstOrderApp _) =
     spaced [pretty f, string "-<", pretty arg]
-  pretty' HsCmdArrForm {} = undefined
+  pretty' (HsCmdArrForm _ f _ _ args) =
+    bananaBrackets $ spaced $ pretty f : fmap pretty args
   pretty' HsCmdApp {} = undefined
   pretty' HsCmdLam {} = undefined
-  pretty' HsCmdPar {} = undefined
+  pretty' (HsCmdPar _ x) = parens $ pretty x
   pretty' HsCmdCase {} = undefined
   pretty' HsCmdLamCase {} = undefined
   pretty' HsCmdIf {} = undefined
