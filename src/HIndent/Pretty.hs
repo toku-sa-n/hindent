@@ -1058,7 +1058,7 @@ prettyHsType (HsExplicitListTy _ _ xs) =
 prettyHsType (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
 prettyHsType (HsTyLit _ x) = pretty x
 prettyHsType HsWildCardTy {} = string "_"
-prettyHsType XHsType {} = undefined
+prettyHsType XHsType {} = notUsedInParsedStage
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HsTypeInsideInstDecl where
   pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
@@ -1449,7 +1449,9 @@ instance Pretty EpaCommentTok where
         -- 'indentedWithFixedLevel 0' is used because an 'EpaBlockComment'
         -- contains indent spaces for all lines except the first one.
         indentedWithFixedLevel 0 $ lined $ fmap string xs
-  pretty' _ = undefined
+  pretty' _ =
+    error
+      "Documentation comments should not appear because they are treated as normal ones. EOF comment should be removed by the preprocessing."
 
 instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
