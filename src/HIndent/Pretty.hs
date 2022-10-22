@@ -2256,9 +2256,9 @@ instance Pretty HsIPName where
   pretty' (HsIPName x) = string $ unpackFS x
 
 instance Pretty HsTyLit where
-  pretty' (HsNumTy _ x) = string $ show x
-  pretty' (HsStrTy _ x) = string $ show x
-  pretty' HsCharTy {}   = undefined
+  pretty' (HsNumTy _ x)  = string $ show x
+  pretty' (HsStrTy _ x)  = string $ show x
+  pretty' (HsCharTy _ x) = string $ show x
 
 instance Pretty (HsPatSigType GhcPs) where
   pretty' HsPS {..} = pretty hsps_body

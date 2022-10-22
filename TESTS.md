@@ -1094,6 +1094,12 @@ Type using a numeric value
 f :: Foo 0
 ```
 
+Type using a character value
+
+```haskell
+f :: Foo 'a'
+```
+
 A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
 
 ```haskell given
