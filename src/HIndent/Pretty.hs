@@ -1015,9 +1015,7 @@ prettyHsType HsQualTy {..} = do
   pretty $ Context hst_ctxt
   lined [string " =>", indentedBlock $ pretty hst_body]
 prettyHsType (HsTyVar _ NotPromoted x) = pretty x
-prettyHsType (HsTyVar _ IsPromoted x) = do
-  string "'"
-  pretty x
+prettyHsType (HsTyVar _ IsPromoted x) = string "'" >> pretty x
 prettyHsType (HsAppTy _ l r) = spaced $ fmap pretty [l, r]
 prettyHsType (HsAppKindTy _ l r) = pretty l >> string " @" >> pretty r
 prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
