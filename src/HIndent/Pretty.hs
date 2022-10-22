@@ -2036,7 +2036,7 @@ instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs))
     fmap pretty feqn_pats ++
     [string "=", pretty $ HsDataDefnForDataInstance feqn_rhs]
 
--- HsArg (LHsType GhcPs) (LHsType GhcPs)
+-- | HsArg (LHsType GhcPs) (LHsType GhcPs)
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' (HsValArg x) = pretty x
   pretty' HsTypeArg {} = undefined
