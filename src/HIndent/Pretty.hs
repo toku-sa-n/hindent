@@ -2231,9 +2231,7 @@ instance Pretty (HsLit GhcPs) where
   pretty' HsWord64Prim {} = undefined
   pretty' HsInteger {} = undefined
   pretty' HsRat {} = undefined
-  pretty' (HsFloatPrim _ x) = do
-    pretty x
-    string "#"
+  pretty' (HsFloatPrim _ x) = pretty x >> string "#"
   pretty' HsDoublePrim {} = undefined
   pretty' x =
     case x of
