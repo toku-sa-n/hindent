@@ -2042,7 +2042,7 @@ instance Pretty (HsQuote GhcPs) where
       lined $ fmap pretty decls
       space
       string "|"
-  pretty' DecBrG {} = undefined
+  pretty' DecBrG {} = notUsedInParsedStage
   pretty' (TypBr _ x) =
     brackets $ do
       string "t"
