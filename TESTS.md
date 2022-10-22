@@ -22,6 +22,39 @@ Double shebangs
 main = pure ()
 ```
 
+Module header
+
+``` haskell
+module X where
+
+x = 1
+```
+
+Exports
+
+``` haskell
+module X
+  ( x
+  , y
+  , Z
+  , P(x, z)
+  , module Foo
+  ) where
+```
+
+Exports, indentation 4
+
+``` haskell 4
+module X
+    ( x
+    , y
+    , Z
+    , P(x, z)
+    ) where
+```
+
+## Pragmas
+
 Pragmas, GHC options, and haddock options.
 
 ```haskell
@@ -58,37 +91,6 @@ A pragma's length is adjusted automatically
 
 ```haskell expect
 {-# LANGUAGE OverloadedStrings #-}
-```
-
-Module header
-
-``` haskell
-module X where
-
-x = 1
-```
-
-Exports
-
-``` haskell
-module X
-  ( x
-  , y
-  , Z
-  , P(x, z)
-  , module Foo
-  ) where
-```
-
-Exports, indentation 4
-
-``` haskell 4
-module X
-    ( x
-    , y
-    , Z
-    , P(x, z)
-    ) where
 ```
 
 Collect multiple extensions correctly
