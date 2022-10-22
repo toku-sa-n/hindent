@@ -503,6 +503,40 @@ Punned
 f' (X {(..?)}) = (..?)
 ```
 
+## Inline pragmas
+
+`INLINE`
+
+```haskell
+{-# INLINE f #-}
+f :: a
+f = undefined
+```
+
+`INLINABLE`
+
+```haskell
+{-# INLINABLE f #-}
+f :: a
+f = undefined
+```
+
+`NOINLINE`
+
+```haskell
+{-# NOINLINE f #-}
+f :: a
+f = undefined
+```
+
+`OPAQUE`
+
+```haskell from 9.4.0
+{-# OPAQUE f #-}
+f :: a
+f = undefined
+```
+
 # Expressions
 
 Primitive type values
@@ -2155,19 +2189,6 @@ data Stuffs
 data Simple =
   Simple
   deriving (Show)
-```
-
-sgraf812 top-level pragmas should not add an additional newline #255
-
-``` haskell
--- https://github.com/chrisdone/hindent/issues/255
-{-# INLINE f #-}
-f :: Int -> Int
-f n = n
-
-{-# INLINABLE g #-}
-g :: Int -> Int
-g n = n
 ```
 
 ivan-timokhin breaks code with type operators #277
