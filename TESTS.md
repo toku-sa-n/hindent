@@ -1005,6 +1005,7 @@ f = static 1
 f =
   proc foo -> do
     bar -< baz
+    aaa >- bbb
 ```
 
 `-<<`
@@ -1012,7 +1013,10 @@ f =
 ```haskell
 {-# LANGUAGE Arrows #-}
 
-f = proc foo -> f foo -<< foo
+f =
+  proc foo -> do
+    g bar -<< baz
+    aaaaa >>- h bbb
 ```
 
 `(| ... |)`

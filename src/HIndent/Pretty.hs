@@ -2295,10 +2295,14 @@ instance Pretty (HsCmd GhcPs) where
 
 -- TODO: Handle right-to-left or left-to-right.
 prettyHsCmd :: HsCmd GhcPs -> Printer ()
-prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp _) =
+prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp True) =
   spaced [pretty f, string "-<<", pretty arg]
-prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp _) =
+prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp False) =
+  spaced [pretty arg, string ">>-", pretty f]
+prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp True) =
   spaced [pretty f, string "-<", pretty arg]
+prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp False) =
+  spaced [pretty arg, string ">-", pretty f]
 prettyHsCmd (HsCmdArrForm _ f _ _ args) =
   bananaBrackets $ spaced $ pretty f : fmap pretty args
 prettyHsCmd HsCmdApp {} = undefined
