@@ -1088,6 +1088,12 @@ Multiple function signatures at once
 a, b, c :: Int
 ```
 
+Type using a numeric value
+
+```haskell
+f :: Foo 0
+```
+
 A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
 
 ```haskell given

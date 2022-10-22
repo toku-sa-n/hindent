@@ -2256,7 +2256,7 @@ instance Pretty HsIPName where
   pretty' (HsIPName x) = string $ unpackFS x
 
 instance Pretty HsTyLit where
-  pretty' HsNumTy {}    = undefined
+  pretty' (HsNumTy _ x) = string $ show x
   pretty' (HsStrTy _ x) = string $ show x
   pretty' HsCharTy {}   = undefined
 
