@@ -16,7 +16,7 @@ unlessSpecialOp name = unless (isSpecialOp name)
 isSpecialOp :: RdrName -> Bool
 isSpecialOp (Unqual name) = isSpecialOpString $ occNameString name
 isSpecialOp Qual {}       = False
-isSpecialOp Orig {}       = undefined
+isSpecialOp Orig {}       = error "Never appear."
 isSpecialOp (Exact name)  = isSpecialOpString $ occNameString $ nameOccName name
 
 -- | Returns if HIndent needs special treatment for the operator.

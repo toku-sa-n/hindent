@@ -1262,17 +1262,17 @@ prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 prettyHsMatchContext FunRhs {..}       = pretty mc_fun
 prettyHsMatchContext LambdaExpr        = return ()
 prettyHsMatchContext CaseAlt           = return ()
-prettyHsMatchContext IfAlt {}          = undefined
-prettyHsMatchContext ArrowMatchCtxt {} = undefined
-prettyHsMatchContext PatBindRhs {}     = undefined
-prettyHsMatchContext PatBindGuards {}  = undefined
-prettyHsMatchContext RecUpd {}         = undefined
-prettyHsMatchContext StmtCtxt {}       = undefined
-prettyHsMatchContext ThPatSplice {}    = undefined
-prettyHsMatchContext ThPatQuote {}     = undefined
-prettyHsMatchContext PatSyn {}         = undefined
+prettyHsMatchContext IfAlt {}          = notUsedInParsedStage
+prettyHsMatchContext ArrowMatchCtxt {} = notUsedInParsedStage
+prettyHsMatchContext PatBindRhs {}     = notUsedInParsedStage
+prettyHsMatchContext PatBindGuards {}  = notUsedInParsedStage
+prettyHsMatchContext RecUpd {}         = notUsedInParsedStage
+prettyHsMatchContext StmtCtxt {}       = notUsedInParsedStage
+prettyHsMatchContext ThPatSplice {}    = notUsedInParsedStage
+prettyHsMatchContext ThPatQuote {}     = notUsedInParsedStage
+prettyHsMatchContext PatSyn {}         = notUsedInParsedStage
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsMatchContext LamCaseAlt {}     = undefined
+prettyHsMatchContext LamCaseAlt {}     = notUsedInParsedStage
 #endif
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
@@ -2056,7 +2056,7 @@ instance Pretty InfixOp where
       pretty modName
       string "."
       pretty name
-  pretty' (InfixOp Orig {}) = undefined
+  pretty' (InfixOp Orig {}) = notUsedInParsedStage
   pretty' (InfixOp (Exact name)) = backticksIfNotSymbol occ $ pretty occ
     where
       occ = occName name
@@ -2068,7 +2068,7 @@ instance Pretty PrefixOp where
       pretty modName
       string "."
       pretty name
-  pretty' (PrefixOp Orig {}) = undefined
+  pretty' (PrefixOp Orig {}) = notUsedInParsedStage
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ pretty occ
     where
       occ = occName name
