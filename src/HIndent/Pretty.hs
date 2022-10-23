@@ -2438,7 +2438,7 @@ prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp False) =
   spaced [pretty arg, string ">-", pretty f]
 prettyHsCmd (HsCmdArrForm _ f _ _ args) =
   bananaBrackets $ spaced $ pretty f : fmap pretty args
-prettyHsCmd HsCmdApp {} = undefined
+prettyHsCmd (HsCmdApp _ f arg) = spaced [pretty f, pretty arg]
 prettyHsCmd (HsCmdLam _ x) = pretty $ MatchGroupForLambdaInProc x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsCmd (HsCmdPar _ _ x _) = parens $ pretty x

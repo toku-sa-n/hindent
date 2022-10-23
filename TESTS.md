@@ -1024,7 +1024,7 @@ f =
 ```haskell
 {-# LANGUAGE Arrows #-}
 
-f = proc g -> (|foo (bar -< g) (baz -< g)|)
+f = proc g -> (|foo (bar -< g) (baz -< g)|) zz
 ```
 
 Lambda equation.
