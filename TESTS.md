@@ -1035,6 +1035,19 @@ Lambda equation.
 f = proc g -> \x -> x -< g
 ```
 
+Case expression.
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    case h of
+      [] -> i -< ()
+      (_:_) -> j -< ()
+```
+
+
 ### Quasi-quotes
 
 Body has multiple lines.

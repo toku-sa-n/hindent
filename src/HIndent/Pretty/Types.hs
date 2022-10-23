@@ -13,16 +13,20 @@ module HIndent.Pretty.Types
   , MatchGroupForCase(..)
   , MatchGroupForLambda(..)
   , MatchGroupForLambdaInProc(..)
+  , MatchGroupForCaseInProc(..)
   , MatchForCase(..)
   , MatchForLambda(..)
   , MatchForLambdaInProc(..)
+  , MatchForCaseInProc(..)
   , GRHSsForCase(..)
   , GRHSsForLambda(..)
   , GRHSsForLambdaInProc(..)
+  , GRHSsForCaseInProc(..)
   , GRHSForCase(..)
   , GRHSForMultiwayIf(..)
   , GRHSForLambda(..)
   , GRHSForLambdaInProc(..)
+  , GRHSForCaseInProc(..)
   , RecConPat(..)
   , RecConField(..)
   , HsSigTypeInsideInstDecl(..)
@@ -83,6 +87,10 @@ newtype MatchGroupForLambda =
 newtype MatchGroupForLambdaInProc =
   MatchGroupForLambdaInProc (MatchGroup GhcPs (LHsCmd GhcPs))
 
+-- | 'MatchGroup inside a @case@ expression of a @proc@ expression.
+newtype MatchGroupForCaseInProc =
+  MatchGroupForCaseInProc (MatchGroup GhcPs (LHsCmd GhcPs))
+
 newtype MatchForCase =
   MatchForCase (Match GhcPs (LHsExpr GhcPs))
 
@@ -93,6 +101,10 @@ newtype MatchForLambda =
 newtype MatchForLambdaInProc =
   MatchForLambdaInProc (Match GhcPs (LHsCmd GhcPs))
 
+-- | 'Match' for a @case@ expression inside a @proc@ expression.
+newtype MatchForCaseInProc =
+  MatchForCaseInProc (Match GhcPs (LHsCmd GhcPs))
+
 newtype GRHSsForCase =
   GRHSsForCase (GRHSs GhcPs (LHsExpr GhcPs))
 
@@ -102,6 +114,10 @@ newtype GRHSsForLambda =
 -- | 'GRHSs' for a lambda inside a @proc@ expression.
 newtype GRHSsForLambdaInProc =
   GRHSsForLambdaInProc (GRHSs GhcPs (LHsCmd GhcPs))
+
+-- | 'GRHSs' for a @case@ expression in a @proc@ expression.
+newtype GRHSsForCaseInProc =
+  GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
 
 newtype GRHSForCase =
   GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
@@ -114,6 +130,10 @@ newtype GRHSForLambda =
 
 newtype GRHSForLambdaInProc =
   GRHSForLambdaInProc (GRHS GhcPs (LHsCmd GhcPs))
+
+-- | 'GRHS' for a @case@ expression in a @proc@ expression.
+newtype GRHSForCaseInProc =
+  GRHSForCaseInProc (GRHS GhcPs (LHsCmd GhcPs))
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))

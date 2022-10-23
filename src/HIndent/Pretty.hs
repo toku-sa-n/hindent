@@ -485,6 +485,10 @@ instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambdaInProc))
 
+instance Pretty MatchGroupForCaseInProc where
+  pretty' (MatchGroupForCaseInProc MG {..}) =
+    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCaseInProc))
+
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
   commentsBefore (HsVar _ x)   = commentsBefore x
@@ -705,8 +709,22 @@ prettyHsExpr (ExprWithTySig _ e sig) = do
   pretty $ hswc_body sig
 prettyHsExpr (ArithSeq _ _ x) = pretty x
 prettyHsExpr (HsSpliceE _ x) = pretty x
-prettyHsExpr (HsProc _ pat body) =
-  spaced [string "proc", pretty pat, string "->", pretty body]
+-- TODO: Handle comments.
+--
+-- TODO: Maybe we should move these definitions inside the @instance Pretty
+-- (HsCmdTop GhcPs)@?
+prettyHsExpr (HsProc _ pat x@(L _ (HsCmdTop _ (L _ (HsCmdDo _ xs))))) = do
+  spaced [string "proc", pretty pat, string "-> do"]
+  newline
+  indentedBlock $
+    printCommentsAnd x (const (printCommentsAnd xs (lined . fmap pretty)))
+prettyHsExpr (HsProc _ pat body) = hor <-|> ver
+  where
+    hor = spaced [string "proc", pretty pat, string "->", pretty body]
+    ver = do
+      spaced [string "proc", pretty pat, string "->"]
+      newline
+      indentedBlock (pretty body)
 prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -951,6 +969,14 @@ instance Pretty MatchForLambdaInProc where
   commentsBefore (MatchForLambdaInProc Match {..}) = commentsBefore m_ext
   commentOnSameLine (MatchForLambdaInProc Match {..}) = commentOnSameLine m_ext
   commentsAfter (MatchForLambdaInProc Match {..}) = commentsAfter m_ext
+
+instance Pretty MatchForCaseInProc where
+  pretty' (MatchForCaseInProc Match {..}) = do
+    mapM_ pretty m_pats
+    pretty (GRHSsForCaseInProc m_grhss)
+  commentsBefore (MatchForCaseInProc Match {..}) = commentsBefore m_ext
+  commentOnSameLine (MatchForCaseInProc Match {..}) = commentOnSameLine m_ext
+  commentsAfter (MatchForCaseInProc Match {..}) = commentsAfter m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -1219,6 +1245,16 @@ instance Pretty GRHSsForLambdaInProc where
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
 
+instance Pretty GRHSsForCaseInProc where
+  pretty' (GRHSsForCaseInProc GRHSs {..}) = do
+    mapM_ (pretty . fmap GRHSForCaseInProc) grhssGRHSs
+    case grhssLocalBinds of
+      HsValBinds {} ->
+        indentedBlock $ do
+          newline
+          string "where " |=> pretty grhssLocalBinds
+      _ -> pure ()
+
 instance Pretty (HsMatchContext GhcPs) where
   pretty' = prettyHsMatchContext
 
@@ -1399,6 +1435,43 @@ instance Pretty GRHSForLambdaInProc where
   commentsBefore (GRHSForLambdaInProc (GRHS x _ _)) = commentsBefore x
   commentOnSameLine (GRHSForLambdaInProc (GRHS x _ _)) = commentOnSameLine x
   commentsAfter (GRHSForLambdaInProc (GRHS x _ _)) = commentsAfter x
+
+instance Pretty GRHSForCaseInProc where
+  pretty' (GRHSForCaseInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) = do
+    string " -> do"
+    newline
+    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSForCaseInProc (GRHS _ guards (L _ (HsCmdDo _ body)))) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      string " -> do "
+      printCommentsAnd body (mapM_ pretty)
+  pretty' (GRHSForCaseInProc (GRHS _ [] body)) = horizontal <-|> vertical
+    where
+      horizontal = do
+        string " -> "
+        pretty body
+      vertical = do
+        string " ->"
+        newline
+        indentedBlock $ pretty body
+  pretty' (GRHSForCaseInProc (GRHS _ guards body)) = do
+    newline
+    indentedBlock $ do
+      string "| " |=> vCommaSep (fmap pretty guards)
+      horizontal <-|> vertical
+    where
+      horizontal = do
+        string " -> "
+        pretty body
+      vertical = do
+        string " ->"
+        newline
+        indentedBlock $ pretty body
+  commentsBefore (GRHSForCaseInProc (GRHS x _ _)) = commentsBefore x
+  commentOnSameLine (GRHSForCaseInProc (GRHS x _ _)) = commentOnSameLine x
+  commentsAfter (GRHSForCaseInProc (GRHS x _ _)) = commentsAfter x
 
 instance Pretty GRHSForLambda where
   pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) =
@@ -2372,7 +2445,10 @@ prettyHsCmd (HsCmdPar _ _ x _) = parens $ pretty x
 #else
 prettyHsCmd (HsCmdPar _ x) = parens $ pretty x
 #endif
-prettyHsCmd HsCmdCase {} = undefined
+prettyHsCmd (HsCmdCase _ cond arms) = do
+  spaced [string "case", pretty cond, string "of"]
+  newline
+  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
 prettyHsCmd HsCmdLamCase {} = undefined
 prettyHsCmd HsCmdIf {} = undefined
 prettyHsCmd HsCmdLet {} = undefined
