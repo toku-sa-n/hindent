@@ -2449,17 +2449,29 @@ prettyHsCmd (HsCmdCase _ cond arms) = do
   spaced [string "case", pretty cond, string "of"]
   newline
   indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsCmd (HsCmdLamCase _ _ arms) = do
+  string "\\case"
+  newline
+  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+#else
 prettyHsCmd (HsCmdLamCase _ arms) = do
   string "\\case"
   newline
   indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+#endif
 prettyHsCmd (HsCmdIf _ _ cond t f) = do
   string "if "
   pretty cond
   newline
   indentedBlock $ lined [string "then " >> pretty t, string "else " >> pretty f]
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyHsCmd (HsCmdLet _ _ binds _ expr) =
+  lined [string "let " |=> pretty binds, string " in " |=> pretty expr]
+#else
 prettyHsCmd (HsCmdLet _ binds expr) =
   lined [string "let " |=> pretty binds, string " in " |=> pretty expr]
+#endif
 prettyHsCmd (HsCmdDo _ stmts) = do
   string "do"
   newline
