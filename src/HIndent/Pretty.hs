@@ -2449,7 +2449,10 @@ prettyHsCmd (HsCmdCase _ cond arms) = do
   spaced [string "case", pretty cond, string "of"]
   newline
   indentedBlock $ pretty $ MatchGroupForCaseInProc arms
-prettyHsCmd HsCmdLamCase {} = undefined
+prettyHsCmd (HsCmdLamCase _ arms) = do
+  string "\\case"
+  newline
+  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
 prettyHsCmd HsCmdIf {} = undefined
 prettyHsCmd HsCmdLet {} = undefined
 prettyHsCmd (HsCmdDo _ stmts) = do

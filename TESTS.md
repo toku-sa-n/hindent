@@ -1047,6 +1047,17 @@ f =
       (_:_) -> j -< ()
 ```
 
+Lambda case
+
+```haskell
+{-# LANGUAGE Arrows #-}
+{-# LANGUAGE LambdaCase #-}
+
+f =
+  proc g ->
+    \case
+      _ -> h -< ()
+```
 
 ### Quasi-quotes
 
