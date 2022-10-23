@@ -2089,7 +2089,7 @@ instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs)) where
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' (HsValArg x)    = pretty x
   pretty' (HsTypeArg _ x) = string "@" >> pretty x
-  pretty' HsArgPar {}     = undefined
+  pretty' HsArgPar {}     = notUsedInParsedStage
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsQuote GhcPs) where
   pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
