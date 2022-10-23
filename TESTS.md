@@ -1071,6 +1071,18 @@ f =
       else t -< g
 ```
 
+`let ... in`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    let x = undefined
+        y = undefined
+     in returnA -< g
+```
+
 ### Quasi-quotes
 
 Body has multiple lines.

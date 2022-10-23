@@ -2458,7 +2458,8 @@ prettyHsCmd (HsCmdIf _ _ cond t f) = do
   pretty cond
   newline
   indentedBlock $ lined [string "then " >> pretty t, string "else " >> pretty f]
-prettyHsCmd HsCmdLet {} = undefined
+prettyHsCmd (HsCmdLet _ binds expr) =
+  lined [string "let " |=> pretty binds, string " in " |=> pretty expr]
 prettyHsCmd (HsCmdDo _ stmts) = do
   string "do"
   newline
