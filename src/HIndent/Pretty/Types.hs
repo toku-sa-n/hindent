@@ -39,7 +39,6 @@ module HIndent.Pretty.Types
   , Context(..)
   , HorizontalContext(..)
   , VerticalContext(..)
-  , HsDataDefnForDataInstance(..)
   , ModuleNameWithPrefix(..)
   , PatInsidePatDecl(..)
   , LambdaCase(..)
@@ -187,10 +186,6 @@ newtype HorizontalContext =
 newtype VerticalContext =
   VerticalContext (Maybe (LHsContext GhcPs))
 #endif
--- | 'HsDataDefn' for 'data instance'.
-newtype HsDataDefnForDataInstance =
-  HsDataDefnForDataInstance (HsDataDefn GhcPs)
-
 -- | A wrapper type for pretty-printing a value of @ModuleName@ with the
 -- @module @ prefix.
 --

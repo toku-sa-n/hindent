@@ -455,10 +455,6 @@ instance Pretty (HsDataDefn GhcPs) where
             newline
             lined $ fmap pretty dd_derivs
 
-instance Pretty HsDataDefnForDataInstance where
-  pretty' (HsDataDefnForDataInstance HsDataDefn {..}) =
-    vBarSep $ fmap pretty dd_cons
-
 instance Pretty (ClsInstDecl GhcPs) where
   pretty' ClsInstDecl {..} = do
     string "instance " |=> do
@@ -2083,16 +2079,11 @@ instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
     string " = "
     pretty feqn_rhs
 
--- | Pretty-print a 'data instance'.
-instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs))
-  -- Current implementation adds two spaces after 'data instances'.
-  -- This is intentional but needs to be fixed.
-                                                where
-  pretty' FamEqn {..} =
-    spaced $
-    [string "data instance ", pretty feqn_tycon] ++
-    fmap pretty feqn_pats ++
-    [string "=", pretty $ HsDataDefnForDataInstance feqn_rhs]
+-- | Pretty-print a data instance.
+instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs)) where
+  pretty' FamEqn {..} = do
+    spaced $ string "data instance" : pretty feqn_tycon : fmap pretty feqn_pats
+    pretty feqn_rhs
 
 -- | HsArg (LHsType GhcPs) (LHsType GhcPs)
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
