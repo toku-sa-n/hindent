@@ -1059,6 +1059,18 @@ f =
       _ -> h -< ()
 ```
 
+`if ... then ... else`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    if x
+      then h -< g
+      else t -< g
+```
+
 ### Quasi-quotes
 
 Body has multiple lines.

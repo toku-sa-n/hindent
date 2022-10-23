@@ -2453,7 +2453,11 @@ prettyHsCmd (HsCmdLamCase _ arms) = do
   string "\\case"
   newline
   indentedBlock $ pretty $ MatchGroupForCaseInProc arms
-prettyHsCmd HsCmdIf {} = undefined
+prettyHsCmd (HsCmdIf _ _ cond t f) = do
+  string "if "
+  pretty cond
+  newline
+  indentedBlock $ lined [string "then " >> pretty t, string "else " >> pretty f]
 prettyHsCmd HsCmdLet {} = undefined
 prettyHsCmd (HsCmdDo _ stmts) = do
   string "do"
