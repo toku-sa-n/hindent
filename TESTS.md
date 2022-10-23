@@ -1107,6 +1107,9 @@ data family Foo a
 
 data instance Foo Int =
   FInt
+
+data instance Foo @k a =
+  FString
 ```
 
 # Type signatures
