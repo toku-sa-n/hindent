@@ -63,9 +63,6 @@ type WithComments = State [LEpaComment]
 -- modifies all 'EpAnn's so that all 'EpAnn's have 'EpaCommentsBalanced's.
 relocateComments :: HsModule -> [LEpaComment] -> HsModule
 relocateComments = evalState . relocate
-    -- TODO: I don't fully understand how does `collectAllComments` of the
-    -- original source code do, and this `relocate` is just a copy of it.
-    -- Examine what it does, and change `relocate` properly.
   where
     relocate =
       relocatePragmas >=>
