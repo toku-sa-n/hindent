@@ -71,7 +71,7 @@ relocateComments = evalState . relocate
       relocatePragmas >=>
       relocateCommentsBeforePragmas >=>
       relocateCommentsBeforeTopLevelDecls >=>
-      relocateCommentsSameLineRev >=>
+      relocateCommentsSameLine >=>
       relocateCommentsTopLevelWhereClause >=> relocateCommentsAfter
 
 -- | This function locates pragmas to the module's EPA.
@@ -105,10 +105,10 @@ relocateCommentsBeforeTopLevelDecls = everywhereM (applyM f)
       srcSpanStartLine comAnc < srcSpanStartLine anc
 
 -- | This function scans the given AST from bottom to top and locates
--- comments in the comment pool above each node on it. Comments are
--- stored in the 'followingComments' of 'EpaCommentsBalanced'.
-relocateCommentsSameLineRev :: HsModule -> WithComments HsModule
-relocateCommentsSameLineRev = everywhereMEpAnnsBackwards f
+-- comments that are on the same line as the node.  Comments are stored in
+-- the 'followingComments' of 'EpaCommentsBalanced'.
+relocateCommentsSameLine :: HsModule -> WithComments HsModule
+relocateCommentsSameLine = everywhereMEpAnnsBackwards f
   where
     f epa@EpAnn {..} =
       insertCommentsByPos
