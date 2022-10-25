@@ -1,6 +1,7 @@
 -- | Helper functions for dealing with import declarations.
 module HIndent.Pretty.Import
-  ( extractImports
+  ( importsExist
+  , extractImports
   , extractImportsSorted
   , groupImports
   ) where
@@ -8,6 +9,10 @@ module HIndent.Pretty.Import
 import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Import.Sort
+
+-- | Returns if the module has import declarations.
+importsExist :: HsModule -> Bool
+importsExist = not . null . hsmodImports
 
 -- | Extracts import declarations from the given module. Adjacent import
 -- declarations are grouped as a single list.

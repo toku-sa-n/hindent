@@ -135,8 +135,8 @@ instance Pretty HsModule where
       pairs =
         [ (pragmaExists m, prettyPragmas m)
         , (moduleDeclarationExists m, outputModuleDeclaration m)
-        , (importsExist m, outputImports)
-        , (declsExist m, outputDecls)
+        , (importsExist m, prettyImports)
+        , (declsExist m, prettyDecls)
         ]
       outputModuleDeclaration HsModule {hsmodName = Nothing} =
         error "The module declaration does not exist."
@@ -155,7 +155,7 @@ instance Pretty HsModule where
           string " where"
       moduleDeclarationExists HsModule {hsmodName = Nothing} = False
       moduleDeclarationExists _                              = True
-      outputDecls =
+      prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
         addSeparator $ hsmodDecls m
       addSeparator []     = []
@@ -165,9 +165,8 @@ instance Pretty HsModule where
       separator (SigD _ InlineSig {}) = newline
       separator _                     = blankline
       declsExist = not . null . hsmodDecls
-      outputImports = importDecls >>= blanklined . fmap outputImportGroup
+      prettyImports = importDecls >>= blanklined . fmap outputImportGroup
       outputImportGroup = lined . fmap pretty
-      importsExist = not . null . hsmodImports
       importDecls =
         gets (configSortImports . psConfig) >>= \case
           True  -> pure $ extractImportsSorted m
