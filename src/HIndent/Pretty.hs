@@ -138,7 +138,8 @@ instance Pretty HsModule where
         , (importsExist m, outputImports m)
         , (declsExist m, outputDecls)
         ]
-      outputModuleDeclaration HsModule {hsmodName = Nothing} = return ()
+      outputModuleDeclaration HsModule {hsmodName = Nothing} =
+        error "The module declaration does not exist."
       outputModuleDeclaration HsModule { hsmodName = Just name
                                        , hsmodExports = Nothing
                                        } = do
