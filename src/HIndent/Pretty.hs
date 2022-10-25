@@ -23,7 +23,6 @@ import           Control.Monad.RWS
 import           Data.List
 import           Data.Maybe
 import           Data.Void
-import           Generics.SYB                 hiding (Fixity, Infix, Prefix)
 import           GHC.Core.Coercion
 import           GHC.Core.InstEnv
 import           GHC.Data.Bag
@@ -171,11 +170,10 @@ instance Pretty HsModule where
           True  -> pure $ extractImportsSorted m
           False -> pure $ extractImports m
   commentsBefore =
-    filter (not . isPragma . ac_tok . unLoc) .
-    listify (not . isEofComment) . priorComments . comments . hsmodAnn
+    filter isNeitherEofNorPragmaComment . priorComments . comments . hsmodAnn
     where
-      isEofComment (L _ (EpaComment EpaEofComment _)) = True
-      isEofComment _                                  = False
+      isNeitherEofNorPragmaComment (L _ (EpaComment EpaEofComment _)) = False
+      isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) = not $ isPragma tok
   commentsAfter =
     filter (not . isPragma . ac_tok . unLoc) .
     followingComments . comments . hsmodAnn
