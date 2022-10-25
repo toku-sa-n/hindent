@@ -146,12 +146,12 @@ instance Pretty HsModule where
         pretty $ fmap ModuleNameWithPrefix name
         string " where"
       outputModuleDeclaration HsModule { hsmodName = Just name
-                                       , hsmodExports = Just (L _ xs)
+                                       , hsmodExports = Just exports
                                        } = do
         pretty $ fmap ModuleNameWithPrefix name
         newline
         indentedBlock $ do
-          vTuple $ fmap pretty xs
+          printCommentsAnd exports (vTuple . fmap pretty)
           string " where"
       moduleDeclarationExists HsModule {hsmodName = Nothing} = False
       moduleDeclarationExists _                              = True
