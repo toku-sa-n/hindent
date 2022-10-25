@@ -1,5 +1,5 @@
 -- | Import declaration sorting for pretty-printing.
-module HIndent.Pretty.Imports.Sort
+module HIndent.Pretty.Import.Sort
   ( sortImportsByName
   , sortImportsByLocation
   ) where

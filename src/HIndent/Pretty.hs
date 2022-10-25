@@ -42,7 +42,7 @@ import           GHC.Unit
 import           GHC.Unit.Module.Warnings
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Imports.Sort
+import           HIndent.Pretty.Import.Sort
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
 import           HIndent.Pretty.Types
