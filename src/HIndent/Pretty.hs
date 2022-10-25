@@ -43,7 +43,6 @@ import           GHC.Unit.Module.Warnings
 import           HIndent.Applicative
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Import
-import           HIndent.Pretty.Import.Sort
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
 import           HIndent.Pretty.Types
@@ -136,7 +135,7 @@ instance Pretty HsModule where
       pairs =
         [ (pragmaExists m, prettyPragmas m)
         , (moduleDeclarationExists m, outputModuleDeclaration m)
-        , (importsExist m, outputImports m)
+        , (importsExist m, outputImports)
         , (declsExist m, outputDecls)
         ]
       outputModuleDeclaration HsModule {hsmodName = Nothing} =
@@ -166,13 +165,13 @@ instance Pretty HsModule where
       separator (SigD _ InlineSig {}) = newline
       separator _                     = blankline
       declsExist = not . null . hsmodDecls
-      -- TODO: Support 'configSortImports'.
-      outputImports =
-        blanklined .
-        fmap (outputImportGroup . sortImportsByName) .
-        groupImports . sortImportsByLocation . hsmodImports
+      outputImports = importDecls >>= blanklined . fmap outputImportGroup
       outputImportGroup = lined . fmap pretty
       importsExist = not . null . hsmodImports
+      importDecls =
+        gets (configSortImports . psConfig) >>= \case
+          True  -> pure $ extractImportsSorted m
+          False -> pure $ extractImports m
   commentsBefore =
     filter (not . isPragma . ac_tok . unLoc) .
     listify (not . isEofComment) . priorComments . comments . hsmodAnn

@@ -1,10 +1,23 @@
 -- | Helper functions for dealing with import declarations.
 module HIndent.Pretty.Import
-  ( groupImports
+  ( extractImports
+  , extractImportsSorted
+  , groupImports
   ) where
 
 import           GHC.Hs
 import           GHC.Types.SrcLoc
+import           HIndent.Pretty.Import.Sort
+
+-- | Extracts import declarations from the given module. Adjacent import
+-- declarations are grouped as a single list.
+extractImports :: HsModule -> [[LImportDecl GhcPs]]
+extractImports = groupImports . sortImportsByLocation . hsmodImports
+
+-- | Extracts import declarations from the given module and sorts them by
+-- their names. Adjacent import declarations are grouped as a single list.
+extractImportsSorted :: HsModule -> [[LImportDecl GhcPs]]
+extractImportsSorted = fmap sortImportsByName . extractImports
 
 -- | Combines adjacent import declarations into a single list.
 groupImports :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
