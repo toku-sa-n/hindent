@@ -134,20 +134,18 @@ instance Pretty HsModule where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists m, prettyPragmas m)
-        , (moduleDeclarationExists m, outputModuleDeclaration m)
+        , (moduleDeclarationExists m, prettyModuleDecl m)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
         ]
-      outputModuleDeclaration HsModule {hsmodName = Nothing} =
+      prettyModuleDecl HsModule {hsmodName = Nothing} =
         error "The module declaration does not exist."
-      outputModuleDeclaration HsModule { hsmodName = Just name
-                                       , hsmodExports = Nothing
-                                       } = do
+      prettyModuleDecl HsModule {hsmodName = Just name, hsmodExports = Nothing} = do
         pretty $ fmap ModuleNameWithPrefix name
         string " where"
-      outputModuleDeclaration HsModule { hsmodName = Just name
-                                       , hsmodExports = Just exports
-                                       } = do
+      prettyModuleDecl HsModule { hsmodName = Just name
+                                , hsmodExports = Just exports
+                                } = do
         pretty $ fmap ModuleNameWithPrefix name
         newline
         indentedBlock $ do
