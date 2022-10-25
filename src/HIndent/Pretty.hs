@@ -128,9 +128,7 @@ class Pretty a where
   commentsAfter = const []
 
 instance Pretty HsModule where
-  pretty' m = do
-    blanklined printers
-    newline
+  pretty' m = blanklined printers >> newline
     -- TODO: Refactor this 'where' clause.
     where
       printers = snd <$> filter fst pairs
