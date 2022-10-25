@@ -155,13 +155,14 @@ instance Pretty HsModule where
       moduleDeclarationExists _                              = True
       prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
-        addSeparator $ hsmodDecls m
-      addSeparator []     = []
-      addSeparator [x]    = [(x, Nothing)]
-      addSeparator (x:xs) = (x, Just $ separator $ unLoc x) : addSeparator xs
-      separator (SigD _ TypeSig {})   = newline
-      separator (SigD _ InlineSig {}) = newline
-      separator _                     = blankline
+        addDeclSeparator $ hsmodDecls m
+      addDeclSeparator [] = []
+      addDeclSeparator [x] = [(x, Nothing)]
+      addDeclSeparator (x:xs) =
+        (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
+      declSeparator (SigD _ TypeSig {})   = newline
+      declSeparator (SigD _ InlineSig {}) = newline
+      declSeparator _                     = blankline
       declsExist = not . null . hsmodDecls
       prettyImports = importDecls >>= blanklined . fmap outputImportGroup
       outputImportGroup = lined . fmap pretty
