@@ -48,8 +48,13 @@ import           GHC.Hs
 import           GHC.Types.SrcLoc
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
-import           HIndent.Types
 import           Type.Reflection
+
+-- | A wrapper type used in everywhereMEpAnnsBackwards' to collect all
+-- 'EpAnn's to apply a function with them in order their positions.
+data Wrapper =
+  forall a. Typeable (EpAnn a) =>
+            Wrapper (EpAnn a)
 
 -- | 'State' with comments.
 type WithComments = State [LEpaComment]
@@ -253,25 +258,24 @@ everywhereMEpAnnsInOrder cmp f hm =
         collectEpAnns ::
              forall a. Typeable a
           => a
-          -> ([GeneralEpa] -> [GeneralEpa])
+          -> ([Wrapper] -> [Wrapper])
         collectEpAnns x
-          -- If 'a' is 'EpAnn b' ('b' can be any type), wrap 'x' with a 'GeneralEpa'.
+          -- If 'a' is 'EpAnn b' ('b' can be any type), wrap 'x' with a 'Wrapper'.
           | App g _ <- typeRep @a
-          , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (GeneralEpa x :)
+          , Just HRefl <- eqTypeRep g (typeRep @EpAnn) = (Wrapper x :)
           | otherwise = id
     applyFunctionInOrderEpAnnEndPositions ::
-         [GeneralEpa]
-      -> WithComments [(Int, GeneralEpa)] -- ^ The first element of the tuple
-                                       -- indicates how many 'GeneralEpa's were there before 'everywhereM'
+         [Wrapper]
+      -> WithComments [(Int, Wrapper)] -- ^ The first element of the tuple
+                                       -- indicates how many 'Wrapper's were there before 'everywhereM'
                                        -- accessed the second element.
     applyFunctionInOrderEpAnnEndPositions anns =
-      forM sorted $ \(i, GeneralEpa x) -> do
+      forM sorted $ \(i, Wrapper x) -> do
         x' <- f x
-        pure (i, GeneralEpa x')
+        pure (i, Wrapper x')
       where
         indexed = zip [0 :: Int ..] anns
-        sorted =
-          sortBy (\(_, GeneralEpa a) (_, GeneralEpa b) -> cmp a b) indexed
+        sorted = sortBy (\(_, Wrapper a) (_, Wrapper b) -> cmp a b) indexed
     putModifiedEpAnnsToModule anns = evalStateT (everywhereM setEpAnn hm) [0 ..]
       where
         setEpAnn ::
@@ -285,7 +289,7 @@ everywhereMEpAnnsInOrder cmp f hm =
             i <- gets head
             modify tail
             case lookup i anns of
-              Just (GeneralEpa y)
+              Just (Wrapper y)
                 | App _ h <- typeOf y
                 , Just HRefl <- eqTypeRep g' h -> pure y
               _ -> error "Unmatches"
