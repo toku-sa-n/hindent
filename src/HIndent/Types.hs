@@ -10,6 +10,7 @@ module HIndent.Types
   ( Printer(..)
   , PrintState(..)
   , Config(..)
+  , GeneralEpa(..)
   , readExtension
   , defaultConfig
   ) where
@@ -22,8 +23,10 @@ import           Data.ByteString.Builder
 import           Data.Functor.Identity
 import           Data.Int                   (Int64)
 import           Data.Maybe
+import           Data.Typeable
 import           Data.Yaml                  (FromJSON (..))
 import qualified Data.Yaml                  as Y
+import           GHC.Hs
 import           Language.Haskell.Extension (Extension (UnknownExtension),
                                              classifyExtension)
 
@@ -74,6 +77,11 @@ data Config =
     , configExtensions      :: [Extension]
       -- ^ Extra language extensions enabled by default.
     }
+
+-- | A type that wraps any 'EpAnn', regardless of the type of 'ann'.
+data GeneralEpa =
+  forall a. Typeable (EpAnn a) =>
+            GeneralEpa (EpAnn a)
 -- | Parse an extension.
 #if __GLASGOW_HASKELL__ >= 808
 readExtension :: (Monad m, MonadFail m) => String -> m Extension
