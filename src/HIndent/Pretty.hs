@@ -1746,6 +1746,7 @@ instance Pretty PatInsidePatDecl where
   pretty' (PatInsidePatDecl (ConPat {pat_args = (InfixCon l r), ..})) =
     spaced [pretty l, pretty $ fmap InfixOp pat_con, pretty r]
   pretty' (PatInsidePatDecl x) = pretty x
+  commentsFrom (PatInsidePatDecl x) = Just $ CommentExtractable x
 
 prettyPat :: Pat GhcPs -> Printer ()
 prettyPat WildPat {} = string "_"
@@ -1807,6 +1808,7 @@ instance Pretty RecConPat where
       fieldPrinters =
         fmap (pretty . fmap RecConField) rec_flds ++
         maybeToList (fmap (const (string "..")) rec_dotdot)
+  commentsFrom (RecConPat x) = Just $ CommentExtractable x
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsBracket GhcPs) where
   pretty' (ExpBr _ expr) = brackets $ wrapWithBars $ pretty expr
@@ -1818,6 +1820,13 @@ instance Pretty (HsBracket GhcPs) where
   pretty' (VarBr _ True var) = string "'" >> pretty var
   pretty' (VarBr _ False var) = string "''" >> pretty var
   pretty' (TExpBr _ x) = typedBrackets $ pretty x
+  commentsFrom ExpBr {}  = Nothing
+  commentsFrom PatBr {}  = Nothing
+  commentsFrom DecBrL {} = Nothing
+  commentsFrom DecBrG {} = Nothing
+  commentsFrom TypBr {}  = Nothing
+  commentsFrom VarBr {}  = Nothing
+  commentsFrom TExpBr {} = Nothing
 #endif
 instance Pretty SigBindFamily where
   pretty' (Sig x)        = pretty $ DeclSig x
