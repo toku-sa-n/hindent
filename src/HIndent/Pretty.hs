@@ -1913,6 +1913,7 @@ instance Pretty RecConField where
 instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (Pat GhcPs))) where
   pretty' HsRecField {..} =
     (pretty hsRecFieldLbl >> string " = ") |=> pretty hsRecFieldArg
+  commentsFrom HsRecField {..} = Just $ CommentExtractable hsRecFieldAnn
 
 -- | For record updates.
 instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -1929,6 +1930,7 @@ instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr Gh
           string " ="
           newline
           indentedBlock $ pretty hsRecFieldArg
+  commentsFrom HsRecField {..} = Just $ CommentExtractable hsRecFieldAnn
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 -- | For pattern matchings against records.
@@ -1957,6 +1959,7 @@ instance Pretty RecConField where
     unless hsRecPun $ do
       string " = "
       pretty hsRecFieldArg
+  commentsFrom (RecConField x) = Just $ CommentExtractable x
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (FieldOcc GhcPs) where
@@ -1964,6 +1967,7 @@ instance Pretty (FieldOcc GhcPs) where
 #else
 instance Pretty (FieldOcc GhcPs) where
   pretty' FieldOcc {..} = pretty rdrNameFieldOcc
+  commentsFrom FieldOcc {} = Nothing
 #endif
 -- HsConDeclH98Details
 instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (BangType GhcPs))) (GenLocated SrcSpanAnnL [GenLocated SrcSpanAnnA (ConDeclField GhcPs)])) where
@@ -1971,16 +1975,21 @@ instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (Bang
     where
       horizontal = spacePrefixed $ fmap pretty xs
       vertical = indentedBlock $ newlinePrefixed $ fmap pretty xs
-  pretty' (RecCon (L _ rec)) = do
-    newline
-    indentedBlock $ vFields $ fmap pretty rec
+  pretty' (RecCon x) =
+    printCommentsAnd x $ \rec -> do
+      newline
+      indentedBlock $ vFields $ fmap pretty rec
   pretty' InfixCon {} =
     error
       "Cannot handle here because 'InfixCon' does not have the information of its constructor."
+  commentsFrom PrefixCon {} = Nothing
+  commentsFrom RecCon {}    = Nothing
+  commentsFrom InfixCon {}  = Nothing
 
 -- FIXME: Reconsider using a type variable.
 instance Pretty a => Pretty (HsScaled GhcPs a) where
   pretty' (HsScaled _ x) = pretty x
+  commentsFrom HsScaled {} = Nothing
 
 instance Pretty (ConDeclField GhcPs) where
   pretty' ConDeclField {..}
@@ -1991,6 +2000,7 @@ instance Pretty (ConDeclField GhcPs) where
     hCommaSep $ fmap pretty cd_fld_names
     string " :: "
     pretty cd_fld_type
+  commentsFrom ConDeclField {..} = Just $ CommentExtractable cd_fld_ext
 
 instance Pretty InfixExpr where
   pretty' (InfixExpr (L _ (HsVar _ bind))) = pretty $ fmap InfixOp bind
@@ -2045,19 +2055,27 @@ instance Pretty InfixApp where
           (L loc (OpApp _ l o r)) ->
             pretty (L loc (InfixApp l o r immediatelyAfterDo))
           _ -> pretty lhs
+  commentsFrom InfixApp {} = Nothing
 
 instance Pretty a => Pretty (BooleanFormula a) where
   pretty' (Var x)    = pretty x
   pretty' (And xs)   = hvCommaSep $ fmap pretty xs
   pretty' (Or xs)    = hvBarSep $ fmap pretty xs
   pretty' (Parens x) = parens $ pretty x
+  commentsFrom Var {}    = Nothing
+  commentsFrom And {}    = Nothing
+  commentsFrom Or {}     = Nothing
+  commentsFrom Parens {} = Nothing
 
 instance Pretty (FieldLabelStrings GhcPs) where
   pretty' (FieldLabelStrings xs) = hDotSep $ fmap pretty xs
+  commentsFrom FieldLabelStrings {} = Nothing
 
 instance Pretty (AmbiguousFieldOcc GhcPs) where
   pretty' (Unambiguous _ name) = pretty name
   pretty' (Ambiguous _ name)   = pretty name
+  commentsFrom Unambiguous {} = Nothing
+  commentsFrom Ambiguous {}   = Nothing
 
 instance Pretty (ImportDecl GhcPs) where
   pretty' decl@ImportDecl {..} = do
