@@ -471,7 +471,6 @@ instance Pretty MatchGroupForCaseInProc where
 
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
-  commentsFrom (HsVar _ x)   = Just $ CommentExtractable x
   commentsFrom (HsApp x _ _) = Just $ CommentExtractable x
   commentsFrom _             = Nothing
 
