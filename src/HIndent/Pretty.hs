@@ -1387,13 +1387,19 @@ prettyHsMatchContext LamCaseAlt {}     = notUsedInParsedStage
 #endif
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
+  commentsFrom ParStmtBlock {} = Nothing
 
 instance Pretty ParStmtBlockInsideVerticalList where
   pretty' (ParStmtBlockInsideVerticalList (ParStmtBlock _ xs _ _)) =
     vCommaSep $ fmap pretty xs
+  commentsFrom (ParStmtBlockInsideVerticalList x) = Just $ CommentExtractable x
 
 instance Pretty RdrName where
   pretty' = pretty . PrefixOp
+  commentsFrom Unqual {} = Nothing
+  commentsFrom Qual {}   = Nothing
+  commentsFrom Orig {}   = Nothing
+  commentsFrom Exact {}  = Nothing
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
@@ -1690,6 +1696,7 @@ instance Pretty EpaCommentTok where
   pretty' _ =
     error
       "Documentation comments should not appear because they are treated as normal ones. EOF comment should be removed by the preprocessing."
+  commentsFrom = const Nothing
 
 instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
