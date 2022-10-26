@@ -1087,6 +1087,7 @@ instance Pretty StmtLRInsideVerticalList where
   pretty' (StmtLRInsideVerticalList (ParStmt _ xs _ _)) =
     vBarSep $ fmap (pretty . ParStmtBlockInsideVerticalList) xs
   pretty' (StmtLRInsideVerticalList x) = pretty x
+  commentsFrom (StmtLRInsideVerticalList x) = commentsFrom x
 
 -- | For pattern matching.
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (Pat GhcPs))) where
