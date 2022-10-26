@@ -2098,6 +2098,7 @@ instance Pretty (ImportDecl GhcPs) where
     where
       explicitOrHidingImports =
         pretty <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+  commentsFrom ImportDecl {..} = Just $ CommentExtractable ideclExt
 
 packageName :: ImportDecl GhcPs -> Maybe StringLiteral
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -2117,10 +2118,14 @@ instance Pretty (HsDerivingClause GhcPs) where
       pretty x
       space
     pretty deriv_clause_tys
+  commentsFrom HsDerivingClause {..} =
+    Just $ CommentExtractable deriv_clause_ext
 
 instance Pretty (DerivClauseTys GhcPs) where
   pretty' (DctSingle _ ty) = parens $ pretty ty
   pretty' (DctMulti _ ts)  = hvTuple $ fmap pretty ts
+  commentsFrom DctSingle {} = Nothing
+  commentsFrom DctMulti {}  = Nothing
 
 instance Pretty OverlapMode where
   pretty' NoOverlap {}    = notUsedInParsedStage
@@ -2128,9 +2133,15 @@ instance Pretty OverlapMode where
   pretty' Overlapping {}  = string "{-# OVERLAPPING #-}"
   pretty' Overlaps {}     = string "{-# OVERLAPS #-}"
   pretty' Incoherent {}   = string "{-# INCOHERENT #-}"
+  commentsFrom NoOverlap {}    = Nothing
+  commentsFrom Overlappable {} = Nothing
+  commentsFrom Overlapping {}  = Nothing
+  commentsFrom Overlaps {}     = Nothing
+  commentsFrom Incoherent {}   = Nothing
 
 instance Pretty StringLiteral where
   pretty' = output
+  commentsFrom StringLiteral {} = Nothing
 
 -- | This instance is for type family declarations inside a class declaration.
 instance Pretty (FamilyDecl GhcPs) where
@@ -2143,6 +2154,7 @@ instance Pretty (FamilyDecl GhcPs) where
     whenJust fdInjectivityAnn $ \x -> do
       string " | "
       pretty x
+  commentsFrom FamilyDecl {..} = Just $ CommentExtractable fdExt
 
 instance Pretty DeclTypeFamily where
   pretty' (DeclTypeFamily FamilyDecl {..}) = do
@@ -2171,6 +2183,7 @@ instance Pretty DeclTypeFamily where
         newline
         indentedBlock $ lined $ fmap pretty xs
       _ -> pure ()
+  commentsFrom (DeclTypeFamily x) = Just $ CommentExtractable x
 
 instance Pretty (FamilyResultSig GhcPs) where
   pretty' NoSig {} = pure ()
@@ -2178,6 +2191,9 @@ instance Pretty (FamilyResultSig GhcPs) where
     string ":: "
     pretty x
   pretty' (TyVarSig _ x) = pretty x
+  commentsFrom NoSig {}    = Nothing
+  commentsFrom KindSig {}  = Nothing
+  commentsFrom TyVarSig {} = Nothing
 
 instance Pretty (HsTyVarBndr a GhcPs) where
   pretty' (UserTyVar _ _ x) = pretty x
@@ -2186,12 +2202,15 @@ instance Pretty (HsTyVarBndr a GhcPs) where
       pretty name
       string " :: "
       pretty ty
+  commentsFrom (UserTyVar x _ _)     = Just $ CommentExtractable x
+  commentsFrom (KindedTyVar x _ _ _) = Just $ CommentExtractable x
 
 instance Pretty (InjectivityAnn GhcPs) where
   pretty' (InjectivityAnn _ from to) = do
     pretty from
     string " -> "
     spaced $ fmap pretty to
+  commentsFrom (InjectivityAnn x _ _) = Just $ CommentExtractable x
 
 instance Pretty (ArithSeqInfo GhcPs) where
   pretty' (From from) = brackets $ spaced [pretty from, string ".."]
@@ -2202,6 +2221,10 @@ instance Pretty (ArithSeqInfo GhcPs) where
   pretty' (FromThenTo from next to) =
     brackets $
     spaced [pretty from >> comma >> pretty next, string "..", pretty to]
+  commentsFrom From {}       = Nothing
+  commentsFrom FromThen {}   = Nothing
+  commentsFrom FromTo {}     = Nothing
+  commentsFrom FromThenTo {} = Nothing
 
 instance Pretty (HsForAllTelescope GhcPs) where
   pretty' HsForAllVis {..} = do
@@ -2212,6 +2235,8 @@ instance Pretty (HsForAllTelescope GhcPs) where
     string "forall "
     spaced $ fmap pretty hsf_invis_bndrs
     dot
+  commentsFrom HsForAllVis {..}   = Just $ CommentExtractable hsf_xvis
+  commentsFrom HsForAllInvis {..} = Just $ CommentExtractable hsf_xinvis
 
 instance Pretty InfixOp where
   pretty' (InfixOp (Unqual name)) = backticksIfNotSymbol name $ pretty name
@@ -2224,6 +2249,7 @@ instance Pretty InfixOp where
   pretty' (InfixOp (Exact name)) = backticksIfNotSymbol occ $ pretty occ
     where
       occ = occName name
+  commentsFrom (InfixOp x) = Just $ CommentExtractable x
 
 instance Pretty PrefixOp where
   pretty' (PrefixOp (Unqual name)) = parensIfSymbol name $ pretty name
