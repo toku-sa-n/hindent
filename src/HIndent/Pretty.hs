@@ -1700,6 +1700,7 @@ instance Pretty EpaCommentTok where
 
 instance Pretty (SpliceDecl GhcPs) where
   pretty' (SpliceDecl _ sp _) = pretty sp
+  commentsFrom SpliceDecl {} = Nothing
 
 instance Pretty (HsSplice GhcPs) where
   pretty' (HsTypedSplice _ _ _ body) = do
@@ -1717,9 +1718,29 @@ instance Pretty (HsSplice GhcPs) where
       wrapWithBars $
         indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
   pretty' HsSpliced {} = notUsedInParsedStage
+  commentsFrom (HsTypedSplice x _ _ _)   = Just $ CommentExtractable x
+  commentsFrom (HsUntypedSplice x _ _ _) = Just $ CommentExtractable x
+  commentsFrom HsQuasiQuote {}           = Nothing
+  commentsFrom HsSpliced {}              = Nothing
 
 instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
+  commentsFrom WildPat {}              = Nothing
+  commentsFrom VarPat {}               = Nothing
+  commentsFrom (LazyPat x _)           = Just $ CommentExtractable x
+  commentsFrom (AsPat x _ _)           = Just $ CommentExtractable x
+  commentsFrom (ParPat x _)            = Just $ CommentExtractable x
+  commentsFrom (BangPat x _)           = Just $ CommentExtractable x
+  commentsFrom (ListPat x _)           = Just $ CommentExtractable x
+  commentsFrom (TuplePat x _ _)        = Just $ CommentExtractable x
+  commentsFrom (SumPat x _ _ _)        = Just $ CommentExtractable x
+  commentsFrom ConPat {..}             = Just $ CommentExtractable pat_con_ext
+  commentsFrom (ViewPat x _ _)         = Just $ CommentExtractable x
+  commentsFrom SplicePat {}            = Nothing
+  commentsFrom LitPat {}               = Nothing
+  commentsFrom (NPat x _ _ _)          = Just $ CommentExtractable x
+  commentsFrom (NPlusKPat x _ _ _ _ _) = Just $ CommentExtractable x
+  commentsFrom (SigPat x _ _)          = Just $ CommentExtractable x
 
 instance Pretty PatInsidePatDecl where
   pretty' (PatInsidePatDecl (ConPat {pat_args = (InfixCon l r), ..})) =
