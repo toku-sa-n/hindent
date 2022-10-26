@@ -1832,14 +1832,19 @@ instance Pretty SigBindFamily where
   pretty' (Sig x)        = pretty $ DeclSig x
   pretty' (Bind x)       = pretty x
   pretty' (TypeFamily x) = pretty x
+  commentsFrom (Sig x)        = Just $ CommentExtractable x
+  commentsFrom (Bind x)       = Just $ CommentExtractable x
+  commentsFrom (TypeFamily x) = Just $ CommentExtractable x
 
 instance Pretty EpaComment where
   pretty' EpaComment {..} = pretty ac_tok
+  commentsFrom EpaComment {} = Nothing
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'Anchor'.
 instance Pretty Anchor where
   pretty' _ = return ()
+  commentsFrom Anchor {} = Nothing
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcAnn'.
@@ -1851,6 +1856,8 @@ instance Pretty (SrcAnn a) where
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcSpan'.
 instance Pretty SrcSpan where
   pretty' _ = return ()
+  commentsFrom RealSrcSpan {}   = Nothing
+  commentsFrom UnhelpfulSpan {} = Nothing
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'EpAnn'.
@@ -1877,16 +1884,23 @@ instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
   pretty' EmptyLocalBinds {} =
     error
       "This branch indicates that the bind is empty, but since calling this code means that let or where has already been output, it cannot be handled here. It should be handled higher up in the AST."
+  commentsFrom (HsValBinds x _)   = Just $ CommentExtractable x
+  commentsFrom (HsIPBinds x _)    = Just $ CommentExtractable x
+  commentsFrom EmptyLocalBinds {} = Nothing
 
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
     where
       sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) []
   pretty' XValBindsLR {} = notUsedInParsedStage
+  commentsFrom ValBinds {}    = Nothing
+  commentsFrom XValBindsLR {} = notUsedInParsedStage
 
 instance Pretty (HsTupArg GhcPs) where
   pretty' (Present _ e) = pretty e
   pretty' Missing {}    = pure () -- This appears in a tuple section.
+  commentsFrom (Present x _) = Just $ CommentExtractable x
+  commentsFrom (Missing x)   = Just $ CommentExtractable x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty RecConField where
   pretty' (RecConField HsFieldBind {..}) = do
