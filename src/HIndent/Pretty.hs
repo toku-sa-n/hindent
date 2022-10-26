@@ -808,6 +808,7 @@ instance Pretty LambdaCase where
       else do
         newline
         indentedBlock $ pretty $ MatchGroupForCase matches
+  commentsFrom (LambdaCase x) = commentsFrom x
 
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
@@ -819,6 +820,7 @@ instance Pretty (HsSigType GhcPs) where
         space
       _ -> return ()
     pretty sig_body
+  commentsFrom HsSig {} = Nothing
 
 instance Pretty HsSigTypeInsideInstDecl where
   pretty' (HsSigTypeInsideInstDecl HsSig {..}) = do
@@ -830,6 +832,7 @@ instance Pretty HsSigTypeInsideInstDecl where
         space
       _ -> return ()
     pretty $ fmap HsTypeInsideInstDecl sig_body
+  commentsFrom (HsSigTypeInsideInstDecl x) = commentsFrom x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -846,6 +849,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
+  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = commentsFrom x
 
 instance Pretty HsSigTypeInsideDeclSig where
   pretty' (HsSigTypeInsideDeclSig HsSig {..}) =
@@ -875,6 +879,7 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
       flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
       flatten x                       = [x]
+  commentsFrom (HsSigTypeInsideDeclSig x) = commentsFrom x
 #else
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -891,6 +896,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
+  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = commentsFrom x
 
 instance Pretty HsSigTypeInsideDeclSig where
   pretty' (HsSigTypeInsideDeclSig HsSig {..}) =
@@ -920,9 +926,12 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
       flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
       flatten x                       = [x]
+  commentsFrom (HsSigTypeInsideDeclSig x) = commentsFrom x
 #endif
 instance Pretty (ConDecl GhcPs) where
   pretty' = prettyConDecl
+  commentsFrom ConDeclGADT {..} = commentsFrom con_g_ext
+  commentsFrom ConDeclH98 {..}  = commentsFrom con_ext
 
 prettyConDecl :: ConDecl GhcPs -> Printer ()
 prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
