@@ -1224,6 +1224,7 @@ instance Pretty HsTypeInsideInstDecl where
         newline
         pretty hst_body
   pretty' (HsTypeInsideInstDecl x) = pretty x
+  commentsFrom (HsTypeInsideInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
@@ -1251,6 +1252,7 @@ instance Pretty HsTypeInsideVerticalFuncSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
+  commentsFrom (HsTypeInsideVerticalFuncSig x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideVerticalDeclSig where
   pretty' (HsTypeInsideVerticalDeclSig (HsFunTy _ _ a b)) = declSigV
@@ -1287,6 +1289,8 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
         pretty $ head cd_fld_names
         string " :: "
         pretty cd_fld_type
+  commentsFrom PrefixConGADT {} = Nothing
+  commentsFrom RecConGADT {}    = Nothing
 #endif
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
@@ -1297,6 +1301,9 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         newlinePrefixed
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
+  commentsBefore GRHSs {..} = priorComments grhssExt
+  commentOnSameLine = const Nothing
+  commentsAfter GRHSs {..} = getFollowingComments grhssExt
 
 instance Pretty GRHSsForCase where
   pretty' (GRHSsForCase GRHSs {..}) = do
@@ -1307,6 +1314,7 @@ instance Pretty GRHSsForCase where
           newline
           string "where " |=> pretty grhssLocalBinds
       _ -> pure ()
+  commentsFrom (GRHSsForCase x) = Just $ CommentExtractable x
 
 instance Pretty GRHSsForLambda where
   pretty' (GRHSsForLambda GRHSs {..}) = do
@@ -1317,6 +1325,7 @@ instance Pretty GRHSsForLambda where
         newlinePrefixed
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
+  commentsFrom (GRHSsForLambda x) = Just $ CommentExtractable x
 
 instance Pretty GRHSsForLambdaInProc where
   pretty' (GRHSsForLambdaInProc GRHSs {..}) = do
@@ -1327,6 +1336,10 @@ instance Pretty GRHSsForLambdaInProc where
         newlinePrefixed
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
+  commentsBefore (GRHSsForLambdaInProc GRHSs {..}) = priorComments grhssExt
+  commentOnSameLine = const Nothing
+  commentsAfter (GRHSsForLambdaInProc GRHSs {..}) =
+    getFollowingComments grhssExt
 
 instance Pretty GRHSsForCaseInProc where
   pretty' (GRHSsForCaseInProc GRHSs {..}) = do
@@ -1337,9 +1350,24 @@ instance Pretty GRHSsForCaseInProc where
           newline
           string "where " |=> pretty grhssLocalBinds
       _ -> pure ()
+  commentsBefore (GRHSsForCaseInProc GRHSs {..}) = priorComments grhssExt
+  commentOnSameLine = const Nothing
+  commentsAfter (GRHSsForCaseInProc GRHSs {..}) = getFollowingComments grhssExt
 
 instance Pretty (HsMatchContext GhcPs) where
   pretty' = prettyHsMatchContext
+  commentsFrom FunRhs {}         = Nothing
+  commentsFrom LambdaExpr {}     = Nothing
+  commentsFrom CaseAlt {}        = Nothing
+  commentsFrom IfAlt {}          = Nothing
+  commentsFrom ArrowMatchCtxt {} = Nothing
+  commentsFrom PatBindRhs {}     = Nothing
+  commentsFrom PatBindGuards {}  = Nothing
+  commentsFrom RecUpd {}         = Nothing
+  commentsFrom StmtCtxt {}       = Nothing
+  commentsFrom ThPatSplice {}    = Nothing
+  commentsFrom ThPatQuote {}     = Nothing
+  commentsFrom PatSyn {}         = Nothing
 
 prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 prettyHsMatchContext FunRhs {..}       = pretty mc_fun
