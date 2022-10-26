@@ -203,19 +203,19 @@ instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
   commentsFrom (L l _) = Just $ CommentExtractable l
 
 instance Pretty (HsDecl GhcPs) where
-  pretty' (TyClD _ d)      = pretty d
-  pretty' (InstD _ inst)   = pretty inst
-  pretty' (DerivD _ x)     = pretty x
-  pretty' (ValD _ bind)    = pretty bind
-  pretty' (SigD _ s)       = pretty $ DeclSig s
-  pretty' (KindSigD _ x)   = pretty x
-  pretty' (DefD _ x)       = pretty x
-  pretty' (ForD _ x)       = pretty x
-  pretty' (WarningD _ x)   = pretty x
-  pretty' (AnnD _ x)       = pretty x
-  pretty' (RuleD _ x)      = pretty x
-  pretty' (SpliceD _ sp)   = pretty sp
-  pretty' DocD {}          = return ()
+  pretty' (TyClD _ d) = pretty d
+  pretty' (InstD _ inst) = pretty inst
+  pretty' (DerivD _ x) = pretty x
+  pretty' (ValD _ bind) = pretty bind
+  pretty' (SigD _ s) = pretty $ DeclSig s
+  pretty' (KindSigD _ x) = pretty x
+  pretty' (DefD _ x) = pretty x
+  pretty' (ForD _ x) = pretty x
+  pretty' (WarningD _ x) = pretty x
+  pretty' (AnnD _ x) = pretty x
+  pretty' (RuleD _ x) = pretty x
+  pretty' (SpliceD _ sp) = pretty sp
+  pretty' DocD {} = error "Document comments should be treated as normal ones."
   pretty' (RoleAnnotD _ x) = pretty x
 
 instance Pretty (TyClDecl GhcPs) where
