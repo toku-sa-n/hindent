@@ -496,12 +496,12 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 instance Pretty MatchGroupForCase where
   pretty' (MatchGroupForCase MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCase))
-  commentsFrom (MatchGroupForCase x) = commentsFrom x
+  commentsFrom (MatchGroupForCase x) = Just $ CommentExtractable x
 
 instance Pretty MatchGroupForLambda where
   pretty' (MatchGroupForLambda MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambda))
-  commentsFrom (MatchGroupForLambda x) = commentsFrom x
+  commentsFrom (MatchGroupForLambda x) = Just $ CommentExtractable x
 
 instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
@@ -808,7 +808,7 @@ instance Pretty LambdaCase where
       else do
         newline
         indentedBlock $ pretty $ MatchGroupForCase matches
-  commentsFrom (LambdaCase x) = commentsFrom x
+  commentsFrom (LambdaCase x) = Just $ CommentExtractable x
 
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
@@ -832,7 +832,7 @@ instance Pretty HsSigTypeInsideInstDecl where
         space
       _ -> return ()
     pretty $ fmap HsTypeInsideInstDecl sig_body
-  commentsFrom (HsSigTypeInsideInstDecl x) = commentsFrom x
+  commentsFrom (HsSigTypeInsideInstDecl x) = Just $ CommentExtractable x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -849,7 +849,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
-  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = commentsFrom x
+  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = Just $ CommentExtractable x
 
 instance Pretty HsSigTypeInsideDeclSig where
   pretty' (HsSigTypeInsideDeclSig HsSig {..}) =
@@ -879,7 +879,7 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
       flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
       flatten x                       = [x]
-  commentsFrom (HsSigTypeInsideDeclSig x) = commentsFrom x
+  commentsFrom (HsSigTypeInsideDeclSig x) = Just $ CommentExtractable x
 #else
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -896,7 +896,7 @@ instance Pretty HsSigTypeInsideVerticalFuncSig where
             prefixed "=> " $ pretty hst_body
           x -> pretty $ HsTypeInsideDeclSig x
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
-  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = commentsFrom x
+  commentsFrom (HsSigTypeInsideVerticalFuncSig x) = Just $ CommentExtractable x
 
 instance Pretty HsSigTypeInsideDeclSig where
   pretty' (HsSigTypeInsideDeclSig HsSig {..}) =
@@ -926,12 +926,12 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
       flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
       flatten x                       = [x]
-  commentsFrom (HsSigTypeInsideDeclSig x) = commentsFrom x
+  commentsFrom (HsSigTypeInsideDeclSig x) = Just $ CommentExtractable x
 #endif
 instance Pretty (ConDecl GhcPs) where
   pretty' = prettyConDecl
-  commentsFrom ConDeclGADT {..} = commentsFrom con_g_ext
-  commentsFrom ConDeclH98 {..}  = commentsFrom con_ext
+  commentsFrom ConDeclGADT {..} = Just $ CommentExtractable con_g_ext
+  commentsFrom ConDeclH98 {..}  = Just $ CommentExtractable con_ext
 
 prettyConDecl :: ConDecl GhcPs -> Printer ()
 prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
@@ -1031,7 +1031,7 @@ instance Pretty MatchForCaseInProc where
   pretty' (MatchForCaseInProc Match {..}) = do
     mapM_ pretty m_pats
     pretty (GRHSsForCaseInProc m_grhss)
-  commentsFrom (MatchForCaseInProc Match {..}) = commentsFrom m_ext
+  commentsFrom (MatchForCaseInProc Match {..}) = Just $ CommentExtractable m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -1075,7 +1075,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) wher
   pretty' RecStmt {..} =
     string "rec " |=> printCommentsAnd recS_stmts (lined . fmap pretty)
   commentsFrom LastStmt {}        = Nothing
-  commentsFrom (BindStmt x _ _)   = commentsFrom x
+  commentsFrom (BindStmt x _ _)   = Just $ CommentExtractable x
   commentsFrom ApplicativeStmt {} = Nothing
   commentsFrom BodyStmt {}        = Nothing
   commentsFrom (LetStmt x _)      = Just $ CommentExtractable x
@@ -1087,7 +1087,7 @@ instance Pretty StmtLRInsideVerticalList where
   pretty' (StmtLRInsideVerticalList (ParStmt _ xs _ _)) =
     vBarSep $ fmap (pretty . ParStmtBlockInsideVerticalList) xs
   pretty' (StmtLRInsideVerticalList x) = pretty x
-  commentsFrom (StmtLRInsideVerticalList x) = commentsFrom x
+  commentsFrom (StmtLRInsideVerticalList x) = Just $ CommentExtractable x
 
 -- | For pattern matching.
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (Pat GhcPs))) where
@@ -1098,6 +1098,7 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (Pat GhcPs))) where
           Just _  -> braces $ string ".."
           Nothing -> hFields $ fmap pretty rec_flds
       vertical = vFields $ fmap pretty rec_flds
+  commentsFrom HsRecFields {} = Nothing
 
 -- | For record updates
 instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -1106,9 +1107,33 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
       fieldPrinters =
         fmap pretty rec_flds ++
         maybeToList (fmap (const (string "..")) rec_dotdot)
+  commentsFrom HsRecFields {} = Nothing
 
 instance Pretty (HsType GhcPs) where
   pretty' = prettyHsType
+  commentsFrom HsForAllTy {}            = Nothing
+  commentsFrom HsQualTy {}              = Nothing
+  commentsFrom (HsTyVar x _ _)          = Just $ CommentExtractable x
+  commentsFrom HsAppTy {}               = Nothing
+  commentsFrom HsAppKindTy {}           = Nothing
+  commentsFrom (HsFunTy x _ _ _)        = Just $ CommentExtractable x
+  commentsFrom (HsListTy x _)           = Just $ CommentExtractable x
+  commentsFrom (HsTupleTy x _ _)        = Just $ CommentExtractable x
+  commentsFrom (HsSumTy x _)            = Just $ CommentExtractable x
+  commentsFrom HsOpTy {}                = Nothing
+  commentsFrom (HsParTy x _)            = Just $ CommentExtractable x
+  commentsFrom (HsIParamTy x _ _)       = Just $ CommentExtractable x
+  commentsFrom HsStarTy {}              = Nothing
+  commentsFrom (HsKindSig x _ _)        = Just $ CommentExtractable x
+  commentsFrom HsSpliceTy {}            = Nothing
+  commentsFrom (HsDocTy x _ _)          = Just $ CommentExtractable x
+  commentsFrom (HsBangTy x _ _)         = Just $ CommentExtractable x
+  commentsFrom (HsRecTy x _)            = Just $ CommentExtractable x
+  commentsFrom (HsExplicitListTy x _ _) = Just $ CommentExtractable x
+  commentsFrom (HsExplicitTupleTy x _)  = Just $ CommentExtractable x
+  commentsFrom HsTyLit {}               = Nothing
+  commentsFrom HsWildCardTy {}          = Nothing
+  commentsFrom XHsType {}               = Nothing
 
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
