@@ -49,6 +49,11 @@ import           HIndent.Types
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Types.PkgQual
 #endif
+-- | A wrapper of an AST node from which comments can be extracted.
+data CommentExtractable =
+  forall a. Pretty a =>
+            CommentExtractable a
+
 -- | This function pretty-prints the given AST node with comments.
 pretty :: Pretty a => a -> Printer ()
 pretty p = do
@@ -116,15 +121,26 @@ printCommentsAfter p =
 -- * A node that cannot pretty-print but has comments (e.g., 'EpAnn')
 class Pretty a where
   pretty' :: a -> Printer ()
+  -- | Returns an AST node from which comments of @a@ can be extracted.
+  --
+  -- This function must not return an AST node that has comments of @a@'s
+  -- children.
+  commentsFrom :: a -> Maybe CommentExtractable
+  commentsFrom = const Nothing
   -- | Returns comments that are before the given AST node.
   commentsBefore :: a -> [LEpaComment]
-  commentsBefore = const []
+  commentsBefore (commentsFrom -> Just (CommentExtractable x)) =
+    commentsBefore x
+  commentsBefore _ = []
   -- | Returns a comment that is on the same line as the last line of the given AST node if it exists.
   commentOnSameLine :: a -> Maybe LEpaComment
-  commentOnSameLine = const Nothing
+  commentOnSameLine (commentsFrom -> Just (CommentExtractable x)) =
+    commentOnSameLine x
+  commentOnSameLine _ = Nothing
   -- | Returns comments that are after the given AST node.
   commentsAfter :: a -> [LEpaComment]
-  commentsAfter = const []
+  commentsAfter (commentsFrom -> Just (CommentExtractable x)) = commentsAfter x
+  commentsAfter _                                             = []
 
 instance Pretty HsModule where
   pretty' m = blanklined printers >> newline
@@ -183,9 +199,7 @@ instance Pretty HsModule where
 -- extracting comments. Remove the restriction.
 instance (Pretty l, Pretty e) => Pretty (GenLocated l e) where
   pretty' (L _ e) = pretty e
-  commentsBefore (L l _) = commentsBefore l
-  commentOnSameLine (L l _) = commentOnSameLine l
-  commentsAfter (L l _) = commentsAfter l
+  commentsFrom (L l _) = Just $ CommentExtractable l
 
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d)      = pretty d
@@ -295,12 +309,8 @@ instance Pretty (InstDecl GhcPs) where
 
 instance Pretty (HsBind GhcPs) where
   pretty' = prettyHsBind
-  commentsBefore FunBind {..} = commentsBefore fun_id
-  commentsBefore _            = []
-  commentOnSameLine FunBind {..} = commentOnSameLine fun_id
-  commentOnSameLine _            = Nothing
-  commentsAfter FunBind {..} = commentsAfter fun_id
-  commentsAfter _            = []
+  commentsFrom FunBind {..} = Just $ CommentExtractable fun_id
+  commentsFrom _            = Nothing
 
 prettyHsBind :: HsBind GhcPs -> Printer ()
 prettyHsBind FunBind {..} = pretty fun_matches
@@ -375,12 +385,8 @@ instance Pretty (Sig GhcPs) where
       , printCommentsAnd names (hCommaSep . fmap pretty)
       , string "#-}"
       ]
-  commentsBefore (TypeSig x _ _) = commentsBefore x
-  commentsBefore _               = []
-  commentOnSameLine (TypeSig x _ _) = commentOnSameLine x
-  commentOnSameLine _               = Nothing
-  commentsAfter (TypeSig x _ _) = commentsAfter x
-  commentsAfter _               = []
+  commentsFrom (TypeSig x _ _) = Just $ CommentExtractable x
+  commentsFrom _               = Nothing
 
 instance Pretty DeclSig where
   pretty' (DeclSig (TypeSig _ funName params)) = do
@@ -403,9 +409,7 @@ instance Pretty DeclSig where
           pretty $ HsSigTypeInsideDeclSig <$> hswc_body params
       printFunName = hCommaSep $ fmap pretty funName
   pretty' (DeclSig x) = pretty x
-  commentsBefore (DeclSig x) = commentsBefore x
-  commentOnSameLine (DeclSig x) = commentOnSameLine x
-  commentsAfter (DeclSig x) = commentsAfter x
+  commentsFrom (DeclSig x) = Just $ CommentExtractable x
 
 instance Pretty (HsDataDefn GhcPs) where
   pretty' HsDataDefn {..} =
@@ -466,15 +470,9 @@ instance Pretty MatchGroupForCaseInProc where
 
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
-  commentsBefore (HsVar _ x)   = commentsBefore x
-  commentsBefore (HsApp x _ _) = commentsBefore x
-  commentsBefore _             = []
-  commentOnSameLine (HsVar _ x)   = commentOnSameLine x
-  commentOnSameLine (HsApp x _ _) = commentOnSameLine x
-  commentOnSameLine _             = Nothing
-  commentsAfter (HsVar _ x)   = commentsAfter x
-  commentsAfter (HsApp x _ _) = commentsAfter x
-  commentsAfter _             = []
+  commentsFrom (HsVar _ x)   = Just $ CommentExtractable x
+  commentsFrom (HsApp x _ _) = Just $ CommentExtractable x
+  commentsFrom _             = Nothing
 
 prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
@@ -907,17 +905,13 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
               fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
-  commentsBefore Match {..} = commentsBefore m_ext
-  commentOnSameLine Match {..} = commentOnSameLine m_ext
-  commentsAfter Match {..} = commentsAfter m_ext
+  commentsFrom Match {..} = Just $ CommentExtractable m_ext
 
 instance Pretty MatchForCase where
   pretty' (MatchForCase Match {..}) = do
     mapM_ pretty m_pats
     pretty (GRHSsForCase m_grhss)
-  commentsBefore (MatchForCase x) = commentsBefore x
-  commentOnSameLine (MatchForCase x) = commentOnSameLine x
-  commentsAfter (MatchForCase x) = commentsAfter x
+  commentsFrom (MatchForCase x) = Just $ CommentExtractable x
 
 instance Pretty MatchForLambda where
   pretty' (MatchForLambda Match {..}) = do
@@ -928,9 +922,7 @@ instance Pretty MatchForLambda where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambda m_grhss]
-  commentsBefore (MatchForLambda x) = commentsBefore x
-  commentOnSameLine (MatchForLambda x) = commentOnSameLine x
-  commentsAfter (MatchForLambda x) = commentsAfter x
+  commentsFrom (MatchForLambda x) = Just $ CommentExtractable x
 
 instance Pretty MatchForLambdaInProc where
   pretty' (MatchForLambdaInProc Match {..}) = do
@@ -941,17 +933,14 @@ instance Pretty MatchForLambdaInProc where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambdaInProc m_grhss]
-  commentsBefore (MatchForLambdaInProc Match {..}) = commentsBefore m_ext
-  commentOnSameLine (MatchForLambdaInProc Match {..}) = commentOnSameLine m_ext
-  commentsAfter (MatchForLambdaInProc Match {..}) = commentsAfter m_ext
+  commentsFrom (MatchForLambdaInProc Match {..}) =
+    Just $ CommentExtractable m_ext
 
 instance Pretty MatchForCaseInProc where
   pretty' (MatchForCaseInProc Match {..}) = do
     mapM_ pretty m_pats
     pretty (GRHSsForCaseInProc m_grhss)
-  commentsBefore (MatchForCaseInProc Match {..}) = commentsBefore m_ext
-  commentOnSameLine (MatchForCaseInProc Match {..}) = commentOnSameLine m_ext
-  commentsAfter (MatchForCaseInProc Match {..}) = commentsAfter m_ext
+  commentsFrom (MatchForCaseInProc Match {..}) = commentsFrom m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -973,10 +962,8 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {..} =
     string "rec " |=> printCommentsAnd recS_stmts (lined . fmap pretty)
-  commentsBefore (LetStmt l _) = commentsBefore l
-  commentsBefore _             = []
-  commentsAfter (LetStmt l _) = commentsAfter l
-  commentsAfter _             = []
+  commentsFrom (LetStmt l _) = Just $ CommentExtractable l
+  commentsFrom _             = Nothing
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -1129,9 +1116,7 @@ instance Pretty HsTypeInsideDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
-  commentsBefore (HsTypeInsideDeclSig x) = commentsBefore x
-  commentOnSameLine (HsTypeInsideDeclSig x) = commentOnSameLine x
-  commentsAfter (HsTypeInsideDeclSig x) = commentsAfter x
+  commentsFrom (HsTypeInsideDeclSig x) = Just $ CommentExtractable x
 #endif
 instance Pretty HsTypeInsideVerticalFuncSig where
   pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = noDeclSigV
@@ -1150,9 +1135,7 @@ instance Pretty HsTypeInsideVerticalDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
-  commentsBefore (HsTypeInsideVerticalDeclSig x) = commentsBefore x
-  commentOnSameLine (HsTypeInsideVerticalDeclSig x) = commentOnSameLine x
-  commentsAfter (HsTypeInsideVerticalDeclSig x) = commentsAfter x
+  commentsFrom (HsTypeInsideVerticalDeclSig x) = Just $ CommentExtractable x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
@@ -1317,9 +1300,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
         string " ="
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHS x _ _) = commentsBefore x
-  commentOnSameLine (GRHS x _ _) = commentOnSameLine x
-  commentsAfter (GRHS x _ _) = commentsAfter x
+  commentsFrom (GRHS x _ _) = Just $ CommentExtractable x
 
 instance Pretty GRHSForCase where
   pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
@@ -1364,9 +1345,7 @@ instance Pretty GRHSForCase where
         string " ->"
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHSForCase (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForCase (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForCase (GRHS x _ _)) = commentsAfter x
+  commentsFrom (GRHSForCase x) = Just $ CommentExtractable x
 
 instance Pretty GRHSForLambdaInProc where
   pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =
@@ -1407,9 +1386,7 @@ instance Pretty GRHSForLambdaInProc where
         string " ->"
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHSForLambdaInProc (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForLambdaInProc (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForLambdaInProc (GRHS x _ _)) = commentsAfter x
+  commentsFrom (GRHSForLambdaInProc (GRHS x _ _)) = Just $ CommentExtractable x
 
 instance Pretty GRHSForCaseInProc where
   pretty' (GRHSForCaseInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) = do
@@ -1444,9 +1421,7 @@ instance Pretty GRHSForCaseInProc where
         string " ->"
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHSForCaseInProc (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForCaseInProc (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForCaseInProc (GRHS x _ _)) = commentsAfter x
+  commentsFrom (GRHSForCaseInProc (GRHS x _ _)) = Just $ CommentExtractable x
 
 instance Pretty GRHSForLambda where
   pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) =
@@ -1503,9 +1478,7 @@ instance Pretty GRHSForLambda where
         string " ->"
         newline
         indentedBlock $ pretty body
-  commentsBefore (GRHSForLambda (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForLambda (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForLambda (GRHS x _ _)) = commentsAfter x
+  commentsFrom (GRHSForLambda x) = Just $ CommentExtractable x
 
 instance Pretty GRHSForMultiwayIf where
   pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
@@ -1547,9 +1520,7 @@ instance Pretty GRHSForMultiwayIf where
         string " ->"
         newline
         pretty body
-  commentsBefore (GRHSForMultiwayIf (GRHS x _ _)) = commentsBefore x
-  commentOnSameLine (GRHSForMultiwayIf (GRHS x _ _)) = commentOnSameLine x
-  commentsAfter (GRHSForMultiwayIf (GRHS x _ _)) = commentsAfter x
+  commentsFrom (GRHSForMultiwayIf x) = Just $ CommentExtractable x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c) = string c
@@ -1684,9 +1655,7 @@ instance Pretty Anchor where
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcAnn'.
 instance Pretty (SrcAnn a) where
   pretty' _ = return ()
-  commentsBefore (SrcSpanAnn ep _) = commentsBefore ep
-  commentOnSameLine (SrcSpanAnn ep _) = commentOnSameLine ep
-  commentsAfter (SrcSpanAnn ep _) = commentsAfter ep
+  commentsFrom (SrcSpanAnn ep _) = Just $ CommentExtractable ep
 
 -- FIXME: This instance declaration is wrong. The declaration exists only
 -- for satisfying the 'GenLocated' one. We can't pretty-print 'SrcSpan'.
@@ -1822,9 +1791,7 @@ instance Pretty (ConDeclField GhcPs) where
 instance Pretty InfixExpr where
   pretty' (InfixExpr (L _ (HsVar _ bind))) = pretty $ fmap InfixOp bind
   pretty' (InfixExpr x)                    = pretty' x
-  commentsBefore (InfixExpr x) = commentsBefore x
-  commentOnSameLine (InfixExpr x) = commentOnSameLine x
-  commentsAfter (InfixExpr x) = commentsAfter x
+  commentsFrom (InfixExpr x) = Just $ CommentExtractable x
 
 instance Pretty InfixApp where
   pretty' InfixApp {..} = horizontal <-|> vertical
