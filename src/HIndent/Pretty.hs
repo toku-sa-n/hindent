@@ -1074,6 +1074,14 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) wher
     vCommaSep $ fmap pretty trS_stmts ++ [string "then " >> pretty trS_using]
   pretty' RecStmt {..} =
     string "rec " |=> printCommentsAnd recS_stmts (lined . fmap pretty)
+  commentsFrom LastStmt {}        = Nothing
+  commentsFrom (BindStmt x _ _)   = commentsFrom x
+  commentsFrom ApplicativeStmt {} = Nothing
+  commentsFrom BodyStmt {}        = Nothing
+  commentsFrom (LetStmt x _)      = Just $ CommentExtractable x
+  commentsFrom ParStmt {}         = Nothing
+  commentsFrom TransStmt {..}     = Just $ CommentExtractable trS_ext
+  commentsFrom RecStmt {..}       = Just $ CommentExtractable recS_ext
 
 instance Pretty StmtLRInsideVerticalList where
   pretty' (StmtLRInsideVerticalList (ParStmt _ xs _ _)) =
