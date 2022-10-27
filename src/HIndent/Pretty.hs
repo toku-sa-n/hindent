@@ -2262,10 +2262,12 @@ instance Pretty PrefixOp where
   pretty' (PrefixOp (Exact name)) = parensIfSymbol occ $ pretty occ
     where
       occ = occName name
+  commentsFrom (PrefixOp x) = Just $ CommentExtractable x
 
 instance Pretty Context where
   pretty' (Context xs) =
     pretty (HorizontalContext xs) <-|> pretty (VerticalContext xs)
+  commentsFrom Context {} = Nothing
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HorizontalContext where
   pretty' (HorizontalContext xs) =
@@ -2293,6 +2295,7 @@ instance Pretty HorizontalContext where
           Just (L _ [])  -> parens
           Just (L _ [_]) -> id
           Just _         -> parens
+  commentsFrom HorizontalContext {} = Nothing
 
 instance Pretty VerticalContext where
   pretty' (VerticalContext Nothing) = pure ()
@@ -2301,14 +2304,17 @@ instance Pretty VerticalContext where
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext (Just xs)) =
     printCommentsAnd xs (vTuple . fmap pretty)
+  commentsFrom VerticalContext {} = Nothing
 #endif
 -- Wrap a value of this type with 'ModulenameWithPrefix' to print it with
 -- the "module " prefix.
 instance Pretty ModuleName where
   pretty' = output
+  commentsFrom = const Nothing
 
 instance Pretty ModuleNameWithPrefix where
   pretty' (ModuleNameWithPrefix name) = spaced [string "module", pretty name]
+  commentsFrom ModuleNameWithPrefix {} = Nothing
 
 instance Pretty (IE GhcPs) where
   pretty' (IEVar _ name) = pretty name
@@ -2334,6 +2340,14 @@ instance Pretty (IE GhcPs) where
     error "Never appears as doc comments are treated as normal ones."
   pretty' IEDocNamed {} =
     error "Never appears as doc comments are treated as normal ones."
+  commentsFrom IEVar {}               = Nothing
+  commentsFrom (IEThingAbs x _)       = Just $ CommentExtractable x
+  commentsFrom (IEThingAll x _)       = Just $ CommentExtractable x
+  commentsFrom (IEThingWith x _ _ _)  = Just $ CommentExtractable x
+  commentsFrom (IEModuleContents x _) = Just $ CommentExtractable x
+  commentsFrom IEGroup {}             = Nothing
+  commentsFrom IEDoc {}               = Nothing
+  commentsFrom IEDocNamed {}          = Nothing
 
 instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' FamEqn {..} = do
