@@ -2206,13 +2206,17 @@ instance Pretty (FamilyDecl GhcPs) where
     string "type "
     pretty fdLName
     spacePrefixed $ pretty <$> hsq_explicit fdTyVars
-    string " = "
-    pretty fdResultSig
-    whenJust fdInjectivityAnn $ \x -> do
-      string " | "
-      pretty x
+    case unLoc fdResultSig of
+      NoSig {} -> pure ()
+      _ -> do
+        string " = "
+        pretty fdResultSig
+        whenJust fdInjectivityAnn $ \x -> do
+          string " | "
+          pretty x
   commentsFrom FamilyDecl {..} = Just $ CommentExtractable fdExt
 
+-- TODO: Is it possible to use the `fdTopLevel` flag?
 instance Pretty DeclTypeFamily where
   pretty' (DeclTypeFamily FamilyDecl {..}) = do
     string $

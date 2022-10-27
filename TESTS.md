@@ -1317,6 +1317,13 @@ class Foo f where
   myEq :: (Eq a) => f a -> f a -> Bool
 ```
 
+An associated type synonym
+
+```haskell
+class Foo a where
+  type Bar b
+```
+
 Default signatures
 
 ```haskell
