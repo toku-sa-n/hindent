@@ -329,17 +329,20 @@ instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..}     = pretty cid_inst
   pretty' DataFamInstD {..} = pretty dfid_inst
   pretty' TyFamInstD {..}   = pretty tfid_inst
-  commentsFrom ClsInstD {}       = Nothing
-  commentsFrom DataFamInstD {..} = Just $ CommentExtractable dfid_ext
-  commentsFrom TyFamInstD {}     = Nothing
+  commentsFrom = commentsFromInstDecl
+
+commentsFromInstDecl :: InstDecl GhcPs -> Maybe CommentExtractable
+commentsFromInstDecl ClsInstD {}       = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromInstDecl DataFamInstD {}   = Nothing
+#else
+commentsFromInstDecl DataFamInstD {..} = Just $ CommentExtractable dfid_ext
+#endif
+commentsFromInstDecl TyFamInstD {}     = Nothing
 
 instance Pretty (HsBind GhcPs) where
   pretty' = prettyHsBind
-  commentsFrom FunBind {..}  = Just $ CommentExtractable fun_id
-  commentsFrom PatBind {..}  = Just $ CommentExtractable pat_ext
-  commentsFrom VarBind {}    = Nothing
-  commentsFrom AbsBinds {}   = Nothing
-  commentsFrom PatSynBind {} = Nothing
+  commentsFrom = commentsFromHsBind
 
 prettyHsBind :: HsBind GhcPs -> Printer ()
 prettyHsBind FunBind {..} = pretty fun_matches
@@ -351,6 +354,15 @@ prettyHsBind VarBind {} = notUsedInParsedStage
 prettyHsBind AbsBinds {} = notUsedInParsedStage
 #endif
 prettyHsBind (PatSynBind _ x) = pretty x
+
+commentsFromHsBind :: HsBind GhcPs -> Maybe CommentExtractable
+commentsFromHsBind FunBind {..}  = Just $ CommentExtractable fun_id
+commentsFromHsBind PatBind {..}  = Just $ CommentExtractable pat_ext
+commentsFromHsBind VarBind {}    = Nothing
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsBind AbsBinds {}   = Nothing
+#endif
+commentsFromHsBind PatSynBind {} = Nothing
 
 instance Pretty (Sig GhcPs) where
   pretty' (TypeSig _ funName params) = do
@@ -515,46 +527,7 @@ instance Pretty MatchGroupForCaseInProc where
 
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
-  commentsFrom HsVar {}              = Nothing
-  commentsFrom (HsUnboundVar x _)    = Just $ CommentExtractable x
-  commentsFrom HsConLikeOut {}       = Nothing
-  commentsFrom HsRecFld {}           = Nothing
-  commentsFrom (HsOverLabel x _)     = Just $ CommentExtractable x
-  commentsFrom (HsIPVar x _)         = Just $ CommentExtractable x
-  commentsFrom (HsOverLit x _)       = Just $ CommentExtractable x
-  commentsFrom (HsLit x _)           = Just $ CommentExtractable x
-  commentsFrom HsLam {}              = Nothing
-  commentsFrom (HsLamCase x _)       = Just $ CommentExtractable x
-  commentsFrom (HsApp x _ _)         = Just $ CommentExtractable x
-  commentsFrom HsAppType {}          = Nothing
-  commentsFrom (OpApp x _ _ _)       = Just $ CommentExtractable x
-  commentsFrom (NegApp x _ _)        = Just $ CommentExtractable x
-  commentsFrom (HsPar x _)           = Just $ CommentExtractable x
-  commentsFrom (SectionL x _ _)      = Just $ CommentExtractable x
-  commentsFrom (SectionR x _ _)      = Just $ CommentExtractable x
-  commentsFrom (ExplicitTuple x _ _) = Just $ CommentExtractable x
-  commentsFrom (ExplicitSum x _ _ _) = Just $ CommentExtractable x
-  commentsFrom (HsCase x _ _)        = Just $ CommentExtractable x
-  commentsFrom (HsIf x _ _ _)        = Just $ CommentExtractable x
-  commentsFrom (HsMultiIf x _)       = Just $ CommentExtractable x
-  commentsFrom (HsLet x _ _)         = Just $ CommentExtractable x
-  commentsFrom (HsDo x _ _)          = Just $ CommentExtractable x
-  commentsFrom (ExplicitList x _)    = Just $ CommentExtractable x
-  commentsFrom RecordCon {..}        = Just $ CommentExtractable rcon_ext
-  commentsFrom RecordUpd {..}        = Just $ CommentExtractable rupd_ext
-  commentsFrom HsGetField {..}       = Just $ CommentExtractable gf_ext
-  commentsFrom HsProjection {..}     = Just $ CommentExtractable proj_ext
-  commentsFrom (ExprWithTySig x _ _) = Just $ CommentExtractable x
-  commentsFrom (ArithSeq x _ _)      = Just $ CommentExtractable x
-  commentsFrom (HsBracket x _)       = Just $ CommentExtractable x
-  commentsFrom HsRnBracketOut {}     = notUsedInParsedStage
-  commentsFrom HsTcBracketOut {}     = notUsedInParsedStage
-  commentsFrom (HsSpliceE x _)       = Just $ CommentExtractable x
-  commentsFrom (HsProc x _ _)        = Just $ CommentExtractable x
-  commentsFrom (HsStatic x _)        = Just $ CommentExtractable x
-  commentsFrom HsTick {}             = Nothing
-  commentsFrom HsBinTick {}          = Nothing
-  commentsFrom HsPragE {}            = Nothing
+  commentsFrom = commentsFromHsExpr
 
 prettyHsExpr :: HsExpr GhcPs -> Printer ()
 prettyHsExpr (HsVar _ bind) = pretty $ fmap PrefixOp bind
@@ -810,6 +783,70 @@ instance Pretty LambdaCase where
         indentedBlock $ pretty $ MatchGroupForCase matches
   commentsFrom (LambdaCase x) = Just $ CommentExtractable x
 
+commentsFromHsExpr :: HsExpr GhcPs -> Maybe CommentExtractable
+commentsFromHsExpr HsVar {}               = Nothing
+commentsFromHsExpr (HsUnboundVar x _)     = Just $ CommentExtractable x
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr HsConLikeOut {}        = Nothing
+commentsFromHsExpr HsRecFld {}            = Nothing
+#endif
+commentsFromHsExpr (HsOverLabel x _)      = Just $ CommentExtractable x
+commentsFromHsExpr (HsIPVar x _)          = Just $ CommentExtractable x
+commentsFromHsExpr (HsOverLit x _)        = Just $ CommentExtractable x
+commentsFromHsExpr (HsLit x _)            = Just $ CommentExtractable x
+commentsFromHsExpr HsLam {}               = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr (HsLamCase x _ _)      = Just $ CommentExtractable x
+#else
+commentsFromHsExpr (HsLamCase x _)        = Just $ CommentExtractable x
+#endif
+commentsFromHsExpr (HsApp x _ _)          = Just $ CommentExtractable x
+commentsFromHsExpr HsAppType {}           = Nothing
+commentsFromHsExpr (OpApp x _ _ _)        = Just $ CommentExtractable x
+commentsFromHsExpr (NegApp x _ _)         = Just $ CommentExtractable x
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr (HsPar x _ _ _)        = Just $ CommentExtractable x
+#else
+commentsFromHsExpr (HsPar x _)            = Just $ CommentExtractable x
+#endif
+commentsFromHsExpr (SectionL x _ _)       = Just $ CommentExtractable x
+commentsFromHsExpr (SectionR x _ _)       = Just $ CommentExtractable x
+commentsFromHsExpr (ExplicitTuple x _ _)  = Just $ CommentExtractable x
+commentsFromHsExpr (ExplicitSum x _ _ _)  = Just $ CommentExtractable x
+commentsFromHsExpr (HsCase x _ _)         = Just $ CommentExtractable x
+commentsFromHsExpr (HsIf x _ _ _)         = Just $ CommentExtractable x
+commentsFromHsExpr (HsMultiIf x _)        = Just $ CommentExtractable x
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr (HsLet x _ _ _ _)      = Just $ CommentExtractable x
+#else
+commentsFromHsExpr (HsLet x _ _)          = Just $ CommentExtractable x
+#endif
+commentsFromHsExpr (HsDo x _ _)           = Just $ CommentExtractable x
+commentsFromHsExpr (ExplicitList x _)     = Just $ CommentExtractable x
+commentsFromHsExpr RecordCon {..}         = Just $ CommentExtractable rcon_ext
+commentsFromHsExpr RecordUpd {..}         = Just $ CommentExtractable rupd_ext
+commentsFromHsExpr HsGetField {..}        = Just $ CommentExtractable gf_ext
+commentsFromHsExpr HsProjection {..}      = Just $ CommentExtractable proj_ext
+commentsFromHsExpr (ExprWithTySig x _ _)  = Just $ CommentExtractable x
+commentsFromHsExpr (ArithSeq x _ _)       = Just $ CommentExtractable x
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr (HsBracket x _)        = Just $ CommentExtractable x
+commentsFromHsExpr HsRnBracketOut {}      = notUsedInParsedStage
+commentsFromHsExpr HsTcBracketOut {}      = notUsedInParsedStage
+#endif
+commentsFromHsExpr (HsSpliceE x _)        = Just $ CommentExtractable x
+commentsFromHsExpr (HsProc x _ _)         = Just $ CommentExtractable x
+commentsFromHsExpr (HsStatic x _)         = Just $ CommentExtractable x
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr HsTick {}              = Nothing
+commentsFromHsExpr HsBinTick {}           = Nothing
+#endif
+commentsFromHsExpr HsPragE {}             = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsExpr HsRecSel {}            = Nothing
+commentsFromHsExpr (HsTypedBracket x _)   = Just $ CommentExtractable x
+commentsFromHsExpr (HsUntypedBracket x _) = Just $ CommentExtractable x
+#endif
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do
     case sig_bndrs of
@@ -1196,6 +1233,7 @@ instance Pretty HsTypeInsideInstDecl where
         newline
         pretty hst_body
   pretty' (HsTypeInsideInstDecl x) = pretty x
+  commentsFrom (HsTypeInsideInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
@@ -1213,6 +1251,7 @@ instance Pretty HsTypeInsideDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
+  commentsFrom (HsTypeInsideDeclSig x) = Just $ CommentExtractable x
 #else
 instance Pretty HsTypeInsideInstDecl where
   pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
@@ -1276,6 +1315,8 @@ instance Pretty (HsConDeclGADTDetails GhcPs) where
         pretty $ head cd_fld_names
         string " :: "
         pretty cd_fld_type
+  commentsFrom PrefixConGADT {} = Nothing
+  commentsFrom RecConGADT {}    = Nothing
 #else
 instance Pretty (HsConDeclGADTDetails GhcPs) where
   pretty' (PrefixConGADT xs) =
@@ -1356,18 +1397,7 @@ instance Pretty GRHSsForCaseInProc where
 
 instance Pretty (HsMatchContext GhcPs) where
   pretty' = prettyHsMatchContext
-  commentsFrom FunRhs {}         = Nothing
-  commentsFrom LambdaExpr {}     = Nothing
-  commentsFrom CaseAlt {}        = Nothing
-  commentsFrom IfAlt {}          = Nothing
-  commentsFrom ArrowMatchCtxt {} = Nothing
-  commentsFrom PatBindRhs {}     = Nothing
-  commentsFrom PatBindGuards {}  = Nothing
-  commentsFrom RecUpd {}         = Nothing
-  commentsFrom StmtCtxt {}       = Nothing
-  commentsFrom ThPatSplice {}    = Nothing
-  commentsFrom ThPatQuote {}     = Nothing
-  commentsFrom PatSyn {}         = Nothing
+  commentsFrom = commentsFromHsMatchContext
 
 prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 prettyHsMatchContext FunRhs {..}       = pretty mc_fun
@@ -1384,6 +1414,22 @@ prettyHsMatchContext ThPatQuote {}     = notUsedInParsedStage
 prettyHsMatchContext PatSyn {}         = notUsedInParsedStage
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsMatchContext LamCaseAlt {}     = notUsedInParsedStage
+#endif
+commentsFromHsMatchContext :: HsMatchContext GhcPs -> Maybe CommentExtractable
+commentsFromHsMatchContext FunRhs {}         = Nothing
+commentsFromHsMatchContext LambdaExpr {}     = Nothing
+commentsFromHsMatchContext CaseAlt {}        = Nothing
+commentsFromHsMatchContext IfAlt {}          = Nothing
+commentsFromHsMatchContext ArrowMatchCtxt {} = Nothing
+commentsFromHsMatchContext PatBindRhs {}     = Nothing
+commentsFromHsMatchContext PatBindGuards {}  = Nothing
+commentsFromHsMatchContext RecUpd {}         = Nothing
+commentsFromHsMatchContext StmtCtxt {}       = Nothing
+commentsFromHsMatchContext ThPatSplice {}    = Nothing
+commentsFromHsMatchContext ThPatQuote {}     = Nothing
+commentsFromHsMatchContext PatSyn {}         = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsMatchContext LamCaseAlt {}     = Nothing
 #endif
 instance Pretty (ParStmtBlock GhcPs GhcPs) where
   pretty' (ParStmtBlock _ xs _ _) = hvCommaSep $ fmap pretty xs
@@ -1725,22 +1771,7 @@ instance Pretty (HsSplice GhcPs) where
 
 instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
-  commentsFrom WildPat {}              = Nothing
-  commentsFrom VarPat {}               = Nothing
-  commentsFrom (LazyPat x _)           = Just $ CommentExtractable x
-  commentsFrom (AsPat x _ _)           = Just $ CommentExtractable x
-  commentsFrom (ParPat x _)            = Just $ CommentExtractable x
-  commentsFrom (BangPat x _)           = Just $ CommentExtractable x
-  commentsFrom (ListPat x _)           = Just $ CommentExtractable x
-  commentsFrom (TuplePat x _ _)        = Just $ CommentExtractable x
-  commentsFrom (SumPat x _ _ _)        = Just $ CommentExtractable x
-  commentsFrom ConPat {..}             = Just $ CommentExtractable pat_con_ext
-  commentsFrom (ViewPat x _ _)         = Just $ CommentExtractable x
-  commentsFrom SplicePat {}            = Nothing
-  commentsFrom LitPat {}               = Nothing
-  commentsFrom (NPat x _ _ _)          = Just $ CommentExtractable x
-  commentsFrom (NPlusKPat x _ _ _ _ _) = Just $ CommentExtractable x
-  commentsFrom (SigPat x _ _)          = Just $ CommentExtractable x
+  commentsFrom = commentsFromPat
 
 instance Pretty PatInsidePatDecl where
   pretty' (PatInsidePatDecl (ConPat {pat_args = (InfixCon l r), ..})) =
@@ -1797,6 +1828,28 @@ prettyPat (NPlusKPat _ n k _ _ _) = do
   string "+"
   pretty k
 prettyPat (SigPat _ l r) = spaced [pretty l, string "::", pretty r]
+
+commentsFromPat :: Pat GhcPs -> Maybe CommentExtractable
+commentsFromPat WildPat {}              = Nothing
+commentsFromPat VarPat {}               = Nothing
+commentsFromPat (LazyPat x _)           = Just $ CommentExtractable x
+commentsFromPat (AsPat x _ _)           = Just $ CommentExtractable x
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromPat (ParPat x _ _ _)        = Just $ CommentExtractable x
+#else
+commentsFromPat (ParPat x _)            = Just $ CommentExtractable x
+#endif
+commentsFromPat (BangPat x _)           = Just $ CommentExtractable x
+commentsFromPat (ListPat x _)           = Just $ CommentExtractable x
+commentsFromPat (TuplePat x _ _)        = Just $ CommentExtractable x
+commentsFromPat (SumPat x _ _ _)        = Just $ CommentExtractable x
+commentsFromPat ConPat {..}             = Just $ CommentExtractable pat_con_ext
+commentsFromPat (ViewPat x _ _)         = Just $ CommentExtractable x
+commentsFromPat SplicePat {}            = Nothing
+commentsFromPat LitPat {}               = Nothing
+commentsFromPat (NPat x _ _ _)          = Just $ CommentExtractable x
+commentsFromPat (NPlusKPat x _ _ _ _ _) = Just $ CommentExtractable x
+commentsFromPat (SigPat x _ _)          = Just $ CommentExtractable x
 
 instance Pretty RecConPat where
   pretty' (RecConPat HsRecFields {..}) =
@@ -1908,6 +1961,7 @@ instance Pretty RecConField where
     unless hfbPun $ do
       string " = "
       pretty hfbRHS
+  commentsFrom (RecConField x) = Just $ CommentExtractable x
 #else
 -- | For pattern matching against a record.
 instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (Pat GhcPs))) where
@@ -1936,6 +1990,7 @@ instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr Gh
 -- | For pattern matchings against records.
 instance Pretty (HsFieldBind (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs)) (GenLocated SrcSpanAnnA (Pat GhcPs))) where
   pretty' HsFieldBind {..} = (pretty hfbLHS >> string " = ") |=> pretty hfbRHS
+  commentsFrom HsFieldBind {..} = Just $ CommentExtractable hfbAnn
 
 -- | For record updates.
 instance Pretty (HsFieldBind (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs)) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -1952,6 +2007,7 @@ instance Pretty (HsFieldBind (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs)) (Ge
           string " ="
           newline
           indentedBlock $ pretty hfbRHS
+  commentsFrom HsFieldBind {..} = Just $ CommentExtractable hfbAnn
 #else
 instance Pretty RecConField where
   pretty' (RecConField HsRecField {..}) = do
@@ -1964,6 +2020,7 @@ instance Pretty RecConField where
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (FieldOcc GhcPs) where
   pretty' FieldOcc {..} = pretty foLabel
+  commentsFrom FieldOcc {} = Nothing
 #else
 instance Pretty (FieldOcc GhcPs) where
   pretty' FieldOcc {..} = pretty rdrNameFieldOcc
@@ -2278,12 +2335,15 @@ instance Pretty HorizontalContext where
           (L _ [])  -> parens
           (L _ [_]) -> id
           _         -> parens
+  commentsFrom HorizontalContext {} = Nothing
 
 instance Pretty VerticalContext where
-  pretty' (VerticalContext (L _ [])) = string "()"
+  pretty' (VerticalContext full@(L _ [])) =
+    printCommentsAnd full (const $ string "()")
   pretty' (VerticalContext full@(L _ [x])) =
     printCommentsAnd full (const $ pretty x)
   pretty' (VerticalContext xs) = printCommentsAnd xs (vTuple . fmap pretty)
+  commentsFrom VerticalContext {} = Nothing
 #else
 instance Pretty HorizontalContext where
   pretty' (HorizontalContext xs) =
@@ -2382,6 +2442,12 @@ instance Pretty (HsQuote GhcPs) where
   pretty' (TypBr _ x) = brackets $ string "t" >> wrapWithBars (pretty x)
   pretty' (VarBr _ True x) = string "'" >> pretty x
   pretty' (VarBr _ False x) = string "''" >> pretty x
+  commentsFrom ExpBr {}  = Nothing
+  commentsFrom PatBr {}  = Nothing
+  commentsFrom DecBrL {} = Nothing
+  commentsFrom DecBrG {} = Nothing
+  commentsFrom TypBr {}  = Nothing
+  commentsFrom VarBr {}  = Nothing
 #endif
 instance Pretty (WarnDecls GhcPs) where
   pretty' (Warnings _ _ x) = lined $ fmap pretty x
@@ -2404,6 +2470,7 @@ instance Pretty (WarnDecl GhcPs) where
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
   pretty' WithHsDocIdentifiers {..} = pretty hsDocString
+  commentsFrom WithHsDocIdentifiers {} = Nothing
 #endif
 -- | 'Pretty' for 'LIEWrappedName (IdP GhcPs)'
 instance Pretty (IEWrappedName RdrName) where
@@ -2416,6 +2483,7 @@ instance Pretty (IEWrappedName RdrName) where
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (DotFieldOcc GhcPs) where
   pretty' DotFieldOcc {..} = printCommentsAnd dfoLabel (string . unpackFS)
+  commentsFrom DotFieldOcc {..} = Just $ CommentExtractable dfoExt
 #else
 instance Pretty (HsFieldLabel GhcPs) where
   pretty' HsFieldLabel {..} = printCommentsAnd hflLabel (string . unpackFS)
@@ -2570,10 +2638,7 @@ instance Pretty InlinePragma where
 
 instance Pretty InlineSpec where
   pretty' = prettyInlineSpec
-  commentsFrom Inline {}           = Nothing
-  commentsFrom Inlinable {}        = Nothing
-  commentsFrom NoInline {}         = Nothing
-  commentsFrom NoUserInlinePrag {} = Nothing
+  commentsFrom = commentsFromInlineSpec
 
 prettyInlineSpec :: InlineSpec -> Printer ()
 prettyInlineSpec Inline {} = string "INLINE"
@@ -2584,6 +2649,14 @@ prettyInlineSpec NoUserInlinePrag =
     "This branch is executed if the inline pragma is not written, but executing this branch means that the pragma is already about to be output, so something goes wrong."
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyInlineSpec Opaque {} = string "OPAQUE"
+#endif
+commentsFromInlineSpec :: InlineSpec -> Maybe CommentExtractable
+commentsFromInlineSpec Inline {}           = Nothing
+commentsFromInlineSpec Inlinable {}        = Nothing
+commentsFromInlineSpec NoInline {}         = Nothing
+commentsFromInlineSpec NoUserInlinePrag {} = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromInlineSpec Opaque {}           = Nothing
 #endif
 instance Pretty (HsPatSynDir GhcPs) where
   pretty' Unidirectional           = string "<-"
@@ -2712,16 +2785,7 @@ instance Pretty (HsCmdTop GhcPs) where
 
 instance Pretty (HsCmd GhcPs) where
   pretty' = prettyHsCmd
-  commentsFrom (HsCmdArrApp x _ _ _ _)  = Just $ CommentExtractable x
-  commentsFrom (HsCmdArrForm x _ _ _ _) = Just $ CommentExtractable x
-  commentsFrom (HsCmdApp x _ _)         = Just $ CommentExtractable x
-  commentsFrom HsCmdLam {}              = Nothing
-  commentsFrom (HsCmdPar x _)           = Just $ CommentExtractable x
-  commentsFrom (HsCmdCase x _ _)        = Just $ CommentExtractable x
-  commentsFrom (HsCmdLamCase x _)       = Just $ CommentExtractable x
-  commentsFrom (HsCmdIf x _ _ _ _)      = Just $ CommentExtractable x
-  commentsFrom (HsCmdLet x _ _)         = Just $ CommentExtractable x
-  commentsFrom (HsCmdDo x _)            = Just $ CommentExtractable x
+  commentsFrom = commentsFromHsCmd
 
 prettyHsCmd :: HsCmd GhcPs -> Printer ()
 prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp True) =
@@ -2773,6 +2837,30 @@ prettyHsCmd (HsCmdDo _ stmts) = do
   newline
   indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
 
+commentsFromHsCmd :: HsCmd GhcPs -> Maybe CommentExtractable
+commentsFromHsCmd (HsCmdArrApp x _ _ _ _)  = Just $ CommentExtractable x
+commentsFromHsCmd (HsCmdArrForm x _ _ _ _) = Just $ CommentExtractable x
+commentsFromHsCmd (HsCmdApp x _ _)         = Just $ CommentExtractable x
+commentsFromHsCmd HsCmdLam {}              = Nothing
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsCmd (HsCmdPar x _ _ _)       = Just $ CommentExtractable x
+#else
+commentsFromHsCmd (HsCmdPar x _)           = Just $ CommentExtractable x
+#endif
+commentsFromHsCmd (HsCmdCase x _ _)        = Just $ CommentExtractable x
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsCmd (HsCmdLamCase x _ _)     = Just $ CommentExtractable x
+#else
+commentsFromHsCmd (HsCmdLamCase x _)       = Just $ CommentExtractable x
+#endif
+commentsFromHsCmd (HsCmdIf x _ _ _ _)      = Just $ CommentExtractable x
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+commentsFromHsCmd (HsCmdLet x _ _ _ _)     = Just $ CommentExtractable x
+#else
+commentsFromHsCmd (HsCmdLet x _ _)         = Just $ CommentExtractable x
+#endif
+commentsFromHsCmd (HsCmdDo x _)            = Just $ CommentExtractable x
+
 instance Pretty ListComprehension where
   pretty' ListComprehension {..} = horizontal <-|> vertical
     where
@@ -2813,7 +2901,8 @@ notUsedInParsedStage :: HasCallStack => a
 notUsedInParsedStage =
   error
     "This AST should never appears in an AST. It only appears in the renaming or type checked stages."
-
+#if !MIN_VERSION_ghc_lib_parser(9,4,1)
 -- | Marks an AST node as it is used only for Haskell Program Coverage.
 forHpc :: HasCallStack => a
 forHpc = error "This AST type is for the use of Haskell Program Coverage."
+#endif
