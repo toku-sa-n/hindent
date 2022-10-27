@@ -2704,12 +2704,24 @@ instance Pretty (DerivStrategy GhcPs) where
 
 instance Pretty (RecordPatSynField GhcPs) where
   pretty' RecordPatSynField {..} = pretty recordPatSynField
+  commentsFrom RecordPatSynField {} = Nothing
 
 instance Pretty (HsCmdTop GhcPs) where
   pretty' (HsCmdTop _ cmd) = pretty cmd
+  commentsFrom HsCmdTop {} = Nothing
 
 instance Pretty (HsCmd GhcPs) where
   pretty' = prettyHsCmd
+  commentsFrom (HsCmdArrApp x _ _ _ _)  = Just $ CommentExtractable x
+  commentsFrom (HsCmdArrForm x _ _ _ _) = Just $ CommentExtractable x
+  commentsFrom (HsCmdApp x _ _)         = Just $ CommentExtractable x
+  commentsFrom HsCmdLam {}              = Nothing
+  commentsFrom (HsCmdPar x _)           = Just $ CommentExtractable x
+  commentsFrom (HsCmdCase x _ _)        = Just $ CommentExtractable x
+  commentsFrom (HsCmdLamCase x _)       = Just $ CommentExtractable x
+  commentsFrom (HsCmdIf x _ _ _ _)      = Just $ CommentExtractable x
+  commentsFrom (HsCmdLet x _ _)         = Just $ CommentExtractable x
+  commentsFrom (HsCmdDo x _)            = Just $ CommentExtractable x
 
 prettyHsCmd :: HsCmd GhcPs -> Printer ()
 prettyHsCmd (HsCmdArrApp _ f arg HsHigherOrderApp True) =
@@ -2777,6 +2789,7 @@ instance Pretty ListComprehension where
           newline
         string "]"
       stmtsAndPrefixes l = ("| ", head l) : fmap (", ", ) (tail l)
+  commentsFrom ListComprehension {} = Nothing
 
 instance Pretty DoExpression where
   pretty' DoExpression {..} =
@@ -2786,10 +2799,12 @@ instance Pretty DoExpression where
         case doOrMdo of
           Do  -> "do"
           Mdo -> "mdo"
+  commentsFrom DoExpression {} = Nothing
 
 instance Pretty LetIn where
   pretty' LetIn {..} =
     lined [string "let " |=> pretty letBinds, string " in " |=> pretty inExpr]
+  commentsFrom LetIn {} = Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --
