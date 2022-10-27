@@ -2355,18 +2355,23 @@ instance Pretty (FamEqn GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
     spacePrefixed $ fmap pretty feqn_pats
     string " = "
     pretty feqn_rhs
+  commentsFrom FamEqn {..} = Just $ CommentExtractable feqn_ext
 
 -- | Pretty-print a data instance.
 instance Pretty (FamEqn GhcPs (HsDataDefn GhcPs)) where
   pretty' FamEqn {..} = do
     spaced $ string "data instance" : pretty feqn_tycon : fmap pretty feqn_pats
     pretty feqn_rhs
+  commentsFrom FamEqn {..} = Just $ CommentExtractable feqn_ext
 
 -- | HsArg (LHsType GhcPs) (LHsType GhcPs)
 instance Pretty (HsArg (GenLocated SrcSpanAnnA (HsType GhcPs)) (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' (HsValArg x)    = pretty x
   pretty' (HsTypeArg _ x) = string "@" >> pretty x
   pretty' HsArgPar {}     = notUsedInParsedStage
+  commentsFrom HsValArg {}  = Nothing
+  commentsFrom HsTypeArg {} = Nothing
+  commentsFrom HsArgPar {}  = Nothing
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (HsQuote GhcPs) where
   pretty' (ExpBr _ x) = brackets $ wrapWithBars $ pretty x
@@ -2380,6 +2385,7 @@ instance Pretty (HsQuote GhcPs) where
 #endif
 instance Pretty (WarnDecls GhcPs) where
   pretty' (Warnings _ _ x) = lined $ fmap pretty x
+  commentsFrom Warnings {..} = Just $ CommentExtractable wd_ext
 
 instance Pretty (WarnDecl GhcPs) where
   pretty' (Warning _ names deprecatedOrWarning) =
@@ -2394,6 +2400,7 @@ instance Pretty (WarnDecl GhcPs) where
               [hCommaSep $ fmap pretty names, hCommaSep $ fmap pretty reasons]
           , string " #-}"
           ]
+  commentsFrom (Warning x _ _) = Just $ CommentExtractable x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (WithHsDocIdentifiers StringLiteral GhcPs) where
   pretty' WithHsDocIdentifiers {..} = pretty hsDocString
@@ -2403,16 +2410,21 @@ instance Pretty (IEWrappedName RdrName) where
   pretty' (IEName name)      = pretty name
   pretty' (IEPattern _ name) = spaced [string "pattern", pretty name]
   pretty' (IEType _ name)    = string "type " >> pretty name
+  commentsFrom IEName {}    = Nothing
+  commentsFrom IEPattern {} = Nothing
+  commentsFrom IEType {}    = Nothing
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty (DotFieldOcc GhcPs) where
   pretty' DotFieldOcc {..} = printCommentsAnd dfoLabel (string . unpackFS)
 #else
 instance Pretty (HsFieldLabel GhcPs) where
   pretty' HsFieldLabel {..} = printCommentsAnd hflLabel (string . unpackFS)
+  commentsFrom HsFieldLabel {..} = Just $ CommentExtractable hflExt
 #endif
 instance Pretty (RuleDecls GhcPs) where
   pretty' HsRules {..} =
     lined $ string "{-# RULES" : fmap pretty rds_rules ++ [string " #-}"]
+  commentsFrom HsRules {..} = Just $ CommentExtractable rds_ext
 
 instance Pretty (RuleDecl GhcPs) where
   pretty' HsRule {..} =
@@ -2422,9 +2434,11 @@ instance Pretty (RuleDecl GhcPs) where
       , string "="
       , pretty rd_rhs
       ]
+  commentsFrom HsRule {..} = Just $ CommentExtractable rd_ext
 
 instance Pretty OccName where
   pretty' = output
+  commentsFrom = const Nothing
 
 instance Pretty (DerivDecl GhcPs)
   -- TODO: Handle deriving strategies.
@@ -2432,22 +2446,27 @@ instance Pretty (DerivDecl GhcPs)
   pretty' DerivDecl {..} = do
     string "deriving instance "
     pretty deriv_type
+  commentsFrom DerivDecl {..} = Just $ CommentExtractable deriv_ext
 
 -- | 'Pretty' for 'LHsSigWcType GhcPs'.
 instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsSigType GhcPs))) where
   pretty' HsWC {..} = pretty hswc_body
+  commentsFrom HsWC {} = Nothing
 
 -- | 'Pretty' for 'LHsWcType'
 instance Pretty (HsWildCardBndrs GhcPs (GenLocated SrcSpanAnnA (HsType GhcPs))) where
   pretty' HsWC {..} = pretty hswc_body
+  commentsFrom HsWC {} = Nothing
 
 instance Pretty (StandaloneKindSig GhcPs) where
   pretty' (StandaloneKindSig _ name kind) =
     spaced [string "type", pretty name, string "::", pretty kind]
+  commentsFrom (StandaloneKindSig x _ _) = Just $ CommentExtractable x
 
 instance Pretty (DefaultDecl GhcPs) where
   pretty' (DefaultDecl _ xs) =
     spaced [string "default", hTuple $ fmap pretty xs]
+  commentsFrom (DefaultDecl x _) = Just $ CommentExtractable x
 
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
@@ -2458,11 +2477,16 @@ instance Pretty (ForeignDecl GhcPs)
     string " \"test\" test :: IO ()"
   pretty' ForeignExport {} =
     string "foreign export ccall \"test\" test :: IO ()"
+  commentsFrom ForeignImport {..} = Just $ CommentExtractable fd_i_ext
+  commentsFrom ForeignExport {..} = Just $ CommentExtractable fd_e_ext
 
 instance Pretty Safety where
   pretty' PlaySafe          = string "safe"
   pretty' PlayInterruptible = string "interruptible"
   pretty' PlayRisky         = string "unsafe"
+  commentsFrom PlaySafe          = Nothing
+  commentsFrom PlayInterruptible = Nothing
+  commentsFrom PlayRisky         = Nothing
 
 instance Pretty (AnnDecl GhcPs) where
   pretty' (HsAnnotation _ _ (ValueAnnProvenance name) expr) =
@@ -2471,25 +2495,32 @@ instance Pretty (AnnDecl GhcPs) where
     spaced [string "{-# ANN type", pretty name, pretty expr, string "#-}"]
   pretty' (HsAnnotation _ _ ModuleAnnProvenance expr) =
     spaced [string "{-# ANN module", pretty expr, string "#-}"]
+  commentsFrom (HsAnnotation x _ _ _) = Just $ CommentExtractable x
 
 instance Pretty (RoleAnnotDecl GhcPs) where
   pretty' (RoleAnnotDecl _ name roles) =
     spaced $
     [string "type role", pretty name] ++
     fmap (maybe (string "_") pretty . unLoc) roles
+  commentsFrom (RoleAnnotDecl x _ _) = Just $ CommentExtractable x
 
 instance Pretty Role where
   pretty' Nominal          = string "nominal"
   pretty' Representational = string "representational"
   pretty' Phantom          = string "phantom"
+  commentsFrom Nominal          = Nothing
+  commentsFrom Representational = Nothing
+  commentsFrom Phantom          = Nothing
 
 instance Pretty (TyFamInstDecl GhcPs) where
   pretty' TyFamInstDecl {..} = do
     string "type instance "
     pretty tfid_eqn
+  commentsFrom TyFamInstDecl {..} = Just $ CommentExtractable tfid_xtn
 
 instance Pretty (DataFamInstDecl GhcPs) where
   pretty' DataFamInstDecl {..} = pretty dfid_eqn
+  commentsFrom DataFamInstDecl {} = Nothing
 
 instance Pretty (PatSynBind GhcPs GhcPs) where
   pretty' PSB {..} = do
@@ -2503,6 +2534,7 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
         newline
         indentedBlock $ string "where " |=> pretty matches
       _ -> pure ()
+  commentsFrom PSB {..} = Just $ CommentExtractable psb_ext
 
 -- | 'Pretty' for 'HsPatSynDetails'.
 instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSynField GhcPs]) where
@@ -2511,24 +2543,37 @@ instance Pretty (HsConDetails Void (GenLocated SrcSpanAnnN RdrName) [RecordPatSy
   pretty' InfixCon {} =
     error
       "Cannot handle here because `InfixCon` does not have the information of the constructor."
+  commentsFrom PrefixCon {} = Nothing
+  commentsFrom RecCon {}    = Nothing
+  commentsFrom InfixCon {}  = Nothing
 
 instance Pretty (FixitySig GhcPs) where
   pretty' (FixitySig _ names fixity) =
     spaced [pretty fixity, hCommaSep $ fmap (pretty . fmap InfixOp) names]
+  commentsFrom FixitySig {} = Nothing
 
 instance Pretty Fixity where
   pretty' (Fixity _ level dir) = spaced [pretty dir, string $ show level]
+  commentsFrom Fixity {} = Nothing
 
 instance Pretty FixityDirection where
   pretty' InfixL = string "infixl"
   pretty' InfixR = string "infixr"
   pretty' InfixN = string "infix"
+  commentsFrom InfixL {} = Nothing
+  commentsFrom InfixR {} = Nothing
+  commentsFrom InfixN {} = Nothing
 
 instance Pretty InlinePragma where
   pretty' InlinePragma {..} = pretty inl_inline
+  commentsFrom InlinePragma {} = Nothing
 
 instance Pretty InlineSpec where
   pretty' = prettyInlineSpec
+  commentsFrom Inline {}           = Nothing
+  commentsFrom Inlinable {}        = Nothing
+  commentsFrom NoInline {}         = Nothing
+  commentsFrom NoUserInlinePrag {} = Nothing
 
 prettyInlineSpec :: InlineSpec -> Printer ()
 prettyInlineSpec Inline {} = string "INLINE"
@@ -2544,20 +2589,29 @@ instance Pretty (HsPatSynDir GhcPs) where
   pretty' Unidirectional           = string "<-"
   pretty' ImplicitBidirectional    = string "="
   pretty' ExplicitBidirectional {} = string "<-"
+  commentsFrom Unidirectional           = Nothing
+  commentsFrom ImplicitBidirectional    = Nothing
+  commentsFrom ExplicitBidirectional {} = Nothing
 
 instance Pretty (HsOverLit GhcPs) where
   pretty' OverLit {..} = pretty ol_val
+  commentsFrom OverLit {} = Nothing
 
 instance Pretty OverLitVal where
   pretty' (HsIntegral x)   = pretty x
   pretty' (HsFractional x) = pretty x
   pretty' (HsIsString _ x) = string $ unpackFS x
+  commentsFrom HsIntegral {}   = Nothing
+  commentsFrom HsFractional {} = Nothing
+  commentsFrom HsIsString {}   = Nothing
 
 instance Pretty IntegralLit where
   pretty' IL {..} = string $ show il_value
+  commentsFrom IL {} = Nothing
 
 instance Pretty FractionalLit where
   pretty' = output
+  commentsFrom FL {} = Nothing
 
 instance Pretty (HsLit GhcPs) where
   pretty' x@(HsChar _ _) = output x
@@ -2586,9 +2640,23 @@ instance Pretty (HsLit GhcPs) where
               newline
               indentedWithSpace (-1) $
                 lined $ fmap (string . dropWhile (/= '\\')) ss
+  commentsFrom HsChar {}       = Nothing
+  commentsFrom HsCharPrim {}   = Nothing
+  commentsFrom HsString {}     = Nothing
+  commentsFrom HsStringPrim {} = Nothing
+  commentsFrom HsInt {}        = Nothing
+  commentsFrom HsIntPrim {}    = Nothing
+  commentsFrom HsWordPrim {}   = Nothing
+  commentsFrom HsInt64Prim {}  = Nothing
+  commentsFrom HsWord64Prim {} = Nothing
+  commentsFrom HsInteger {}    = Nothing
+  commentsFrom HsRat {}        = Nothing
+  commentsFrom HsFloatPrim {}  = Nothing
+  commentsFrom HsDoublePrim {} = Nothing
 
 instance Pretty (HsPragE GhcPs) where
   pretty' (HsPragSCC _ _ x) = spaced [string "{-# SCC", pretty x, string "#-}"]
+  commentsFrom (HsPragSCC x _ _) = Just $ CommentExtractable x
 
 instance Pretty HsIPName where
   pretty' (HsIPName x) = string $ unpackFS x
