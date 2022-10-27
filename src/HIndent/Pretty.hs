@@ -2660,20 +2660,27 @@ instance Pretty (HsPragE GhcPs) where
 
 instance Pretty HsIPName where
   pretty' (HsIPName x) = string $ unpackFS x
+  commentsFrom HsIPName {} = Nothing
 
 instance Pretty HsTyLit where
   pretty' (HsNumTy _ x)  = string $ show x
   pretty' (HsStrTy _ x)  = string $ show x
   pretty' (HsCharTy _ x) = string $ show x
+  commentsFrom HsNumTy {}  = Nothing
+  commentsFrom HsStrTy {}  = Nothing
+  commentsFrom HsCharTy {} = Nothing
 
 instance Pretty (HsPatSigType GhcPs) where
   pretty' HsPS {..} = pretty hsps_body
+  commentsFrom HsPS {..} = Just $ CommentExtractable hsps_ext
 
 instance Pretty (HsIPBinds GhcPs) where
   pretty' (IPBinds _ xs) = lined $ fmap pretty xs
+  commentsFrom IPBinds {} = Nothing
 
 instance Pretty (IPBind GhcPs) where
   pretty' = prettyIPBind
+  commentsFrom (IPBind x _ _) = Just $ CommentExtractable x
 
 prettyIPBind :: IPBind GhcPs -> Printer ()
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -2684,11 +2691,16 @@ prettyIPBind (IPBind _ (Right _) _) = notUsedInParsedStage
 prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
+-- TODO: 'instance Pretty XViaStrategyPs'
 instance Pretty (DerivStrategy GhcPs) where
   pretty' StockStrategy {}                    = string "stock"
   pretty' AnyclassStrategy {}                 = string "anyclass"
   pretty' NewtypeStrategy {}                  = string "newtype"
   pretty' (ViaStrategy (XViaStrategyPs _ ty)) = string "via " >> pretty ty
+  commentsFrom (StockStrategy x)                  = Just $ CommentExtractable x
+  commentsFrom (AnyclassStrategy x)               = Just $ CommentExtractable x
+  commentsFrom (NewtypeStrategy x)                = Just $ CommentExtractable x
+  commentsFrom (ViaStrategy (XViaStrategyPs x _)) = Just $ CommentExtractable x
 
 instance Pretty (RecordPatSynField GhcPs) where
   pretty' RecordPatSynField {..} = pretty recordPatSynField
