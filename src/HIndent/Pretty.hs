@@ -297,7 +297,7 @@ prettyTyClDecl ClassDecl {..} = do
           printCommentsAnd ctx $ \case
             []  -> string "()"
             [x] -> pretty x
-            xs  -> hTuple $ fmap pretty xs
+            xs  -> hvTuple $ fmap pretty xs
           string " =>"
           newline
         printNameAndTypeVariables

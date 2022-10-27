@@ -1293,6 +1293,23 @@ b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
 
 ## Class declarations
 
+Long class constraints
+
+```haskell
+class ( Foo a
+      , Bar a
+      , Baz a
+      , Hoge a
+      , Fuga a
+      , Piyo a
+      , Hogera a
+      , Hogehoge a
+      , Spam a
+      , Ham a
+      ) =>
+      Quux a
+```
+
 Class methods with constraints
 
 ```haskell
