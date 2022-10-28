@@ -123,9 +123,7 @@ static = 3
 ```
 
 ```haskell expect
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE CPP, MultiWayIf, PatternSynonyms #-}
 
 import Foo (pattern Bar)
 

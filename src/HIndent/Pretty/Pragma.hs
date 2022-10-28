@@ -10,6 +10,7 @@ module HIndent.Pretty.Pragma
 import           Data.Bifunctor
 import           Data.Char
 import           Data.Generics.Schemes
+import           Data.List
 import           Data.List.Split
 import           Data.Maybe
 import           GHC.Hs
@@ -32,16 +33,14 @@ pragmaExists = not . null . collectPragmas
 -- given module and modifies them into 'String's.
 collectPragmas :: HsModule -> [String]
 collectPragmas =
-  concatMap constructPragmas .
+  fmap (uncurry constructPragma) .
   mapMaybe extractPragma . listify matchToComment . hsmodAnn
   where
     matchToComment :: EpaCommentTok -> Bool
     matchToComment EpaBlockComment {} = True
     matchToComment _                  = False
-    constructPragmas (optionOrPragma, xs) =
-      fmap (constructPragma optionOrPragma) xs
-    constructPragma optionOrPragma x =
-      "{-# " ++ optionOrPragma ++ " " ++ x ++ " #-}"
+    constructPragma optionOrPragma xs =
+      "{-# " ++ optionOrPragma ++ " " ++ intercalate ", " xs ++ " #-}"
 
 -- | This function returns a 'Just' value with the pragma or 'GHC_OPTIONS'
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
