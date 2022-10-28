@@ -38,6 +38,7 @@ module HIndent.ModulePreprocessing.CommentRelocation
   ( relocateComments
   ) where
 
+import           Control.Exception
 import           Control.Monad.State
 import           Data.Foldable
 import           Data.Function
@@ -69,7 +70,11 @@ relocateComments = evalState . relocate
       relocateCommentsBeforePragmas >=>
       relocateCommentsBeforeTopLevelDecls >=>
       relocateCommentsSameLine >=>
-      relocateCommentsTopLevelWhereClause >=> relocateCommentsAfter
+      relocateCommentsTopLevelWhereClause >=>
+      relocateCommentsAfter >=> assertAllCommentsAreConsumed
+    assertAllCommentsAreConsumed x = do
+      cs <- get
+      assert (null cs) (pure x)
 
 -- | This function locates pragmas to the module's EPA.
 relocatePragmas :: HsModule -> WithComments HsModule

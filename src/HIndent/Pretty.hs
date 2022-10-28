@@ -288,8 +288,9 @@ prettyTyClDecl ClassDecl {..} = do
       printNameAndTypeVariables
       unless (null tcdFDs) $ do
         string " | "
-        forM_ tcdFDs $ \(L _ (FunDep _ from to)) ->
-          spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
+        forM_ tcdFDs $ \x@(L _ FunDep {}) ->
+          printCommentsAnd x $ \(FunDep _ from to) ->
+            spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
       unless (null sigsMethodsFamilies) $ string " where"
     verHead = do
       string "class " |=> do
@@ -306,8 +307,9 @@ prettyTyClDecl ClassDecl {..} = do
         indentedBlock $
           string "| " |=>
           vCommaSep
-            (flip fmap tcdFDs $ \(L _ (FunDep _ from to)) ->
-               spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to)
+            (flip fmap tcdFDs $ \x@(L _ FunDep {}) ->
+               printCommentsAnd x $ \(FunDep _ from to) ->
+                 spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to)
       unless (null sigsMethodsFamilies) $ do
         newline
         indentedBlock $ string "where"
