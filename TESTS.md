@@ -542,6 +542,13 @@ f :: a
 f = undefined
 ```
 
+`INLINE` with levels
+
+```haskell
+{-# INLINE [0] f #-}
+{-# INLINE [~1] g #-}
+```
+
 # Expressions
 
 Primitive type values

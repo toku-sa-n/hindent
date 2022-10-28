@@ -2641,7 +2641,12 @@ instance Pretty FixityDirection where
   commentsFrom InfixN {} = Nothing
 
 instance Pretty InlinePragma where
-  pretty' InlinePragma {..} = pretty inl_inline
+  pretty' InlinePragma {..} = do
+    pretty inl_inline
+    case inl_act of
+      ActiveBefore _ x -> space >> brackets (string $ "~" ++ show x)
+      ActiveAfter _ x  -> space >> brackets (string $ show x)
+      _                -> pure ()
   commentsFrom InlinePragma {} = Nothing
 
 instance Pretty InlineSpec where
