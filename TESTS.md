@@ -1317,6 +1317,14 @@ class Foo f where
   myEq :: (Eq a) => f a -> f a -> Bool
 ```
 
+A class method with long signature
+
+```haskell
+class Foo a where
+  fooBarBazQuuxHogeFuga ::
+       a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
+```
+
 An associated type synonym
 
 ```haskell

@@ -394,8 +394,17 @@ instance Pretty (Sig GhcPs) where
     printCommentsAnd params pretty
   pretty' (ClassOpSig _ False funNames params) = do
     hCommaSep $ fmap pretty funNames
-    string " :: "
-    printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
+    hor <-|> ver
+    where
+      hor = do
+        string " :: "
+        printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
+      ver = do
+        string " ::"
+        newline
+        indentedBlock $
+          indentedWithSpace 3 $
+          printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
   pretty' IdSig {} = notUsedInParsedStage
   pretty' (FixSig _ x) = pretty x
   pretty' (InlineSig _ name detail) = do
