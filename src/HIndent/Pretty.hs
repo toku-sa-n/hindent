@@ -244,7 +244,7 @@ instance Pretty (TyClDecl GhcPs) where
   commentsFrom ClassDecl {tcdCExt = (x, _, _)} = Just $ CommentExtractable x
 
 prettyTyClDecl :: TyClDecl GhcPs -> Printer ()
-prettyTyClDecl (FamDecl _ x) = pretty $ DeclTypeFamily x
+prettyTyClDecl (FamDecl _ x) = pretty x
 prettyTyClDecl SynDecl {..} = do
   string "type "
     -- TODO: Merge this case with the one in 'ClassDecl's branch.
@@ -2202,7 +2202,7 @@ instance Pretty StringLiteral where
 
 -- | This instance is for type family declarations inside a class declaration.
 instance Pretty (FamilyDecl GhcPs) where
-  pretty' FamilyDecl {..} = do
+  pretty' FamilyDecl {fdTopLevel = NotTopLevel, ..} = do
     string "type "
     pretty fdLName
     spacePrefixed $ pretty <$> hsq_explicit fdTyVars
@@ -2214,11 +2214,7 @@ instance Pretty (FamilyDecl GhcPs) where
         whenJust fdInjectivityAnn $ \x -> do
           string " | "
           pretty x
-  commentsFrom FamilyDecl {..} = Just $ CommentExtractable fdExt
-
--- TODO: Is it possible to use the `fdTopLevel` flag?
-instance Pretty DeclTypeFamily where
-  pretty' (DeclTypeFamily FamilyDecl {..}) = do
+  pretty' (FamilyDecl {fdTopLevel = TopLevel, ..}) = do
     string $
       case fdInfo of
         DataFamily          -> "data"
@@ -2244,7 +2240,7 @@ instance Pretty DeclTypeFamily where
         newline
         indentedBlock $ lined $ fmap pretty xs
       _ -> pure ()
-  commentsFrom (DeclTypeFamily x) = Just $ CommentExtractable x
+  commentsFrom FamilyDecl {..} = Just $ CommentExtractable fdExt
 
 instance Pretty (FamilyResultSig GhcPs) where
   pretty' NoSig {} = pure ()

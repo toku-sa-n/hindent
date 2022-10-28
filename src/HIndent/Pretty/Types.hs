@@ -37,7 +37,6 @@ module HIndent.Pretty.Types
   , StmtLRInsideVerticalList(..)
   , ParStmtBlockInsideVerticalList(..)
   , DeclSig(..)
-  , DeclTypeFamily(..)
   , HsTypeInsideDeclSig(..)
   , HsTypeInsideVerticalDeclSig(..)
   , Context(..)
@@ -167,10 +166,6 @@ newtype ParStmtBlockInsideVerticalList =
 
 newtype DeclSig =
   DeclSig (Sig GhcPs)
-
--- | Top-level type family declaration, like @type family ID a :: *@.
-newtype DeclTypeFamily =
-  DeclTypeFamily (FamilyDecl GhcPs)
 
 newtype HsTypeInsideDeclSig =
   HsTypeInsideDeclSig (HsType GhcPs)
