@@ -288,6 +288,13 @@ instance Pretty MatchForCase
   pretty' = undefined
 ```
 
+A type alias inside an instance declaration.
+
+```haskell
+instance Foo a where
+  type Bar a = Int
+```
+
 GADT declarations
 
 ```haskell

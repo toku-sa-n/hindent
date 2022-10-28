@@ -323,12 +323,12 @@ prettyTyClDecl ClassDecl {..} = do
               spacePrefixed $ fmap pretty xs
             _ -> error "Not enough parameters are given."
     sigsMethodsFamilies =
-      mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs
+      mkSortedLSigBindFamilyList tcdSigs (bagToList tcdMeths) tcdATs []
 
 instance Pretty (InstDecl GhcPs) where
   pretty' ClsInstD {..}     = pretty cid_inst
   pretty' DataFamInstD {..} = pretty dfid_inst
-  pretty' TyFamInstD {..}   = pretty tfid_inst
+  pretty' TyFamInstD {..}   = pretty $ TopLevelTyFamInstDecl tfid_inst
   commentsFrom = commentsFromInstDecl
 
 commentsFromInstDecl :: InstDecl GhcPs -> Maybe CommentExtractable
@@ -507,7 +507,11 @@ instance Pretty (ClsInstDecl GhcPs) where
       indentedBlock $ lined $ fmap pretty sigsAndMethods
     where
       sigsAndMethods =
-        mkSortedLSigBindFamilyList cid_sigs (bagToList cid_binds) []
+        mkSortedLSigBindFamilyList
+          cid_sigs
+          (bagToList cid_binds)
+          []
+          cid_tyfam_insts
   commentsFrom ClsInstDecl {cid_ext = (x, _)} = Just $ CommentExtractable x
 
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -1894,9 +1898,11 @@ instance Pretty SigBindFamily where
   pretty' (Sig x)        = pretty $ DeclSig x
   pretty' (Bind x)       = pretty x
   pretty' (TypeFamily x) = pretty x
+  pretty' (TyFamInst x)  = pretty x
   commentsFrom (Sig x)        = Just $ CommentExtractable x
   commentsFrom (Bind x)       = Just $ CommentExtractable x
   commentsFrom (TypeFamily x) = Just $ CommentExtractable x
+  commentsFrom (TyFamInst x)  = Just $ CommentExtractable x
 
 instance Pretty EpaComment where
   pretty' EpaComment {..} = pretty ac_tok
@@ -1953,7 +1959,7 @@ instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
 instance Pretty (HsValBindsLR GhcPs GhcPs) where
   pretty' (ValBinds _ methods sigs) = lined $ fmap pretty sigsAndMethods
     where
-      sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) []
+      sigsAndMethods = mkSortedLSigBindFamilyList sigs (bagToList methods) [] []
   pretty' XValBindsLR {} = notUsedInParsedStage
   commentsFrom ValBinds {}    = Nothing
   commentsFrom XValBindsLR {} = notUsedInParsedStage
@@ -2580,10 +2586,13 @@ instance Pretty Role where
   commentsFrom Phantom          = Nothing
 
 instance Pretty (TyFamInstDecl GhcPs) where
-  pretty' TyFamInstDecl {..} = do
-    string "type instance "
-    pretty tfid_eqn
+  pretty' TyFamInstDecl {..} = string "type " >> pretty tfid_eqn
   commentsFrom TyFamInstDecl {..} = Just $ CommentExtractable tfid_xtn
+
+instance Pretty TopLevelTyFamInstDecl where
+  pretty' (TopLevelTyFamInstDecl TyFamInstDecl {..}) =
+    string "type instance " >> pretty tfid_eqn
+  commentsFrom (TopLevelTyFamInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty (DataFamInstDecl GhcPs) where
   pretty' DataFamInstDecl {..} = pretty dfid_eqn

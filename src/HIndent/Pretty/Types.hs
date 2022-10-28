@@ -37,6 +37,7 @@ module HIndent.Pretty.Types
   , StmtLRInsideVerticalList(..)
   , ParStmtBlockInsideVerticalList(..)
   , DeclSig(..)
+  , TopLevelTyFamInstDecl(..)
   , HsTypeInsideDeclSig(..)
   , HsTypeInsideVerticalDeclSig(..)
   , Context(..)
@@ -166,6 +167,9 @@ newtype ParStmtBlockInsideVerticalList =
 
 newtype DeclSig =
   DeclSig (Sig GhcPs)
+
+newtype TopLevelTyFamInstDecl =
+  TopLevelTyFamInstDecl (TyFamInstDecl GhcPs)
 
 newtype HsTypeInsideDeclSig =
   HsTypeInsideDeclSig (HsType GhcPs)
