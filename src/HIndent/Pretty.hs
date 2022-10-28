@@ -2202,25 +2202,15 @@ instance Pretty StringLiteral where
 
 -- | This instance is for type family declarations inside a class declaration.
 instance Pretty (FamilyDecl GhcPs) where
-  pretty' FamilyDecl {fdTopLevel = NotTopLevel, ..} = do
-    string "type "
-    pretty fdLName
-    spacePrefixed $ pretty <$> hsq_explicit fdTyVars
-    case unLoc fdResultSig of
-      NoSig {} -> pure ()
-      _ -> do
-        string " = "
-        pretty fdResultSig
-        whenJust fdInjectivityAnn $ \x -> do
-          string " | "
-          pretty x
-  pretty' (FamilyDecl {fdTopLevel = TopLevel, ..}) = do
+  pretty' FamilyDecl {..} = do
     string $
       case fdInfo of
         DataFamily          -> "data"
         OpenTypeFamily      -> "type"
         ClosedTypeFamily {} -> "type"
-    string " family "
+    case fdTopLevel of
+      TopLevel    -> string " family "
+      NotTopLevel -> space
     pretty fdLName
     spacePrefixed $ pretty <$> hsq_explicit fdTyVars
     case unLoc fdResultSig of
