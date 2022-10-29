@@ -2781,6 +2781,8 @@ template $
 schroffl Hindent produces invalid Syntax from FFI exports #479
 
 ```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
 -- https://github.com/commercialhaskell/hindent/issues/479
 foreign export ccall "test" test :: IO ()
 
