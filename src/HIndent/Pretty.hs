@@ -2566,7 +2566,8 @@ instance Pretty (ForeignDecl GhcPs)
       , pretty safety
       , string s
       , pretty fd_name
-      , string ":: IO ()"
+      , string "::"
+      , pretty fd_sig_ty
       ]
   pretty' ForeignImport {fd_fi = (CImport conv safety _ _ _)} =
     spaced
