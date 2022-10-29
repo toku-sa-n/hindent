@@ -2505,10 +2505,20 @@ instance Pretty (RuleDecl GhcPs) where
   pretty' HsRule {..} =
     spaced
       [ printCommentsAnd rd_name (doubleQuotes . string . unpackFS . snd)
-      , pretty rd_lhs
+      , lhs
       , string "="
       , pretty rd_rhs
       ]
+    where
+      lhs =
+        if null rd_tmvs
+          then pretty rd_lhs
+          else do
+            string "forall "
+            spaced $ fmap pretty rd_tmvs
+            dot
+            space
+            pretty rd_lhs
   commentsFrom HsRule {..} = Just $ CommentExtractable rd_ext
 
 instance Pretty OccName where
@@ -2908,6 +2918,13 @@ instance Pretty LetIn where
   pretty' LetIn {..} =
     lined [string "let " |=> pretty letBinds, string " in " |=> pretty inExpr]
   commentsFrom LetIn {} = Nothing
+
+instance Pretty (RuleBndr GhcPs) where
+  pretty' RuleBndr {} = undefined
+  pretty' (RuleBndrSig _ name sig) =
+    parens $ spaced [pretty name, string "::", pretty sig]
+  commentsFrom (RuleBndr x _)      = Just $ CommentExtractable x
+  commentsFrom (RuleBndrSig x _ _) = Just $ CommentExtractable x
 
 -- | Marks an AST node as never appearing in the AST.
 --

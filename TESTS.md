@@ -344,6 +344,10 @@ Rule declaration
 {-# RULES
 "foo/bar" foo = bar
  #-}
+
+{-# RULES
+"hoge/fuga" forall (a :: Int). hoge a = fuga a a
+ #-}
 ```
 
 Class declaration with an empty constraint
