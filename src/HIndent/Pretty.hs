@@ -2557,13 +2557,16 @@ instance Pretty (DefaultDecl GhcPs) where
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
                                 where
-  pretty' ForeignImport {fd_fi = (CImport conv safety _ _ (L _ (SourceText s)))} =
+  pretty' ForeignImport { fd_fi = (CImport conv safety _ _ (L _ (SourceText s)))
+                        , ..
+                        } =
     spaced
       [ string "foreign import"
       , pretty conv
       , pretty safety
       , string s
-      , string "test :: IO ()"
+      , pretty fd_name
+      , string ":: IO ()"
       ]
   pretty' ForeignImport {fd_fi = (CImport conv safety _ _ _)} =
     spaced

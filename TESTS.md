@@ -254,7 +254,7 @@ A `stdcall` foreign import
 ```haskell
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-foreign import stdcall safe "test" test :: IO ()
+foreign import stdcall safe "test" bar :: IO ()
 ```
 
 A `prim` foreign import
