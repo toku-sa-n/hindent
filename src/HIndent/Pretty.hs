@@ -2920,7 +2920,7 @@ instance Pretty LetIn where
   commentsFrom LetIn {} = Nothing
 
 instance Pretty (RuleBndr GhcPs) where
-  pretty' RuleBndr {} = undefined
+  pretty' (RuleBndr _ name) = pretty name
   pretty' (RuleBndrSig _ name sig) =
     parens $ spaced [pretty name, string "::", pretty sig]
   commentsFrom (RuleBndr x _)      = Just $ CommentExtractable x
