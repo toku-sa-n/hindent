@@ -2786,7 +2786,7 @@ foreign export ccall "test" test :: IO ()
 
 foreign import capi safe "test" test :: IO ()
 
-foreign import ccall interruptible "test" test :: IO ()
+foreign import stdcall interruptible "test" test :: IO ()
 
 foreign import ccall unsafe "test" test :: IO ()
 ```

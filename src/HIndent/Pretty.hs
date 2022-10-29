@@ -2933,7 +2933,7 @@ instance Pretty (RuleBndr GhcPs) where
 instance Pretty CCallConv where
   pretty' CCallConv          = string "ccall"
   pretty' CApiConv           = string "capi"
-  pretty' StdCallConv        = undefined
+  pretty' StdCallConv        = string "stdcall"
   pretty' PrimCallConv       = undefined
   pretty' JavaScriptCallConv = undefined
   commentsFrom = const Nothing
