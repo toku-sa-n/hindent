@@ -2554,9 +2554,7 @@ instance Pretty (DefaultDecl GhcPs) where
     spaced [string "default", hTuple $ fmap pretty xs]
   commentsFrom (DefaultDecl x _) = Just $ CommentExtractable x
 
-instance Pretty (ForeignDecl GhcPs)
-  -- TODO: Implement correctly.
-                                where
+instance Pretty (ForeignDecl GhcPs) where
   pretty' ForeignImport {..} =
     spaced
       [ string "foreign import"
@@ -2565,8 +2563,14 @@ instance Pretty (ForeignDecl GhcPs)
       , string "::"
       , pretty fd_sig_ty
       ]
-  pretty' ForeignExport {} =
-    string "foreign export ccall \"test\" test :: IO ()"
+  pretty' ForeignExport {..} =
+    spaced
+      [ string "foreign export"
+      , pretty fd_fe
+      , pretty fd_name
+      , string "::"
+      , pretty fd_sig_ty
+      ]
   commentsFrom ForeignImport {..} = Just $ CommentExtractable fd_i_ext
   commentsFrom ForeignExport {..} = Just $ CommentExtractable fd_e_ext
 
@@ -2575,6 +2579,15 @@ instance Pretty ForeignImport where
     spaced [pretty conv, pretty safety, string s]
   pretty' (CImport conv safety _ _ _) = spaced [pretty conv, pretty safety]
   commentsFrom CImport {} = Nothing
+
+instance Pretty ForeignExport where
+  pretty' (CExport conv (L _ (SourceText s))) = spaced [pretty conv, string s]
+  pretty' (CExport conv _)                    = pretty conv
+  commentsFrom CExport {} = Nothing
+
+instance Pretty CExportSpec where
+  pretty' (CExportStatic _ _ x) = pretty x
+  commentsFrom CExportStatic {} = Nothing
 
 instance Pretty Safety where
   pretty' PlaySafe          = string "safe"
