@@ -159,13 +159,23 @@ instance Pretty HsModule where
         ]
       prettyModuleDecl HsModule {hsmodName = Nothing} =
         error "The module declaration does not exist."
-      prettyModuleDecl HsModule {hsmodName = Just name, hsmodExports = Nothing} = do
+      prettyModuleDecl HsModule { hsmodName = Just name
+                                , hsmodExports = Nothing
+                                , ..
+                                } = do
         pretty $ fmap ModuleNameWithPrefix name
+        whenJust hsmodDeprecMessage $ \x -> do
+          space
+          pretty $ fmap ModuleDeprecatedPragma x
         string " where"
       prettyModuleDecl HsModule { hsmodName = Just name
                                 , hsmodExports = Just exports
+                                , ..
                                 } = do
         pretty $ fmap ModuleNameWithPrefix name
+        whenJust hsmodDeprecMessage $ \x -> do
+          space
+          pretty $ fmap ModuleDeprecatedPragma x
         newline
         indentedBlock $ do
           printCommentsAnd exports (vTuple . fmap pretty)
@@ -2957,6 +2967,13 @@ instance Pretty CCallConv where
   pretty' PrimCallConv       = string "prim"
   pretty' JavaScriptCallConv = string "javascript"
   commentsFrom = const Nothing
+
+instance Pretty ModuleDeprecatedPragma where
+  pretty' (ModuleDeprecatedPragma (WarningTxt _ xs)) =
+    spaced [string "{-# WARNING", spaced $ fmap pretty xs, string "#-}"]
+  pretty' (ModuleDeprecatedPragma (DeprecatedTxt _ xs)) =
+    spaced [string "{-# DEPRECATED", spaced $ fmap pretty xs, string "#-}"]
+  commentsFrom ModuleDeprecatedPragma {} = Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --

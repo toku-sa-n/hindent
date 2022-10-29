@@ -46,6 +46,7 @@ module HIndent.Pretty.Types
   , ModuleNameWithPrefix(..)
   , PatInsidePatDecl(..)
   , LambdaCase(..)
+  , ModuleDeprecatedPragma(..)
   , ListComprehension(..)
   , DoExpression(..)
   , DoOrMdo(..)
@@ -55,6 +56,7 @@ module HIndent.Pretty.Types
 import           GHC.Hs
 import           GHC.Types.Name.Reader
 import           GHC.Unit
+import           GHC.Unit.Module.Warnings
 
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
@@ -222,6 +224,9 @@ newtype PatInsidePatDecl =
 
 newtype LambdaCase =
   LambdaCase (MatchGroup GhcPs (LHsExpr GhcPs))
+
+newtype ModuleDeprecatedPragma =
+  ModuleDeprecatedPragma WarningTxt
 
 -- | Use this type to pretty-print a list comprehension.
 data ListComprehension =

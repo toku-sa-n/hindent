@@ -53,6 +53,22 @@ module X
     ) where
 ```
 
+A `WARNING` for a module without an export list.
+
+```haskell
+module Foo {-# WARNING "Debug purpose only." #-} where
+```
+
+A `DEPRECATED` for a module with an export list.
+
+```haskell
+module Foo {-# DEPRECATED "Use Bar." #-}
+  ( x
+  , y
+  , z
+  ) where
+```
+
 ## Pragmas
 
 Pragmas, GHC options, and haddock options.
