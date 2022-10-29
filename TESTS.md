@@ -2781,6 +2781,7 @@ template $
 schroffl Hindent produces invalid Syntax from FFI exports #479
 
 ```haskell
+{-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 -- https://github.com/commercialhaskell/hindent/issues/479
