@@ -2557,6 +2557,14 @@ instance Pretty (DefaultDecl GhcPs) where
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
                                 where
+  pretty' ForeignImport {fd_fi = (CImport conv safety _ (CFunction (StaticTarget SourceText {} label _ _)) _)} =
+    spaced
+      [ string "foreign import"
+      , pretty conv
+      , pretty safety
+      , string $ ushow label
+      , string "test :: IO ()"
+      ]
   pretty' ForeignImport {fd_fi = (CImport conv safety _ _ _)} =
     spaced
       [ string "foreign import"

@@ -2790,7 +2790,7 @@ foreign import stdcall interruptible "test" test :: IO ()
 
 foreign import prim unsafe "test" test :: IO ()
 
-foreign import javascript unsafe "test" test :: IO ()
+foreign import javascript safe "foo" test :: IO ()
 ```
 
 ptek Reformatting of the {-# OVERLAPPING #-} pragma #386
