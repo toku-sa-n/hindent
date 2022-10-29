@@ -246,7 +246,7 @@ A `capi` foreign import
 {-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-foreign import capi safe "test" test :: IO ()
+foreign import capi safe "foo" test :: IO ()
 ```
 
 A `stdcall` foreign import
