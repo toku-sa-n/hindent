@@ -2557,10 +2557,13 @@ instance Pretty (DefaultDecl GhcPs) where
 instance Pretty (ForeignDecl GhcPs)
   -- TODO: Implement correctly.
                                 where
-  pretty' ForeignImport {fd_fi = (CImport _ safety _ _ _)} = do
-    string "foreign import ccall "
-    pretty safety
-    string " \"test\" test :: IO ()"
+  pretty' ForeignImport {fd_fi = (CImport conv safety _ _ _)} =
+    spaced
+      [ string "foreign import"
+      , pretty conv
+      , pretty safety
+      , string "\"test\" test :: IO ()"
+      ]
   pretty' ForeignExport {} =
     string "foreign export ccall \"test\" test :: IO ()"
   commentsFrom ForeignImport {..} = Just $ CommentExtractable fd_i_ext
@@ -2926,6 +2929,14 @@ instance Pretty (RuleBndr GhcPs) where
     parens $ spaced [pretty name, string "::", pretty sig]
   commentsFrom (RuleBndr x _)      = Just $ CommentExtractable x
   commentsFrom (RuleBndrSig x _ _) = Just $ CommentExtractable x
+
+instance Pretty CCallConv where
+  pretty' CCallConv          = string "ccall"
+  pretty' CApiConv           = string "capi"
+  pretty' StdCallConv        = undefined
+  pretty' PrimCallConv       = undefined
+  pretty' JavaScriptCallConv = undefined
+  commentsFrom = const Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --
