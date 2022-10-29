@@ -230,6 +230,49 @@ import Direction
   )
 ```
 
+# Foreign imports and exports
+
+A `ccall` foreign export
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign export ccall "test" test :: IO ()
+```
+
+A `capi` foreign import
+
+```haskell
+{-# LANGUAGE CApiFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import capi safe "test" test :: IO ()
+```
+
+A `stdcall` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import stdcall safe "test" test :: IO ()
+```
+
+A `prim` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import prim safe "test" test :: IO ()
+```
+
+A `javascript` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import javascript safe "test" test :: IO ()
+```
+
 # Declarations
 
 A record inside a function signature
@@ -2776,24 +2819,6 @@ template $
     , ''AnotherLongNameEvenLongToBreakTheLine
     , ''LastLongNameInList
     ]
-```
-
-schroffl Hindent produces invalid Syntax from FFI exports #479
-
-```haskell
-{-# LANGUAGE CApiFFI #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-
--- https://github.com/commercialhaskell/hindent/issues/479
-foreign export ccall "test" test :: IO ()
-
-foreign import capi safe "test" test :: IO ()
-
-foreign import stdcall interruptible "test" test :: IO ()
-
-foreign import prim unsafe "test" test :: IO ()
-
-foreign import javascript safe "foo" test :: IO ()
 ```
 
 ptek Reformatting of the {-# OVERLAPPING #-} pragma #386
