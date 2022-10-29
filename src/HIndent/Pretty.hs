@@ -2935,7 +2935,7 @@ instance Pretty CCallConv where
   pretty' CApiConv           = string "capi"
   pretty' StdCallConv        = string "stdcall"
   pretty' PrimCallConv       = string "prim"
-  pretty' JavaScriptCallConv = undefined
+  pretty' JavaScriptCallConv = string "javascript"
   commentsFrom = const Nothing
 
 -- | Marks an AST node as never appearing in the AST.
