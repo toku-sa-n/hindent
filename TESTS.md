@@ -2788,7 +2788,7 @@ foreign import capi safe "test" test :: IO ()
 
 foreign import stdcall interruptible "test" test :: IO ()
 
-foreign import ccall unsafe "test" test :: IO ()
+foreign import prim unsafe "test" test :: IO ()
 ```
 
 ptek Reformatting of the {-# OVERLAPPING #-} pragma #386

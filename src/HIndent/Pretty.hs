@@ -2934,7 +2934,7 @@ instance Pretty CCallConv where
   pretty' CCallConv          = string "ccall"
   pretty' CApiConv           = string "capi"
   pretty' StdCallConv        = string "stdcall"
-  pretty' PrimCallConv       = undefined
+  pretty' PrimCallConv       = string "prim"
   pretty' JavaScriptCallConv = undefined
   commentsFrom = const Nothing
 
