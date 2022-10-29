@@ -47,6 +47,7 @@ import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
 import           HIndent.Pretty.Types
 import           HIndent.Types
+import           Text.Show.Unicode
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Types.PkgQual
 #endif
@@ -2762,7 +2763,7 @@ instance Pretty HsIPName where
 
 instance Pretty HsTyLit where
   pretty' (HsNumTy _ x)  = string $ show x
-  pretty' (HsStrTy _ x)  = string $ show x
+  pretty' (HsStrTy _ x)  = string $ ushow x
   pretty' (HsCharTy _ x) = string $ show x
   commentsFrom HsNumTy {}  = Nothing
   commentsFrom HsStrTy {}  = Nothing

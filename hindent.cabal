@@ -75,6 +75,7 @@ library
                    , syb
                    , regex-tdfa
                    , text
+                   , unicode-show
                    , yaml
   if(impl(ghc >= 9.4.1))
     build-depends: ghc-lib-parser >= 9.4.1.20220807 && < 9.5

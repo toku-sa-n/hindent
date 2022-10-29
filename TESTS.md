@@ -1202,6 +1202,12 @@ Type using a character value
 f :: Foo 'a'
 ```
 
+Type using a unicode string value
+
+```haskell
+f :: Foo "あ"
+```
+
 A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
 
 ```haskell given
