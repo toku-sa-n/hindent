@@ -1526,13 +1526,13 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
+      string " ="
       horizontal <-|> vertical
     where
       horizontal = do
-        string " = "
+        space
         pretty body
       vertical = do
-        string " ="
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHS x _ _) = Just $ CommentExtractable x
@@ -1558,26 +1558,27 @@ instance Pretty GRHSForCase where
       string "| " |=> vCommaSep (fmap pretty guards)
       string " -> mdo "
       printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCase (GRHS _ [] body)) = horizontal <-|> vertical
+  pretty' (GRHSForCase (GRHS _ [] body)) = do
+    string " ->"
+    horizontal <-|> vertical
     where
       horizontal = do
-        string " -> "
+        space
         pretty body
       vertical = do
-        string " ->"
         newline
         indentedBlock $ pretty body
   pretty' (GRHSForCase (GRHS _ guards body)) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
+      string " ->"
       horizontal <-|> vertical
     where
       horizontal = do
-        string " -> "
+        space
         pretty body
       vertical = do
-        string " ->"
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHSForCase x) = Just $ CommentExtractable x
