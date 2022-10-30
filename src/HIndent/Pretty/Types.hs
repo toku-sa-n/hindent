@@ -224,10 +224,13 @@ newtype PatInsidePatDecl =
 
 newtype LambdaCase =
   LambdaCase (MatchGroup GhcPs (LHsExpr GhcPs))
-
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+newtype ModuleDeprecatedPragma =
+  ModuleDeprecatedPragma (WarningTxt GhcPs)
+#else
 newtype ModuleDeprecatedPragma =
   ModuleDeprecatedPragma WarningTxt
-
+#endif
 -- | Use this type to pretty-print a list comprehension.
 data ListComprehension =
   ListComprehension
