@@ -22,7 +22,7 @@ module HIndent.Pretty.Types
   , GRHSsForLambda(..)
   , GRHSsForLambdaInProc(..)
   , GRHSsForCaseInProc(..)
-  , GRHSForCase(..)
+  , GRHSWrapper(..)
   , GRHSForMultiwayIf(..)
   , GRHSForLambda(..)
   , GRHSForLambdaInProc(..)
@@ -51,6 +51,7 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
+  , RhsSeparator(..)
   ) where
 
 import           GHC.Hs
@@ -121,8 +122,11 @@ newtype GRHSsForLambdaInProc =
 newtype GRHSsForCaseInProc =
   GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
 
-newtype GRHSForCase =
-  GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
+data GRHSWrapper =
+  GRHSWrapper
+    { rhsSeparator :: RhsSeparator
+    , grhs         :: GRHS GhcPs (LHsExpr GhcPs)
+    }
 
 newtype GRHSForMultiwayIf =
   GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
@@ -255,3 +259,7 @@ data LetIn =
 data DoOrMdo
   = Do
   | Mdo
+
+data RhsSeparator
+  = Equal
+  | Arrow

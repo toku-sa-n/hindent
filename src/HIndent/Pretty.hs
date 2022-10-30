@@ -1378,7 +1378,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSsForCase where
   pretty' (GRHSsForCase GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForCase) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSWrapper Arrow)) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1478,88 +1478,59 @@ instance Pretty RdrName where
   commentsFrom Exact {}  = Nothing
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))) = do
-    string " = do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))) = do
-    string " = mdo"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHS _ guards (L _ (HsDo _ (DoExpr _) body))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " = do"
-      hor <-|> ver
-    where
-      hor = do
-        space
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " = mdo"
-      hor <-|> ver
-    where
-      hor = do
-        space
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHS _ [] body) = do
-    string " ="
-    horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
-  pretty' (GRHS _ guards body) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " ="
-      horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
-  commentsFrom (GRHS x _ _) = Just $ CommentExtractable x
+  pretty' = pretty' . GRHSWrapper Equal
+  commentsFrom = commentsFrom . GRHSWrapper Equal
 
-instance Pretty GRHSForCase where
-  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string " -> do"
+instance Pretty GRHSWrapper where
+  pretty' (GRHSWrapper {grhs = (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))), ..}) = do
+    space
+    pretty rhsSeparator
+    string " do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
-    string " -> mdo"
+  pretty' (GRHSWrapper {grhs = (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))), ..}) = do
+    space
+    pretty rhsSeparator
+    string " mdo"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+  pretty' (GRHSWrapper { grhs = (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))
+                       , ..
+                       }) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
+      space
+      pretty rhsSeparator
+      string " do"
+      hor <-|> ver
+    where
+      hor = do
+        space
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSWrapper { grhs = (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))
+                       , ..
+                       }) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> mdo "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCase (GRHS _ [] body)) = do
-    string " ->"
+      space
+      pretty rhsSeparator
+      string " mdo"
+      hor <-|> ver
+    where
+      hor = do
+        space
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSWrapper {grhs = (GRHS _ [] body), ..}) = do
+    space
+    pretty rhsSeparator
     horizontal <-|> vertical
     where
       horizontal = do
@@ -1568,11 +1539,12 @@ instance Pretty GRHSForCase where
       vertical = do
         newline
         indentedBlock $ pretty body
-  pretty' (GRHSForCase (GRHS _ guards body)) = do
+  pretty' (GRHSWrapper {grhs = (GRHS _ guards body), ..}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " ->"
+      space
+      pretty rhsSeparator
       horizontal <-|> vertical
     where
       horizontal = do
@@ -1581,7 +1553,7 @@ instance Pretty GRHSForCase where
       vertical = do
         newline
         indentedBlock $ pretty body
-  commentsFrom (GRHSForCase x) = Just $ CommentExtractable x
+  commentsFrom (GRHSWrapper _ (GRHS x _ _)) = Just $ CommentExtractable x
 
 instance Pretty GRHSForLambdaInProc where
   pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =
@@ -2543,7 +2515,7 @@ instance Pretty OccName where
 
 instance Pretty (DerivDecl GhcPs)
   -- TODO: Handle deriving strategies.
-                                       where
+                                        where
   pretty' DerivDecl {..} = do
     string "deriving instance "
     pretty deriv_type
@@ -2979,6 +2951,11 @@ instance Pretty ModuleDeprecatedPragma where
   pretty' (ModuleDeprecatedPragma (DeprecatedTxt _ xs)) =
     spaced [string "{-# DEPRECATED", spaced $ fmap pretty xs, string "#-}"]
   commentsFrom ModuleDeprecatedPragma {} = Nothing
+
+instance Pretty RhsSeparator where
+  pretty' Equal = string "="
+  pretty' Arrow = string "->"
+  commentsFrom = const Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --
