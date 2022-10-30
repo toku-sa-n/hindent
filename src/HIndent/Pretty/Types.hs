@@ -51,7 +51,7 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
-  , RhsSeparator(..)
+  , GRHSType(..)
   ) where
 
 import           GHC.Hs
@@ -124,8 +124,8 @@ newtype GRHSsForCaseInProc =
 
 data GRHSWrapper =
   GRHSWrapper
-    { rhsSeparator :: RhsSeparator
-    , grhs         :: GRHS GhcPs (LHsExpr GhcPs)
+    { grhsType :: GRHSType
+    , grhs     :: GRHS GhcPs (LHsExpr GhcPs)
     }
 
 newtype GRHSForMultiwayIf =
@@ -260,6 +260,6 @@ data DoOrMdo
   = Do
   | Mdo
 
-data RhsSeparator
-  = Equal
-  | Arrow
+data GRHSType
+  = GRHSNormal
+  | GRHSCase

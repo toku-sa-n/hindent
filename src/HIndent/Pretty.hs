@@ -1378,7 +1378,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSsForCase where
   pretty' (GRHSsForCase GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSWrapper Arrow)) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSWrapper GRHSCase)) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1478,19 +1478,19 @@ instance Pretty RdrName where
   commentsFrom Exact {}  = Nothing
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' = pretty' . GRHSWrapper Equal
-  commentsFrom = commentsFrom . GRHSWrapper Equal
+  pretty' = pretty' . GRHSWrapper GRHSNormal
+  commentsFrom = commentsFrom . GRHSWrapper GRHSNormal
 
 instance Pretty GRHSWrapper where
   pretty' (GRHSWrapper {grhs = (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))), ..}) = do
     space
-    pretty rhsSeparator
+    prettyRhsSeparator grhsType
     string " do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSWrapper {grhs = (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))), ..}) = do
     space
-    pretty rhsSeparator
+    prettyRhsSeparator grhsType
     string " mdo"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
@@ -1501,7 +1501,7 @@ instance Pretty GRHSWrapper where
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       space
-      pretty rhsSeparator
+      prettyRhsSeparator grhsType
       string " do"
       hor <-|> ver
     where
@@ -1518,7 +1518,7 @@ instance Pretty GRHSWrapper where
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       space
-      pretty rhsSeparator
+      prettyRhsSeparator grhsType
       string " mdo"
       hor <-|> ver
     where
@@ -1530,7 +1530,7 @@ instance Pretty GRHSWrapper where
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSWrapper {grhs = (GRHS _ [] body), ..}) = do
     space
-    pretty rhsSeparator
+    prettyRhsSeparator grhsType
     horizontal <-|> vertical
     where
       horizontal = do
@@ -1544,7 +1544,7 @@ instance Pretty GRHSWrapper where
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       space
-      pretty rhsSeparator
+      prettyRhsSeparator grhsType
       horizontal <-|> vertical
     where
       horizontal = do
@@ -1554,6 +1554,10 @@ instance Pretty GRHSWrapper where
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHSWrapper _ (GRHS x _ _)) = Just $ CommentExtractable x
+
+prettyRhsSeparator::GRHSType->Printer()
+prettyRhsSeparator GRHSNormal=string "="
+prettyRhsSeparator GRHSCase=string "->"
 
 instance Pretty GRHSForLambdaInProc where
   pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =
@@ -2951,11 +2955,6 @@ instance Pretty ModuleDeprecatedPragma where
   pretty' (ModuleDeprecatedPragma (DeprecatedTxt _ xs)) =
     spaced [string "{-# DEPRECATED", spaced $ fmap pretty xs, string "#-}"]
   commentsFrom ModuleDeprecatedPragma {} = Nothing
-
-instance Pretty RhsSeparator where
-  pretty' Equal = string "="
-  pretty' Arrow = string "->"
-  commentsFrom = const Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --
