@@ -726,7 +726,9 @@ prettyHsExpr (RecordUpd _ name fields) = hor <-|> ver
     ver = do
       pretty name
       newline
-      indentedBlock $ either printVerFields printVerFields fields
+      indentedBlock $
+        either printHorFields printHorFields fields <-|>
+        either printVerFields printVerFields fields
     printHorFields ::
          (Pretty a, Pretty b, Pretty l)
       => [GenLocated l (HsRecField' a b)]

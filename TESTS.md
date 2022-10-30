@@ -732,6 +732,14 @@ commitToEvent gitFolderPath timezone commit =
     }
 ```
 
+Record body may be in one line even if a new line is inserted after the variable name.
+
+```haskell
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments) =
+  nodeInfo
+    {nodeInfoComments = existingComments <> map mkBeforeNodeComment newComments}
+```
+
 Record with symbol constructor
 
 ```haskell
