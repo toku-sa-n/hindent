@@ -1240,9 +1240,7 @@ prettyHsType (HsSpliceTy _ sp) = pretty sp
 prettyHsType HsDocTy {} =
   error
     "An AST node of this type never appears in an AST because haddock comments are treated as normal ones."
-prettyHsType (HsBangTy _ _ x) = do
-  string "!"
-  pretty x
+prettyHsType (HsBangTy _ pack x) = pretty pack >> pretty x
 prettyHsType (HsRecTy _ xs) = hvFields $ fmap pretty xs
 prettyHsType (HsExplicitListTy _ _ xs) =
   case xs of
@@ -2979,6 +2977,29 @@ instance Pretty ModuleDeprecatedPragma where
   pretty' (ModuleDeprecatedPragma (DeprecatedTxt _ xs)) =
     spaced [string "{-# DEPRECATED", spaced $ fmap pretty xs, string "#-}"]
   commentsFrom ModuleDeprecatedPragma {} = Nothing
+
+instance Pretty HsSrcBang where
+  pretty' (HsSrcBang _ unpack strictness) = do
+    pretty unpack
+    unless (unpack == NoSrcUnpack) space
+    pretty strictness
+  commentsFrom HsSrcBang {} = Nothing
+
+instance Pretty SrcUnpackedness where
+  pretty' SrcUnpack   = string "{-# UNPACK #-}"
+  pretty' SrcNoUnpack = undefined
+  pretty' NoSrcUnpack = pure ()
+  commentsFrom SrcUnpack   = Nothing
+  commentsFrom SrcNoUnpack = Nothing
+  commentsFrom NoSrcUnpack = Nothing
+
+instance Pretty SrcStrictness where
+  pretty' SrcLazy     = undefined
+  pretty' SrcStrict   = string "!"
+  pretty' NoSrcStrict = undefined
+  commentsFrom SrcLazy     = Nothing
+  commentsFrom SrcStrict   = Nothing
+  commentsFrom NoSrcStrict = Nothing
 
 -- | Marks an AST node as never appearing in the AST.
 --

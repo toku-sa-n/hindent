@@ -363,6 +363,15 @@ data Ty :: (* -> *) where
   TCon' :: (a :: *) -> a -> Ty a
 ```
 
+An `UNPACK`ed field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: {-# UNPACK #-} !Int
+    }
+```
+
 `StandaloneDeriving`
 
 ```haskell
