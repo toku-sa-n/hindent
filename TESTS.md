@@ -401,6 +401,8 @@ data Foo =
 
 deriving instance Eq Foo
 
+deriving stock instance Ord Foo
+
 deriving via (Foo a) instance Show (Bar a)
 ```
 

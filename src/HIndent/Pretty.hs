@@ -2536,9 +2536,7 @@ instance Pretty OccName where
   pretty' = output
   commentsFrom = const Nothing
 
-instance Pretty (DerivDecl GhcPs)
-  -- TODO: Handle deriving strategies.
-                                       where
+instance Pretty (DerivDecl GhcPs) where
   pretty' DerivDecl { deriv_strategy = (Just deriv_strategy@(L _ ViaStrategy {}))
                     , ..
                     } =
@@ -2549,7 +2547,11 @@ instance Pretty (DerivDecl GhcPs)
       , pretty deriv_type
       ]
   pretty' DerivDecl {..} = do
-    string "deriving instance "
+    string "deriving "
+    whenJust deriv_strategy $ \x -> do
+      pretty x
+      space
+    string "instance "
     pretty deriv_type
   commentsFrom DerivDecl {..} = Just $ CommentExtractable deriv_ext
 
