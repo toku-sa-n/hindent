@@ -27,6 +27,7 @@ module HIndent.Pretty.Types
   , GRHSForLambda(..)
   , GRHSForLambdaInProc(..)
   , GRHSForCaseInProc(..)
+  , GRHSExpr(..)
   , RecConPat(..)
   , RecConField(..)
   , HsSigTypeInsideInstDecl(..)
@@ -136,6 +137,10 @@ newtype GRHSForLambdaInProc =
 -- | 'GRHS' for a @case@ expression in a @proc@ expression.
 newtype GRHSForCaseInProc =
   GRHSForCaseInProc (GRHS GhcPs (LHsCmd GhcPs))
+
+-- | 'GRHS' for a normal binding.
+newtype GRHSExpr =
+  GRHSExpr (GRHS GhcPs (LHsExpr GhcPs))
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
