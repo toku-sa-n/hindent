@@ -2539,6 +2539,15 @@ instance Pretty OccName where
 instance Pretty (DerivDecl GhcPs)
   -- TODO: Handle deriving strategies.
                                        where
+  pretty' DerivDecl { deriv_strategy = (Just deriv_strategy@(L _ ViaStrategy {}))
+                    , ..
+                    } =
+    spaced
+      [ string "deriving"
+      , pretty deriv_strategy
+      , string "instance"
+      , pretty deriv_type
+      ]
   pretty' DerivDecl {..} = do
     string "deriving instance "
     pretty deriv_type

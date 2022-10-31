@@ -393,12 +393,15 @@ data Foo =
 `StandaloneDeriving`
 
 ```haskell
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 data Foo =
   Foo
 
 deriving instance Eq Foo
+
+deriving via (Foo a) instance Show (Bar a)
 ```
 
 Role annotation
