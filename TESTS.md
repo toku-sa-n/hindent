@@ -666,6 +666,8 @@ e = 3.3#
 f = "FOO"#
 
 g = 'c'#
+
+h = 0xff
 ```
 
 A minus sign

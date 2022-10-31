@@ -2749,7 +2749,8 @@ instance Pretty OverLitVal where
   commentsFrom HsIsString {}   = Nothing
 
 instance Pretty IntegralLit where
-  pretty' IL {..} = string $ show il_value
+  pretty' IL {il_text = SourceText s} = string s
+  pretty' IL {..}                     = string $ show il_value
   commentsFrom IL {} = Nothing
 
 instance Pretty FractionalLit where
