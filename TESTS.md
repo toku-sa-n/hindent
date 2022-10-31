@@ -372,6 +372,15 @@ data Foo =
     }
 ```
 
+An `NOUNPACK`ed field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: {-# NOUNPACK #-} !Int
+    }
+```
+
 `StandaloneDeriving`
 
 ```haskell

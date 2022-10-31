@@ -2987,7 +2987,7 @@ instance Pretty HsSrcBang where
 
 instance Pretty SrcUnpackedness where
   pretty' SrcUnpack   = string "{-# UNPACK #-}"
-  pretty' SrcNoUnpack = undefined
+  pretty' SrcNoUnpack = string "{-# NOUNPACK #-}"
   pretty' NoSrcUnpack = pure ()
   commentsFrom SrcUnpack   = Nothing
   commentsFrom SrcNoUnpack = Nothing
