@@ -368,7 +368,7 @@ An `UNPACK`ed field.
 ```haskell
 data Foo =
   Foo
-    { x :: {-# UNPACK #-} !Int
+    { x :: {-# UNPACK #-} Int
     }
 ```
 
