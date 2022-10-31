@@ -2994,7 +2994,7 @@ instance Pretty SrcUnpackedness where
   commentsFrom NoSrcUnpack = Nothing
 
 instance Pretty SrcStrictness where
-  pretty' SrcLazy     = undefined
+  pretty' SrcLazy     = string "~"
   pretty' SrcStrict   = string "!"
   pretty' NoSrcStrict = undefined
   commentsFrom SrcLazy     = Nothing

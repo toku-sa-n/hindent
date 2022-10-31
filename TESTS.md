@@ -381,6 +381,15 @@ data Foo =
     }
 ```
 
+A lazy field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: ~Int
+    }
+```
+
 `StandaloneDeriving`
 
 ```haskell
