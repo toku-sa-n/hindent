@@ -1373,7 +1373,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSsForCase where
   pretty' (GRHSsForCase GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForCase) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSExpr GRHSCase)) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1473,23 +1473,31 @@ instance Pretty RdrName where
   commentsFrom Exact {}  = Nothing
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' = pretty' . GRHSExpr
-  commentsFrom = commentsFrom . GRHSExpr
+  pretty' = pretty' . GRHSExpr GRHSNormal
+  commentsFrom = commentsFrom . GRHSExpr GRHSNormal
 
 instance Pretty GRHSExpr where
-  pretty' (GRHSExpr (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string " = do"
+  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))), ..}) = do
+    space
+    rhsSeparator grhsType
+    string " do"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
-    string " = mdo"
+  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))), ..}) = do
+    space
+    rhsSeparator grhsType
+    string " mdo"
     newline
     indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
+  pretty' (GRHSExpr { grhsExpr = (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))
+                    , ..
+                    }) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " = do"
+      space
+      rhsSeparator grhsType
+      string " do"
       hor <-|> ver
     where
       hor = do
@@ -1498,11 +1506,15 @@ instance Pretty GRHSExpr where
       ver = do
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
+  pretty' (GRHSExpr { grhsExpr = (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))
+                    , ..
+                    }) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " = mdo"
+      space
+      rhsSeparator grhsType
+      string " mdo"
       hor <-|> ver
     where
       hor = do
@@ -1511,8 +1523,9 @@ instance Pretty GRHSExpr where
       ver = do
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr (GRHS _ [] body)) = do
-    string " ="
+  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
+    space
+    rhsSeparator grhsType
     horizontal <-|> vertical
     where
       horizontal = do
@@ -1521,11 +1534,12 @@ instance Pretty GRHSExpr where
       vertical = do
         newline
         indentedBlock $ pretty body
-  pretty' (GRHSExpr (GRHS _ guards body)) = do
+  pretty' (GRHSExpr {grhsExpr = (GRHS _ guards body), ..}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " ="
+      space
+      rhsSeparator grhsType
       horizontal <-|> vertical
     where
       horizontal = do
@@ -1534,53 +1548,8 @@ instance Pretty GRHSExpr where
       vertical = do
         newline
         indentedBlock $ pretty body
-  commentsFrom (GRHSExpr (GRHS x _ _)) = Just $ CommentExtractable x
-
-instance Pretty GRHSForCase where
-  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string " -> do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForCase (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
-    string " -> mdo"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCase (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> mdo "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCase (GRHS _ [] body)) = do
-    string " ->"
-    horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
-  pretty' (GRHSForCase (GRHS _ guards body)) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " ->"
-      horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
-  commentsFrom (GRHSForCase x) = Just $ CommentExtractable x
+  commentsFrom (GRHSExpr {grhsExpr = (GRHS x _ _)}) =
+    Just $ CommentExtractable x
 
 instance Pretty GRHSForLambdaInProc where
   pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =

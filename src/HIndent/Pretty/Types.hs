@@ -22,7 +22,6 @@ module HIndent.Pretty.Types
   , GRHSsForLambda(..)
   , GRHSsForLambdaInProc(..)
   , GRHSsForCaseInProc(..)
-  , GRHSForCase(..)
   , GRHSForMultiwayIf(..)
   , GRHSForLambda(..)
   , GRHSForLambdaInProc(..)
@@ -52,6 +51,7 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
+  , GRHSType(..)
   ) where
 
 import           GHC.Hs
@@ -122,9 +122,6 @@ newtype GRHSsForLambdaInProc =
 newtype GRHSsForCaseInProc =
   GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
 
-newtype GRHSForCase =
-  GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
-
 newtype GRHSForMultiwayIf =
   GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
 
@@ -139,8 +136,11 @@ newtype GRHSForCaseInProc =
   GRHSForCaseInProc (GRHS GhcPs (LHsCmd GhcPs))
 
 -- | 'GRHS' for a normal binding.
-newtype GRHSExpr =
-  GRHSExpr (GRHS GhcPs (LHsExpr GhcPs))
+data GRHSExpr =
+  GRHSExpr
+    { grhsType :: GRHSType
+    , grhsExpr :: GRHS GhcPs (LHsExpr GhcPs)
+    }
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
@@ -260,3 +260,7 @@ data LetIn =
 data DoOrMdo
   = Do
   | Mdo
+
+data GRHSType
+  = GRHSNormal
+  | GRHSCase
