@@ -1211,10 +1211,7 @@ prettyHsType (HsTyVar _ NotPromoted x) = pretty x
 prettyHsType (HsTyVar _ IsPromoted x) = string "'" >> pretty x
 prettyHsType (HsAppTy _ l r) = spaced $ fmap pretty [l, r]
 prettyHsType (HsAppKindTy _ l r) = pretty l >> string " @" >> pretty r
-prettyHsType (HsFunTy _ _ a b) = hor <-|> noDeclSigV
-  where
-    hor = spaced [pretty a, string "->", pretty b]
-    noDeclSigV = lined [pretty a, prefixed "-> " $ pretty b]
+prettyHsType (HsFunTy _ _ a b) = (pretty a >> string " -> ") |=> pretty b
 prettyHsType (HsListTy _ xs) = brackets $ pretty xs
 prettyHsType (HsTupleTy _ _ xs) = hvTuple' $ fmap pretty xs
 prettyHsType (HsSumTy _ xs) = unboxedSums $ hBarSep $ fmap pretty xs
