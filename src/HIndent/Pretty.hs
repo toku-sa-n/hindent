@@ -1524,42 +1524,50 @@ instance Pretty GRHSExpr where
     Just $ CommentExtractable x
 
 instance Pretty GRHSProc where
-  pretty' (GRHSProc {grhsProc = (GRHS _ [] (L _ (HsCmdDo _ body)))}) =
+  pretty' (GRHSProc {grhsProc = (GRHS _ [] (L _ (HsCmdDo _ body)))}) = do
+    string "-> do"
     hor <-|> ver
     where
       hor = do
-        string "-> do "
+        space
         printCommentsAnd body (lined . fmap pretty)
       ver = do
-        string "-> do"
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSProc {grhsProc = (GRHS _ guards (L _ (HsCmdDo _ body)))}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSProc {grhsProc = (GRHS _ [] body)}) = horizontal <-|> vertical
+      string " -> do"
+      hor <-|> ver
+    where
+      hor = do
+        space
+        printCommentsAnd body (lined . fmap pretty)
+      ver = do
+        newline
+        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+  pretty' (GRHSProc {grhsProc = (GRHS _ [] body)}) = do
+    string "->"
+    horizontal <-|> vertical
     where
       horizontal = do
-        string "-> "
+        space
         pretty body
       vertical = do
-        string "->"
         newline
         indentedBlock $ pretty body
   pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
+      string " ->"
       horizontal <-|> vertical
     where
       horizontal = do
-        string " -> "
+        space
         pretty body
       vertical = do
-        string " ->"
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHSProc {grhsProc = (GRHS x _ _)}) =
