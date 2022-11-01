@@ -1500,24 +1500,21 @@ instance Pretty GRHSExpr where
       space
       rhsSeparator grhsType
       printCommentsAnd body $ \case
-        HsDo _ DoExpr {} stmts -> do
-          string " do"
-          let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-              ver =
-                newline >>
-                indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
-           in hor <-|> ver
-        HsDo _ MDoExpr {} stmts -> do
-          string " mdo"
-          let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-              ver =
-                newline >>
-                indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
-           in hor <-|> ver
+        HsDo _ DoExpr {} stmts -> doExpr "do" stmts
+        HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
         x ->
           let hor = space >> pretty x
               ver = newline >> indentedBlock (pretty x)
            in hor <-|> ver
+    where
+      doExpr pref stmts = do
+        space
+        string pref
+        let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
+            ver =
+              newline >>
+              indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
+        hor <-|> ver
   commentsFrom (GRHSExpr {grhsExpr = (GRHS x _ _)}) =
     Just $ CommentExtractable x
 
