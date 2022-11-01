@@ -10,3 +10,4 @@ rhsSeparator :: GRHSType -> Printer ()
 rhsSeparator GRHSNormal     = string "="
 rhsSeparator GRHSCase       = string "->"
 rhsSeparator GRHSMultiWayIf = string "->"
+rhsSeparator GRHSLambda     = string "->"

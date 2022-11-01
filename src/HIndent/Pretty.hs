@@ -1079,7 +1079,8 @@ instance Pretty MatchForLambda where
         LazyPat {} -> space
         BangPat {} -> space
         _          -> return ()
-    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambda m_grhss]
+    spaced $ fmap pretty m_pats
+    pretty $ GRHSsForLambda m_grhss
   commentsFrom (MatchForLambda x) = Just $ CommentExtractable x
 
 instance Pretty MatchForLambdaInProc where
@@ -1384,7 +1385,7 @@ instance Pretty GRHSsForCase where
 
 instance Pretty GRHSsForLambda where
   pretty' (GRHSsForLambda GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForLambda) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSExpr GRHSLambda)) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $
@@ -1595,63 +1596,6 @@ instance Pretty GRHSForCaseInProc where
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHSForCaseInProc (GRHS x _ _)) = Just $ CommentExtractable x
-
-instance Pretty GRHSForLambda where
-  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) =
-    hor <-|> ver
-    where
-      hor = do
-        string "-> do "
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        string "-> do"
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForLambda (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) =
-    hor <-|> ver
-    where
-      hor = do
-        string "-> mdo "
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        string "-> mdo"
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForLambda (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> mdo "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForLambda (GRHS _ [] body)) = horizontal <-|> vertical
-    where
-      horizontal = do
-        string "-> "
-        pretty body
-      vertical = do
-        string "->"
-        newline
-        indentedBlock $ pretty body
-  pretty' (GRHSForLambda (GRHS _ guards body)) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      horizontal <-|> vertical
-    where
-      horizontal = do
-        string " -> "
-        pretty body
-      vertical = do
-        string " ->"
-        newline
-        indentedBlock $ pretty body
-  commentsFrom (GRHSForLambda x) = Just $ CommentExtractable x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c) = string c
