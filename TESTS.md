@@ -1721,6 +1721,14 @@ f = do
   print g
 ```
 
+A `let` with a bang binding
+
+```haskell
+f =
+  let !x = 3
+   in x
+```
+
 Lists
 
 ``` haskell

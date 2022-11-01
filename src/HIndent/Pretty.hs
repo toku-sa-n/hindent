@@ -1416,7 +1416,7 @@ instance Pretty (HsMatchContext GhcPs) where
   commentsFrom = commentsFromHsMatchContext
 
 prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
-prettyHsMatchContext FunRhs {..}       = pretty mc_fun
+prettyHsMatchContext FunRhs {..}       = pretty mc_strictness >> pretty mc_fun
 prettyHsMatchContext LambdaExpr        = return ()
 prettyHsMatchContext CaseAlt           = return ()
 prettyHsMatchContext IfAlt {}          = notUsedInParsedStage
