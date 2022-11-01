@@ -31,6 +31,9 @@ pragmaExists = not . null . collectPragmas
 
 -- | This function collects pragma comments and 'GHC_OPTIONS' from the
 -- given module and modifies them into 'String's.
+--
+-- A pragma's name is converted to the @SHOUT_CASE@ (e.g., @lAnGuAgE@ ->
+-- @LANGUAGE@).
 collectPragmas :: HsModule -> [String]
 collectPragmas =
   fmap (uncurry constructPragma) .
@@ -40,7 +43,8 @@ collectPragmas =
     matchToComment EpaBlockComment {} = True
     matchToComment _                  = False
     constructPragma optionOrPragma xs =
-      "{-# " ++ optionOrPragma ++ " " ++ intercalate ", " xs ++ " #-}"
+      "{-# " ++
+      fmap toUpper optionOrPragma ++ " " ++ intercalate ", " xs ++ " #-}"
 
 -- | This function returns a 'Just' value with the pragma or 'GHC_OPTIONS'
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it

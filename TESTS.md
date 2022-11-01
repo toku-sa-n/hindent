@@ -71,6 +71,16 @@ module Foo {-# DEPRECATED "Use Bar." #-}
 
 ## Pragmas
 
+A pragma's name is converted to the SHOUT_CASE.
+
+```haskell given
+{-# lAnGuAgE CPP #-}
+```
+
+```haskell expect
+{-# LANGUAGE CPP #-}
+```
+
 Pragmas, GHC options, and haddock options.
 
 ```haskell
