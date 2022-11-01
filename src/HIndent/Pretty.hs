@@ -1524,52 +1524,35 @@ instance Pretty GRHSExpr where
     Just $ CommentExtractable x
 
 instance Pretty GRHSProc where
-  pretty' (GRHSProc {grhsProc = (GRHS _ [] (L _ (HsCmdDo _ body)))}) = do
-    string "-> do"
-    hor <-|> ver
-    where
-      hor = do
-        space
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSProc {grhsProc = (GRHS _ guards (L _ (HsCmdDo _ body)))}) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do"
-      hor <-|> ver
-    where
-      hor = do
-        space
-        printCommentsAnd body (lined . fmap pretty)
-      ver = do
-        newline
-        indentedBlock $ printCommentsAnd body (lined . fmap pretty)
   pretty' (GRHSProc {grhsProc = (GRHS _ [] body)}) = do
     string "->"
-    horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
+    printCommentsAnd body $ \case
+      HsCmdDo _ stmts ->
+        let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
+            ver =
+              newline >>
+              indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
+         in hor <-|> ver
+      x ->
+        let hor = space >> pretty x
+            ver = newline >> indentedBlock (pretty x)
+         in hor <-|> ver
   pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       string " ->"
-      horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
+      printCommentsAnd body $ \case
+        HsCmdDo _ stmts ->
+          let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
+              ver =
+                newline >>
+                indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
+           in hor <-|> ver
+        x ->
+          let hor = space >> pretty x
+              ver = newline >> indentedBlock (pretty x)
+           in hor <-|> ver
   commentsFrom (GRHSProc {grhsProc = (GRHS x _ _)}) =
     Just $ CommentExtractable x
 
