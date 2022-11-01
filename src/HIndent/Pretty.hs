@@ -657,7 +657,8 @@ prettyHsExpr (HsIf _ cond t f) = do
           indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
         _ -> string str |=> pretty e
 prettyHsExpr (HsMultiIf _ guards) =
-  string "if " |=> lined (fmap (pretty . fmap (GRHSExpr GRHSMultiWayIf)) guards)
+  string "if " |=>
+  lined (fmap (pretty . fmap (GRHSExpr GRHSExprMultiWayIf)) guards)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsLet _ _ binds _ exprs) = pretty $ LetIn binds exprs
 #else
@@ -1374,7 +1375,7 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty GRHSsForCase where
   pretty' (GRHSsForCase GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSExpr GRHSCase)) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSExpr GRHSExprCase)) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1385,7 +1386,7 @@ instance Pretty GRHSsForCase where
 
 instance Pretty GRHSsForLambda where
   pretty' (GRHSsForLambda GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSExpr GRHSLambda)) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSExpr GRHSExprLambda)) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $
@@ -1474,8 +1475,8 @@ instance Pretty RdrName where
   commentsFrom Exact {}  = Nothing
 
 instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' = pretty' . GRHSExpr GRHSNormal
-  commentsFrom = commentsFrom . GRHSExpr GRHSNormal
+  pretty' = pretty' . GRHSExpr GRHSExprNormal
+  commentsFrom = commentsFrom . GRHSExpr GRHSExprNormal
 
 instance Pretty GRHSExpr where
   pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
@@ -1495,8 +1496,8 @@ instance Pretty GRHSExpr where
         newline
         indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
   pretty' (GRHSExpr {grhsExpr = (GRHS _ guards body), ..}) = do
-    unless (grhsExprType == GRHSMultiWayIf) newline
-    (if grhsExprType == GRHSMultiWayIf
+    unless (grhsExprType == GRHSExprMultiWayIf) newline
+    (if grhsExprType == GRHSExprMultiWayIf
        then id
        else indentedBlock) $ do
       string "| " |=> vCommaSep (fmap pretty guards)

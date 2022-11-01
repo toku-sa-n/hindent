@@ -49,7 +49,7 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
-  , GRHSType(..)
+  , GRHSExprType(..)
   ) where
 
 import           GHC.Hs
@@ -130,7 +130,7 @@ newtype GRHSForCaseInProc =
 -- | 'GRHS' for a normal binding.
 data GRHSExpr =
   GRHSExpr
-    { grhsExprType :: GRHSType
+    { grhsExprType :: GRHSExprType
     , grhsExpr     :: GRHS GhcPs (LHsExpr GhcPs)
     }
 
@@ -253,9 +253,9 @@ data DoOrMdo
   = Do
   | Mdo
 
-data GRHSType
-  = GRHSNormal
-  | GRHSCase
-  | GRHSMultiWayIf
-  | GRHSLambda
+data GRHSExprType
+  = GRHSExprNormal
+  | GRHSExprCase
+  | GRHSExprMultiWayIf
+  | GRHSExprLambda
   deriving (Eq)
