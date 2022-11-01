@@ -1529,9 +1529,9 @@ instance Pretty GRHSProc where
     printCommentsAnd body $ \case
       HsCmdDo _ stmts ->
         let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-            ver =
-              newline >>
-              indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
+            ver = do
+              newline
+              indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
          in hor <-|> ver
       x ->
         let hor = space >> pretty x
@@ -1545,9 +1545,9 @@ instance Pretty GRHSProc where
       printCommentsAnd body $ \case
         HsCmdDo _ stmts ->
           let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-              ver =
-                newline >>
-                indentedBlock (printCommentsAnd stmts (lined . fmap pretty))
+              ver = do
+                newline
+                indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
            in hor <-|> ver
         x ->
           let hor = space >> pretty x
