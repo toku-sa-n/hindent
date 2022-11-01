@@ -1328,6 +1328,17 @@ longLongFunction ::
   -> StateT s (WriterT w (ReaderT r m)) a
 ```
 
+Long parameter list with a `forall`
+
+```haskell
+fooooooooo ::
+     forall a.
+     Fooooooooooooooo a
+  -> Fooooooooooooooo a
+  -> Fooooooooooooooo a
+  -> Fooooooooooooooo a
+```
+
 Class constraints
 
 ``` haskell

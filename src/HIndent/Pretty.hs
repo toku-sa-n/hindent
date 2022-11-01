@@ -986,9 +986,11 @@ instance Pretty HsSigTypeInsideDeclSig where
                      newline
                      prefixed "=> " $
                        prefixedLined "-> " $ pretty <$> flatten hst_body
-          _ -> do
-            space
-            pretty $ fmap HsTypeInsideDeclSig sig_body
+          _ ->
+            let hor = space >> pretty (fmap HsTypeInsideDeclSig sig_body)
+                ver =
+                  newline >> prefixedLined "-> " (pretty <$> flatten sig_body)
+             in hor <-|> ver
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
     where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
