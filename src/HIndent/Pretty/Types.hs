@@ -130,8 +130,8 @@ newtype GRHSForCaseInProc =
 -- | 'GRHS' for a normal binding.
 data GRHSExpr =
   GRHSExpr
-    { grhsType :: GRHSType
-    , grhsExpr :: GRHS GhcPs (LHsExpr GhcPs)
+    { grhsExprType :: GRHSType
+    , grhsExpr     :: GRHS GhcPs (LHsExpr GhcPs)
     }
 
 newtype RecConPat =

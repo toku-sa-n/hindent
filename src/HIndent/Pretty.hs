@@ -1480,7 +1480,7 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 instance Pretty GRHSExpr where
   pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
     space
-    rhsSeparator grhsType
+    rhsSeparator grhsExprType
     printCommentsAnd body $ \case
       HsDo _ DoExpr {} stmts -> doExpr "do" stmts
       HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
@@ -1495,13 +1495,13 @@ instance Pretty GRHSExpr where
         newline
         indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
   pretty' (GRHSExpr {grhsExpr = (GRHS _ guards body), ..}) = do
-    unless (grhsType == GRHSMultiWayIf) newline
-    (if grhsType == GRHSMultiWayIf
+    unless (grhsExprType == GRHSMultiWayIf) newline
+    (if grhsExprType == GRHSMultiWayIf
        then id
        else indentedBlock) $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       space
-      rhsSeparator grhsType
+      rhsSeparator grhsExprType
       printCommentsAnd body $ \case
         HsDo _ DoExpr {} stmts -> doExpr "do" stmts
         HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
