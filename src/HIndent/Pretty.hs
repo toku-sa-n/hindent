@@ -1477,18 +1477,22 @@ instance Pretty (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   commentsFrom = commentsFrom . GRHSExpr GRHSNormal
 
 instance Pretty GRHSExpr where
-  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] (L _ (HsDo _ (DoExpr _) body))), ..}) = do
+  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
     space
     rhsSeparator grhsType
-    string " do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body))), ..}) = do
-    space
-    rhsSeparator grhsType
-    string " mdo"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
+    printCommentsAnd body $ \case
+      HsDo _ DoExpr {} stmts -> doExpr "do" stmts
+      HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
+      x ->
+        let hor = space >> pretty x
+            ver = newline >> indentedBlock (pretty body)
+         in hor <-|> ver
+    where
+      doExpr pref stmts = do
+        space
+        string pref
+        newline
+        indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
   pretty' (GRHSExpr { grhsExpr = (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))
                     , ..
                     }) = do
@@ -1523,17 +1527,6 @@ instance Pretty GRHSExpr where
       ver = do
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
-    space
-    rhsSeparator grhsType
-    horizontal <-|> vertical
-    where
-      horizontal = do
-        space
-        pretty body
-      vertical = do
-        newline
-        indentedBlock $ pretty body
   pretty' (GRHSExpr {grhsExpr = (GRHS _ guards body), ..}) = do
     newline
     indentedBlock $ do
