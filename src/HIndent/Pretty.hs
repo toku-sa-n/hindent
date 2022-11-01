@@ -657,7 +657,7 @@ prettyHsExpr (HsIf _ cond t f) = do
           indentedBlock $ printCommentsAnd xs (lined . fmap pretty)
         _ -> string str |=> pretty e
 prettyHsExpr (HsMultiIf _ guards) =
-  string "if " |=> lined (fmap (pretty . fmap GRHSForMultiwayIf) guards)
+  string "if " |=> lined (fmap (pretty . fmap (GRHSExpr GRHSMultiWayIf)) guards)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsLet _ _ binds _ exprs) = pretty $ LetIn binds exprs
 #else
@@ -1494,8 +1494,10 @@ instance Pretty GRHSExpr where
         newline
         indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
   pretty' (GRHSExpr {grhsExpr = (GRHS _ guards body), ..}) = do
-    newline
-    indentedBlock $ do
+    unless (grhsType == GRHSMultiWayIf) newline
+    (if grhsType == GRHSMultiWayIf
+       then id
+       else indentedBlock) $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       space
       rhsSeparator grhsType
@@ -1650,48 +1652,6 @@ instance Pretty GRHSForLambda where
         newline
         indentedBlock $ pretty body
   commentsFrom (GRHSForLambda x) = Just $ CommentExtractable x
-
-instance Pretty GRHSForMultiwayIf where
-  pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (DoExpr _) body)))) = do
-    string " -> do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForMultiwayIf (GRHS _ [] (L _ (HsDo _ (MDoExpr _) body)))) = do
-    string " -> mdo"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (DoExpr _) body)))) =
-    indentedBlock $ do
-      string "| "
-      inter (comma >> newline) $ fmap pretty guards
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForMultiwayIf (GRHS _ guards (L _ (HsDo _ (MDoExpr _) body)))) =
-    indentedBlock $ do
-      string "| "
-      inter (comma >> newline) $ fmap pretty guards
-      string " -> mdo "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForMultiwayIf (GRHS _ [] body)) = horizontal <-|> vertical
-    where
-      horizontal = do
-        string " -> "
-        pretty body
-      vertical = do
-        string " ->"
-        newline
-        indentedBlock $ pretty body
-  pretty' (GRHSForMultiwayIf (GRHS _ guards body)) =
-    string "| " |=> do
-      inter (comma >> newline) $ fmap pretty guards
-      horizontal <-|> vertical
-    where
-      horizontal = spacePrefixed [string "->", pretty body]
-      vertical = do
-        string " ->"
-        newline
-        pretty body
-  commentsFrom (GRHSForMultiwayIf x) = Just $ CommentExtractable x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c) = string c

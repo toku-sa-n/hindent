@@ -1635,8 +1635,8 @@ Multi-way if
 
 ``` haskell
 x =
-  if | x <- Just x,
-       x <- Just x ->
+  if | x <- Just x
+     , x <- Just x ->
        case x of
          Just x -> e
          Nothing -> p

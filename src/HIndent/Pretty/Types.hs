@@ -22,7 +22,6 @@ module HIndent.Pretty.Types
   , GRHSsForLambda(..)
   , GRHSsForLambdaInProc(..)
   , GRHSsForCaseInProc(..)
-  , GRHSForMultiwayIf(..)
   , GRHSForLambda(..)
   , GRHSForLambdaInProc(..)
   , GRHSForCaseInProc(..)
@@ -121,9 +120,6 @@ newtype GRHSsForLambdaInProc =
 -- | 'GRHSs' for a @case@ expression in a @proc@ expression.
 newtype GRHSsForCaseInProc =
   GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
-
-newtype GRHSForMultiwayIf =
-  GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
 
 newtype GRHSForLambda =
   GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
@@ -264,3 +260,5 @@ data DoOrMdo
 data GRHSType
   = GRHSNormal
   | GRHSCase
+  | GRHSMultiWayIf
+  deriving (Eq)

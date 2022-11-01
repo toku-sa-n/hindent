@@ -7,5 +7,6 @@ import           HIndent.Pretty.Types
 import           HIndent.Types
 
 rhsSeparator :: GRHSType -> Printer ()
-rhsSeparator GRHSNormal = string "="
-rhsSeparator GRHSCase   = string "->"
+rhsSeparator GRHSNormal     = string "="
+rhsSeparator GRHSCase       = string "->"
+rhsSeparator GRHSMultiWayIf = string "->"
