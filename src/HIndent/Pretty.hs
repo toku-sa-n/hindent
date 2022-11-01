@@ -1100,7 +1100,7 @@ instance Pretty MatchForCaseInProc where
   pretty' (MatchForCaseInProc Match {..}) = do
     mapM_ pretty m_pats
     space
-    pretty (GRHSsProc m_grhss)
+    pretty $ GRHSsProc m_grhss
   commentsFrom (MatchForCaseInProc Match {..}) = Just $ CommentExtractable m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
