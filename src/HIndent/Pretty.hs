@@ -1099,6 +1099,7 @@ instance Pretty MatchForLambdaInProc where
 instance Pretty MatchForCaseInProc where
   pretty' (MatchForCaseInProc Match {..}) = do
     mapM_ pretty m_pats
+    space
     pretty (GRHSsForCaseInProc m_grhss)
   commentsFrom (MatchForCaseInProc Match {..}) = Just $ CommentExtractable m_ext
 
@@ -1397,7 +1398,7 @@ instance Pretty GRHSsForLambda where
 
 instance Pretty GRHSsForLambdaInProc where
   pretty' (GRHSsForLambdaInProc GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForLambdaInProc) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSProc GRHSProcLambda)) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $
@@ -1411,7 +1412,7 @@ instance Pretty GRHSsForLambdaInProc where
 
 instance Pretty GRHSsForCaseInProc where
   pretty' (GRHSsForCaseInProc GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSForCaseInProc) grhssGRHSs
+    mapM_ (pretty . fmap (GRHSProc GRHSProcCase)) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1522,8 +1523,8 @@ instance Pretty GRHSExpr where
   commentsFrom (GRHSExpr {grhsExpr = (GRHS x _ _)}) =
     Just $ CommentExtractable x
 
-instance Pretty GRHSForLambdaInProc where
-  pretty' (GRHSForLambdaInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) =
+instance Pretty GRHSProc where
+  pretty' (GRHSProc {grhsProc = (GRHS _ [] (L _ (HsCmdDo _ body)))}) =
     hor <-|> ver
     where
       hor = do
@@ -1533,13 +1534,13 @@ instance Pretty GRHSForLambdaInProc where
         string "-> do"
         newline
         indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForLambdaInProc (GRHS _ guards (L _ (HsCmdDo _ body)))) = do
+  pretty' (GRHSProc {grhsProc = (GRHS _ guards (L _ (HsCmdDo _ body)))}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
       string " -> do "
       printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForLambdaInProc (GRHS _ [] body)) = horizontal <-|> vertical
+  pretty' (GRHSProc {grhsProc = (GRHS _ [] body)}) = horizontal <-|> vertical
     where
       horizontal = do
         string "-> "
@@ -1548,7 +1549,7 @@ instance Pretty GRHSForLambdaInProc where
         string "->"
         newline
         indentedBlock $ pretty body
-  pretty' (GRHSForLambdaInProc (GRHS _ guards body)) = do
+  pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) = do
     newline
     indentedBlock $ do
       string "| " |=> vCommaSep (fmap pretty guards)
@@ -1561,42 +1562,8 @@ instance Pretty GRHSForLambdaInProc where
         string " ->"
         newline
         indentedBlock $ pretty body
-  commentsFrom (GRHSForLambdaInProc (GRHS x _ _)) = Just $ CommentExtractable x
-
-instance Pretty GRHSForCaseInProc where
-  pretty' (GRHSForCaseInProc (GRHS _ [] (L _ (HsCmdDo _ body)))) = do
-    string " -> do"
-    newline
-    indentedBlock $ printCommentsAnd body (lined . fmap pretty)
-  pretty' (GRHSForCaseInProc (GRHS _ guards (L _ (HsCmdDo _ body)))) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " -> do "
-      printCommentsAnd body (mapM_ pretty)
-  pretty' (GRHSForCaseInProc (GRHS _ [] body)) = horizontal <-|> vertical
-    where
-      horizontal = do
-        string " -> "
-        pretty body
-      vertical = do
-        string " ->"
-        newline
-        indentedBlock $ pretty body
-  pretty' (GRHSForCaseInProc (GRHS _ guards body)) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      horizontal <-|> vertical
-    where
-      horizontal = do
-        string " -> "
-        pretty body
-      vertical = do
-        string " ->"
-        newline
-        indentedBlock $ pretty body
-  commentsFrom (GRHSForCaseInProc (GRHS x _ _)) = Just $ CommentExtractable x
+  commentsFrom (GRHSProc {grhsProc = (GRHS x _ _)}) =
+    Just $ CommentExtractable x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c) = string c

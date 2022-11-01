@@ -22,9 +22,8 @@ module HIndent.Pretty.Types
   , GRHSsForLambda(..)
   , GRHSsForLambdaInProc(..)
   , GRHSsForCaseInProc(..)
-  , GRHSForLambdaInProc(..)
-  , GRHSForCaseInProc(..)
   , GRHSExpr(..)
+  , GRHSProc(..)
   , RecConPat(..)
   , RecConField(..)
   , HsSigTypeInsideInstDecl(..)
@@ -50,6 +49,7 @@ module HIndent.Pretty.Types
   , DoOrMdo(..)
   , LetIn(..)
   , GRHSExprType(..)
+  , GRHSProcType(..)
   ) where
 
 import           GHC.Hs
@@ -120,18 +120,18 @@ newtype GRHSsForLambdaInProc =
 newtype GRHSsForCaseInProc =
   GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
 
-newtype GRHSForLambdaInProc =
-  GRHSForLambdaInProc (GRHS GhcPs (LHsCmd GhcPs))
-
--- | 'GRHS' for a @case@ expression in a @proc@ expression.
-newtype GRHSForCaseInProc =
-  GRHSForCaseInProc (GRHS GhcPs (LHsCmd GhcPs))
-
 -- | 'GRHS' for a normal binding.
 data GRHSExpr =
   GRHSExpr
     { grhsExprType :: GRHSExprType
     , grhsExpr     :: GRHS GhcPs (LHsExpr GhcPs)
+    }
+
+-- | 'GRHS' for a @proc@ binding.
+data GRHSProc =
+  GRHSProc
+    { ghrsProcType :: GRHSProcType
+    , grhsProc     :: GRHS GhcPs (LHsCmd GhcPs)
     }
 
 newtype RecConPat =
@@ -259,3 +259,7 @@ data GRHSExprType
   | GRHSExprMultiWayIf
   | GRHSExprLambda
   deriving (Eq)
+
+data GRHSProcType
+  = GRHSProcCase
+  | GRHSProcLambda
