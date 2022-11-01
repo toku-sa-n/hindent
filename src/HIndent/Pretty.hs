@@ -1107,14 +1107,13 @@ instance Pretty MatchForCaseInProc where
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
-  pretty' (BindStmt _ pat body) = hor <-|> ver
+  pretty' (BindStmt _ pat body) = do
+    pretty pat
+    string " <-"
+    hor <-|> ver
     where
-      hor = spaced [pretty pat, string "<-", pretty body]
-      ver = do
-        pretty pat
-        string " <-"
-        newline
-        indentedBlock $ pretty body
+      hor = space >> pretty body
+      ver = newline >> indentedBlock (pretty body)
   pretty' ApplicativeStmt {} = notUsedInParsedStage
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
