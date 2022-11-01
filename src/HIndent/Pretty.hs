@@ -1469,12 +1469,14 @@ instance Pretty GRHSExpr where
   pretty' (GRHSExpr {grhsExpr = (GRHS _ [] body), ..}) = do
     space
     rhsSeparator grhsExprType
-    printCommentsAnd body $ \case
-      HsDo _ DoExpr {} stmts -> doExpr "do" stmts
-      HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
-      x ->
-        let hor = space >> pretty x
-            ver = newline >> indentedBlock (pretty x)
+    case unLoc body of
+      HsDo _ DoExpr {} stmts ->
+        printCommentsAnd body (const (doExpr "do" stmts))
+      HsDo _ MDoExpr {} stmts ->
+        printCommentsAnd body (const (doExpr "mdo" stmts))
+      _ ->
+        let hor = space >> pretty body
+            ver = newline >> indentedBlock (pretty body)
          in hor <-|> ver
     where
       doExpr pref stmts = do
