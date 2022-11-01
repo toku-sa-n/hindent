@@ -20,13 +20,9 @@ module HIndent.Pretty.Types
   , MatchForCaseInProc(..)
   , GRHSsForCase(..)
   , GRHSsForLambda(..)
-  , GRHSsForLambdaInProc(..)
-  , GRHSsForCaseInProc(..)
-  , GRHSForCase(..)
-  , GRHSForMultiwayIf(..)
-  , GRHSForLambda(..)
-  , GRHSForLambdaInProc(..)
-  , GRHSForCaseInProc(..)
+  , GRHSsProc(..)
+  , GRHSExpr(..)
+  , GRHSProc(..)
   , RecConPat(..)
   , RecConField(..)
   , HsSigTypeInsideInstDecl(..)
@@ -51,6 +47,8 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
+  , GRHSExprType(..)
+  , GRHSProcType(..)
   ) where
 
 import           GHC.Hs
@@ -113,29 +111,19 @@ newtype GRHSsForCase =
 newtype GRHSsForLambda =
   GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
 
--- | 'GRHSs' for a lambda inside a @proc@ expression.
-newtype GRHSsForLambdaInProc =
-  GRHSsForLambdaInProc (GRHSs GhcPs (LHsCmd GhcPs))
+newtype GRHSsProc =
+  GRHSsProc (GRHSs GhcPs (LHsCmd GhcPs))
 
--- | 'GRHSs' for a @case@ expression in a @proc@ expression.
-newtype GRHSsForCaseInProc =
-  GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
+-- | 'GRHS' for a normal binding.
+data GRHSExpr =
+  GRHSExpr
+    { grhsExprType :: GRHSExprType
+    , grhsExpr     :: GRHS GhcPs (LHsExpr GhcPs)
+    }
 
-newtype GRHSForCase =
-  GRHSForCase (GRHS GhcPs (LHsExpr GhcPs))
-
-newtype GRHSForMultiwayIf =
-  GRHSForMultiwayIf (GRHS GhcPs (LHsExpr GhcPs))
-
-newtype GRHSForLambda =
-  GRHSForLambda (GRHS GhcPs (LHsExpr GhcPs))
-
-newtype GRHSForLambdaInProc =
-  GRHSForLambdaInProc (GRHS GhcPs (LHsCmd GhcPs))
-
--- | 'GRHS' for a @case@ expression in a @proc@ expression.
-newtype GRHSForCaseInProc =
-  GRHSForCaseInProc (GRHS GhcPs (LHsCmd GhcPs))
+-- | 'GRHS' for a @proc@ binding.
+newtype GRHSProc =
+  GRHSProc (GRHS GhcPs (LHsCmd GhcPs))
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
@@ -255,3 +243,14 @@ data LetIn =
 data DoOrMdo
   = Do
   | Mdo
+
+data GRHSExprType
+  = GRHSExprNormal
+  | GRHSExprCase
+  | GRHSExprMultiWayIf
+  | GRHSExprLambda
+  deriving (Eq)
+
+data GRHSProcType
+  = GRHSProcCase
+  | GRHSProcLambda
