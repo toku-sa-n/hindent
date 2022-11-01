@@ -20,8 +20,7 @@ module HIndent.Pretty.Types
   , MatchForCaseInProc(..)
   , GRHSsForCase(..)
   , GRHSsForLambda(..)
-  , GRHSsForLambdaInProc(..)
-  , GRHSsForCaseInProc(..)
+  , GRHSsProc(..)
   , GRHSExpr(..)
   , GRHSProc(..)
   , RecConPat(..)
@@ -112,13 +111,8 @@ newtype GRHSsForCase =
 newtype GRHSsForLambda =
   GRHSsForLambda (GRHSs GhcPs (LHsExpr GhcPs))
 
--- | 'GRHSs' for a lambda inside a @proc@ expression.
-newtype GRHSsForLambdaInProc =
-  GRHSsForLambdaInProc (GRHSs GhcPs (LHsCmd GhcPs))
-
--- | 'GRHSs' for a @case@ expression in a @proc@ expression.
-newtype GRHSsForCaseInProc =
-  GRHSsForCaseInProc (GRHSs GhcPs (LHsCmd GhcPs))
+newtype GRHSsProc =
+  GRHSsProc (GRHSs GhcPs (LHsCmd GhcPs))
 
 -- | 'GRHS' for a normal binding.
 data GRHSExpr =

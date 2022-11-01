@@ -1092,7 +1092,7 @@ instance Pretty MatchForLambdaInProc where
         LazyPat {} -> space
         BangPat {} -> space
         _          -> return ()
-    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsForLambdaInProc m_grhss]
+    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsProc m_grhss]
   commentsFrom (MatchForLambdaInProc Match {..}) =
     Just $ CommentExtractable m_ext
 
@@ -1100,7 +1100,7 @@ instance Pretty MatchForCaseInProc where
   pretty' (MatchForCaseInProc Match {..}) = do
     mapM_ pretty m_pats
     space
-    pretty (GRHSsForCaseInProc m_grhss)
+    pretty (GRHSsProc m_grhss)
   commentsFrom (MatchForCaseInProc Match {..}) = Just $ CommentExtractable m_ext
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
@@ -1396,8 +1396,8 @@ instance Pretty GRHSsForLambda where
       _ -> return ()
   commentsFrom (GRHSsForLambda x) = Just $ CommentExtractable x
 
-instance Pretty GRHSsForLambdaInProc where
-  pretty' (GRHSsForLambdaInProc GRHSs {..}) = do
+instance Pretty GRHSsProc where
+  pretty' (GRHSsProc GRHSs {..}) = do
     mapM_ (pretty . fmap GRHSProc) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
@@ -1405,23 +1405,9 @@ instance Pretty GRHSsForLambdaInProc where
         newlinePrefixed
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       _ -> return ()
-  commentsBefore (GRHSsForLambdaInProc GRHSs {..}) = priorComments grhssExt
+  commentsBefore (GRHSsProc GRHSs {..}) = priorComments grhssExt
   commentOnSameLine = const Nothing
-  commentsAfter (GRHSsForLambdaInProc GRHSs {..}) =
-    getFollowingComments grhssExt
-
-instance Pretty GRHSsForCaseInProc where
-  pretty' (GRHSsForCaseInProc GRHSs {..}) = do
-    mapM_ (pretty . fmap GRHSProc) grhssGRHSs
-    case grhssLocalBinds of
-      HsValBinds {} ->
-        indentedBlock $ do
-          newline
-          string "where " |=> pretty grhssLocalBinds
-      _ -> pure ()
-  commentsBefore (GRHSsForCaseInProc GRHSs {..}) = priorComments grhssExt
-  commentOnSameLine = const Nothing
-  commentsAfter (GRHSsForCaseInProc GRHSs {..}) = getFollowingComments grhssExt
+  commentsAfter (GRHSsProc GRHSs {..}) = getFollowingComments grhssExt
 
 instance Pretty (HsMatchContext GhcPs) where
   pretty' = prettyHsMatchContext
