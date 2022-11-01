@@ -1474,7 +1474,7 @@ instance Pretty GRHSExpr where
       HsDo _ MDoExpr {} stmts -> doExpr "mdo" stmts
       x ->
         let hor = space >> pretty x
-            ver = newline >> indentedBlock (pretty body)
+            ver = newline >> indentedBlock (pretty x)
          in hor <-|> ver
     where
       doExpr pref stmts = do
