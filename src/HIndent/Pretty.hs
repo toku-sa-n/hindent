@@ -1524,35 +1524,29 @@ instance Pretty GRHSExpr where
     Just $ CommentExtractable x
 
 instance Pretty GRHSProc where
-  pretty' (GRHSProc {grhsProc = (GRHS _ [] body)}) = do
-    string "->"
-    printCommentsAnd body $ \case
-      HsCmdDo _ stmts ->
-        let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-            ver = do
-              newline
-              indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
-         in hor <-|> ver
-      x ->
-        let hor = space >> pretty x
-            ver = newline >> indentedBlock (pretty x)
-         in hor <-|> ver
-  pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) = do
-    newline
-    indentedBlock $ do
-      string "| " |=> vCommaSep (fmap pretty guards)
-      string " ->"
-      printCommentsAnd body $ \case
-        HsCmdDo _ stmts ->
-          let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
-              ver = do
-                newline
-                indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
-           in hor <-|> ver
-        x ->
-          let hor = space >> pretty x
-              ver = newline >> indentedBlock (pretty x)
-           in hor <-|> ver
+  pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) =
+    if null guards
+      then bodyPrinter
+      else do
+        newline
+        indentedBlock $ do
+          string "| " |=> vCommaSep (fmap pretty guards)
+          space
+          bodyPrinter
+    where
+      bodyPrinter = do
+        string "->"
+        printCommentsAnd body $ \case
+          HsCmdDo _ stmts ->
+            let hor = space >> printCommentsAnd stmts (lined . fmap pretty)
+                ver = do
+                  newline
+                  indentedBlock $ printCommentsAnd stmts (lined . fmap pretty)
+             in hor <-|> ver
+          x ->
+            let hor = space >> pretty x
+                ver = newline >> indentedBlock (pretty x)
+             in hor <-|> ver
   commentsFrom (GRHSProc {grhsProc = (GRHS x _ _)}) =
     Just $ CommentExtractable x
 
