@@ -1398,7 +1398,7 @@ instance Pretty GRHSsForLambda where
 
 instance Pretty GRHSsForLambdaInProc where
   pretty' (GRHSsForLambdaInProc GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSProc GRHSProcLambda)) grhssGRHSs
+    mapM_ (pretty . fmap GRHSProc) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $
@@ -1412,7 +1412,7 @@ instance Pretty GRHSsForLambdaInProc where
 
 instance Pretty GRHSsForCaseInProc where
   pretty' (GRHSsForCaseInProc GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSProc GRHSProcCase)) grhssGRHSs
+    mapM_ (pretty . fmap GRHSProc) grhssGRHSs
     case grhssLocalBinds of
       HsValBinds {} ->
         indentedBlock $ do
@@ -1524,7 +1524,7 @@ instance Pretty GRHSExpr where
     Just $ CommentExtractable x
 
 instance Pretty GRHSProc where
-  pretty' (GRHSProc {grhsProc = (GRHS _ guards body)}) =
+  pretty' (GRHSProc (GRHS _ guards body)) =
     if null guards
       then bodyPrinter
       else do
@@ -1547,8 +1547,7 @@ instance Pretty GRHSProc where
             let hor = space >> pretty x
                 ver = newline >> indentedBlock (pretty x)
              in hor <-|> ver
-  commentsFrom (GRHSProc {grhsProc = (GRHS x _ _)}) =
-    Just $ CommentExtractable x
+  commentsFrom (GRHSProc (GRHS x _ _)) = Just $ CommentExtractable x
 
 instance Pretty EpaCommentTok where
   pretty' (EpaLineComment c) = string c

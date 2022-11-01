@@ -128,11 +128,8 @@ data GRHSExpr =
     }
 
 -- | 'GRHS' for a @proc@ binding.
-data GRHSProc =
-  GRHSProc
-    { ghrsProcType :: GRHSProcType
-    , grhsProc     :: GRHS GhcPs (LHsCmd GhcPs)
-    }
+newtype GRHSProc =
+  GRHSProc (GRHS GhcPs (LHsCmd GhcPs))
 
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
