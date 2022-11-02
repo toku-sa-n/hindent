@@ -2511,7 +2511,8 @@ instance Pretty (PatSynBind GhcPs GhcPs) where
     string "pattern "
     case psb_args of
       InfixCon l r -> spaced [pretty l, pretty $ fmap InfixOp psb_id, pretty r]
-      _            -> spaced [pretty psb_id, pretty psb_args]
+      PrefixCon _ [] -> pretty psb_id
+      _ -> spaced [pretty psb_id, pretty psb_args]
     spacePrefixed [pretty psb_dir, pretty $ fmap PatInsidePatDecl psb_def]
     case psb_dir of
       ExplicitBidirectional matches -> do

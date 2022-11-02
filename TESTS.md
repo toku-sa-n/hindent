@@ -500,6 +500,8 @@ pattern Single x = [x]
 
 pattern Anylist x = x
 
+pattern Bar = []
+
 {-# COMPLETE Single, Anylist #-}
 
 pattern Fst :: Int -> (Int, Int)
