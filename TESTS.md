@@ -391,6 +391,13 @@ data Foo where
   Foo :: forall v. v -> v -> Foo
 ```
 
+GADT declaration with a context but no `forall`s
+
+```haskell
+data Foo where
+  Foo :: (Ord v) => v -> v -> Foo
+```
+
 An `UNPACK`ed field.
 
 ```haskell
