@@ -944,9 +944,11 @@ instance Pretty HsSigTypeInsideDeclSig where
                      newline
                      prefixed "=> " $
                        prefixedLined "-> " $ pretty <$> flatten hst_body
-          _ -> do
-            space
-            pretty $ fmap HsTypeInsideDeclSig sig_body
+          _ ->
+            let hor = space >> pretty (fmap HsTypeInsideDeclSig sig_body)
+                ver =
+                  newline >> prefixedLined "-> " (pretty <$> flatten sig_body)
+             in hor <-|> ver
       _ -> pretty $ fmap HsTypeInsideDeclSig sig_body
     where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
@@ -1018,37 +1020,67 @@ prettyConDecl ConDeclGADT {..} = do
       newline
       indentedBlock (string ":: " |=> body)
     body =
-      case (forallNeeded, isJust con_mb_cxt) of
-        (True, True)   -> withForallCtx
-        (True, False)  -> withForallOnly
-        (False, True)  -> withCtxOnly
-        (False, False) -> noForallCtx
-    withForallCtx = do
+      case (forallNeeded, con_mb_cxt) of
+        (True, Just ctx)  -> withForallCtx ctx
+        (True, Nothing)   -> withForallOnly
+        (False, Just ctx) -> withCtxOnly ctx
+        (False, Nothing)  -> noForallCtx
+    withForallOnly = do
+      pretty con_bndrs
+      (space >> horArgs) <-|> (newline >> verArgs)
+    noForallCtx = horArgs <-|> verArgs
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+    withForallCtx ctx = do
+      pretty con_bndrs
+      (space >> pretty (Context ctx)) <-|> (newline >> pretty (Context ctx))
+      newline
+      prefixed "=> " verArgs
+
+    withCtxOnly ctx =
+      (pretty (Context ctx) >> string " => " >> horArgs) <-|>
+      (pretty (Context ctx) >> prefixed "=> " verArgs)
+
+    horArgs =
+      case con_g_args of
+        PrefixConGADT xs ->
+          inter (string " -> ") $
+          fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
+        RecConGADT xs _ -> inter (string " -> ") [recArg xs, pretty con_res_ty]
+
+    verArgs =
+      case con_g_args of
+        PrefixConGADT xs ->
+          prefixedLined "-> " $
+          fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
+        RecConGADT xs _ -> prefixedLined "-> " [recArg xs, pretty con_res_ty]
+#else
+    withForallCtx _ = do
       pretty con_bndrs
       (space >> pretty (Context con_mb_cxt)) <-|>
         (newline >> pretty (Context con_mb_cxt))
       newline
       prefixed "=> " verArgs
-    withForallOnly = do
-      pretty con_bndrs
-      (space >> horArgs) <-|> (newline >> verArgs)
-    withCtxOnly =
+
+    withCtxOnly _ =
       (pretty (Context con_mb_cxt) >> string " => " >> horArgs) <-|>
       (pretty (Context con_mb_cxt) >> prefixed "=> " verArgs)
-    noForallCtx = horArgs <-|> verArgs
+
     horArgs =
       case con_g_args of
         PrefixConGADT xs ->
           inter (string " -> ") $
           fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
         RecConGADT xs -> inter (string " -> ") [recArg xs, pretty con_res_ty]
+
     verArgs =
       case con_g_args of
         PrefixConGADT xs ->
           prefixedLined "-> " $
           fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
         RecConGADT xs -> prefixedLined "-> " [recArg xs, pretty con_res_ty]
+#endif
     recArg xs = printCommentsAnd xs $ \xs' -> vFields' $ fmap pretty xs'
+
     forallNeeded =
       case unLoc con_bndrs of
         HsOuterImplicit {} -> False
@@ -1298,11 +1330,13 @@ instance Pretty HsTypeInsideInstDecl where
   commentsFrom (HsTypeInsideInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideDeclSig where
-  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = do
-    (space >> pretty (Context hst_ctxt)) <-|>
-      (newline >> pretty (Context hst_ctxt))
-    newline
-    prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
+  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> ver
+    where
+      hor = spaced [pretty $ Context hst_ctxt, string "=>", pretty hst_body]
+      ver = do
+        pretty $ Context hst_ctxt
+        newline
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
