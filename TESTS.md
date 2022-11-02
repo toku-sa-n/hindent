@@ -373,6 +373,17 @@ data Ty :: (* -> *) where
   TCon' :: (a :: *) -> a -> Ty a
 ```
 
+GADT declaration without the kind signature
+
+```haskell
+data Foo where
+  Foo
+    :: forall v. Ord v
+    => v
+    -> v
+    -> Foo
+```
+
 An `UNPACK`ed field.
 
 ```haskell

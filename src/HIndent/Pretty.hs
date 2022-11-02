@@ -485,26 +485,31 @@ instance Pretty DeclSig where
 
 instance Pretty (HsDataDefn GhcPs) where
   pretty' HsDataDefn {..} =
-    case dd_kindSig of
-      Just kindSig -> do
-        string " :: "
-        pretty kindSig
+    if isGADT
+      then do
+        whenJust dd_kindSig $ \x -> do
+          string " :: "
+          pretty x
         string " where"
         indentedBlock $ newlinePrefixed $ fmap pretty dd_cons
-      Nothing ->
-        indentedBlock $ do
-          case dd_cons of
-            [] -> pure ()
-            [x] -> do
-              string " ="
-              newline
-              pretty x
-            _ -> do
-              newline
-              string "= " |=> vBarSep (fmap pretty dd_cons)
-          unless (null dd_derivs) $ do
-            newline
-            lined $ fmap pretty dd_derivs
+      else indentedBlock $ do
+             case dd_cons of
+               [] -> pure ()
+               [x] -> do
+                 string " ="
+                 newline
+                 pretty x
+               _ -> do
+                 newline
+                 string "= " |=> vBarSep (fmap pretty dd_cons)
+             unless (null dd_derivs) $ do
+               newline
+               lined $ fmap pretty dd_derivs
+    where
+      isGADT =
+        case dd_cons of
+          (L _ ConDeclGADT {}:_) -> True
+          _                      -> False
   commentsFrom HsDataDefn {} = Nothing
 
 instance Pretty (ClsInstDecl GhcPs) where
@@ -1004,22 +1009,46 @@ instance Pretty (ConDecl GhcPs) where
   commentsFrom ConDeclH98 {..}  = Just $ CommentExtractable con_ext
 
 prettyConDecl :: ConDecl GhcPs -> Printer ()
-prettyConDecl ConDeclGADT {..} = horizontal <-|> vertical
+prettyConDecl ConDeclGADT {..} = do
+  hCommaSep $ fmap pretty con_names
+  hor <-|> ver
   where
-    horizontal = do
-      pretty $ head con_names
-      string " :: "
-      pretty con_g_args
-      string " -> "
-      pretty con_res_ty
-    vertical = do
-      pretty $ head con_names
+    hor = string " :: " |=> body
+    ver = do
       newline
-      indentedBlock $ do
-        string ":: " |=> pretty con_g_args
-        newline
-        string "-> "
-        pretty con_res_ty
+      indentedBlock (string ":: " |=> body)
+    body =
+      case (forallNeeded, isJust con_mb_cxt) of
+        (True, True)   -> withForallCtx
+        (True, False)  -> withForallOnly
+        (False, True)  -> withCtxOnly
+        (False, False) -> noForallCtx
+    withForallCtx = do
+      pretty con_bndrs
+      (space >> pretty (Context con_mb_cxt)) <-|>
+        (newline >> pretty (Context con_mb_cxt))
+      newline
+      prefixed "=> " verArgs
+    withForallOnly = undefined
+    withCtxOnly = undefined
+    noForallCtx = horArgs <-|> verArgs
+    horArgs =
+      case con_g_args of
+        PrefixConGADT xs ->
+          inter (string " -> ") $
+          fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
+        RecConGADT xs -> inter (string " -> ") [recArg xs, pretty con_res_ty]
+    verArgs =
+      case con_g_args of
+        PrefixConGADT xs ->
+          prefixedLined "-> " $
+          fmap (\(HsScaled _ x) -> pretty x) xs ++ [pretty con_res_ty]
+        RecConGADT xs -> prefixedLined "-> " [recArg xs, pretty con_res_ty]
+    recArg xs = printCommentsAnd xs $ \xs' -> vFields' $ fmap pretty xs'
+    forallNeeded =
+      case unLoc con_bndrs of
+        HsOuterImplicit {} -> False
+        HsOuterExplicit {} -> True
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyConDecl ConDeclH98 {con_forall = True, ..} =
   (do string "forall "
@@ -1265,13 +1294,11 @@ instance Pretty HsTypeInsideInstDecl where
   commentsFrom (HsTypeInsideInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideDeclSig where
-  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
-    where
-      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
-      sigVer = do
-        pretty (Context hst_ctxt)
-        newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
+  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = do
+    (space >> pretty (Context hst_ctxt)) <-|>
+      (newline >> pretty (Context hst_ctxt))
+    newline
+    prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
@@ -1331,37 +1358,7 @@ instance Pretty HsTypeInsideVerticalDeclSig where
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
   commentsFrom (HsTypeInsideVerticalDeclSig x) = Just $ CommentExtractable x
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-instance Pretty (HsConDeclGADTDetails GhcPs) where
-  pretty' (PrefixConGADT xs) =
-    inter (string " -> ") $
-    flip fmap xs $ \case
-      (HsScaled _ x) -> pretty x
-  pretty' (RecConGADT xs _) =
-    printCommentsAnd xs $ \xs' ->
-      vFields' $
-      flip fmap xs' $ \(L _ ConDeclField {..}) -> do
-        pretty $ head cd_fld_names
-        string " :: "
-        pretty cd_fld_type
-  commentsFrom PrefixConGADT {} = Nothing
-  commentsFrom RecConGADT {}    = Nothing
-#else
-instance Pretty (HsConDeclGADTDetails GhcPs) where
-  pretty' (PrefixConGADT xs) =
-    inter (string " -> ") $
-    flip fmap xs $ \case
-      (HsScaled _ x) -> pretty x
-  pretty' (RecConGADT xs) =
-    printCommentsAnd xs $ \xs' ->
-      vFields' $
-      flip fmap xs' $ \(L _ ConDeclField {..}) -> do
-        pretty $ head cd_fld_names
-        string " :: "
-        pretty cd_fld_type
-  commentsFrom PrefixConGADT {} = Nothing
-  commentsFrom RecConGADT {}    = Nothing
-#endif
+
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
     mapM_ pretty grhssGRHSs
@@ -2794,6 +2791,15 @@ instance Pretty SrcStrictness where
   commentsFrom SrcLazy     = Nothing
   commentsFrom SrcStrict   = Nothing
   commentsFrom NoSrcStrict = Nothing
+
+instance Pretty (HsOuterSigTyVarBndrs GhcPs) where
+  pretty' HsOuterImplicit {} = pure ()
+  pretty' HsOuterExplicit {..} = do
+    string "forall"
+    spacePrefixed $ fmap pretty hso_bndrs
+    dot
+  commentsFrom HsOuterImplicit {}   = Nothing
+  commentsFrom HsOuterExplicit {..} = Just $ CommentExtractable hso_xexplicit
 
 -- | Marks an AST node as never appearing in the AST.
 --
