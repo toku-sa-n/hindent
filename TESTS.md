@@ -384,6 +384,13 @@ data Foo where
     -> Foo
 ```
 
+GADT declaration with a `forall` but no contexts
+
+```haskell
+data Foo where
+  Foo :: forall v. v -> v -> Foo
+```
+
 An `UNPACK`ed field.
 
 ```haskell

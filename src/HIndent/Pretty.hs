@@ -1029,7 +1029,9 @@ prettyConDecl ConDeclGADT {..} = do
         (newline >> pretty (Context con_mb_cxt))
       newline
       prefixed "=> " verArgs
-    withForallOnly = undefined
+    withForallOnly = do
+      pretty con_bndrs
+      (space >> horArgs) <-|> (newline >> verArgs)
     withCtxOnly = undefined
     noForallCtx = horArgs <-|> verArgs
     horArgs =
