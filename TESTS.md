@@ -1267,6 +1267,16 @@ Typed quote.
 f = [|| a ||]
 ```
 
+Preserve the trailing newline.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [s|foo
+|]
+```
+
 # Template Haskell
 
 Expression brackets

@@ -1608,7 +1608,12 @@ instance Pretty (HsSplice GhcPs) where
     brackets $ do
       pretty l
       wrapWithBars $
-        indentedWithFixedLevel 0 $ lined $ fmap string $ lines $ unpackFS r
+        indentedWithFixedLevel 0 $ sequence_ $ printers [] "" $ unpackFS r
+    where
+      printers ps s [] = reverse (string (reverse s) : ps)
+      printers ps s ('\n':xs) =
+        printers (newline : string (reverse s) : ps) "" xs
+      printers ps s (x:xs) = printers ps (x : s) xs
   pretty' HsSpliced {} = notUsedInParsedStage
   commentsFrom (HsTypedSplice x _ _ _)   = Just $ CommentExtractable x
   commentsFrom (HsUntypedSplice x _ _ _) = Just $ CommentExtractable x
