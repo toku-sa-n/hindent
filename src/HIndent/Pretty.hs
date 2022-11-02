@@ -279,15 +279,41 @@ prettyTyClDecl SynDecl {..} = do
         newline
         string "= "
         indentedBlock $ pretty tcdRhs
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyTyClDecl DataDecl {..} = do
-  case dd_ND tcdDataDefn of
-    DataType -> string "data "
-    NewType  -> string "newtype "
-  pretty tcdLName
+  printDataNewtype |=> do
+    whenJust (dd_ctxt tcdDataDefn) $ \x -> do
+      pretty $ Context x
+      string " =>"
+      newline
+    pretty tcdLName
   forM_ (hsq_explicit tcdTyVars) $ \x -> do
     space
     pretty x
   pretty tcdDataDefn
+  where
+    printDataNewtype =
+      case dd_ND tcdDataDefn of
+        DataType -> string "data "
+        NewType  -> string "newtype "
+#else
+prettyTyClDecl DataDecl {..} = do
+  printDataNewtype |=> do
+    whenJust (dd_ctxt tcdDataDefn) $ \_ -> do
+      pretty $ Context $ dd_ctxt tcdDataDefn
+      string " =>"
+      newline
+    pretty tcdLName
+  forM_ (hsq_explicit tcdTyVars) $ \x -> do
+    space
+    pretty x
+  pretty tcdDataDefn
+  where
+    printDataNewtype =
+      case dd_ND tcdDataDefn of
+        DataType -> string "data "
+        NewType  -> string "newtype "
+#endif
 prettyTyClDecl ClassDecl {..} = do
   if isJust tcdCtxt
     then verHead

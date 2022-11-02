@@ -1941,6 +1941,14 @@ data Stanza =
     }
 ```
 
+A data declaration with typeclass constraints
+
+```haskell
+data Ord a =>
+     Foo =
+  Foo a
+```
+
 Multiple constructors at once
 
 ```haskell
