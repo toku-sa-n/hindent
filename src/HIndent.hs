@@ -112,15 +112,15 @@ reformat config mexts mfilepath =
     preserveTrailingNewline f x
 
       | S8.null x || S8.all isSpace x = return mempty
-      | otherwise =
-        if hasTrailingLine x || configTrailingNewline config
-          then fmap
-                 (\x' ->
-                    if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
-                      then x'
-                      else x' <> "\n")
-                 (f x)
-          else f x
+      | hasTrailingLine x || configTrailingNewline config =
+        fmap
+          (\x' ->
+             if hasTrailingLine (L.toStrict (S.toLazyByteString x'))
+               then x'
+               else x' <> "\n")
+          (f x)
+
+      | otherwise = f x
 
 -- | Generate an AST from the given module for debugging.
 testAst :: ByteString -> Either String HsModule
