@@ -272,6 +272,14 @@ A `ccall` foreign export
 foreign export ccall "test" test :: IO ()
 ```
 
+A `ccall` unsafe foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import ccall unsafe "test" test :: IO ()
+```
+
 A `capi` foreign import
 
 ```haskell
