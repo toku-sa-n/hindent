@@ -455,7 +455,7 @@ deriving stock instance Ord Foo
 deriving via (Foo a) instance Show (Bar a)
 ```
 
-Role annotation
+Role annotations
 
 ```haskell
 {-# LANGUAGE RoleAnnotations #-}
@@ -478,7 +478,7 @@ data Foo a b =
   Foo a b
 ```
 
-Rule declaration
+Rule declarations
 
 ```haskell
 {-# RULES
@@ -529,7 +529,7 @@ pattern x :| xs <- x : xs
 pattern Pair {x, y} = (x, y)
 ```
 
-Specialised pragma
+Specialised pragmas
 
 ```haskell
 {-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
