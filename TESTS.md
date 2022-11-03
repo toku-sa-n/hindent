@@ -53,6 +53,8 @@ module X
     ) where
 ```
 
+## Module-level pragmas
+
 A `WARNING` for a module without an export list.
 
 ```haskell
@@ -68,8 +70,6 @@ module Foo {-# DEPRECATED "Use Bar." #-}
   , z
   ) where
 ```
-
-## Module-level pragmas
 
 A pragma's name is converted to the SHOUT_CASE.
 
