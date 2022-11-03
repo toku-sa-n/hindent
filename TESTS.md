@@ -69,7 +69,7 @@ module Foo {-# DEPRECATED "Use Bar." #-}
   ) where
 ```
 
-## Pragmas
+## Module-level pragmas
 
 A pragma's name is converted to the SHOUT_CASE.
 
