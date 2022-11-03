@@ -387,7 +387,7 @@ data Ty :: (* -> *) where
   TCon' :: (a :: *) -> a -> Ty a
 ```
 
-GADT declaration without the kind signature
+GADT declaration without a kind signature
 
 ```haskell
 data Foo where
