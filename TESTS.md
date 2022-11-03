@@ -179,6 +179,12 @@ import Data.Text (a, b, c)
 import Data.Text hiding (a, b, c)
 ```
 
+Shorter identifiers come first
+
+```haskell
+import Foo ((!), (!!))
+```
+
 Import with `ExplicitNamespaces`.
 
 ```haskell

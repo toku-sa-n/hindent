@@ -80,9 +80,24 @@ moduleName _                           = Nothing
 compareIdentifier :: String -> String -> Ordering
 compareIdentifier as@(a:_) bs@(b:_) =
   case compareChar a b of
-    EQ -> compare as bs
+    EQ -> compareSameIdentifierType as bs
     x  -> x
 compareIdentifier _ _ = error "Either identifier is an empty string."
+
+-- | Almost similar to 'compare' but ignores parentheses becuase @compare
+-- "(!)" "(!!)" == GT@.
+compareSameIdentifierType :: String -> String -> Ordering
+compareSameIdentifierType "" "" = EQ
+compareSameIdentifierType "" _ = LT
+compareSameIdentifierType _ "" = GT
+compareSameIdentifierType ('(':as) bs = compareSameIdentifierType as bs
+compareSameIdentifierType (')':as) bs = compareSameIdentifierType as bs
+compareSameIdentifierType as ('(':bs) = compareSameIdentifierType as bs
+compareSameIdentifierType as (')':bs) = compareSameIdentifierType as bs
+compareSameIdentifierType (a:as) (b:bs) =
+  case compare a b of
+    EQ -> compareSameIdentifierType as bs
+    x  -> x
 
 -- | This function compares two characters by their types (capital, symbol,
 -- and lower). If both are the same type, then it compares them by the
