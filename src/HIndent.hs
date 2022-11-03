@@ -73,8 +73,7 @@ reformat config mexts mfilepath =
             PFailed st ->
               Left $
               "Parse failed near " ++
-              show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st) ++
-              " extensions: " ++ show (CE.uniqueExtensions allExts)
+              show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st)
     unlines' = S.concat . intersperse "\n"
     unlines'' = L.concat . intersperse "\n"
     addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
@@ -111,6 +110,7 @@ reformat config mexts mfilepath =
             then S8.cons first (findSmallestPrefix (S.tail p : map S.tail ps))
             else ""
     preserveTrailingNewline f x
+
       | S8.null x || S8.all isSpace x = return mempty
       | otherwise =
         if hasTrailingLine x || configTrailingNewline config
@@ -168,5 +168,6 @@ allExtensions = fmap Cabal.EnableExtension [minBound ..]
 
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
+
   | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
-  | otherwise = Nothing
+  | otherwise              = Nothing
