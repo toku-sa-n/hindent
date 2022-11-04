@@ -47,6 +47,7 @@ module HIndent.Pretty.Types
   , DoExpression(..)
   , DoOrMdo(..)
   , LetIn(..)
+  , NodeComments(..)
   , GRHSExprType(..)
   , GRHSProcType(..)
   ) where
@@ -238,6 +239,14 @@ data LetIn =
   LetIn
     { letBinds :: HsLocalBinds GhcPs
     , inExpr   :: LHsExpr GhcPs
+    }
+
+-- | Comments belonging to an AST node.
+data NodeComments =
+  NodeComments
+    { commentsBefore    :: [LEpaComment]
+    , commentOnSameLine :: Maybe LEpaComment
+    , commentsAfter     :: [LEpaComment]
     }
 
 data DoOrMdo
