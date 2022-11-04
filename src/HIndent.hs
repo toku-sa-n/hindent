@@ -126,8 +126,11 @@ reformat config mexts mfilepath =
 testAst :: ByteString -> Either String HsModule
 testAst x =
   case parseModule Nothing exts (UTF8.toString x) of
-    POk _ m   -> Right $ modifyASTForPrettyPrinting m
-    PFailed _ -> Left "Parse failed."
+    POk _ m -> Right $ modifyASTForPrettyPrinting m
+    PFailed st ->
+      Left $
+      "Parse failed near " ++
+      show ((,) <$> srcLocLine <*> srcLocCol $ psRealLoc $ loc st)
   where
     exts =
       CE.uniqueExtensions $
