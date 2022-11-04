@@ -1798,18 +1798,16 @@ instance Pretty (EpAnn a) where
   pretty' _ = return ()
   commentsBefore (EpAnn _ _ cs) = priorComments cs
   commentsBefore EpAnnNotUsed   = []
-  -- FIXME: Remove duplicated 'where's.
-  commentOnSameLine (EpAnn ann _ cs) = find isSameLine $ getFollowingComments cs
-    where
-      isSameLine (L comAnn _) =
-        srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
+  commentOnSameLine (EpAnn ann _ cs) =
+    find (isCommentOnSameLine ann) $ getFollowingComments cs
   commentOnSameLine EpAnnNotUsed = Nothing
   commentsAfter (EpAnn ann _ cs) =
-    filter (not . isSameLine) $ getFollowingComments cs
-    where
-      isSameLine (L comAnn _) =
-        srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
+    filter (not . isCommentOnSameLine ann) $ getFollowingComments cs
   commentsAfter EpAnnNotUsed = []
+
+isCommentOnSameLine :: Anchor -> LEpaComment -> Bool
+isCommentOnSameLine ann (L comAnn _) =
+  srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
 
 instance Pretty (HsLocalBindsLR GhcPs GhcPs) where
   pretty' (HsValBinds _ lr) = pretty lr
