@@ -22,7 +22,8 @@ import           Distribution.PackageDescription.Parse
 #endif
 import qualified GHC.LanguageExtensions.Type                   as GLP
 import           HIndent.Language
-import           HIndent.LanguageExtension
+import           HIndent.LanguageExtension                     hiding
+                                                               (defaultExtensions)
 import qualified HIndent.LanguageExtension.Conversion          as EC
 import           Language.Haskell.Extension
 import           System.Directory

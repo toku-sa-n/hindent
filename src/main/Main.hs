@@ -22,7 +22,7 @@ import           Foreign.C.Error
 import           GHC.IO.Exception
 import           HIndent
 import           HIndent.CabalFile
-import           HIndent.LanguageExtension.Conversion
+import           HIndent.LanguageExtension
 import qualified HIndent.LanguageExtension.Conversion as EC
 import           HIndent.Types
 import           Language.Haskell.Extension
