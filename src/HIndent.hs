@@ -166,9 +166,6 @@ runPrinterStyle config m =
                 , psEolComment = False
                 }))))
 
-allExtensions :: [Cabal.Extension]
-allExtensions = fmap Cabal.EnableExtension [minBound ..]
-
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 

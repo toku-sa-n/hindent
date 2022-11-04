@@ -7,6 +7,7 @@ module HIndent.LanguageExtension
   , extensionImplies
   , collectLanguageExtensionsFromSource
   , defaultExtensions
+  , allExtensions
   , getExtensions
   ) where
 
@@ -24,6 +25,7 @@ import           HIndent.Types
 import qualified Language.Haskell.Extension           as Cabal
 import           Text.Read
 import           Text.Regex.TDFA
+import Distribution.PackageDescription ()
 
 -- | This function returns a list of extensions that the passed language
 -- (e.g., GHC2021) enables.
@@ -108,6 +110,10 @@ strToExt s           = Cabal.EnableExtension <$> readMaybe s
 -- | Default extensions.
 defaultExtensions :: [Cabal.Extension]
 defaultExtensions = fmap Cabal.EnableExtension $ [minBound ..] \\ badExtensions
+
+-- | All extensions supported by Cabal.
+allExtensions :: [Cabal.Extension]
+allExtensions = fmap Cabal.EnableExtension [minBound ..]
 
 -- | Extensions which steal too much syntax.
 badExtensions :: [Cabal.KnownExtension]
