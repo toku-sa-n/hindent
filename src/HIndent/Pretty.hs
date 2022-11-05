@@ -1070,6 +1070,10 @@ instance Pretty (HsType GhcPs) where
   pretty' = pretty' . HsType' HsTypeForNormalDecl HsTypeNoDir
 
 instance Pretty HsType' where
+  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = do
+    pretty $ HsTypeInsideVerticalFuncSig <$> a
+    newline
+    prefixed "-> " $ pretty $ HsTypeInsideVerticalFuncSig <$> b
   pretty' (HsType' HsTypeForInstDecl _ HsQualTy {..}) = hor <-|> ver
     where
       hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
@@ -1160,13 +1164,6 @@ instance Pretty HsTypeInsideDeclSig where
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
 #endif
-instance Pretty HsTypeInsideVerticalFuncSig where
-  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = do
-    pretty $ fmap HsTypeInsideVerticalFuncSig a
-    newline
-    prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
-  pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
-
 -- TODO: Use `GRHSsExpr`.
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do

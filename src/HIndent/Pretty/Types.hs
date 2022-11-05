@@ -1,4 +1,5 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | Types to pretty-print certain parts of Haskell codes.
 --
@@ -20,7 +21,7 @@ module HIndent.Pretty.Types
   , HsSigTypeInsideVerticalFuncSig(..)
   , HsSigTypeInsideDeclSig(..)
   , HsType'(..)
-  , HsTypeInsideVerticalFuncSig(..)
+  , pattern HsTypeInsideVerticalFuncSig
   , HsTypeInsideDeclSig(..)
   , StmtLRInsideVerticalList(..)
   , ParStmtBlockInsideVerticalList(..)
@@ -115,8 +116,9 @@ data HsType' =
     , hsType    :: HsType GhcPs
     }
 
-newtype HsTypeInsideVerticalFuncSig =
-  HsTypeInsideVerticalFuncSig (HsType GhcPs)
+pattern HsTypeInsideVerticalFuncSig :: HsType GhcPs -> HsType'
+pattern HsTypeInsideVerticalFuncSig x =
+  HsType' HsTypeForFuncSig HsTypeVertical x
 
 newtype StmtLRInsideVerticalList =
   StmtLRInsideVerticalList (StmtLR GhcPs GhcPs (LHsExpr GhcPs))
@@ -232,6 +234,8 @@ data GRHSProcType
 data HsTypeFor
   = HsTypeForNormalDecl
   | HsTypeForInstDecl
+  | HsTypeForFuncSig
 
-data HsTypeDir =
-  HsTypeNoDir
+data HsTypeDir
+  = HsTypeNoDir
+  | HsTypeVertical
