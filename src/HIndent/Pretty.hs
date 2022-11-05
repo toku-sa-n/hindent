@@ -2180,12 +2180,14 @@ prettyIPBind (IPBind _ (Right _) _) = notUsedInParsedStage
 prettyIPBind (IPBind _ (Left l) r) =
   spaced [string "?" >> pretty l, string "=", pretty r]
 #endif
--- TODO: 'instance Pretty XViaStrategyPs'
 instance Pretty (DerivStrategy GhcPs) where
-  pretty' StockStrategy {}                    = string "stock"
-  pretty' AnyclassStrategy {}                 = string "anyclass"
-  pretty' NewtypeStrategy {}                  = string "newtype"
-  pretty' (ViaStrategy (XViaStrategyPs _ ty)) = string "via " >> pretty ty
+  pretty' StockStrategy {}    = string "stock"
+  pretty' AnyclassStrategy {} = string "anyclass"
+  pretty' NewtypeStrategy {}  = string "newtype"
+  pretty' (ViaStrategy x)     = string "via " >> pretty x
+
+instance Pretty XViaStrategyPs where
+  pretty' (XViaStrategyPs _ ty) = pretty ty
 
 instance Pretty (RecordPatSynField GhcPs) where
   pretty' RecordPatSynField {..} = pretty recordPatSynField

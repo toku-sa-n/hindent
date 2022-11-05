@@ -809,12 +809,14 @@ instance CommentExtraction (HsIPBinds GhcPs) where
 instance CommentExtraction (IPBind GhcPs) where
   nodeComments (IPBind x _ _) = nodeComments x
 
--- TODO: 'instance CommentExtraction XViaStrategyPs'
 instance CommentExtraction (DerivStrategy GhcPs) where
-  nodeComments (StockStrategy x)                  = nodeComments x
-  nodeComments (AnyclassStrategy x)               = nodeComments x
-  nodeComments (NewtypeStrategy x)                = nodeComments x
-  nodeComments (ViaStrategy (XViaStrategyPs x _)) = nodeComments x
+  nodeComments (StockStrategy x)    = nodeComments x
+  nodeComments (AnyclassStrategy x) = nodeComments x
+  nodeComments (NewtypeStrategy x)  = nodeComments x
+  nodeComments (ViaStrategy x)      = nodeComments x
+
+instance CommentExtraction XViaStrategyPs where
+  nodeComments (XViaStrategyPs x _) = nodeComments x
 
 instance CommentExtraction (RecordPatSynField GhcPs) where
   nodeComments RecordPatSynField {} = emptyNodeComments
