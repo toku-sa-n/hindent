@@ -1074,6 +1074,20 @@ instance Pretty HsType' where
     pretty $ HsTypeInsideVerticalFuncSig <$> a
     newline
     prefixed "-> " $ pretty $ HsTypeInsideVerticalFuncSig <$> b
+  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> ver
+    where
+      hor = spaced [pretty $ Context hst_ctxt, string "=>", pretty hst_body]
+      ver = do
+        pretty $ Context hst_ctxt
+        newline
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
+  pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> ver
+    where
+      hor = spaced [pretty a, string "->", pretty b]
+      ver = do
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
+        newline
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsType' HsTypeForInstDecl _ HsQualTy {..}) = hor <-|> ver
     where
       hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
@@ -1129,41 +1143,7 @@ prettyHsType (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
 prettyHsType (HsTyLit _ x) = pretty x
 prettyHsType HsWildCardTy {} = string "_"
 prettyHsType XHsType {} = notUsedInParsedStage
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-instance Pretty HsTypeInsideDeclSig where
-  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> ver
-    where
-      hor = spaced [pretty $ Context hst_ctxt, string "=>", pretty hst_body]
-      ver = do
-        pretty $ Context hst_ctxt
-        newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
-  pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
-    where
-      hor = spaced [pretty a, string "->", pretty b]
-      declSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
-        newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
-  pretty' (HsTypeInsideDeclSig x) = pretty x
-#else
-instance Pretty HsTypeInsideDeclSig where
-  pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
-    where
-      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
-      sigVer = do
-        pretty (Context hst_ctxt)
-        newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
-  pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
-    where
-      hor = spaced [pretty a, string "->", pretty b]
-      declSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
-        newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
-  pretty' (HsTypeInsideDeclSig x) = pretty x
-#endif
+
 -- TODO: Use `GRHSsExpr`.
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do

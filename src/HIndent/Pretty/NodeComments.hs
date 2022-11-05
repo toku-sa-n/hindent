@@ -274,13 +274,7 @@ instance CommentExtraction HsType' where
   nodeComments (HsType' _ _ HsTyLit {})               = emptyNodeComments
   nodeComments (HsType' _ _ HsWildCardTy {})          = emptyNodeComments
   nodeComments (HsType' _ _ XHsType {})               = emptyNodeComments
-#if MIN_VERSION_ghc_lib_parser(9,4,1)
-instance CommentExtraction HsTypeInsideDeclSig where
-  nodeComments (HsTypeInsideDeclSig x) = nodeComments x
-#else
-instance CommentExtraction HsTypeInsideDeclSig where
-  nodeComments (HsTypeInsideDeclSig x) = nodeComments x
-#endif
+
 instance CommentExtraction (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   nodeComments = nodeComments . GRHSsExpr GRHSExprNormal
 

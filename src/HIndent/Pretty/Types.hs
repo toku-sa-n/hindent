@@ -22,7 +22,7 @@ module HIndent.Pretty.Types
   , HsSigTypeInsideDeclSig(..)
   , HsType'(..)
   , pattern HsTypeInsideVerticalFuncSig
-  , HsTypeInsideDeclSig(..)
+  , pattern HsTypeInsideDeclSig
   , StmtLRInsideVerticalList(..)
   , ParStmtBlockInsideVerticalList(..)
   , DeclSig(..)
@@ -120,6 +120,9 @@ pattern HsTypeInsideVerticalFuncSig :: HsType GhcPs -> HsType'
 pattern HsTypeInsideVerticalFuncSig x =
   HsType' HsTypeForFuncSig HsTypeVertical x
 
+pattern HsTypeInsideDeclSig :: HsType GhcPs -> HsType'
+pattern HsTypeInsideDeclSig x = HsType' HsTypeForDeclSig HsTypeNoDir x
+
 newtype StmtLRInsideVerticalList =
   StmtLRInsideVerticalList (StmtLR GhcPs GhcPs (LHsExpr GhcPs))
 
@@ -131,9 +134,6 @@ newtype DeclSig =
 
 newtype TopLevelTyFamInstDecl =
   TopLevelTyFamInstDecl (TyFamInstDecl GhcPs)
-
-newtype HsTypeInsideDeclSig =
-  HsTypeInsideDeclSig (HsType GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 -- | A wrapper type for type class constraints; e.g., (Eq a, Ord a) of (Eq
 -- a, Ord a) => [a] -> [a]. Either 'HorizontalContext' or 'VerticalContext'
@@ -235,6 +235,7 @@ data HsTypeFor
   = HsTypeForNormalDecl
   | HsTypeForInstDecl
   | HsTypeForFuncSig
+  | HsTypeForDeclSig
 
 data HsTypeDir
   = HsTypeNoDir
