@@ -248,32 +248,32 @@ instance CommentExtraction (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr Gh
   nodeComments HsRecFields {} = emptyNodeComments
 
 instance CommentExtraction (HsType GhcPs) where
-  nodeComments = nodeComments . HsType'
+  nodeComments = nodeComments . HsType' HsTypeForNormalDecl HsTypeNoDir
 
 instance CommentExtraction HsType' where
-  nodeComments (HsType' HsForAllTy {})            = emptyNodeComments
-  nodeComments (HsType' HsQualTy {})              = emptyNodeComments
-  nodeComments (HsType' (HsTyVar x _ _))          = nodeComments x
-  nodeComments (HsType' HsAppTy {})               = emptyNodeComments
-  nodeComments (HsType' HsAppKindTy {})           = emptyNodeComments
-  nodeComments (HsType' (HsFunTy x _ _ _))        = nodeComments x
-  nodeComments (HsType' (HsListTy x _))           = nodeComments x
-  nodeComments (HsType' (HsTupleTy x _ _))        = nodeComments x
-  nodeComments (HsType' (HsSumTy x _))            = nodeComments x
-  nodeComments (HsType' HsOpTy {})                = emptyNodeComments
-  nodeComments (HsType' (HsParTy x _))            = nodeComments x
-  nodeComments (HsType' (HsIParamTy x _ _))       = nodeComments x
-  nodeComments (HsType' HsStarTy {})              = emptyNodeComments
-  nodeComments (HsType' (HsKindSig x _ _))        = nodeComments x
-  nodeComments (HsType' HsSpliceTy {})            = emptyNodeComments
-  nodeComments (HsType' (HsDocTy x _ _))          = nodeComments x
-  nodeComments (HsType' (HsBangTy x _ _))         = nodeComments x
-  nodeComments (HsType' (HsRecTy x _))            = nodeComments x
-  nodeComments (HsType' (HsExplicitListTy x _ _)) = nodeComments x
-  nodeComments (HsType' (HsExplicitTupleTy x _))  = nodeComments x
-  nodeComments (HsType' HsTyLit {})               = emptyNodeComments
-  nodeComments (HsType' HsWildCardTy {})          = emptyNodeComments
-  nodeComments (HsType' XHsType {})               = emptyNodeComments
+  nodeComments (HsType' _ _ HsForAllTy {})            = emptyNodeComments
+  nodeComments (HsType' _ _ HsQualTy {})              = emptyNodeComments
+  nodeComments (HsType' _ _ (HsTyVar x _ _))          = nodeComments x
+  nodeComments (HsType' _ _ HsAppTy {})               = emptyNodeComments
+  nodeComments (HsType' _ _ HsAppKindTy {})           = emptyNodeComments
+  nodeComments (HsType' _ _ (HsFunTy x _ _ _))        = nodeComments x
+  nodeComments (HsType' _ _ (HsListTy x _))           = nodeComments x
+  nodeComments (HsType' _ _ (HsTupleTy x _ _))        = nodeComments x
+  nodeComments (HsType' _ _ (HsSumTy x _))            = nodeComments x
+  nodeComments (HsType' _ _ HsOpTy {})                = emptyNodeComments
+  nodeComments (HsType' _ _ (HsParTy x _))            = nodeComments x
+  nodeComments (HsType' _ _ (HsIParamTy x _ _))       = nodeComments x
+  nodeComments (HsType' _ _ HsStarTy {})              = emptyNodeComments
+  nodeComments (HsType' _ _ (HsKindSig x _ _))        = nodeComments x
+  nodeComments (HsType' _ _ HsSpliceTy {})            = emptyNodeComments
+  nodeComments (HsType' _ _ (HsDocTy x _ _))          = nodeComments x
+  nodeComments (HsType' _ _ (HsBangTy x _ _))         = nodeComments x
+  nodeComments (HsType' _ _ (HsRecTy x _))            = nodeComments x
+  nodeComments (HsType' _ _ (HsExplicitListTy x _ _)) = nodeComments x
+  nodeComments (HsType' _ _ (HsExplicitTupleTy x _))  = nodeComments x
+  nodeComments (HsType' _ _ HsTyLit {})               = emptyNodeComments
+  nodeComments (HsType' _ _ HsWildCardTy {})          = emptyNodeComments
+  nodeComments (HsType' _ _ XHsType {})               = emptyNodeComments
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance CommentExtraction HsTypeInsideInstDecl where
   nodeComments (HsTypeInsideInstDecl x) = nodeComments x

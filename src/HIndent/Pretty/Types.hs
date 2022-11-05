@@ -41,6 +41,8 @@ module HIndent.Pretty.Types
   , NodeComments(..)
   , GRHSExprType(..)
   , GRHSProcType(..)
+  , HsTypeFor(..)
+  , HsTypeDir(..)
   ) where
 
 import           GHC.Hs
@@ -107,8 +109,12 @@ newtype HsSigTypeInsideVerticalFuncSig =
 newtype HsSigTypeInsideDeclSig =
   HsSigTypeInsideDeclSig (HsSigType GhcPs)
 
-newtype HsType' =
-  HsType' (HsType GhcPs)
+data HsType' =
+  HsType'
+    { hsTypeFor :: HsTypeFor
+    , hsTypeDir :: HsTypeDir
+    , hsType    :: HsType GhcPs
+    }
 
 newtype HsTypeInsideInstDecl =
   HsTypeInsideInstDecl (HsType GhcPs)
@@ -226,3 +232,9 @@ data GRHSExprType
 data GRHSProcType
   = GRHSProcCase
   | GRHSProcLambda
+
+data HsTypeFor =
+  HsTypeForNormalDecl
+
+data HsTypeDir =
+  HsTypeNoDir

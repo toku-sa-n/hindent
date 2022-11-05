@@ -1051,10 +1051,10 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
         maybeToList (fmap (const (string "..")) rec_dotdot)
 
 instance Pretty (HsType GhcPs) where
-  pretty' = prettyHsType
+  pretty' = pretty' . HsType' HsTypeForNormalDecl HsTypeNoDir
 
 instance Pretty HsType' where
-  pretty' (HsType' x) = prettyHsType x
+  pretty' (HsType' _ _ x) = prettyHsType x
 
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
@@ -1165,6 +1165,7 @@ instance Pretty HsTypeInsideVerticalFuncSig where
     prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
 
+-- TODO: Use `GRHSsExpr`.
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do
     mapM_ pretty grhssGRHSs
