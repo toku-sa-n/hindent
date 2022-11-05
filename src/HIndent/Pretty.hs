@@ -462,11 +462,11 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambdaInProc))
+    printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty MatchGroupForCaseInProc where
   pretty' (MatchGroupForCaseInProc MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCaseInProc))
+    printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
@@ -978,8 +978,8 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
 
-instance Pretty MatchForLambdaInProc where
-  pretty' (MatchForLambdaInProc Match {..}) = do
+instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
+  pretty' Match {m_ctxt = LambdaExpr, ..} = do
     string "\\"
     unless (null m_pats) $
       case unLoc $ head m_pats of
@@ -987,12 +987,11 @@ instance Pretty MatchForLambdaInProc where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats ++ [pretty $ GRHSsProc m_grhss]
-
-instance Pretty MatchForCaseInProc where
-  pretty' (MatchForCaseInProc Match {..}) = do
+  pretty' Match {m_ctxt = CaseAlt, ..} = do
     mapM_ pretty m_pats
     space
     pretty $ GRHSsProc m_grhss
+  pretty' _ = notUsedInParsedStage
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
