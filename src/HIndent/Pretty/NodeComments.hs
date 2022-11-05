@@ -324,9 +324,6 @@ instance CommentExtraction GRHSsExpr where
       commentOnSameLine = Nothing
       commentsAfter = getFollowingComments grhssExt
 
-instance CommentExtraction GRHSsForLambda where
-  nodeComments (GRHSsForLambda x) = nodeComments x
-
 instance CommentExtraction GRHSsProc where
   nodeComments (GRHSsProc GRHSs {..}) = NodeComments {..}
     where

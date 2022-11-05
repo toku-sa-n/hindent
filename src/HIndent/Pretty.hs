@@ -988,7 +988,7 @@ instance Pretty MatchForLambda where
         BangPat {} -> space
         _          -> return ()
     spaced $ fmap pretty m_pats
-    pretty $ GRHSsForLambda m_grhss
+    pretty $ GRHSsExpr GRHSExprLambda m_grhss
 
 instance Pretty MatchForLambdaInProc where
   pretty' (MatchForLambdaInProc Match {..}) = do
@@ -1206,21 +1206,11 @@ instance Pretty GRHSsExpr where
   pretty' (GRHSsExpr {grhssExpr = GRHSs {..}, ..}) = do
     mapM_ (pretty . fmap (GRHSExpr grhssExprType)) grhssGRHSs
     case (grhssLocalBinds, grhssExprType) of
-      (HsValBinds epa lr, GRHSExprNormal) ->
-        indentedBlock $
-        newlinePrefixed
-          [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
       (HsValBinds {}, GRHSExprCase) ->
         indentedBlock $ do
           newline
           string "where " |=> pretty grhssLocalBinds
-      _ -> return ()
-
-instance Pretty GRHSsForLambda where
-  pretty' (GRHSsForLambda GRHSs {..}) = do
-    mapM_ (pretty . fmap (GRHSExpr GRHSExprLambda)) grhssGRHSs
-    case grhssLocalBinds of
-      (HsValBinds epa lr) ->
+      (HsValBinds epa lr, _) ->
         indentedBlock $
         newlinePrefixed
           [string "where", printCommentsAnd (L epa lr) (indentedBlock . pretty)]
