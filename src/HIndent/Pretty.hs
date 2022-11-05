@@ -1146,14 +1146,14 @@ instance Pretty HsTypeInsideDeclSig where
       sigVer = do
         pretty (Context hst_ctxt)
         newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
       declSigV = do
-        pretty $ fmap HsTypeInsideVerticalDeclSig a
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
         newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
 #endif
 instance Pretty HsTypeInsideVerticalFuncSig where
@@ -1162,13 +1162,6 @@ instance Pretty HsTypeInsideVerticalFuncSig where
     newline
     prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
-
-instance Pretty HsTypeInsideVerticalDeclSig where
-  pretty' (HsTypeInsideVerticalDeclSig (HsFunTy _ _ a b)) = do
-    pretty $ fmap HsTypeInsideVerticalFuncSig a
-    newline
-    prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
-  pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' GRHSs {..} = do

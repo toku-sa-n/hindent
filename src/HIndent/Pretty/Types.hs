@@ -22,7 +22,6 @@ module HIndent.Pretty.Types
   , HsTypeInsideInstDecl(..)
   , HsTypeInsideVerticalFuncSig(..)
   , HsTypeInsideDeclSig(..)
-  , HsTypeInsideVerticalDeclSig(..)
   , StmtLRInsideVerticalList(..)
   , ParStmtBlockInsideVerticalList(..)
   , DeclSig(..)
@@ -127,9 +126,6 @@ newtype TopLevelTyFamInstDecl =
 
 newtype HsTypeInsideDeclSig =
   HsTypeInsideDeclSig (HsType GhcPs)
-
-newtype HsTypeInsideVerticalDeclSig =
-  HsTypeInsideVerticalDeclSig (HsType GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 -- | A wrapper type for type class constraints; e.g., (Eq a, Ord a) of (Eq
 -- a, Ord a) => [a] -> [a]. Either 'HorizontalContext' or 'VerticalContext'

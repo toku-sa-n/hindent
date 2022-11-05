@@ -287,9 +287,6 @@ instance CommentExtraction HsTypeInsideDeclSig where
 instance CommentExtraction HsTypeInsideVerticalFuncSig where
   nodeComments (HsTypeInsideVerticalFuncSig x) = nodeComments x
 
-instance CommentExtraction HsTypeInsideVerticalDeclSig where
-  nodeComments (HsTypeInsideVerticalDeclSig x) = nodeComments x
-
 instance CommentExtraction (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   nodeComments = nodeComments . GRHSsExpr GRHSExprNormal
 
