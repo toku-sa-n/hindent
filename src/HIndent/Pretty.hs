@@ -1053,6 +1053,9 @@ instance Pretty (HsRecFields GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) wher
 instance Pretty (HsType GhcPs) where
   pretty' = prettyHsType
 
+instance Pretty HsType' where
+  pretty' (HsType' x) = prettyHsType x
+
 prettyHsType :: HsType GhcPs -> Printer ()
 prettyHsType (HsForAllTy _ tele body) = (pretty tele >> space) |=> pretty body
 prettyHsType HsQualTy {..} = do

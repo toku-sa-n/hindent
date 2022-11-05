@@ -19,6 +19,7 @@ module HIndent.Pretty.Types
   , HsSigTypeInsideInstDecl(..)
   , HsSigTypeInsideVerticalFuncSig(..)
   , HsSigTypeInsideDeclSig(..)
+  , HsType'(..)
   , HsTypeInsideInstDecl(..)
   , HsTypeInsideVerticalFuncSig(..)
   , HsTypeInsideDeclSig(..)
@@ -105,6 +106,9 @@ newtype HsSigTypeInsideVerticalFuncSig =
 
 newtype HsSigTypeInsideDeclSig =
   HsSigTypeInsideDeclSig (HsSigType GhcPs)
+
+newtype HsType' =
+  HsType' (HsType GhcPs)
 
 newtype HsTypeInsideInstDecl =
   HsTypeInsideInstDecl (HsType GhcPs)
