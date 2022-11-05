@@ -693,10 +693,6 @@ prettyHsExpr (ExprWithTySig _ e sig) = do
   pretty $ hswc_body sig
 prettyHsExpr (ArithSeq _ _ x) = pretty x
 prettyHsExpr (HsSpliceE _ x) = pretty x
--- TODO: Handle comments.
---
--- TODO: Maybe we should move these definitions inside the @instance Pretty
--- (HsCmdTop GhcPs)@?
 prettyHsExpr (HsProc _ pat x@(L _ (HsCmdTop _ (L _ (HsCmdDo _ xs))))) = do
   spaced [string "proc", pretty pat, string "-> do"]
   newline
