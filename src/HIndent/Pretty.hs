@@ -115,7 +115,6 @@ class CommentExtraction a =>
 
 instance Pretty HsModule where
   pretty' m = blanklined printers >> newline
-    -- TODO: Refactor this 'where' clause.
     where
       printers = snd <$> filter fst pairs
       pairs =
