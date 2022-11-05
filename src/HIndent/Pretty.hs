@@ -193,7 +193,6 @@ prettyTyClDecl :: TyClDecl GhcPs -> Printer ()
 prettyTyClDecl (FamDecl _ x) = pretty x
 prettyTyClDecl SynDecl {..} = do
   string "type "
-    -- TODO: Merge this case with the one in 'ClassDecl's branch.
   case tcdFixity of
     Prefix -> spaced $ pretty tcdLName : fmap pretty (hsq_explicit tcdTyVars)
     Infix ->
