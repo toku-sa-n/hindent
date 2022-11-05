@@ -462,15 +462,11 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty MatchGroupForCase where
   pretty' (MatchGroupForCase MG {..}) =
-    printCommentsAnd
-      mg_alts
-      (lined . fmap (pretty . fmap (MatchExpr GRHSExprCase)))
+    printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty MatchGroupForLambda where
   pretty' (MatchGroupForLambda MG {..}) =
-    printCommentsAnd
-      mg_alts
-      (lined . fmap (pretty . fmap (MatchExpr GRHSExprLambda)))
+    printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
@@ -963,10 +959,7 @@ prettyConDecl ConDeclH98 {con_forall = False, ..} =
       pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' = pretty' . MatchExpr GRHSExprNormal
-
-instance Pretty MatchExpr where
-  pretty' (MatchExpr {matchExpr = Match {m_ctxt = LambdaExpr, ..}}) = do
+  pretty' Match {m_ctxt = LambdaExpr, ..} = do
     string "\\"
     unless (null m_pats) $
       case unLoc $ head m_pats of
@@ -975,10 +968,10 @@ instance Pretty MatchExpr where
         _          -> return ()
     spaced $ fmap pretty m_pats
     pretty $ GRHSsExpr GRHSExprLambda m_grhss
-  pretty' (MatchExpr {matchExpr = Match {m_ctxt = CaseAlt, ..}}) = do
+  pretty' Match {m_ctxt = CaseAlt, ..} = do
     mapM_ pretty m_pats
     pretty $ GRHSsExpr GRHSExprCase m_grhss
-  pretty' (MatchExpr {matchExpr = Match {..}}) =
+  pretty' Match {..} =
     case mc_fixity m_ctxt of
       Prefix -> do
         pretty m_ctxt
