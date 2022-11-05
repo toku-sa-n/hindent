@@ -1656,14 +1656,10 @@ instance Pretty (ImportDecl GhcPs) where
     whenJust ideclAs $ \x -> do
       string " as "
       pretty x
-    whenJust ideclHiding $ \(x, _) -> do
+    whenJust ideclHiding $ \(x, ps) -> do
       when x (string " hiding")
-      (string " " >> hTuple explicitOrHidingImports) <-|>
-        (newline >> indentedBlock (vTuple explicitOrHidingImports))
-      -- TODO: Handle comments.
-    where
-      explicitOrHidingImports =
-        pretty <$> maybe [] (fmap unLoc . unLoc . snd) ideclHiding
+      (string " " >> printCommentsAnd ps (hTuple . fmap pretty)) <-|>
+        (newline >> indentedBlock (printCommentsAnd ps (vTuple . fmap pretty)))
 
 packageName :: ImportDecl GhcPs -> Maybe StringLiteral
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
