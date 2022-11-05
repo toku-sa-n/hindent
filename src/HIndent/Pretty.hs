@@ -1157,21 +1157,17 @@ instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig x) = pretty x
 #endif
 instance Pretty HsTypeInsideVerticalFuncSig where
-  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = noDeclSigV
-    where
-      noDeclSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
-        newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+  pretty' (HsTypeInsideVerticalFuncSig (HsFunTy _ _ a b)) = do
+    pretty $ fmap HsTypeInsideVerticalFuncSig a
+    newline
+    prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalFuncSig x) = pretty x
 
 instance Pretty HsTypeInsideVerticalDeclSig where
-  pretty' (HsTypeInsideVerticalDeclSig (HsFunTy _ _ a b)) = declSigV
-    where
-      declSigV = do
-        pretty $ fmap HsTypeInsideVerticalFuncSig a
-        newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
+  pretty' (HsTypeInsideVerticalDeclSig (HsFunTy _ _ a b)) = do
+    pretty $ fmap HsTypeInsideVerticalFuncSig a
+    newline
+    prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideVerticalDeclSig x) = pretty x
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
