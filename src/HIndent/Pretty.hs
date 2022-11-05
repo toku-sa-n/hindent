@@ -1557,7 +1557,6 @@ instance Pretty (HsConDetails Void (HsScaled GhcPs (GenLocated SrcSpanAnnA (Bang
     error
       "Cannot handle here because 'InfixCon' does not have the information of its constructor."
 
--- FIXME: Reconsider using a type variable.
 instance Pretty a => Pretty (HsScaled GhcPs a) where
   pretty' (HsScaled _ x) = pretty x
 
