@@ -18,6 +18,7 @@ module HIndent.Pretty.Types
   , MatchForLambda(..)
   , MatchForLambdaInProc(..)
   , MatchForCaseInProc(..)
+  , GRHSsExpr(..)
   , GRHSsForCase(..)
   , GRHSsForLambda(..)
   , GRHSsProc(..)
@@ -105,6 +106,9 @@ newtype MatchForLambdaInProc =
 -- | 'Match' for a @case@ expression inside a @proc@ expression.
 newtype MatchForCaseInProc =
   MatchForCaseInProc (Match GhcPs (LHsCmd GhcPs))
+
+newtype GRHSsExpr =
+  GRHSsExpr (GRHSs GhcPs (LHsExpr GhcPs))
 
 newtype GRHSsForCase =
   GRHSsForCase (GRHSs GhcPs (LHsExpr GhcPs))

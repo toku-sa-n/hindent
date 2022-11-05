@@ -315,7 +315,10 @@ instance CommentExtraction HsTypeInsideVerticalDeclSig where
   nodeComments (HsTypeInsideVerticalDeclSig x) = nodeComments x
 
 instance CommentExtraction (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  nodeComments GRHSs {..} = NodeComments {..}
+  nodeComments = nodeComments . GRHSsExpr
+
+instance CommentExtraction GRHSsExpr where
+  nodeComments (GRHSsExpr GRHSs {..}) = NodeComments {..}
     where
       commentsBefore = priorComments grhssExt
       commentOnSameLine = Nothing
