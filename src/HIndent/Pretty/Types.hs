@@ -10,8 +10,6 @@ module HIndent.Pretty.Types
   , InfixOp(..)
   , PrefixOp(..)
   , InfixApp(..)
-  , MatchGroupForCase(..)
-  , MatchGroupForLambda(..)
   , MatchGroupForLambdaInProc(..)
   , MatchGroupForCaseInProc(..)
   , MatchForLambdaInProc(..)
@@ -74,12 +72,6 @@ data InfixApp =
     , rhs                :: LHsExpr GhcPs
     , immediatelyAfterDo :: Bool
     }
-
-newtype MatchGroupForCase =
-  MatchGroupForCase (MatchGroup GhcPs (LHsExpr GhcPs))
-
-newtype MatchGroupForLambda =
-  MatchGroupForLambda (MatchGroup GhcPs (LHsExpr GhcPs))
 
 -- | 'MatchGroup' inside a lambda of a @proc@ expression.
 newtype MatchGroupForLambdaInProc =

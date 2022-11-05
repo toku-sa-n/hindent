@@ -460,14 +460,6 @@ instance Pretty (ClsInstDecl GhcPs) where
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
-instance Pretty MatchGroupForCase where
-  pretty' (MatchGroupForCase MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap pretty)
-
-instance Pretty MatchGroupForLambda where
-  pretty' (MatchGroupForLambda MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap pretty)
-
 instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
     printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambdaInProc))
@@ -490,7 +482,7 @@ prettyHsExpr (HsIPVar _ var) = do
   pretty var
 prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = pretty l
-prettyHsExpr (HsLam _ body) = pretty $ MatchGroupForLambda body
+prettyHsExpr (HsLam _ body) = pretty body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsExpr (HsLamCase _ _ matches) = pretty $ LambdaCase matches
 #else
@@ -561,7 +553,7 @@ prettyHsExpr (HsCase _ cond arms) = do
     then string " {}"
     else do
       newline
-      indentedBlock $ pretty $ MatchGroupForCase arms
+      indentedBlock $ pretty arms
 prettyHsExpr (HsIf _ cond t f) = do
   string "if " |=> pretty cond
   indentedBlock $ newlinePrefixed [branch "then " t, branch "else " f]
@@ -731,7 +723,7 @@ instance Pretty LambdaCase where
       then string " {}"
       else do
         newline
-        indentedBlock $ pretty $ MatchGroupForCase matches
+        indentedBlock $ pretty matches
 
 instance Pretty (HsSigType GhcPs) where
   pretty' HsSig {..} = do

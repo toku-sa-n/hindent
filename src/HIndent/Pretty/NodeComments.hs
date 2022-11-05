@@ -121,12 +121,6 @@ instance CommentExtraction (ClsInstDecl GhcPs) where
 instance CommentExtraction (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   nodeComments MG {} = emptyNodeComments
 
-instance CommentExtraction MatchGroupForCase where
-  nodeComments (MatchGroupForCase x) = nodeComments x
-
-instance CommentExtraction MatchGroupForLambda where
-  nodeComments (MatchGroupForLambda x) = nodeComments x
-
 instance CommentExtraction MatchGroupForLambdaInProc where
   nodeComments (MatchGroupForLambdaInProc MG {}) = emptyNodeComments
 
