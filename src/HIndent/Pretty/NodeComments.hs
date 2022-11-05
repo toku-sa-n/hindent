@@ -241,8 +241,14 @@ instance CommentExtraction MatchForCaseInProc where
   nodeComments (MatchForCaseInProc Match {..}) = nodeComments m_ext
 
 instance CommentExtraction (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  nodeComments (LetStmt l _) = nodeComments l
-  nodeComments _             = emptyNodeComments
+  nodeComments LastStmt {}        = emptyNodeComments
+  nodeComments (BindStmt x _ _)   = nodeComments x
+  nodeComments ApplicativeStmt {} = emptyNodeComments
+  nodeComments BodyStmt {}        = emptyNodeComments
+  nodeComments (LetStmt x _)      = nodeComments x
+  nodeComments ParStmt {}         = emptyNodeComments
+  nodeComments TransStmt {..}     = nodeComments trS_ext
+  nodeComments RecStmt {..}       = nodeComments recS_ext
 
 instance CommentExtraction (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
   nodeComments LastStmt {}        = emptyNodeComments
