@@ -462,7 +462,9 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty MatchGroupForCase where
   pretty' (MatchGroupForCase MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCase))
+    printCommentsAnd
+      mg_alts
+      (lined . fmap (pretty . fmap (MatchExpr GRHSExprCase)))
 
 instance Pretty MatchGroupForLambda where
   pretty' (MatchGroupForLambda MG {..}) =
@@ -962,6 +964,9 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' = pretty' . MatchExpr GRHSExprNormal
 
 instance Pretty MatchExpr where
+  pretty' (MatchExpr {matchExpr = Match {m_ctxt = CaseAlt, ..}}) = do
+    mapM_ pretty m_pats
+    pretty $ GRHSsExpr GRHSExprCase m_grhss
   pretty' (MatchExpr {matchExpr = Match {..}}) =
     case mc_fixity m_ctxt of
       Prefix -> do
@@ -976,11 +981,6 @@ instance Pretty MatchExpr where
               fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
-
-instance Pretty MatchForCase where
-  pretty' (MatchForCase Match {..}) = do
-    mapM_ pretty m_pats
-    pretty $ GRHSsExpr GRHSExprCase m_grhss
 
 instance Pretty MatchForLambda where
   pretty' (MatchForLambda Match {..}) = do
