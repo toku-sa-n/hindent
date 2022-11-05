@@ -107,8 +107,11 @@ newtype MatchForLambdaInProc =
 newtype MatchForCaseInProc =
   MatchForCaseInProc (Match GhcPs (LHsCmd GhcPs))
 
-newtype GRHSsExpr =
-  GRHSsExpr (GRHSs GhcPs (LHsExpr GhcPs))
+data GRHSsExpr =
+  GRHSsExpr
+    { grhssExprType :: GRHSExprType
+    , grhssExpr     :: GRHSs GhcPs (LHsExpr GhcPs)
+    }
 
 newtype GRHSsForCase =
   GRHSsForCase (GRHSs GhcPs (LHsExpr GhcPs))

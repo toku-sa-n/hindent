@@ -1203,8 +1203,8 @@ instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
       _ -> return ()
 
 instance Pretty GRHSsExpr where
-  pretty' (GRHSsExpr GRHSs {..}) = do
-    mapM_ pretty grhssGRHSs
+  pretty' (GRHSsExpr {grhssExpr = GRHSs {..}, ..}) = do
+    mapM_ (pretty . fmap (GRHSExpr grhssExprType)) grhssGRHSs
     case grhssLocalBinds of
       (HsValBinds epa lr) ->
         indentedBlock $
