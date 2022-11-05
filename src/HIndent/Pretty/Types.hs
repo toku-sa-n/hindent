@@ -20,7 +20,6 @@ module HIndent.Pretty.Types
   , HsSigTypeInsideVerticalFuncSig(..)
   , HsSigTypeInsideDeclSig(..)
   , HsType'(..)
-  , HsTypeInsideInstDecl(..)
   , HsTypeInsideVerticalFuncSig(..)
   , HsTypeInsideDeclSig(..)
   , StmtLRInsideVerticalList(..)
@@ -115,9 +114,6 @@ data HsType' =
     , hsTypeDir :: HsTypeDir
     , hsType    :: HsType GhcPs
     }
-
-newtype HsTypeInsideInstDecl =
-  HsTypeInsideInstDecl (HsType GhcPs)
 
 newtype HsTypeInsideVerticalFuncSig =
   HsTypeInsideVerticalFuncSig (HsType GhcPs)
@@ -233,8 +229,9 @@ data GRHSProcType
   = GRHSProcCase
   | GRHSProcLambda
 
-data HsTypeFor =
-  HsTypeForNormalDecl
+data HsTypeFor
+  = HsTypeForNormalDecl
+  | HsTypeForInstDecl
 
 data HsTypeDir =
   HsTypeNoDir

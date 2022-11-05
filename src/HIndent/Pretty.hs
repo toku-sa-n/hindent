@@ -740,7 +740,7 @@ instance Pretty HsSigTypeInsideInstDecl where
         dot
         space
       _ -> return ()
-    pretty $ fmap HsTypeInsideInstDecl sig_body
+    pretty $ HsType' HsTypeForInstDecl HsTypeNoDir <$> sig_body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -1070,6 +1070,14 @@ instance Pretty (HsType GhcPs) where
   pretty' = pretty' . HsType' HsTypeForNormalDecl HsTypeNoDir
 
 instance Pretty HsType' where
+  pretty' (HsType' HsTypeForInstDecl _ HsQualTy {..}) = hor <-|> ver
+    where
+      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
+      ver = do
+        pretty (Context hst_ctxt)
+        string " =>"
+        newline
+        pretty hst_body
   pretty' (HsType' _ _ x) = prettyHsType x
 
 prettyHsType :: HsType GhcPs -> Printer ()
@@ -1118,17 +1126,6 @@ prettyHsType (HsTyLit _ x) = pretty x
 prettyHsType HsWildCardTy {} = string "_"
 prettyHsType XHsType {} = notUsedInParsedStage
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-instance Pretty HsTypeInsideInstDecl where
-  pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
-    where
-      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
-      notVer = do
-        pretty (Context hst_ctxt)
-        string " =>"
-        newline
-        pretty hst_body
-  pretty' (HsTypeInsideInstDecl x) = pretty x
-
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> ver
     where
@@ -1146,17 +1143,6 @@ instance Pretty HsTypeInsideDeclSig where
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
 #else
-instance Pretty HsTypeInsideInstDecl where
-  pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
-    where
-      hor = spaced [pretty (Context hst_ctxt), string "=>", pretty hst_body]
-      notVer = do
-        pretty (Context hst_ctxt)
-        string " =>"
-        newline
-        pretty hst_body
-  pretty' (HsTypeInsideInstDecl x) = pretty x
-
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> sigVer
     where
