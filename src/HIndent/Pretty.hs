@@ -624,12 +624,12 @@ prettyHsExpr (RecordUpd _ name fields) = hor <-|> ver
         either printHorFields printHorFields fields <-|>
         either printVerFields printVerFields fields
     printHorFields ::
-         (Pretty a, Pretty b, Pretty l)
+         (Pretty a, Pretty b, CommentExtraction l)
       => [GenLocated l (HsFieldBind a b)]
       -> Printer ()
     printHorFields = hFields . fmap (`printCommentsAnd` horField)
     printVerFields ::
-         (Pretty a, Pretty b, Pretty l)
+         (Pretty a, Pretty b, CommentExtraction l)
       => [GenLocated l (HsFieldBind a b)]
       -> Printer ()
     printVerFields = vFields . fmap printField
@@ -805,7 +805,6 @@ instance Pretty HsSigTypeInsideDeclSig where
       flatten :: LHsType GhcPs -> [LHsType GhcPs]
       flatten (L _ (HsFunTy _ _ l r)) = flatten l ++ flatten r
       flatten x                       = [x]
-  commentsFrom (HsSigTypeInsideDeclSig x) = Just $ CommentExtractable x
 #else
 instance Pretty HsSigTypeInsideVerticalFuncSig where
   pretty' (HsSigTypeInsideVerticalFuncSig HsSig {..}) =
@@ -1133,7 +1132,6 @@ instance Pretty HsTypeInsideInstDecl where
         newline
         pretty hst_body
   pretty' (HsTypeInsideInstDecl x) = pretty x
-  commentsFrom (HsTypeInsideInstDecl x) = Just $ CommentExtractable x
 
 instance Pretty HsTypeInsideDeclSig where
   pretty' (HsTypeInsideDeclSig HsQualTy {..}) = hor <-|> ver
@@ -1151,7 +1149,6 @@ instance Pretty HsTypeInsideDeclSig where
         newline
         prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
-  commentsFrom (HsTypeInsideDeclSig x) = Just $ CommentExtractable x
 #else
 instance Pretty HsTypeInsideInstDecl where
   pretty' (HsTypeInsideInstDecl HsQualTy {..}) = hor <-|> notVer
