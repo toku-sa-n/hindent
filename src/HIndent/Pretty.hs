@@ -462,11 +462,15 @@ instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
 
 instance Pretty MatchGroupForCase where
   pretty' (MatchGroupForCase MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForCase))
+    printCommentsAnd
+      mg_alts
+      (lined . fmap (pretty . fmap (MatchExpr GRHSExprCase)))
 
 instance Pretty MatchGroupForLambda where
   pretty' (MatchGroupForLambda MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap (pretty . fmap MatchForLambda))
+    printCommentsAnd
+      mg_alts
+      (lined . fmap (pretty . fmap (MatchExpr GRHSExprLambda)))
 
 instance Pretty MatchGroupForLambdaInProc where
   pretty' (MatchGroupForLambdaInProc MG {..}) =
@@ -959,7 +963,22 @@ prettyConDecl ConDeclH98 {con_forall = False, ..} =
       pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' Match {..} =
+  pretty' = pretty' . MatchExpr GRHSExprNormal
+
+instance Pretty MatchExpr where
+  pretty' (MatchExpr {matchExpr = Match {m_ctxt = LambdaExpr, ..}}) = do
+    string "\\"
+    unless (null m_pats) $
+      case unLoc $ head m_pats of
+        LazyPat {} -> space
+        BangPat {} -> space
+        _          -> return ()
+    spaced $ fmap pretty m_pats
+    pretty $ GRHSsExpr GRHSExprLambda m_grhss
+  pretty' (MatchExpr {matchExpr = Match {m_ctxt = CaseAlt, ..}}) = do
+    mapM_ pretty m_pats
+    pretty $ GRHSsExpr GRHSExprCase m_grhss
+  pretty' (MatchExpr {matchExpr = Match {..}}) =
     case mc_fixity m_ctxt of
       Prefix -> do
         pretty m_ctxt
@@ -973,22 +992,6 @@ instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
               fmap pretty xs
             pretty m_grhss
           _ -> error "Not enough parameters are passed."
-
-instance Pretty MatchForCase where
-  pretty' (MatchForCase Match {..}) = do
-    mapM_ pretty m_pats
-    pretty $ GRHSsExpr GRHSExprCase m_grhss
-
-instance Pretty MatchForLambda where
-  pretty' (MatchForLambda Match {..}) = do
-    string "\\"
-    unless (null m_pats) $
-      case unLoc $ head m_pats of
-        LazyPat {} -> space
-        BangPat {} -> space
-        _          -> return ()
-    spaced $ fmap pretty m_pats
-    pretty $ GRHSsExpr GRHSExprLambda m_grhss
 
 instance Pretty MatchForLambdaInProc where
   pretty' (MatchForLambdaInProc Match {..}) = do
