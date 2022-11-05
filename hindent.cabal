@@ -55,6 +55,7 @@ library
                      HIndent.Pretty.Combinators.Wrap
                      HIndent.Pretty.Import
                      HIndent.Pretty.Import.Sort
+                     HIndent.Pretty.NodeComments
                      HIndent.Pretty.Pragma
                      HIndent.Pretty.SigBindFamily
                      HIndent.Pretty.Types
