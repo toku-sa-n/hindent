@@ -443,15 +443,12 @@ instance CommentExtraction (EpAnn a) where
   nodeComments (EpAnn ann _ cs) = NodeComments {..}
     where
       commentsBefore = priorComments cs
-      commentOnSameLine =
-        find (isCommentOnSameLine ann) $ getFollowingComments cs
+      commentOnSameLine = find isCommentOnSameLine $ getFollowingComments cs
       commentsAfter =
-        filter (not . isCommentOnSameLine ann) $ getFollowingComments cs
+        filter (not . isCommentOnSameLine) $ getFollowingComments cs
+      isCommentOnSameLine (L comAnn _) =
+        srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
   nodeComments EpAnnNotUsed = NodeComments [] Nothing []
-
-isCommentOnSameLine :: Anchor -> LEpaComment -> Bool
-isCommentOnSameLine ann (L comAnn _) =
-  srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
 
 instance CommentExtraction (HsLocalBindsLR GhcPs GhcPs) where
   nodeComments (HsValBinds x _)   = nodeComments x
