@@ -460,13 +460,8 @@ instance Pretty (ClsInstDecl GhcPs) where
 instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
-instance Pretty MatchGroupForLambdaInProc where
-  pretty' (MatchGroupForLambdaInProc MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap pretty)
-
-instance Pretty MatchGroupForCaseInProc where
-  pretty' (MatchGroupForCaseInProc MG {..}) =
-    printCommentsAnd mg_alts (lined . fmap pretty)
+instance Pretty (MatchGroup GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
+  pretty' MG {..} = printCommentsAnd mg_alts (lined . fmap pretty)
 
 instance Pretty (HsExpr GhcPs) where
   pretty' = prettyHsExpr
@@ -2184,7 +2179,7 @@ prettyHsCmd (HsCmdArrApp _ f arg HsFirstOrderApp False) =
 prettyHsCmd (HsCmdArrForm _ f _ _ args) =
   bananaBrackets $ spaced $ pretty f : fmap pretty args
 prettyHsCmd (HsCmdApp _ f arg) = spaced [pretty f, pretty arg]
-prettyHsCmd (HsCmdLam _ x) = pretty $ MatchGroupForLambdaInProc x
+prettyHsCmd (HsCmdLam _ x) = pretty x
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsCmd (HsCmdPar _ _ x _) = parens $ pretty x
 #else
@@ -2193,7 +2188,7 @@ prettyHsCmd (HsCmdPar _ x) = parens $ pretty x
 prettyHsCmd (HsCmdCase _ cond arms) = do
   spaced [string "case", pretty cond, string "of"]
   newline
-  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+  indentedBlock $ pretty arms
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsCmd (HsCmdLamCase _ _ arms) = do
   string "\\case"
@@ -2203,7 +2198,7 @@ prettyHsCmd (HsCmdLamCase _ _ arms) = do
 prettyHsCmd (HsCmdLamCase _ arms) = do
   string "\\case"
   newline
-  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+  indentedBlock $ pretty arms
 #endif
 prettyHsCmd (HsCmdIf _ _ cond t f) = do
   string "if "
