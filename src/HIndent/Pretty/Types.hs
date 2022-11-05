@@ -92,8 +92,11 @@ newtype MatchGroupForLambdaInProc =
 newtype MatchGroupForCaseInProc =
   MatchGroupForCaseInProc (MatchGroup GhcPs (LHsCmd GhcPs))
 
-newtype MatchExpr =
-  MatchExpr (Match GhcPs (LHsExpr GhcPs))
+data MatchExpr =
+  MatchExpr
+    { matchExprType :: GRHSExprType
+    , matchExpr     :: Match GhcPs (LHsExpr GhcPs)
+    }
 
 newtype MatchForCase =
   MatchForCase (Match GhcPs (LHsExpr GhcPs))
