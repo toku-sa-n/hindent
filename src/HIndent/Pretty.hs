@@ -1080,9 +1080,8 @@ prettyHsType (HsOpTy _ l op r) =
   spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
 #endif
 prettyHsType (HsParTy _ inside) = parens $ pretty inside
-prettyHsType (HsIParamTy _ x ty) = do
-  string "?"
-  spaced [pretty x, string "::", pretty ty]
+prettyHsType (HsIParamTy _ x ty) =
+  spaced [string "?" >> pretty x, string "::", pretty ty]
 prettyHsType HsStarTy {} = string "*"
 prettyHsType (HsKindSig _ t k) = spaced [pretty t, string "::", pretty k]
 prettyHsType (HsSpliceTy _ sp) = pretty sp
