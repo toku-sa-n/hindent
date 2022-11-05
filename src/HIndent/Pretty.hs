@@ -59,6 +59,8 @@ pretty p = do
   printCommentOnSameLine p
   printCommentsAfter p
 
+-- | Prints comments included in the location information and then the
+-- AST node body.
 printCommentsAnd ::
      (CommentExtraction l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
 printCommentsAnd (L l e) f = do
