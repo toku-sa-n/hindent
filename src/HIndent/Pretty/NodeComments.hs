@@ -226,7 +226,10 @@ instance CommentExtraction (ConDecl GhcPs) where
   nodeComments ConDeclH98 {..}  = nodeComments con_ext
 
 instance CommentExtraction (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  nodeComments Match {..} = nodeComments m_ext
+  nodeComments = nodeComments . MatchExpr
+
+instance CommentExtraction MatchExpr where
+  nodeComments (MatchExpr Match {..}) = nodeComments m_ext
 
 instance CommentExtraction MatchForCase where
   nodeComments (MatchForCase x) = nodeComments x

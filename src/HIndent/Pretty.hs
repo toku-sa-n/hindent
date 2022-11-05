@@ -959,7 +959,10 @@ prettyConDecl ConDeclH98 {con_forall = False, ..} =
       pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' Match {..} =
+  pretty' = pretty' . MatchExpr
+
+instance Pretty MatchExpr where
+  pretty' (MatchExpr Match {..}) =
     case mc_fixity m_ctxt of
       Prefix -> do
         pretty m_ctxt
