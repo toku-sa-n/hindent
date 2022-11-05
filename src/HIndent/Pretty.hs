@@ -946,47 +946,63 @@ prettyConDecl ConDeclH98 {con_forall = False, ..} =
       pretty con_args
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
-  pretty' Match {m_ctxt = LambdaExpr, ..} = do
-    string "\\"
-    unless (null m_pats) $
-      case unLoc $ head m_pats of
-        LazyPat {} -> space
-        BangPat {} -> space
-        _          -> return ()
-    spaced $ fmap pretty m_pats
-    pretty $ GRHSsExpr GRHSExprLambda m_grhss
-  pretty' Match {m_ctxt = CaseAlt, ..} = do
-    mapM_ pretty m_pats
-    pretty $ GRHSsExpr GRHSExprCase m_grhss
-  pretty' Match {..} =
-    case mc_fixity m_ctxt of
-      Prefix -> do
-        pretty m_ctxt
-        spacePrefixed $ fmap pretty m_pats
-        pretty m_grhss
-      Infix -> do
-        case (m_pats, m_ctxt) of
-          (l:r:xs, FunRhs {..}) -> do
-            spaced $
-              [pretty l, pretty $ fmap InfixOp mc_fun, pretty r] ++
-              fmap pretty xs
-            pretty m_grhss
-          _ -> error "Not enough parameters are passed."
+  pretty' = prettyMatchExpr
+
+prettyMatchExpr :: Match GhcPs (LHsExpr GhcPs) -> Printer ()
+prettyMatchExpr Match {m_ctxt = LambdaExpr, ..} = do
+  string "\\"
+  unless (null m_pats) $
+    case unLoc $ head m_pats of
+      LazyPat {} -> space
+      BangPat {} -> space
+      _          -> return ()
+  spaced $ fmap pretty m_pats
+  pretty $ GRHSsExpr GRHSExprLambda m_grhss
+prettyMatchExpr Match {m_ctxt = CaseAlt, ..} = do
+  mapM_ pretty m_pats
+  pretty $ GRHSsExpr GRHSExprCase m_grhss
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyMatchExpr Match {m_ctxt = LamCaseAlt {}, ..} = do
+  mapM_ pretty m_pats
+  pretty $ GRHSsExpr GRHSExprCase m_grhss
+#endif
+prettyMatchExpr Match {..} =
+  case mc_fixity m_ctxt of
+    Prefix -> do
+      pretty m_ctxt
+      spacePrefixed $ fmap pretty m_pats
+      pretty m_grhss
+    Infix -> do
+      case (m_pats, m_ctxt) of
+        (l:r:xs, FunRhs {..}) -> do
+          spaced $
+            [pretty l, pretty $ fmap InfixOp mc_fun, pretty r] ++ fmap pretty xs
+          pretty m_grhss
+        _ -> error "Not enough parameters are passed."
 
 instance Pretty (Match GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) where
-  pretty' Match {m_ctxt = LambdaExpr, ..} = do
-    string "\\"
-    unless (null m_pats) $
-      case unLoc $ head m_pats of
-        LazyPat {} -> space
-        BangPat {} -> space
-        _          -> return ()
-    spaced $ fmap pretty m_pats ++ [pretty $ GRHSsProc m_grhss]
-  pretty' Match {m_ctxt = CaseAlt, ..} = do
-    mapM_ pretty m_pats
-    space
-    pretty $ GRHSsProc m_grhss
-  pretty' _ = notUsedInParsedStage
+  pretty' = prettyMatchProc
+
+prettyMatchProc :: Match GhcPs (LHsCmd GhcPs) -> Printer ()
+prettyMatchProc Match {m_ctxt = LambdaExpr, ..} = do
+  string "\\"
+  unless (null m_pats) $
+    case unLoc $ head m_pats of
+      LazyPat {} -> space
+      BangPat {} -> space
+      _          -> return ()
+  spaced $ fmap pretty m_pats ++ [pretty $ GRHSsProc m_grhss]
+prettyMatchProc Match {m_ctxt = CaseAlt, ..} = do
+  mapM_ pretty m_pats
+  space
+  pretty $ GRHSsProc m_grhss
+#if MIN_VERSION_ghc_lib_parser(9,4,1)
+prettyMatchProc Match {m_ctxt = LamCaseAlt {}, ..} = do
+  mapM_ pretty m_pats
+  space
+  pretty $ GRHSsProc m_grhss
+#endif
+prettyMatchProc _ = notUsedInParsedStage
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -1117,14 +1133,14 @@ instance Pretty HsTypeInsideDeclSig where
       ver = do
         pretty $ Context hst_ctxt
         newline
-        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalDeclSig hst_body
+        prefixed "=> " $ pretty $ fmap HsTypeInsideVerticalFuncSig hst_body
   pretty' (HsTypeInsideDeclSig (HsFunTy _ _ a b)) = hor <-|> declSigV
     where
       hor = spaced [pretty a, string "->", pretty b]
       declSigV = do
-        pretty $ fmap HsTypeInsideVerticalDeclSig a
+        pretty $ fmap HsTypeInsideVerticalFuncSig a
         newline
-        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalDeclSig b
+        prefixed "-> " $ pretty $ fmap HsTypeInsideVerticalFuncSig b
   pretty' (HsTypeInsideDeclSig x) = pretty x
 #else
 instance Pretty HsTypeInsideInstDecl where
@@ -2181,7 +2197,7 @@ prettyHsCmd (HsCmdCase _ cond arms) = do
 prettyHsCmd (HsCmdLamCase _ _ arms) = do
   string "\\case"
   newline
-  indentedBlock $ pretty $ MatchGroupForCaseInProc arms
+  indentedBlock $ pretty arms
 #else
 prettyHsCmd (HsCmdLamCase _ arms) = do
   string "\\case"
