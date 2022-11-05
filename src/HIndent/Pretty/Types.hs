@@ -15,7 +15,6 @@ module HIndent.Pretty.Types
   , MatchGroupForLambdaInProc(..)
   , MatchGroupForCaseInProc(..)
   , MatchExpr(..)
-  , MatchForLambda(..)
   , MatchForLambdaInProc(..)
   , MatchForCaseInProc(..)
   , GRHSsExpr(..)
@@ -96,9 +95,6 @@ data MatchExpr =
     { matchExprType :: GRHSExprType
     , matchExpr     :: Match GhcPs (LHsExpr GhcPs)
     }
-
-newtype MatchForLambda =
-  MatchForLambda (Match GhcPs (LHsExpr GhcPs))
 
 -- | 'Match' for a lambda inside a @proc@ expression.
 newtype MatchForLambdaInProc =
