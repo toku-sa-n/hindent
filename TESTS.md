@@ -22,15 +22,9 @@ Double shebangs
 main = pure ()
 ```
 
-Extension pragmas
+## Module header
 
-```haskell
-{-# LANGUAGE TypeApplications #-}
-
-fun @Int 12
-```
-
-Module header
+Without an export  list
 
 ``` haskell
 module X where
@@ -38,7 +32,7 @@ module X where
 x = 1
 ```
 
-Exports
+With an export list
 
 ``` haskell
 module X
@@ -46,10 +40,11 @@ module X
   , y
   , Z
   , P(x, z)
+  , module Foo
   ) where
 ```
 
-Exports, indentation 4
+With an export list, indentation 4
 
 ``` haskell 4
 module X
@@ -60,17 +55,164 @@ module X
     ) where
 ```
 
+With haddocks
+
+```haskell
+-- | A module
+module HIndent -- Foo
+  ( -- * Formatting functions.
+    reformat
+  , -- * Testing
+    test
+  ) where
+```
+
+## Module-level pragmas
+
+A `WARNING` for a module without an export list.
+
+```haskell
+module Foo {-# WARNING "Debug purpose only." #-} where
+```
+
+A `DEPRECATED` for a module with an export list.
+
+```haskell
+module Foo {-# DEPRECATED "Use Bar." #-}
+  ( x
+  , y
+  , z
+  ) where
+```
+
+A pragma's name is converted to the SHOUT_CASE.
+
+```haskell given
+{-# lAnGuAgE CPP #-}
+```
+
+```haskell expect
+{-# LANGUAGE CPP #-}
+```
+
+Pragmas, GHC options, and haddock options.
+
+```haskell
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE NoRebindableSyntax #-}
+{-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
+{-# OPTIONS_GHC -w #-}
+{-# OPTIONS_HADDOCK show-extensions #-}
+
+module Foo where
+```
+
+Accept pragmas via `OPTIONS -XFOO`
+
+```haskell
+{-# OPTIONS -XPatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
+Accept pragmas via `OPTIONS_GHC -XFOO`
+
+```haskell
+{-# OPTIONS_GHC -XPatternSynonyms #-}
+
+import Foo (pattern Bar)
+```
+
+A pragma's length is adjusted automatically
+
+```haskell given
+{-#         LANGUAGE OverloadedStrings          #-}
+```
+
+```haskell expect
+{-# LANGUAGE OverloadedStrings #-}
+```
+
+Collect multiple extensions correctly
+
+```haskell
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE PatternSynonyms #-}
+
+import Language.C.Types (pattern TypeName)
+```
+
+Collect multiple extensions separated by commas correctly
+
+```haskell given
+{-# LANGUAGE CPP, MultiWayIf,
+    PatternSynonyms #-}
+
+import Foo (pattern Bar)
+
+-- Do not collect pragma-like things.
+-- {-# LANGUAGE StaticPointers #-}
+{-
+
+{-# LANGUAGE StaticPointers #-}
+
+-}
+-- @static@ is no longer a valid identifier
+-- once the above language extension is enabled.
+static = 3
+```
+
+```haskell expect
+{-# LANGUAGE CPP, MultiWayIf, PatternSynonyms #-}
+
+import Foo (pattern Bar)
+
+-- Do not collect pragma-like things.
+-- {-# LANGUAGE StaticPointers #-}
+{-
+
+{-# LANGUAGE StaticPointers #-}
+
+-}
+-- @static@ is no longer a valid identifier
+-- once the above language extension is enabled.
+static = 3
+```
+
 # Imports
 
 Import lists
 
 ``` haskell
+import Control.Lens (_2, _Just)
 import Data.Text
 import Data.Text
 import qualified Data.Text as T
 import qualified Data.Text (a, b, c)
 import Data.Text (a, b, c)
 import Data.Text hiding (a, b, c)
+```
+
+Shorter identifiers come first
+
+```haskell
+import Foo ((!), (!!))
+```
+
+Import with `ExplicitNamespaces`.
+
+```haskell
+{-# LANGUAGE ExplicitNamespaces #-}
+
+import Prlude (type FilePath)
+```
+
+Import a pattern
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+import Foo (pattern Bar)
 ```
 
 Sorted
@@ -124,7 +266,74 @@ import Name hiding ()
 import {-# SOURCE #-} safe qualified Module as M hiding (a, b, c, d, e, f)
 ```
 
+An import declaration importing lots of data constructors
+
+```haskell
+import Direction
+  ( Direction(East, North, NorthEast, NorthWest, South, SouthEast,
+          SouthWest, West)
+  , allDirections
+  )
+```
+
+# Foreign imports and exports
+
+A `ccall` foreign export
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign export ccall "test" test :: IO ()
+```
+
+A `ccall` unsafe foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import ccall unsafe "test" test :: IO ()
+```
+
+A `capi` foreign import
+
+```haskell
+{-# LANGUAGE CApiFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import capi safe "foo" test :: IO Int
+```
+
+A `stdcall` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import stdcall safe "test" bar :: IO ()
+```
+
+A `prim` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import prim safe "test" test :: IO ()
+```
+
+A `javascript` foreign import
+
+```haskell
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+foreign import javascript safe "test" test :: IO ()
+```
+
 # Declarations
+
+A record inside a function signature
+
+```haskell
+url :: r {url :: String} => r -> Integer
+```
 
 Type declaration
 
@@ -132,13 +341,13 @@ Type declaration
 type EventSource a = (AddHandler a, a -> IO ())
 ```
 
-Type declaration with infix promoted type constructor
+Type declaration with promoted lists
 
 ```haskell
-fun1 :: Def ('[ Ref s (Stored Uint32), IBool] 'T.:-> IBool)
+fun1 :: Def ('[ Ref s (Stored Uint32), IBool] T.:-> IBool)
 fun1 = undefined
 
-fun2 :: Def ('[ Ref s (Stored Uint32), IBool] ':-> IBool)
+fun2 :: Def ('[ Ref s (Stored Uint32), IBool] :-> IBool)
 fun2 = undefined
 ```
 
@@ -165,6 +374,22 @@ instance Bool :?: Bool
 instance (:?:) Int Bool
 ```
 
+An instance declaration with a comment between the header and `where`.
+
+```haskell
+instance Pretty MatchForCase
+  -- TODO: Do not forget to handle comments!
+                                             where
+  pretty' = undefined
+```
+
+A type alias inside an instance declaration.
+
+```haskell
+instance Foo a where
+  type Bar a = Int
+```
+
 GADT declarations
 
 ```haskell
@@ -176,7 +401,345 @@ data Ty :: (* -> *) where
   TCon' :: (a :: *) -> a -> Ty a
 ```
 
+GADT declaration without a kind signature
+
+```haskell
+data Foo where
+  Foo
+    :: forall v. Ord v
+    => v
+    -> v
+    -> Foo
+```
+
+GADT declaration with a `forall` but no contexts
+
+```haskell
+data Foo where
+  Foo :: forall v. v -> v -> Foo
+```
+
+GADT declaration with a context but no `forall`s
+
+```haskell
+data Foo where
+  Foo :: (Ord v) => v -> v -> Foo
+```
+
+An `UNPACK`ed field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: {-# UNPACK #-} Int
+    }
+```
+
+An `NOUNPACK`ed field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: {-# NOUNPACK #-} !Int
+    }
+```
+
+A lazy field.
+
+```haskell
+data Foo =
+  Foo
+    { x :: ~Int
+    }
+```
+
+`StandaloneDeriving`
+
+```haskell
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
+data Foo =
+  Foo
+
+deriving instance Eq Foo
+
+deriving stock instance Ord Foo
+
+deriving via (Foo a) instance Show (Bar a)
+```
+
+Role annotations
+
+```haskell
+{-# LANGUAGE RoleAnnotations #-}
+
+type role Foo nominal
+
+type role Bar representational
+
+type role Baz phantom
+```
+
+`StandaloneKindSignatures`
+
+```haskell
+{-# LANGUAGE StandaloneKindSignatures #-}
+
+type Foo :: Type -> Type -> Type
+
+data Foo a b =
+  Foo a b
+```
+
+Rule declarations
+
+```haskell
+{-# RULES
+"foo/bar" foo = bar
+ #-}
+
+{-# RULES
+"hoge/fuga" forall (a :: Int). hoge a = fuga a a
+ #-}
+
+{-# RULES
+"piyo/pochi" forall a. piyo a = pochi a a
+ #-}
+```
+
+Class declaration with an empty constraint
+
+```haskell
+class () =>
+      Foo a
+```
+
+Pattern synonyms
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern Foo :: Int -> Int -> [Int]
+
+pattern Foo x y <- [x, y]
+
+pattern Single x = [x]
+
+pattern Anylist x = x
+
+pattern Bar = []
+
+{-# COMPLETE Single, Anylist #-}
+
+pattern Fst :: Int -> (Int, Int)
+
+pattern Fst x <- (x, x)
+  where Fst x = (x, 0)
+
+pattern x :| xs <- x : xs
+  where a :| b = a : b
+
+pattern Pair {x, y} = (x, y)
+```
+
+Specialised pragmas
+
+```haskell
+{-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
+
+lookup :: Eq k => [(k, v)] -> k -> Maybe v
+lookup = undefined
+
+newtype Foo a =
+  Foo a
+
+instance (Show a) => Show (Foo a) where
+  {-# SPECIALISE instance Show (Foo String) #-}
+  show = undefined
+```
+
+Default declaration
+
+```haskell
+default (Integer, Double)
+```
+
+`static` is a valid identifier if `StaticPointers` is disabled.
+
+```haskell
+static = undefined
+```
+
+## `ANN` pragmas
+
+Value annotation.
+
+```haskell
+{-# ANN foo "annotation" #-}
+```
+
+Type annotation.
+
+```haskell
+{-# ANN type Foo "annotation" #-}
+```
+
+Module annotation.
+
+```haskell
+{-# ANN module "annotation" #-}
+```
+
+## Pattern matchings
+
+Unboxed sum pattern matching.
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f (# x | | | #) = undefined
+```
+
+Pattern matching against a infix constructor with a module name prefix
+
+```haskell
+foo (a FOO.:@: b) = undefined
+```
+
+## Pattern matchings against records
+
+Short
+
+```haskell
+fun Rec {alpha = beta, gamma = delta, epsilon = zeta, eta = theta, iota = kappa} = do
+  beta + delta + zeta + theta + kappa
+```
+
+Long
+
+```haskell
+fun Rec { alpha = beta
+        , gamma = delta
+        , epsilon = zeta
+        , eta = theta
+        , iota = kappa
+        , lambda = mu
+        } =
+  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+```
+
+Another long one
+
+```haskell
+resetModuleStartLine m@HsModule { hsmodAnn = epa@EpAnn {..}
+                                , hsmodName = Just (L (SrcSpanAnn _ (RealSrcSpan sp _)) _)
+                                } = undefined
+```
+
+### Symbol constructors
+
+Short
+
+```haskell
+fun ((:..?) {}) = undefined
+```
+
+Long
+
+```
+fun (:..?) { alpha = beta
+           , gamma = delta
+           , epsilon = zeta
+           , eta = theta
+           , iota = kappa
+           , lambda = mu
+           } =
+  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+```
+
+### Symbol fields
+
+Normal
+
+```haskell
+f (X {(..?) = x}) = x
+```
+
+Punned
+
+```haskell
+f' (X {(..?)}) = (..?)
+```
+
+## Inline pragmas
+
+`INLINE`
+
+```haskell
+{-# INLINE f #-}
+f :: a
+f = undefined
+```
+
+`INLINABLE`
+
+```haskell
+{-# INLINABLE f #-}
+f :: a
+f = undefined
+```
+
+`NOINLINE`
+
+```haskell
+{-# NOINLINE f #-}
+f :: a
+f = undefined
+```
+
+`OPAQUE`
+
+```haskell from 9.4.0
+{-# OPAQUE f #-}
+f :: a
+f = undefined
+```
+
+`INLINE` with levels
+
+```haskell
+{-# INLINE [0] f #-}
+{-# INLINE [~1] g #-}
+```
+
 # Expressions
+
+Primitive type values
+
+```haskell
+a = 'a'
+
+b = "bbb\nbbb"
+
+c = '\n'
+
+d = 0#
+
+e = 3.3#
+
+f = "FOO"#
+
+g = 'c'#
+
+h = 0xff
+```
+
+A minus sign
+
+```haskell
+f = -(3 + 5)
+```
 
 Lazy patterns in a lambda
 
@@ -268,6 +831,14 @@ commitToEvent gitFolderPath timezone commit =
     }
 ```
 
+Record body may be in one line even if a new line is inserted after the variable name.
+
+```haskell
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments) =
+  nodeInfo
+    {nodeInfoComments = existingComments <> map mkBeforeNodeComment newComments}
+```
+
 Record with symbol constructor
 
 ```haskell
@@ -293,6 +864,25 @@ strToMonth month =
     _ -> error $ "Unknown month " ++ month
 ```
 
+Lambda in case
+
+```haskell
+f x =
+  case filter (\y -> isHappy y x) of
+    [] -> Nothing
+    (z:_) -> Just (\a b -> makeSmile z a b)
+```
+
+A guard in a case
+
+```haskell
+f =
+  case g of
+    []
+      | even h -> Nothing
+    _ -> undefined
+```
+
 Operators, bad
 
 ``` haskell
@@ -311,12 +901,37 @@ x =
   Just thisissolong <*> Just stilllonger <*> evenlonger
 ```
 
+`$` chain
+
+```haskell
+f =
+  Right $
+  S.lazyByteStrings $ addPrefix prefix $ S.toLazyByteString $ prettyPrint m
+```
+
 Operator with `do`
 
 ```haskell
 for xs $ do
   left x
   right x
+```
+
+`do` with a binding
+
+```haskell
+foo = do
+  mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
+  print mcp
+```
+
+A `let` with a signature inside a `do`
+
+```haskell
+f = do
+  let try :: Typeable b => b
+      try = undefined
+  undefined
 ```
 
 Operator with lambda
@@ -368,14 +983,6 @@ g (x:xs) = x
 g' ((:) x _) = x
 ```
 
-Type application
-
-```haskell
-{-# LANGUAGE TypeApplications #-}
-
-fun @Int 12
-```
-
 Transform list comprehensions
 
 ```haskell
@@ -408,6 +1015,8 @@ Type family instances
 
 ```haskell
 type instance Id Int = Int
+
+type instance Id _ = String
 ```
 
 Type family dependencies
@@ -428,7 +1037,303 @@ Closed type families
 
 ```haskell
 type family Closed (a :: k) :: Bool where
+  Closed (x @Int) = 'Int
   Closed x = 'True
+```
+
+Sections
+```haskell
+double = (2 *)
+
+halve = (/ 2)
+```
+
+A section with a large RHS.
+
+```haskell
+foo =
+  (`elem` concat
+            [ [20, 68, 92, 112, 28, 124, 116, 80]
+            , [21, 84, 87, 221, 127, 255, 241, 17]
+            ])
+```
+
+A field updater in a `do` inside a `let ... in`.
+
+```haskell
+f = undefined
+  where
+    g h =
+      let x = undefined
+       in do foo
+             pure
+               h
+                 { grhssLocalBinds =
+                     HsValBinds x (ValBinds (newSigs newSigMethods))
+                 }
+```
+
+The indent after a top-level `where` has always 2 spaces.
+
+```haskell 4
+f = undefined
+  where
+    g = undefined
+```
+
+The indent after a `where` inside a `case` depends on the indent space setting
+
+```haskell 4
+f =
+    case x of
+        x -> undefined
+            where y = undefined
+```
+
+Multiple line function signature inside a `where`
+
+```haskell 4
+foo = undefined
+  where
+    go :: Fooooooooooooooooooooooo
+       -> Fooooooooooooooooooooooo
+       -> Fooooooooooooooooooooooo
+       -> Fooooooooooooooooooooooo
+    go = undefined
+```
+
+An expression with a SCC pragma
+
+```haskell
+foo = {-# SCC foo #-} undefined
+
+{-# SCC bar #-}
+
+bar = undefined
+```
+
+A hole
+
+```haskell
+foo = 3 + _
+```
+
+Multiple line string
+
+```haskell
+foo =
+  "hoge \
+ \ fuga"
+  where
+    bar =
+      "foo \
+     \ bar"
+```
+
+Implicit value
+
+```haskell
+foo = ?undefined
+```
+
+Typed splice
+
+```haskell
+foo = $$bar
+```
+
+## Extensions
+
+`RecursiveDo`
+
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+
+f = do
+  a <- foo
+  rec b <- a c
+      c <- a b
+  return $ b + c
+
+g = mdo
+  foo
+  bar
+```
+
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f = (# | Bool #)
+```
+
+`OverloadedRecordDot`
+
+```haskell from 9.2.2
+{-# LANGUAGE OverloadedRecordDot #-}
+
+data Rectangle =
+  Rectangle
+    { width :: Int
+    , height :: Int
+    }
+
+area :: Rectangle -> Int
+area r = r.width * r.height
+
+foo = (.x.y)
+```
+
+`OverloadedRecordUpdate`
+
+```haskell from 9.2.0
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedRecordUpdate #-}
+
+foo = bar {baz.qux = 1}
+```
+
+Type application
+
+```haskell
+{-# LANGUAGE TypeApplications #-}
+
+fun @Int 12
+```
+
+`StaticPointers`
+
+```haskell
+{-# LANGUAGE StaticPointers #-}
+
+f = static 1
+```
+
+### Arrows
+
+`-<`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc foo -> do
+    bar -< baz
+    aaa >- bbb
+```
+
+`-<<`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc foo -> do
+    g bar -<< baz
+    aaaaa >>- h bbb
+```
+
+`(| ... |)`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f = proc g -> (|foo (bar -< g) (baz -< g)|) zz
+```
+
+Lambda equation.
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f = proc g -> \x -> x -< g
+```
+
+Case expression.
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    case h of
+      [] -> i -< ()
+      (_:_) -> j -< ()
+```
+
+Lambda case
+
+```haskell
+{-# LANGUAGE Arrows #-}
+{-# LANGUAGE LambdaCase #-}
+
+f =
+  proc g ->
+    \case
+      _ -> h -< ()
+```
+
+`if ... then ... else`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    if x
+      then h -< g
+      else t -< g
+```
+
+`let ... in`
+
+```haskell
+{-# LANGUAGE Arrows #-}
+
+f =
+  proc g ->
+    let x = undefined
+        y = undefined
+     in returnA -< g
+```
+
+### Quasi-quotes
+
+Body has multiple lines.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [s|First line
+Second line|]
+```
+
+Body has a top-level declaration.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [d| f :: Int -> Int
+      f = undefined |]
+```
+
+Typed quote.
+
+```haskell
+f = [|| a ||]
+```
+
+Preserve the trailing newline.
+
+```haskell
+{-# LANGUAGE QuasiQuotes #-}
+
+f =
+  [s|foo
+|]
 ```
 
 # Template Haskell
@@ -468,7 +1373,56 @@ g =
     _ -> False
 ```
 
+Data family and instances
+
+```haskell
+data family Foo a
+
+data instance Foo Int =
+  FInt
+
+data instance Foo @k a =
+  FString
+```
+
 # Type signatures
+
+## Top-level function signatures
+
+Multiple function signatures at once
+
+```haskell
+a, b, c :: Int
+```
+
+Type using a numeric value
+
+```haskell
+f :: Foo 0
+```
+
+Type using a character value
+
+```haskell
+f :: Foo 'a'
+```
+
+Type using a unicode string value
+
+```haskell
+f :: Foo "あ"
+```
+
+A dot not enclosed by spaces is printed correctly if `OverloadedRecordDot` is not enabled.
+
+```haskell given
+f :: forall a.(Data a, Typeable a) => a
+```
+
+```haskell expect
+f :: forall a. (Data a, Typeable a)
+  => a
+```
 
 Long argument list should line break
 
@@ -478,15 +1432,15 @@ longLongFunction ::
   -> StateT s (WriterT w (ReaderT r m)) a
 ```
 
-Class constraints should leave `::` on same line
+Long parameter list with a `forall`
 
-``` haskell
--- see https://github.com/chrisdone/hindent/pull/266#issuecomment-244182805
-fun ::
-     (Class a, Class b)
-  => fooooooooooo bar mu zot
-  -> fooooooooooo bar mu zot
-  -> c
+```haskell
+fooooooooo ::
+     forall a.
+     Fooooooooooooooo a
+  -> Fooooooooooooooo a
+  -> Fooooooooooooooo a
+  -> Fooooooooooooooo a
 ```
 
 Class constraints
@@ -514,17 +1468,6 @@ Quasiquotes in types
 fun :: [a|bc|]
 ```
 
-Default signatures
-
-```haskell
--- https://github.com/chrisdone/hindent/issues/283
-class Foo a where
-  bar :: a -> a -> a
-  default bar :: Monoid a =>
-    a -> a -> a
-  bar = mappend
-```
-
 Implicit parameters
 
 ```haskell
@@ -542,22 +1485,35 @@ Promoted list (issue #348)
 
 ```haskell
 a :: A '[ 'True]
-a = undefined
-
 -- nested promoted list with multiple elements.
 b :: A '[ '[ 'True, 'False], '[ 'False, 'True]]
-b = undefined
 ```
 
-Promoted list with a tuple (issue #348)
+Class constraints should leave `::` on same line
+
+``` haskell
+-- see https://github.com/chrisdone/hindent/pull/266#issuecomment-244182805
+fun ::
+     (Class a, Class b)
+  => fooooooooooo bar mu zot
+  -> fooooooooooo bar mu zot
+  -> c
+```
+
+`forall` type
 
 ```haskell
-a :: A '[ '( a, b, c, d)]
-a = undefined
+f :: (forall a. Data a =>
+                  a -> a)
+  -> (forall a b. Data a =>
+                    a -> b)
+g :: forall a b. a -> b
+```
 
--- nested promoted tuples.
-b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
-b = undefined
+An infix operator containing `#`
+
+```haskell
+(#!) :: Int -> Int -> Int
 ```
 
 Prefix promoted symbol type constructor
@@ -569,6 +1525,110 @@ c :: '(:->) 'True 'False
 d :: (:->) 'True 'False
 ```
 
+Promoted list with a tuple (issue #348)
+
+```haskell
+a :: A '[ '( a, b, c, d)]
+-- nested promoted tuples.
+b :: A '[ '( 'True, 'False, '[], '( 'False, 'True))]
+```
+
+## Class declarations
+
+Long class constraints
+
+```haskell
+class ( Foo a
+      , Bar a
+      , Baz a
+      , Hoge a
+      , Fuga a
+      , Piyo a
+      , Hogera a
+      , Hogehoge a
+      , Spam a
+      , Ham a
+      ) =>
+      Quux a
+```
+
+Class methods with constraints
+
+```haskell
+class Foo f where
+  myEq :: (Eq a) => f a -> f a -> Bool
+```
+
+A class method with long signature
+
+```haskell
+class Foo a where
+  fooBarBazQuuxHogeFuga ::
+       a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
+```
+
+An associated type synonym
+
+```haskell
+class Foo a where
+  type Bar b
+```
+
+Default signatures
+
+```haskell
+-- https://github.com/chrisdone/hindent/issues/283
+class Foo a where
+  bar :: a -> a -> a
+  default bar :: Monoid a =>
+    a -> a -> a
+  bar = mappend
+```
+
+## Function signatures inside a where clause
+
+A long signature inside a where clause
+
+```haskell
+cppSplitBlocks :: ByteString -> [CodeBlock]
+cppSplitBlocks inp = undefined
+  where
+    spanCPPLines ::
+         [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
+    spanCPPLines = undefined
+```
+
+A `forall` type inside a where clause
+
+```haskell
+replaceAllNotUsedAnns :: HsModule -> HsModule
+replaceAllNotUsedAnns = everywhere app
+  where
+    app ::
+         forall a. Data a
+      => (a -> a)
+    app = undefined
+
+f :: a
+f = undefined
+  where
+    ggg ::
+         forall a. Typeable a
+      => a
+      -> a
+    ggg = undefined
+```
+
+## Extensions
+
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f :: (# Int | Bool | String #)
+```
+
 # Function declarations
 
 Prefix notation for operators
@@ -576,6 +1636,12 @@ Prefix notation for operators
 ``` haskell
 (+) :: Num a => a -> a -> a
 (+) a b = a
+```
+
+As pattern
+
+```haskell
+f all@(x:xs) = all
 ```
 
 Where clause
@@ -586,6 +1652,59 @@ sayHello = do
   putStrLn $ greeting name
   where
     greeting name = "Hello, " ++ name ++ "!"
+```
+
+An empty line is inserted after an empty `where`
+
+```haskell given
+f = evalState
+    -- A comment
+  where
+```
+
+```haskell expect
+f = evalState
+    -- A comment
+  where
+
+```
+
+Multiple function declarations with an empty `where`
+
+```haskell
+f = undefined
+  where
+
+
+g = undefined
+```
+
+A `where` clause between instance functions.
+
+```haskell
+instance Pretty HsModule where
+  pretty' = undefined
+    where
+      a = b
+  commentsBefore = Nothing
+```
+
+A `DEPRECATED`.
+
+```haskell
+{-# DEPRECATED
+giveUp "Never give up."
+ #-}
+
+giveUp = undefined
+```
+
+A `WARNING`.
+
+```haskell
+{-# WARNING
+debugCode "The use of 'debugCode'"
+ #-}
 ```
 
 Guards and pattern guards
@@ -601,12 +1720,38 @@ f x
     x = y
 ```
 
+Guard and infix operator
+```haskell
+s8_stripPrefix bs1@(S.PS _ _ l1) bs2
+  | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
+  | otherwise = Nothing
+```
+
+A `do` inside a guard arm
+
+```haskell
+f
+  | x == 1 = do
+    a
+    b
+```
+
+`if` having a long condition
+
+```haskell
+foo =
+  if fooooooo ||
+     baaaaaaaaaaaaaaaaaaaaa || apsdgiuhasdpfgiuahdfpgiuah || bazzzzzzzzzzzzz
+    then a
+    else b
+```
+
 Multi-way if
 
 ``` haskell
 x =
-  if | x <- Just x,
-       x <- Just x ->
+  if | x <- Just x
+     , x <- Just x ->
        case x of
          Just x -> e
          Nothing -> p
@@ -628,6 +1773,36 @@ g x =
         y = 2
 ```
 
+A `case` inside a `let`.
+
+```haskell
+f = do
+  let (x, xs) =
+        case gs of
+          [] -> undefined
+          (x':xs') -> (x', xs')
+  undefined
+```
+
+A `do` inside a lambda.
+
+```haskell
+printCommentsAfter =
+  case commentsAfter p of
+    xs -> do
+      forM_ xs $ \(L loc c) -> do
+        eolCommentsArePrinted
+```
+
+Case with natural pattern (See NPat of https://hackage.haskell.org/package/ghc-lib-parser-9.2.3.20220527/docs/Language-Haskell-Syntax-Pat.html#t:Pat)
+
+```haskell
+foo =
+  case x of
+    0 -> pure ()
+    _ -> undefined
+```
+
 Let inside a `where`
 
 ``` haskell
@@ -639,6 +1814,23 @@ g x =
       let y = 2
           z = 3
        in y
+```
+
+Let containing a type signature inside a `do`
+
+```haskell
+f = do
+  let g :: Int
+      g = 3
+  print g
+```
+
+A `let` with a bang binding
+
+```haskell
+f =
+  let !x = 3
+   in x
 ```
 
 Lists
@@ -701,57 +1893,31 @@ test
   ,)
 ```
 
-# Record syntax
-
-Pattern matching, short
+Match against a list
 
 ```haskell
-fun Rec {alpha = beta, gamma = delta, epsilon = zeta, eta = theta, iota = kappa} = do
-  beta + delta + zeta + theta + kappa
+head [] = undefined
+head [x] = x
+head xs = head $ init xs
+
+foo [Coord _ _, Coord _ _] = undefined
 ```
 
-Pattern matching, long
+Range
 
 ```haskell
-fun Rec { alpha = beta
-        , gamma = delta
-        , epsilon = zeta
-        , eta = theta
-        , iota = kappa
-        , lambda = mu
-        } =
-  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
+a = [1 ..]
+
+b = [1,3 ..]
+
+c = [1,3 .. 9]
 ```
 
-Symbol constructor, short
+View pattern
 
 ```haskell
-fun ((:..?) {}) = undefined
-```
-
-Symbol constructor, long
-
-```
-fun (:..?) { alpha = beta
-           , gamma = delta
-           , epsilon = zeta
-           , eta = theta
-           , iota = kappa
-           , lambda = mu
-           } =
-  beta + delta + zeta + theta + kappa + mu + beta + delta + zeta + theta + kappa
-```
-
-Symbol field
-
-```haskell
-f (X {(..?) = x}) = x
-```
-
-Punned symbol field
-
-```haskell
-f' (X {(..?)}) = (..?)
+foo (f -> Just x) = print x
+foo _ = Nothing
 ```
 
 # Johan Tibell compatibility checks
@@ -824,6 +1990,33 @@ data Expression a
       }
 ```
 
+Data declaration with underscore
+
+```haskell
+data Stanza =
+  MkStanza
+    { _stanzaBuildInfo :: BuildInfo
+    , stanzaIsSourceFilePath :: FilePath -> Bool
+    }
+```
+
+A data declaration with typeclass constraints
+
+```haskell
+data Ord a =>
+     Foo =
+  Foo a
+```
+
+Multiple constructors at once
+
+```haskell
+data Foo =
+  Foo
+    { foo, bar, baz, qux, quux :: Int
+    }
+```
+
 Spaces between deriving classes
 
 ``` haskell
@@ -853,7 +2046,23 @@ foo =
       cFunction fooo barrr muuu (fooo barrr muuu) (fooo barrr muuu)
 ```
 
+Case inside `do` and lambda
+
+```haskell
+foo =
+  \x -> do
+    case x of
+      Just _ -> 1
+      Nothing -> 2
+```
+
 # Comments
+
+Double comments in a line
+
+```haskell
+f = undefined {- Comment 1 -} {- Comment 2 -} -- Comment 3
+```
 
 Comments within a declaration
 
@@ -927,6 +2136,15 @@ gamma = do
     alpha = alpha
 ```
 
+Comments in a class declaration
+
+```haskell
+class Foo a
+    -- A comment
+  where
+  foo :: a -> Int
+```
+
 Haddock comments
 
 ``` haskell
@@ -954,6 +2172,12 @@ data X =
       -- ^ This is a long comment which starts on the following line
       -- from from the field, lines continue at the sme column.
     }
+
+foo ::
+     String -- ^ Reason for eating pizza.
+  -> Int -- ^ How many did you eat pizza?
+  -> String -- ^ The report.
+foo = undefined
 ```
 
 Comments around regular declarations
@@ -1019,6 +2243,31 @@ Etc.
 -}
 main = putStrLn "Hello, World!"
 {- This is another random comment. -}
+```
+
+Comments in a 'where' clause
+
+```haskell
+foo = undefined
+  where
+    bar
+      -- A comment
+     = undefined
+      where
+        a = b
+    baz = undefined
+```
+
+Haddocks around data constructors
+
+```haskell
+data Foo
+    -- | A haddock comment for 'Bar'.
+  = Bar
+    -- | A haddock comment for 'Baz'.
+  | Baz
+    -- | A haddock comment for 'Quuz'.
+  | Quuz
 ```
 
 # MINIMAL pragma
@@ -1160,6 +2409,22 @@ Escaped newlines
   x
 ```
 
+`infix(l|r)?`
+
+```haskell
+(^-^) = undefined
+
+infixl 1 ^-^
+
+(^^) = undefined
+
+infixr 1 ^^
+
+(@@) = undefined
+
+infix 1 @@
+```
+
 # Regression tests
 
 jml Adds trailing whitespace when wrapping #221
@@ -1297,15 +2562,6 @@ data Simple =
   deriving (Show)
 ```
 
-sgraf812 top-level pragmas should not add an additional newline #255
-
-``` haskell
--- https://github.com/chrisdone/hindent/issues/255
-{-# INLINE f #-}
-f :: Int -> Int
-f n = n
-```
-
 ivan-timokhin breaks code with type operators #277
 
 ```haskell
@@ -1404,6 +2660,7 @@ paraseba Deriving strategies with multiple deriving clauses
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Foo where
@@ -1414,8 +2671,10 @@ import GHC.Generics
 newtype Number a =
   Number a
   deriving (Generic)
-  deriving newtype (Show, Eq)
+  deriving stock (Ord)
+  deriving newtype (Eq)
   deriving anyclass (Typeable)
+  deriving (Show) via a
 ```
 
 neongreen "{" is lost when formatting "Foo{}" #366
@@ -1446,7 +2705,12 @@ ttuegel Record formatting applied to expressions with RecordWildCards #274
 
 ```haskell
 -- https://github.com/chrisdone/hindent/issues/274
-foo (Bar {..}) = Bar {..}
+foo (bar@Bar {..}) = Bar {..}
+
+resetModuleNameColumn m@HsModule {hsmodName = Just (L (SrcSpanAnn epa@EpAnn {..} sp) name)} =
+  m
+
+bar Bar {baz = before, ..} = Bar {baz = after, ..}
 ```
 
 RecursiveDo `rec` and `mdo` keyword #328
@@ -1594,8 +2858,9 @@ class Foo a b c d e f
 
 utdemir Hindent breaks TH name captures of operators #412
 
-```haskell
+```haskell pending
 -- https://github.com/commercialhaskell/hindent/issues/412
+-- This code compile on GHC 8.0.2 but does not from 8.2.2.
 data T =
   (-)
 
@@ -1732,24 +2997,20 @@ template $
     ]
 ```
 
-schroffl Hindent produces invalid Syntax from FFI exports #479
-
-```haskell
--- https://github.com/commercialhaskell/hindent/issues/479
-foreign export ccall "test" test :: IO ()
-
-foreign import ccall "test" test :: IO ()
-
-foreign import ccall safe "test" test :: IO ()
-
-foreign import ccall unsafe "test" test :: IO ()
-```
-
 ptek Reformatting of the {-# OVERLAPPING #-} pragma #386
 
 ```haskell
 -- https://github.com/commercialhaskell/hindent/issues/386
 instance {-# OVERLAPPING #-} Arbitrary (Set Int) where
+  arbitrary = undefined
+
+instance {-# OVERLAPPABLE #-} Arbitrary Int where
+  arbitrary = undefined
+
+instance {-# OVERLAPS #-} Arbitrary String where
+  arbitrary = undefined
+
+instance {-# INCOHERENT #-} Arbitrary String where
   arbitrary = undefined
 ```
 
@@ -1798,11 +3059,14 @@ topLevelFunc1 = f
     f = undefined
 
 topLevelFunc2 = f . g
+    -- Another comment
   where
     {- multi
        line
        comment -}
-    f = undefined
+    f = undefined -- single line comment
     -- single line comment
+        -- Different size of indents
+    g :: a
     g = undefined
 ```
