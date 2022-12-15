@@ -197,9 +197,6 @@ data family Foo a
 {-# LANGUAGE StandaloneKindSignatures #-}
 
 type Foo :: Type -> Type -> Type
-
-data Foo a b =
-  Foo a b
 ```
 
 Rule declarations
