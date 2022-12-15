@@ -185,16 +185,10 @@ static = 3
 
 ## Declarations
 
-Data family and instances
+Data family
 
 ```haskell
 data family Foo a
-
-data instance Foo Int =
-  FInt
-
-data instance Foo @k a =
-  FString
 ```
 
 Type family instances
@@ -802,6 +796,22 @@ With a context but no `forall`s
 ```haskell
 data Foo where
   Foo :: (Ord v) => v -> v -> Foo
+```
+
+### Data instance declarations
+
+Without type applications
+
+```haskell
+data instance Foo Int =
+  FInt
+```
+
+With type applications
+
+```haskell
+data instance Foo @k a =
+  FString
 ```
 
 ### Function declarations
