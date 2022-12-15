@@ -2478,15 +2478,6 @@ Qualified operator in parentheses
 cons = (V.++)
 ```
 
-The first character of an infix operator can be `@` unless `TypeApplications` is enabled.
-
-```haskell
--- https://github.com/mihaimaruseac/hindent/issues/421
-a @: b = a + b
-
-main = print (2 @: 2)
-```
-
 A list constructor enclosed by parentheses
 
 ```haskell
@@ -3097,6 +3088,15 @@ Unicode
 rec = undefined
 
 mdo = undefined
+```
+
+The first character of an infix operator can be `@` unless `TypeApplications` is enabled.
+
+```haskell
+-- https://github.com/mihaimaruseac/hindent/issues/421
+a @: b = a + b
+
+main = print (2 @: 2)
 ```
 
 ## Complex input
