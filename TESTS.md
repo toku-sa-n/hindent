@@ -1868,26 +1868,6 @@ class A where
 
 ## Expressions
 
-Primitive type values
-
-```haskell
-a = 'a'
-
-b = "bbb\nbbb"
-
-c = '\n'
-
-d = 0#
-
-e = 3.3#
-
-f = "FOO"#
-
-g = 'c'#
-
-h = 0xff
-```
-
 A minus sign
 
 ```haskell
@@ -2597,6 +2577,56 @@ template $
     , AnotherLongNameEvenLongToBreakTheLine
     , LastLongNameInList
     ]
+```
+
+### Primitive type values
+
+`Char`
+
+```haskell
+a = 'a'
+```
+
+`\n` as a `Char`
+
+```haskell
+a = '\n'
+```
+
+`String` with a `\n`
+
+```haskell
+a = "bcd\nefgh"
+```
+
+Hex integers
+
+```haskell
+a = 0xa5
+```
+
+Unboxed integers
+
+```haskell
+a = 0#
+```
+
+Unboxed floating point numbers
+
+```haskell
+a = 3.3#
+```
+
+Unboxed `Char`
+
+```haskell
+a = 'c'#
+```
+
+Unboxed `String`
+
+```haskell
+a = "Foo"#
 ```
 
 ### Quasi-quotes
