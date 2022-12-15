@@ -191,14 +191,6 @@ Data family
 data family Foo a
 ```
 
-Type family instances
-
-```haskell
-type instance Id Int = Int
-
-type instance Id _ = String
-```
-
 Role annotations
 
 ```haskell
@@ -1438,6 +1430,20 @@ Closed type families
 type family Closed (a :: k) :: Bool where
   Closed (x @Int) = 'Int
   Closed x = 'True
+```
+
+### Type family instance declarations
+
+Without holes
+
+```haskell
+type instance Id Int = Int
+```
+
+With a hole
+
+```haskell
+type instance Id _ = String
 ```
 
 ### Type signature declarations
