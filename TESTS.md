@@ -2228,7 +2228,7 @@ test
   ,)
 ```
 
-Linebreaks after very short names if the total line length goes over 80
+Linebreaks after very short names if the total line length goes over the limit
 
 ```haskell
 -- https://github.com/mihaimaruseac/hindent/issues/405
