@@ -551,6 +551,7 @@ data Expression a
 A mixture of constructors with unnamed fields and record constructors
 
 ```haskell
+-- https://github.com/mihaimaruseac/hindent/issues/393
 data X
   = X
       { x :: Int
