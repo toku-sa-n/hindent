@@ -2063,14 +2063,6 @@ foo = (.x.y)
 foo = bar {baz.qux = 1}
 ```
 
-`TypeApplication`
-
-```haskell
-{-# LANGUAGE TypeApplications #-}
-
-fun @Int 12
-```
-
 `StaticPointers`
 
 ```haskell
