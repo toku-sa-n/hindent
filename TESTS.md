@@ -2029,22 +2029,6 @@ f =
 
 ### Extensions
 
-`RecursiveDo`
-
-```haskell
-{-# LANGUAGE RecursiveDo #-}
-
-f = do
-  a <- foo
-  rec b <- a c
-      c <- a b
-  return $ b + c
-
-g = mdo
-  foo
-  bar
-```
-
 `UnboxedSums`
 
 ```haskell
@@ -2177,6 +2161,30 @@ block =
   do ds <- inBraces $ inWhiteSpace declarations
      return $ Block ds
      <?> "block"
+```
+
+#### `RecursiveDo`
+
+`rec`
+
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+
+f = do
+  a <- foo
+  rec b <- a c
+      c <- a b
+  return $ b + c
+```
+
+`mdo`
+
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+
+g = mdo
+  foo
+  bar
 ```
 
 #### Bindings
