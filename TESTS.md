@@ -172,7 +172,6 @@ foo = bar @Int 3
 Do not collect pragma-like comments
 
 ```haskell
--- Do not collect pragma-like things.
 -- {-# LANGUAGE StaticPointers #-}
 {-
 
