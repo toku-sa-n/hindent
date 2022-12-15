@@ -153,16 +153,20 @@ import Language.C.Types (pattern TypeName)
 Collect multiple extensions separated by commas correctly
 
 ```haskell given
-{-# LANGUAGE CPP, MultiWayIf,
+{-# LANGUAGE TypeApplications,
     PatternSynonyms #-}
 
 import Foo (pattern Bar)
+
+foo = bar @Int 3
 ```
 
 ```haskell expect
-{-# LANGUAGE CPP, MultiWayIf, PatternSynonyms #-}
+{-# LANGUAGE TypeApplications, PatternSynonyms #-}
 
 import Foo (pattern Bar)
+
+foo = bar @Int 3
 ```
 
 Do not collect pragma-like comments
