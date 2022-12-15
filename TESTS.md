@@ -187,7 +187,7 @@ static = 3
 
 Import lists
 
-``` haskell
+```haskell
 import Control.Lens (_2, _Just)
 import Data.Text
 import Data.Text
