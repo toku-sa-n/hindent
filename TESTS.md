@@ -1868,16 +1868,6 @@ class A where
 
 ## Expressions
 
-Range
-
-```haskell
-a = [1 ..]
-
-b = [1,3 ..]
-
-c = [1,3 .. 9]
-```
-
 Primitive type values
 
 ```haskell
@@ -2646,6 +2636,26 @@ f =
   [s|foo
 |]
 ```
+### Ranges
+
+from
+
+```haskell
+a = [1 ..]
+```
+
+from then
+
+```haskell
+b = [1,3 ..]
+```
+
+from then to
+
+```haskell
+c = [1,3 .. 9]
+```
+
 ### Records
 
 No field
