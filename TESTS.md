@@ -2242,7 +2242,28 @@ test = do
     piRhoS81
 ```
 
-Large bindings
+Do as a left-hand side of an infix operation
+
+```haskell
+-- https://github.com/mihaimaruseac/hindent/issues/238
+-- https://github.com/mihaimaruseac/hindent/issues/296
+block =
+  do ds <- inBraces $ inWhiteSpace declarations
+     return $ Block ds
+     <?> "block"
+```
+
+#### Bindings
+
+Short
+
+```haskell
+foo = do
+  mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
+  print mcp
+```
+
+Large
 
 ```haskell
 -- https://github.com/mihaimaruseac/hindent/issues/221
@@ -2254,25 +2275,6 @@ x = do
       Diff True args -> commentsFromDiff ("--cached" : args)
       Files args -> commentsFromFiles args
   mapM_ (putStrLn . Fixme.formatTodo) (concatMap Fixme.getTodos comments)
-```
-
-Do as left-hand side of an infix operation
-
-```haskell
--- https://github.com/mihaimaruseac/hindent/issues/238
--- https://github.com/mihaimaruseac/hindent/issues/296
-block =
-  do ds <- inBraces $ inWhiteSpace declarations
-     return $ Block ds
-     <?> "block"
-```
-
-`do` with a binding
-
-```haskell
-foo = do
-  mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
-  print mcp
 ```
 
 #### `let` bindings
