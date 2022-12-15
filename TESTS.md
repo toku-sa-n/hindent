@@ -336,23 +336,6 @@ instance Foo (^>)
 instance Foo (T.<^)
 ```
 
-With `OVERLAPPING`
-
-```haskell
--- https://github.com/mihaimaruseac/hindent/issues/386
-instance {-# OVERLAPPING #-} Arbitrary (Set Int) where
-  arbitrary = undefined
-
-instance {-# OVERLAPPABLE #-} Arbitrary Int where
-  arbitrary = undefined
-
-instance {-# OVERLAPS #-} Arbitrary String where
-  arbitrary = undefined
-
-instance {-# INCOHERENT #-} Arbitrary String where
-  arbitrary = undefined
-```
-
 With a type alias
 
 ```haskell
@@ -376,6 +359,37 @@ With a `SPECIALISE` pragma
 instance (Show a) => Show (Foo a) where
   {-# SPECIALISE instance Show (Foo String) #-}
   show = undefined
+```
+
+#### With overlapping pragmas
+
+`OVERLAPPING`
+
+```haskell
+-- https://github.com/mihaimaruseac/hindent/issues/386
+instance {-# OVERLAPPING #-} Arbitrary (Set Int) where
+  arbitrary = undefined
+```
+
+`OVERLAPPABLE`
+
+```haskell
+instance {-# OVERLAPPABLE #-} Arbitrary Int where
+  arbitrary = undefined
+```
+
+`OVERLAPS`
+
+```haskell
+instance {-# OVERLAPS #-} Arbitrary String where
+  arbitrary = undefined
+```
+
+`INCOHERENT`
+
+```haskell
+instance {-# INCOHERENT #-} Arbitrary String where
+  arbitrary = undefined
 ```
 
 #### With class constraints
