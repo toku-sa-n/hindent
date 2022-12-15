@@ -1939,6 +1939,22 @@ Typed splice
 foo = $$bar
 ```
 
+`UnboxedSums`
+
+```haskell
+{-# LANGUAGE UnboxedSums #-}
+
+f = (# | Bool #)
+```
+
+`StaticPointers`
+
+```haskell
+{-# LANGUAGE StaticPointers #-}
+
+f = static 1
+```
+
 ### Arrows
 
 `-<`
@@ -2025,50 +2041,6 @@ f =
     let x = undefined
         y = undefined
      in returnA -< g
-```
-
-### Extensions
-
-`UnboxedSums`
-
-```haskell
-{-# LANGUAGE UnboxedSums #-}
-
-f = (# | Bool #)
-```
-
-`OverloadedRecordDot`
-
-```haskell from 9.2.2
-{-# LANGUAGE OverloadedRecordDot #-}
-
-data Rectangle =
-  Rectangle
-    { width :: Int
-    , height :: Int
-    }
-
-area :: Rectangle -> Int
-area r = r.width * r.height
-
-foo = (.x.y)
-```
-
-`OverloadedRecordUpdate`
-
-```haskell from 9.2.0
-{-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE OverloadedRecordUpdate #-}
-
-foo = bar {baz.qux = 1}
-```
-
-`StaticPointers`
-
-```haskell
-{-# LANGUAGE StaticPointers #-}
-
-f = static 1
 ```
 
 ### Case expressions
@@ -2753,6 +2725,32 @@ f = undefined
                  { grhssLocalBinds =
                      HsValBinds x (ValBinds (newSigs newSigMethods))
                  }
+```
+
+`OverloadedRecordDot`
+
+```haskell from 9.2.2
+{-# LANGUAGE OverloadedRecordDot #-}
+
+data Rectangle =
+  Rectangle
+    { width :: Int
+    , height :: Int
+    }
+
+area :: Rectangle -> Int
+area r = r.width * r.height
+
+foo = (.x.y)
+```
+
+`OverloadedRecordUpdate`
+
+```haskell from 9.2.0
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedRecordUpdate #-}
+
+foo = bar {baz.qux = 1}
 ```
 
 ### Sections
