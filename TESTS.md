@@ -2163,30 +2163,6 @@ block =
      <?> "block"
 ```
 
-#### `RecursiveDo`
-
-`rec`
-
-```haskell
-{-# LANGUAGE RecursiveDo #-}
-
-f = do
-  a <- foo
-  rec b <- a c
-      c <- a b
-  return $ b + c
-```
-
-`mdo`
-
-```haskell
-{-# LANGUAGE RecursiveDo #-}
-
-g = mdo
-  foo
-  bar
-```
-
 #### Bindings
 
 Short
@@ -2229,6 +2205,30 @@ f = do
   let try :: Typeable b => b
       try = undefined
   undefined
+```
+
+#### `RecursiveDo`
+
+`rec`
+
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+
+f = do
+  a <- foo
+  rec b <- a c
+      c <- a b
+  return $ b + c
+```
+
+`mdo`
+
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+
+g = mdo
+  foo
+  bar
 ```
 
 ### Function applications
