@@ -2109,6 +2109,7 @@ f =
         y = undefined
      in returnA -< g
 ```
+
 ### Extensions
 
 `RecursiveDo`
