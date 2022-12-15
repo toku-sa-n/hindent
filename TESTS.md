@@ -1392,6 +1392,12 @@ Top-level `SPECIALISE`
 {-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
 ```
 
+A `SCC`
+
+```haskell
+{-# SCC bar #-}
+```
+
 #### Rule declarations
 
 Without `forall`s
@@ -1913,10 +1919,6 @@ An expression with a SCC pragma
 
 ```haskell
 foo = {-# SCC foo #-} undefined
-
-{-# SCC bar #-}
-
-bar = undefined
 ```
 
 A hole
