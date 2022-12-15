@@ -199,34 +199,6 @@ data family Foo a
 type Foo :: Type -> Type -> Type
 ```
 
-Pattern synonyms
-
-```haskell
-{-# LANGUAGE PatternSynonyms #-}
-
-pattern Foo :: Int -> Int -> [Int]
-
-pattern Foo x y <- [x, y]
-
-pattern Single x = [x]
-
-pattern Anylist x = x
-
-pattern Bar = []
-
-{-# COMPLETE Single, Anylist #-}
-
-pattern Fst :: Int -> (Int, Int)
-
-pattern Fst x <- (x, x)
-  where Fst x = (x, 0)
-
-pattern x :| xs <- x : xs
-  where a :| b = a : b
-
-pattern Pair {x, y} = (x, y)
-```
-
 Default declaration
 
 ```haskell
@@ -1314,6 +1286,46 @@ infix
 infix 1 ^-^
 ```
 
+### Pattern synonym declarations
+
+Unidirectional with a pattern type signature
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern Foo :: Int -> Int -> [Int]
+
+pattern Foo x y <- [x, y]
+```
+
+Bidirectional record pattern
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern Pair {x, y} = (x, y)
+```
+
+#### Explicit bidirectional
+
+With a prefix constructor
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern Fst x <- (x, x)
+  where Fst x = (x, 0)
+```
+
+With an infix constructor
+
+```haskell
+{-# LANGUAGE PatternSynonyms #-}
+
+pattern x :| xs <- x : xs
+  where a :| b = a : b
+```
+
 ### Pragma declarations
 
 `INLINE`
@@ -1371,6 +1383,12 @@ A `WARNING`.
 {-# WARNING
 debugCode "The use of 'debugCode'"
  #-}
+```
+
+A `COMPLETE`
+
+```haskell
+{-# COMPLETE Single, Anylist #-}
 ```
 
 #### Rule declarations
