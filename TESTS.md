@@ -2613,6 +2613,12 @@ from
 a = [1 ..]
 ```
 
+from to
+
+```haskell
+a = [1 .. 9]
+```
+
 from then
 
 ```haskell
