@@ -1909,24 +1909,6 @@ Type application
 fun @Int 12
 ```
 
-Sections
-
-```haskell
-double = (2 *)
-
-halve = (/ 2)
-```
-
-A section with a large RHS.
-
-```haskell
-foo =
-  (`elem` concat
-            [ [20, 68, 92, 112, 28, 124, 116, 80]
-            , [21, 84, 87, 221, 127, 255, 241, 17]
-            ])
-```
-
 An expression with a SCC pragma
 
 ```haskell
@@ -2769,6 +2751,30 @@ f = undefined
                  { grhssLocalBinds =
                      HsValBinds x (ValBinds (newSigs newSigMethods))
                  }
+```
+
+### Sections
+
+With a LHS
+
+```haskell
+double = (2 *)
+```
+
+With a RHS
+
+```haskell
+halve = (/ 2)
+```
+
+With a large RHS
+
+```haskell
+foo =
+  (`elem` concat
+            [ [20, 68, 92, 112, 28, 124, 116, 80]
+            , [21, 84, 87, 221, 127, 255, 241, 17]
+            ])
 ```
 
 ## Template Haskell
