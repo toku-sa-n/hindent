@@ -185,22 +185,6 @@ static = 3
 
 ## Declarations
 
-`infix(l|r)?`
-
-```haskell
-(^-^) = undefined
-
-infixl 1 ^-^
-
-(^^) = undefined
-
-infixr 1 ^^
-
-(@@) = undefined
-
-infix 1 @@
-```
-
 Data family and instances
 
 ```haskell
@@ -1337,6 +1321,26 @@ A `javascript` foreign import
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 foreign import javascript safe "test" test :: IO ()
+```
+
+### Infix declarations
+
+infixl
+
+```haskell
+infixl 1 ^-^
+```
+
+infixr
+
+```haskell
+infixr 1 ^-^
+```
+
+infix
+
+```haskell
+infix 1 ^-^
 ```
 
 ### Pragma declarations
