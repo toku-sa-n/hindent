@@ -1841,6 +1841,16 @@ A minus sign
 f = -(3 + 5)
 ```
 
+Very long names #310
+
+```haskell
+class A where
+  {-# MINIMAL averylongnamewithnoparticularmeaning
+            | ananotherverylongnamewithnomoremeaning #-}
+```
+
+## Expressions
+
 Lists
 
 ```haskell
