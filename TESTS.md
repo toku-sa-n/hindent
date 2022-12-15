@@ -191,18 +191,6 @@ Data family
 data family Foo a
 ```
 
-Role annotations
-
-```haskell
-{-# LANGUAGE RoleAnnotations #-}
-
-type role Foo nominal
-
-type role Bar representational
-
-type role Baz phantom
-```
-
 `StandaloneKindSignatures`
 
 ```haskell
@@ -1402,6 +1390,32 @@ A `WARNING`.
 {-# WARNING
 debugCode "The use of 'debugCode'"
  #-}
+```
+
+### Role annotation declarations
+
+`normal`
+
+```haskell
+{-# LANGUAGE RoleAnnotations #-}
+
+type role Foo nominal
+```
+
+`representational`
+
+```haskell
+{-# LANGUAGE RoleAnnotations #-}
+
+type role Bar representational
+```
+
+`phantom`
+
+```haskell
+{-# LANGUAGE RoleAnnotations #-}
+
+type role Baz phantom
 ```
 
 ### Type family declarations
