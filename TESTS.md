@@ -259,13 +259,6 @@ class Foo a where
        a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
 ```
 
-An associated type synonym
-
-```haskell
-class Foo a where
-  type Bar b
-```
-
 Default signatures
 
 ```haskell
@@ -275,14 +268,6 @@ class Foo a where
   default bar :: Monoid a =>
     a -> a -> a
   bar = mappend
-```
-
-Associated type families annotated with injectivity information
-
-```haskell
--- https://github.com/commercialhaskell/hindent/issues/528
-class C a where
-  type F a = b | b -> a
 ```
 
 `TypeOperators` and `MultiParamTypeClasses`
@@ -300,6 +285,23 @@ Class declaration with an empty constraint
 ```haskell
 class () =>
       Foo a
+```
+
+#### Associated type synonyms
+
+Associated type synonyms
+
+```haskell
+class Foo a where
+  type Bar b
+```
+
+Associated type synonyms annotated with injectivity information
+
+```haskell
+-- https://github.com/commercialhaskell/hindent/issues/528
+class C a where
+  type F a = b | b -> a
 ```
 
 ### Class instance declarations
