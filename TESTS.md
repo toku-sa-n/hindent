@@ -762,14 +762,6 @@ data instance Foo @k a =
 
 ### Function declarations
 
-A `let` with a bang binding
-
-```haskell
-f =
-  let !x = 3
-   in x
-```
-
 Case inside `do` and lambda
 
 ```haskell
@@ -2392,6 +2384,14 @@ f x =
 ```
 
 ### Let ... in expressions
+
+With bang parameters
+
+```haskell
+f =
+  let !x = 3
+   in x
+```
 
 With implicit parameters
 
