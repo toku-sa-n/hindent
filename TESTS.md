@@ -199,22 +199,6 @@ data family Foo a
 type Foo :: Type -> Type -> Type
 ```
 
-Rule declarations
-
-```haskell
-{-# RULES
-"foo/bar" foo = bar
- #-}
-
-{-# RULES
-"hoge/fuga" forall (a :: Int). hoge a = fuga a a
- #-}
-
-{-# RULES
-"piyo/pochi" forall a. piyo a = pochi a a
- #-}
-```
-
 Pattern synonyms
 
 ```haskell
@@ -1386,6 +1370,32 @@ A `WARNING`.
 ```haskell
 {-# WARNING
 debugCode "The use of 'debugCode'"
+ #-}
+```
+
+#### Rule declarations
+
+Without `forall`s
+
+```haskell
+{-# RULES
+"foo/bar" foo = bar
+ #-}
+```
+
+With `forall` but no type signatures
+
+```haskell
+{-# RULES
+"piyo/pochi" forall a. piyo a = pochi a a
+ #-}
+```
+
+With `forall` and type signatures
+
+```haskell
+{-# RULES
+"hoge/fuga" forall (a :: Int). hoge a = fuga a a
  #-}
 ```
 
