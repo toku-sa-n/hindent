@@ -205,22 +205,6 @@ Default declaration
 default (Integer, Double)
 ```
 
-Specialised pragmas
-
-```haskell
-{-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
-
-lookup :: Eq k => [(k, v)] -> k -> Maybe v
-lookup = undefined
-
-newtype Foo a =
-  Foo a
-
-instance (Show a) => Show (Foo a) where
-  {-# SPECIALISE instance Show (Foo String) #-}
-  show = undefined
-```
-
 ### `ANN` pragmas
 
 Value annotation.
@@ -370,7 +354,7 @@ instance Foo a where
   type Bar a = Int
 ```
 
-A `where` clause between instance functions.
+A `where` clause between instance functions
 
 ```haskell
 instance Pretty HsModule where
@@ -378,6 +362,14 @@ instance Pretty HsModule where
     where
       a = b
   commentsBefore = Nothing
+```
+
+With a `SPECIALISE` pragma
+
+```haskell
+instance (Show a) => Show (Foo a) where
+  {-# SPECIALISE instance Show (Foo String) #-}
+  show = undefined
 ```
 
 #### With class constraints
@@ -1389,6 +1381,12 @@ A `COMPLETE`
 
 ```haskell
 {-# COMPLETE Single, Anylist #-}
+```
+
+Top-level `SPECIALISE`
+
+```haskell
+{-# SPECIALISE lookup :: [(Int, Int)] -> Int -> Maybe Int #-}
 ```
 
 #### Rule declarations
