@@ -762,15 +762,6 @@ data instance Foo @k a =
 
 ### Function declarations
 
-Let containing a type signature inside a `do`
-
-```haskell
-f = do
-  let g :: Int
-      g = 3
-  print g
-```
-
 A `let` with a bang binding
 
 ```haskell
@@ -2284,7 +2275,18 @@ foo = do
   print mcp
 ```
 
-A `let` with a signature
+#### `let` bindings
+
+With type signatures but no class constraints
+
+```haskell
+f = do
+  let g :: Int
+      g = 3
+  print g
+```
+
+With both type signatures and class constraints
 
 ```haskell
 f = do
