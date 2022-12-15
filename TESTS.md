@@ -1925,18 +1925,6 @@ A hole
 foo = 3 + _
 ```
 
-Multiple line string
-
-```haskell
-foo =
-  "hoge \
- \ fuga"
-  where
-    bar =
-      "foo \
-     \ bar"
-```
-
 Implicit value
 
 ```haskell
@@ -2571,6 +2559,18 @@ a = '\n'
 
 ```haskell
 a = "bcd\nefgh"
+```
+
+Multiple line string
+
+```haskell
+foo =
+  "hoge \
+ \ fuga"
+  where
+    bar =
+      "foo \
+     \ bar"
 ```
 
 Hex integers
