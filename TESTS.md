@@ -1929,8 +1929,6 @@ class A where
             | ananotherverylongnamewithnomoremeaning #-}
 ```
 
-## Expressions
-
 Lists
 
 ```haskell
