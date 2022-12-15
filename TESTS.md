@@ -1274,7 +1274,7 @@ import qualified "base" Prelude as P
 
 #### Foreign imports and exports
 
-`ccall` foreign export
+A `ccall` foreign export
 
 ```haskell
 {-# LANGUAGE ForeignFunctionInterface #-}
