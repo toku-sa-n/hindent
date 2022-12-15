@@ -779,7 +779,6 @@ f =
    in x
 ```
 
-
 Case inside `do` and lambda
 
 ```haskell
