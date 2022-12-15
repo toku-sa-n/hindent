@@ -227,38 +227,6 @@ Module annotation.
 
 ### Class declarations
 
-Long class constraints
-
-```haskell
-class ( Foo a
-      , Bar a
-      , Baz a
-      , Hoge a
-      , Fuga a
-      , Piyo a
-      , Hogera a
-      , Hogehoge a
-      , Spam a
-      , Ham a
-      ) =>
-      Quux a
-```
-
-Class methods with constraints
-
-```haskell
-class Foo f where
-  myEq :: (Eq a) => f a -> f a -> Bool
-```
-
-A class method with long signature
-
-```haskell
-class Foo a where
-  fooBarBazQuuxHogeFuga ::
-       a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
-```
-
 Default signatures
 
 ```haskell
@@ -280,11 +248,47 @@ class Foo a where
 class (a :< b) c
 ```
 
-Class declaration with an empty constraint
+#### Class constraints
+
+Empty
 
 ```haskell
 class () =>
       Foo a
+```
+
+Long
+
+```haskell
+class ( Foo a
+      , Bar a
+      , Baz a
+      , Hoge a
+      , Fuga a
+      , Piyo a
+      , Hogera a
+      , Hogehoge a
+      , Spam a
+      , Ham a
+      ) =>
+      Quux a
+```
+
+#### Class methods
+
+With class constraints
+
+```haskell
+class Foo f where
+  myEq :: (Eq a) => f a -> f a -> Bool
+```
+
+Long signatures
+
+```haskell
+class Foo a where
+  fooBarBazQuuxHogeFuga ::
+       a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
 ```
 
 #### Associated type synonyms
