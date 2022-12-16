@@ -2633,7 +2633,7 @@ c = [1,3 .. 9]
 
 ### Records
 
-No field
+No fields
 
 ```haskell
 -- https://github.com/mihaimaruseac/hindent/issues/366
