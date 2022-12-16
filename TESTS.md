@@ -1933,12 +1933,6 @@ Implicit value
 foo = ?undefined
 ```
 
-Typed splice
-
-```haskell
-foo = $$bar
-```
-
 `UnboxedSums`
 
 ```haskell
@@ -2818,6 +2812,12 @@ g =
   case x of
     $(mkPat y z) -> True
     _ -> False
+```
+
+Typed splice
+
+```haskell
+foo = $$bar
 ```
 
 ## Comments
