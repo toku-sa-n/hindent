@@ -301,11 +301,11 @@ instance Pretty (HsBind GhcPs) where
   pretty' = prettyHsBind
 
 prettyHsBind :: HsBind GhcPs -> Printer ()
-prettyHsBind FunBind {..} = pretty fun_matches
-prettyHsBind PatBind {..} = pretty pat_lhs >> pretty pat_rhs
-prettyHsBind VarBind {} = notUsedInParsedStage
+prettyHsBind FunBind {..}     = pretty fun_matches
+prettyHsBind PatBind {..}     = pretty pat_lhs >> pretty pat_rhs
+prettyHsBind VarBind {}       = notUsedInParsedStage
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsBind AbsBinds {} = notUsedInParsedStage
+prettyHsBind AbsBinds {}      = notUsedInParsedStage
 #endif
 prettyHsBind (PatSynBind _ x) = pretty x
 
@@ -329,8 +329,13 @@ instance Pretty (Sig GhcPs) where
   pretty' (PatSynSig _ names sig) =
     spaced
       [string "pattern", hCommaSep $ fmap pretty names, string "::", pretty sig]
-  pretty' (ClassOpSig _ True funNames params) = 
-    spaced [string "default", hCommaSep $ fmap pretty funNames, string "::", printCommentsAnd params pretty]
+  pretty' (ClassOpSig _ True funNames params) =
+    spaced
+      [ string "default"
+      , hCommaSep $ fmap pretty funNames
+      , string "::"
+      , printCommentsAnd params pretty
+      ]
   pretty' (ClassOpSig _ False funNames params) = do
     hCommaSep $ fmap pretty funNames
     string " ::"
@@ -344,7 +349,8 @@ instance Pretty (Sig GhcPs) where
           printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
   pretty' IdSig {} = notUsedInParsedStage
   pretty' (FixSig _ x) = pretty x
-  pretty' (InlineSig _ name detail) = spaced [string "{-#", pretty detail, pretty name, string "#-}"]
+  pretty' (InlineSig _ name detail) =
+    spaced [string "{-#", pretty detail, pretty name, string "#-}"]
   pretty' (SpecSig _ name sig _) =
     spaced
       [ string "{-# SPECIALISE"
@@ -529,10 +535,10 @@ prettyHsExpr (HsIf _ cond t f) = do
     branch :: String -> LHsExpr GhcPs -> Printer ()
     branch str e =
       case e of
-        (L _ (HsDo _ DoExpr {} xs)) -> doStmt "do" xs
+        (L _ (HsDo _ DoExpr {} xs))  -> doStmt "do" xs
         (L _ (HsDo _ MDoExpr {} xs)) -> doStmt "mdo" xs
-        _ -> string str |=> pretty e
-      where 
+        _                            -> string str |=> pretty e
+      where
         doStmt pref stmts = do
           string $ str ++ pref
           newline
@@ -897,7 +903,7 @@ prettyMatchProc Match {m_ctxt = LambdaExpr, ..} = do
       BangPat {} -> space
       _          -> return ()
   spaced $ fmap pretty m_pats ++ [pretty m_grhss]
-prettyMatchProc Match {m_ctxt = CaseAlt, ..} = 
+prettyMatchProc Match {m_ctxt = CaseAlt, ..} =
   spaced [mapM_ pretty m_pats, pretty m_grhss]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyMatchProc Match {m_ctxt = LamCaseAlt {}, ..} = do
@@ -1019,11 +1025,27 @@ prettyHsType (HsSumTy _ xs) = unboxedSums $ hBarSep $ fmap pretty xs
   -- share their names with types because types cannot contain symbols.
   -- Thus there is no ambiguity.
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsType (HsOpTy _ _ l op r) =
-  spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
+prettyHsType (HsOpTy _ _ l op r) = do
+  lineBreak <- gets (configLineBreaks . psConfig)
+  if showOutputable op `elem` lineBreak
+    then do
+      pretty l
+      newline
+      pretty $ fmap InfixOp op
+      space
+      pretty r
+    else spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
 #else
-prettyHsType (HsOpTy _ l op r) =
-  spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
+prettyHsType (HsOpTy _ l op r) = do
+  lineBreak <- gets (configLineBreaks . psConfig)
+  if showOutputable op `elem` lineBreak
+    then do
+      pretty l
+      newline
+      pretty $ fmap InfixOp op
+      space
+      pretty r
+    else spaced [pretty l, pretty $ fmap InfixOp op, pretty r]
 #endif
 prettyHsType (HsParTy _ inside) = parens $ pretty inside
 prettyHsType (HsIParamTy _ x ty) =
@@ -1325,7 +1347,7 @@ instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (Pat GhcPs
 -- | For record updates.
 instance Pretty (HsRecField' (FieldOcc GhcPs) (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' HsRecField {..} = do
-    pretty hsRecFieldLbl 
+    pretty hsRecFieldLbl
     unless hsRecPun $ do
       string " ="
       horizontal <-|> vertical
@@ -1539,8 +1561,8 @@ instance Pretty (FamilyDecl GhcPs) where
       _ -> pure ()
 
 instance Pretty (FamilyResultSig GhcPs) where
-  pretty' NoSig {} = pure ()
-  pretty' (KindSig _ x) = string ":: " >> pretty x
+  pretty' NoSig {}       = pure ()
+  pretty' (KindSig _ x)  = string ":: " >> pretty x
   pretty' (TyVarSig _ x) = pretty x
 
 instance Pretty (HsTyVarBndr a GhcPs) where
@@ -1549,8 +1571,8 @@ instance Pretty (HsTyVarBndr a GhcPs) where
     parens $ spaced [pretty name, string "::", pretty ty]
 
 instance Pretty (InjectivityAnn GhcPs) where
-  pretty' (InjectivityAnn _ from to) = 
-    spaced $ pretty from:string "->":fmap pretty to
+  pretty' (InjectivityAnn _ from to) =
+    spaced $ pretty from : string "->" : fmap pretty to
 
 instance Pretty (ArithSeqInfo GhcPs) where
   pretty' (From from) = brackets $ spaced [pretty from, string ".."]
