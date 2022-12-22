@@ -72,7 +72,7 @@ toSpec = go
           go next
         s
           | Just from <- fromVersion $ UTF8.toString s ->
-            if compilerVersion >= from
+            if fullCompilerVersion >= from
               then do
                 it (UTF8.toString desc) $
                   shouldBeReadable (reformat cfg code) (L.fromStrict code)
@@ -89,11 +89,12 @@ toSpec = go
     pendingForVersionMsg from =
       "The test is for GHC versions from " ++
       showVersion from ++
-      " but you are using GHC version " ++ showVersion compilerVersion ++ "."
+      " but you are using GHC version " ++
+      showVersion fullCompilerVersion ++ "."
     fromVersion :: String -> Maybe Version
     fromVersion s
       | (_, _, _, [x, y, z]) <-
-         s =~ fromRegex :: (String, String, String, [String])
+          s =~ fromRegex :: (String, String, String, [String])
       , (Just x', Just y', Just z') <- (readMaybe x, readMaybe y, readMaybe z) =
         Just $ Version [x', y', z'] []
     fromVersion _ = Nothing
