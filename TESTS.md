@@ -2094,6 +2094,15 @@ f =
     _ -> undefined
 ```
 
+cases
+
+```haskell from 9.4.1
+foo =
+  \cases
+    1 1 -> 1
+    _ _ -> 2
+```
+
 ### `do` expressions
 
 Long function applications
