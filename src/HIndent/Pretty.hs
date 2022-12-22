@@ -303,9 +303,9 @@ instance Pretty (HsBind GhcPs) where
 prettyHsBind :: HsBind GhcPs -> Printer ()
 prettyHsBind FunBind {..}     = pretty fun_matches
 prettyHsBind PatBind {..}     = pretty pat_lhs >> pretty pat_rhs
-prettyHsBind VarBind {}       = notUsedInParsedStage
+prettyHsBind VarBind {}       = notGeneratedByParser
 #if !MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsBind AbsBinds {}      = notUsedInParsedStage
+prettyHsBind AbsBinds {}      = notGeneratedByParser
 #endif
 prettyHsBind (PatSynBind _ x) = pretty x
 
@@ -347,7 +347,7 @@ instance Pretty (Sig GhcPs) where
         indentedBlock $
           indentedWithSpace 3 $
           printCommentsAnd params (pretty . HsSigTypeInsideDeclSig)
-  pretty' IdSig {} = notUsedInParsedStage
+  pretty' IdSig {} = notGeneratedByParser
   pretty' (FixSig _ x) = pretty x
   pretty' (InlineSig _ name detail) =
     spaced [string "{-#", pretty detail, pretty name, string "#-}"]
@@ -664,21 +664,21 @@ prettyHsExpr (HsProc _ pat body) = hor <-|> ver
 prettyHsExpr (HsStatic _ x) = spaced [string "static", pretty x]
 prettyHsExpr (HsPragE _ p x) = spaced [pretty p, pretty x]
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr HsRecSel {} = notUsedInParsedStage
+prettyHsExpr HsRecSel {} = notGeneratedByParser
 prettyHsExpr (HsTypedBracket _ inner) = typedBrackets $ pretty inner
 prettyHsExpr (HsUntypedBracket _ inner) = pretty inner
 #else
-prettyHsExpr HsConLikeOut {} = notUsedInParsedStage
-prettyHsExpr HsRecFld {} = notUsedInParsedStage
-prettyHsExpr (HsDo _ ArrowExpr {} _) = notUsedInParsedStage
+prettyHsExpr HsConLikeOut {} = notGeneratedByParser
+prettyHsExpr HsRecFld {} = notGeneratedByParser
+prettyHsExpr (HsDo _ ArrowExpr {} _) = notGeneratedByParser
 prettyHsExpr (HsDo _ PatGuard {} _) = notGeneratedByParser
 prettyHsExpr (HsDo _ ParStmtCtxt {} _) = notGeneratedByParser
-prettyHsExpr (HsDo _ TransStmtCtxt {} _) = notUsedInParsedStage
+prettyHsExpr (HsDo _ TransStmtCtxt {} _) = notGeneratedByParser
 prettyHsExpr HsTick {} = forHpc
 prettyHsExpr HsBinTick {} = forHpc
 prettyHsExpr (HsBracket _ inner) = pretty inner
-prettyHsExpr HsRnBracketOut {} = notUsedInParsedStage
-prettyHsExpr HsTcBracketOut {} = notUsedInParsedStage
+prettyHsExpr HsRnBracketOut {} = notGeneratedByParser
+prettyHsExpr HsTcBracketOut {} = notGeneratedByParser
 #endif
 instance Pretty LambdaCase where
   pretty' (LambdaCase matches) = do
@@ -908,7 +908,7 @@ prettyMatchProc Match {m_ctxt = CaseAlt, ..} =
 prettyMatchProc Match {m_ctxt = LamCaseAlt {}, ..} = do
   spaced [mapM_ pretty m_pats, pretty m_grhss]
 #endif
-prettyMatchProc _ = notUsedInParsedStage
+prettyMatchProc _ = notGeneratedByParser
 
 instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' (LastStmt _ x _ _) = pretty x
@@ -919,7 +919,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) whe
     where
       hor = space >> pretty body
       ver = newline >> indentedBlock (pretty body)
-  pretty' ApplicativeStmt {} = notUsedInParsedStage
+  pretty' ApplicativeStmt {} = notGeneratedByParser
   pretty' (BodyStmt _ (L loc (OpApp _ l o r)) _ _) =
     pretty (L loc (InfixApp l o r True))
   pretty' (BodyStmt _ body _ _) = pretty body
@@ -940,7 +940,7 @@ instance Pretty (StmtLR GhcPs GhcPs (GenLocated SrcSpanAnnA (HsCmd GhcPs))) wher
         string " <-"
         newline
         indentedBlock $ pretty body
-  pretty' ApplicativeStmt {} = notUsedInParsedStage
+  pretty' ApplicativeStmt {} = notGeneratedByParser
   pretty' (BodyStmt _ body _ _) = pretty body
   pretty' (LetStmt _ l) = string "let " |=> pretty l
   pretty' (ParStmt _ xs _ _) = hvBarSep $ fmap pretty xs
@@ -1062,7 +1062,7 @@ prettyHsType (HsExplicitListTy _ _ xs) =
 prettyHsType (HsExplicitTupleTy _ xs) = hPromotedTuple $ fmap pretty xs
 prettyHsType (HsTyLit _ x) = pretty x
 prettyHsType HsWildCardTy {} = string "_"
-prettyHsType XHsType {} = notUsedInParsedStage
+prettyHsType XHsType {} = notGeneratedByParser
 
 instance Pretty (GRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))) where
   pretty' = pretty' . GRHSsExpr GRHSExprNormal
@@ -1102,15 +1102,15 @@ prettyHsMatchContext :: HsMatchContext GhcPs -> Printer ()
 prettyHsMatchContext FunRhs {..}       = pretty mc_strictness >> pretty mc_fun
 prettyHsMatchContext LambdaExpr        = return ()
 prettyHsMatchContext CaseAlt           = return ()
-prettyHsMatchContext IfAlt {}          = notUsedInParsedStage
-prettyHsMatchContext ArrowMatchCtxt {} = notUsedInParsedStage
-prettyHsMatchContext PatBindRhs {}     = notUsedInParsedStage
-prettyHsMatchContext PatBindGuards {}  = notUsedInParsedStage
-prettyHsMatchContext RecUpd {}         = notUsedInParsedStage
-prettyHsMatchContext StmtCtxt {}       = notUsedInParsedStage
-prettyHsMatchContext ThPatSplice {}    = notUsedInParsedStage
-prettyHsMatchContext ThPatQuote {}     = notUsedInParsedStage
-prettyHsMatchContext PatSyn {}         = notUsedInParsedStage
+prettyHsMatchContext IfAlt {}          = notGeneratedByParser
+prettyHsMatchContext ArrowMatchCtxt {} = notGeneratedByParser
+prettyHsMatchContext PatBindRhs {}     = notGeneratedByParser
+prettyHsMatchContext PatBindGuards {}  = notGeneratedByParser
+prettyHsMatchContext RecUpd {}         = notGeneratedByParser
+prettyHsMatchContext StmtCtxt {}       = notGeneratedByParser
+prettyHsMatchContext ThPatSplice {}    = notGeneratedByParser
+prettyHsMatchContext ThPatQuote {}     = notGeneratedByParser
+prettyHsMatchContext PatSyn {}         = notGeneratedByParser
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyHsMatchContext LamCaseAlt {}     = notUsedInParsedStage
 #endif
