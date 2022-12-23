@@ -65,6 +65,10 @@ vTuple = vLineup ("(", ")")
 vTuple' :: [Printer ()] -> Printer ()
 vTuple' = vLineup' ("(", ")")
 
+-- | Runs printers to construct a promoted tuple in a line.
+hPromotedTuple :: [Printer ()] -> Printer ()
+hPromotedTuple = promotedTupleParens . hCommaSep
+
 -- | Applies 'hFields' if the result fits in a line or 'vFields' otherwise.
 hvFields :: [Printer ()] -> Printer ()
 hvFields = (<-|>) <$> hFields <*> vFields
@@ -91,10 +95,6 @@ hList = brackets . hCommaSep
 -- vertically.
 vList :: [Printer ()] -> Printer ()
 vList = vLineup ("[", "]")
-
--- | Runs printers to construct a promoted tuple in a line.
-hPromotedTuple :: [Printer ()] -> Printer ()
-hPromotedTuple = promotedTupleParens . hCommaSep
 
 -- | Runs printers to construct a promoted list in a line.
 hPromotedList :: [Printer ()] -> Printer ()
