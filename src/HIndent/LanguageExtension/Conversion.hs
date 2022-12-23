@@ -36,8 +36,8 @@ glpExtensionToCabalExtension :: GLP.Extension -> Maybe Cabal.Extension
 glpExtensionToCabalExtension = fmap Cabal.EnableExtension . readMaybe . show
 
 -- | This function converts each value of the type 'Extension' defined in
--- the package 'Cabal' in the list to the same value of the type
--- 'Extension' defined in the package 'ghc-lib-parser'.
+-- 'HIndent.LanguageExtension.Types' in the list to the same value of the
+-- type 'Extension' defined in the package 'ghc-lib-parser'.
 --
 -- If the extension has the 'No' suffix, the extension is removed from the
 -- result. If both extensions having and not having the suffix exist in the
