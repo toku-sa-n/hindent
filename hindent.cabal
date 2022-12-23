@@ -60,7 +60,6 @@ library
                      HIndent.Pretty.Pragma
                      HIndent.Pretty.SigBindFamily
                      HIndent.Pretty.Types
-                     HIndent.Read
                      HIndent.Types
   build-depends:     base >= 4.7 && <5
                    , containers
