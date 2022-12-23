@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
--- | Parsing and lexical analyze functions.
+-- | Parsing and lexical analysis functions.
 module HIndent.Parse
   ( parseModule
   , lexCode
