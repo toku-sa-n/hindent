@@ -52,6 +52,7 @@ import           GHC.Types.Name.Reader
 import           GHC.Unit
 import           GHC.Unit.Module.Warnings
 
+-- | `LHsExpr` used as a infix operator
 newtype InfixExpr =
   InfixExpr (LHsExpr GhcPs)
 
@@ -65,6 +66,15 @@ newtype InfixOp =
 newtype PrefixOp =
   PrefixOp RdrName
 
+-- | An infix operator application.
+--
+-- `immediatelyAfterDo` is `True` if an application is next to a `do`
+-- keyword. It needs an extra indent in such cases because
+--
+-- > do a
+-- > * b
+--
+-- is not a valid Haskell code.
 data InfixApp =
   InfixApp
     { lhs                :: LHsExpr GhcPs
@@ -73,6 +83,8 @@ data InfixApp =
     , immediatelyAfterDo :: Bool
     }
 
+-- | `GRHSs` with a label indicating in which context the RHS is located
+-- in.
 data GRHSsExpr =
   GRHSsExpr
     { grhssExprType :: GRHSExprType
@@ -90,62 +102,79 @@ data GRHSExpr =
 newtype GRHSProc =
   GRHSProc (GRHS GhcPs (LHsCmd GhcPs))
 
+-- | A pattern match against a record.
 newtype RecConPat =
   RecConPat (HsRecFields GhcPs (LPat GhcPs))
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
+-- | A record field in a pattern match.
 newtype RecConField =
   RecConField (HsFieldBind (LFieldOcc GhcPs) (LPat GhcPs))
 #else
+-- | A record field in a pattern match.
 newtype RecConField =
   RecConField (HsRecField' (FieldOcc GhcPs) (LPat GhcPs))
 #endif
+-- | A wrapper for `HsSigType`.
 data HsSigType' =
   HsSigType'
-    { hsSigTypeFor :: HsTypeFor
-    , hsSigTypeDir :: HsTypeDir
-    , hsSigType    :: HsSigType GhcPs
+    { hsSigTypeFor :: HsTypeFor -- ^ In which context a `HsSigType` is located in.
+    , hsSigTypeDir :: HsTypeDir -- ^ How a `HsSigType` should be printed;
+                                -- either horizontally or vertically.
+    , hsSigType    :: HsSigType GhcPs -- ^ The actual signature.
     }
 
+-- | `HsSigType'` for instance declarations.
 pattern HsSigTypeInsideInstDecl :: HsSigType GhcPs -> HsSigType'
 
 pattern HsSigTypeInsideInstDecl x = HsSigType' HsTypeForInstDecl HsTypeNoDir x
 
+-- | `HsSigType'` for function declarations; printed horizontally.
 pattern HsSigTypeInsideVerticalFuncSig :: HsSigType GhcPs -> HsSigType'
 
 pattern HsSigTypeInsideVerticalFuncSig x = HsSigType' HsTypeForFuncSig HsTypeVertical x
 
+-- | `HsSigType'` for a top-level function signature.
 pattern HsSigTypeInsideDeclSig :: HsSigType GhcPs -> HsSigType'
 
 pattern HsSigTypeInsideDeclSig x = HsSigType' HsTypeForDeclSig HsTypeNoDir x
 
+-- | A wrapper for `HsType`.
 data HsType' =
   HsType'
-    { hsTypeFor :: HsTypeFor
-    , hsTypeDir :: HsTypeDir
-    , hsType    :: HsType GhcPs
+    { hsTypeFor :: HsTypeFor -- ^ In which context a `HsType` is located in.
+    , hsTypeDir :: HsTypeDir -- ^ How a function signature is printed;
+                             -- either horizontally or vertically.
+    , hsType    :: HsType GhcPs -- ^ The actual type.
     }
 
+-- | `HsType'` inside a function signature declaration; printed horizontally.
 pattern HsTypeInsideVerticalFuncSig :: HsType GhcPs -> HsType'
 
 pattern HsTypeInsideVerticalFuncSig x = HsType' HsTypeForFuncSig HsTypeVertical x
 
+-- | `HsType'` inside a top-level function signature declaration.
 pattern HsTypeInsideDeclSig :: HsType GhcPs -> HsType'
 
 pattern HsTypeInsideDeclSig x = HsType' HsTypeForDeclSig HsTypeNoDir x
 
+-- | `HsType'` inside a instance signature declaration.
 pattern HsTypeInsideInstDecl :: HsType GhcPs -> HsType'
 
 pattern HsTypeInsideInstDecl x = HsType' HsTypeForInstDecl HsTypeNoDir x
 
+-- | `StmtLR` inside a vertically printed list.
 newtype StmtLRInsideVerticalList =
   StmtLRInsideVerticalList (StmtLR GhcPs GhcPs (LHsExpr GhcPs))
 
+-- | `ParStmtBlock` inside a vertically printed list.
 newtype ParStmtBlockInsideVerticalList =
   ParStmtBlockInsideVerticalList (ParStmtBlock GhcPs GhcPs)
 
+-- | A top-level function signature.
 newtype DeclSig =
   DeclSig (Sig GhcPs)
 
+-- | A top-level type family instance declaration.
 newtype TopLevelTyFamInstDecl =
   TopLevelTyFamInstDecl (TyFamInstDecl GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
@@ -192,15 +221,18 @@ newtype ModuleNameWithPrefix =
 newtype PatInsidePatDecl =
   PatInsidePatDecl (Pat GhcPs)
 
+-- | Lambda case.
 data LambdaCase =
   LambdaCase
     { lamCaseGroup :: MatchGroup GhcPs (LHsExpr GhcPs)
     , caseOrCases  :: CaseOrCases
     }
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
+-- | A deprecation pragma for a module.
 newtype ModuleDeprecatedPragma =
   ModuleDeprecatedPragma (WarningTxt GhcPs)
 #else
+-- | A deprecation pragma for a module.
 newtype ModuleDeprecatedPragma =
   ModuleDeprecatedPragma WarningTxt
 #endif
@@ -233,10 +265,12 @@ data NodeComments =
     , commentsAfter      :: [LEpaComment]
     }
 
+-- | Values indicating whether `do` or `mdo` is used.
 data DoOrMdo
   = Do
   | Mdo
 
+-- | Values indicating in which context a RHS is located.
 data GRHSExprType
   = GRHSExprNormal
   | GRHSExprCase
@@ -244,20 +278,25 @@ data GRHSExprType
   | GRHSExprLambda
   deriving (Eq)
 
+-- | Values indicating in which context a RHS in a proc expression is located.
 data GRHSProcType
   = GRHSProcCase
   | GRHSProcLambda
 
+-- | Values indicating in which context a `HsType` is located.
 data HsTypeFor
   = HsTypeForNormalDecl
   | HsTypeForInstDecl
   | HsTypeForFuncSig
   | HsTypeForDeclSig
 
+-- | Values indicating how a node should be printed; either horizontally or
+-- vertically.
 data HsTypeDir
   = HsTypeNoDir
   | HsTypeVertical
 
+-- | Values indicating whether `case` or `cases` is used.
 data CaseOrCases
   = Case
   | Cases
