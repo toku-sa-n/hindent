@@ -2,16 +2,30 @@
 
 -- | Operations for converting extensions types.
 module HIndent.LanguageExtension.Conversion
-  ( glpExtensionToCabalExtension
+  ( fromCabalExtension
+  , glpExtensionToCabalExtension
   , uniqueExtensions
   , convertExtension
+  , strToExt
   ) where
 
 import qualified GHC.LanguageExtensions                             as GLP
-import           HIndent.Read
+import           HIndent.LanguageExtension.Types
 import qualified Language.Haskell.Extension                         as Cabal
 import qualified Language.Haskell.GhclibParserEx.GHC.Driver.Session as GLP
 import           Text.Read
+
+-- | Converts from an `Extension` defined in the `Cabal` package to an
+-- `Extension` defined in HIndent.
+--
+-- Note that this function returns `Nothing` if `UnknownExtension` is
+-- passed or if an extension is not supported by GHC.
+fromCabalExtension :: Cabal.Extension -> Maybe Extension
+fromCabalExtension (Cabal.EnableExtension x) =
+  EnableExtension <$> convertExtension x
+fromCabalExtension (Cabal.DisableExtension x) =
+  DisableExtension <$> convertExtension x
+fromCabalExtension Cabal.UnknownExtension {} = Nothing
 
 -- | Converts a value of the type 'Extension' defined in the
 -- 'ghc-lib-parser' package to the same value of the type 'Extension'
@@ -31,15 +45,11 @@ glpExtensionToCabalExtension = fmap Cabal.EnableExtension . readMaybe . show
 --
 -- If converting an extension fails due to neither GHC nor 'ghc-lib-parser'
 -- not supporting, or deprecation or removal, the extension is ignored.
-uniqueExtensions :: [Cabal.Extension] -> [GLP.Extension]
+uniqueExtensions :: [Extension] -> [GLP.Extension]
 uniqueExtensions [] = []
-uniqueExtensions ((Cabal.EnableExtension e):xs)
-  | Just e' <- convertExtension e = e' : uniqueExtensions xs
-  | otherwise = uniqueExtensions xs
-uniqueExtensions ((Cabal.DisableExtension e):xs) =
-  uniqueExtensions $ filter (/= readOrFail (show $ Cabal.EnableExtension e)) xs
-uniqueExtensions ((Cabal.UnknownExtension s):_) =
-  error $ "Unknown extension: " ++ s
+uniqueExtensions ((EnableExtension e):xs) = e : uniqueExtensions xs
+uniqueExtensions ((DisableExtension e):xs) =
+  uniqueExtensions $ filter (/= EnableExtension e) xs
 
 -- | This function converts a value of 'KnownExtension' defined in the
 -- 'Cabal' package to the same value of 'Extension' defined in
@@ -50,3 +60,9 @@ uniqueExtensions ((Cabal.UnknownExtension s):_) =
 -- extension, or it is deprecated or removed), it returns a 'Nothing'.
 convertExtension :: Cabal.KnownExtension -> Maybe GLP.Extension
 convertExtension = GLP.readExtension . show
+
+-- | Converts the given string to an extension, or returns a 'Nothing' on
+-- fail.
+strToExt :: String -> Maybe Extension
+strToExt ('N':'o':s) = DisableExtension <$> GLP.readExtension s
+strToExt s           = EnableExtension <$> GLP.readExtension s

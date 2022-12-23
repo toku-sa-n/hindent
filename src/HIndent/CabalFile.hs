@@ -20,12 +20,13 @@ import           Distribution.PackageDescription.Parsec
 #else
 import           Distribution.PackageDescription.Parse
 #endif
-import qualified GHC.LanguageExtensions.Type                   as GLP
 import           HIndent.Language
 import           HIndent.LanguageExtension                     hiding
                                                                (defaultExtensions)
-import qualified HIndent.LanguageExtension.Conversion          as EC
-import           Language.Haskell.Extension
+import           HIndent.LanguageExtension.Conversion
+import           HIndent.LanguageExtension.Types
+import           Language.Haskell.Extension                    hiding
+                                                               (Extension)
 import           System.Directory
 import           System.FilePath
 
@@ -137,19 +138,20 @@ getCabalStanza srcpath = do
           (stanza:_) -> Just stanza -- just pick the first one
     Nothing -> return Nothing
 
--- | Get (Cabal package) language and extensions from the cabal file for this source path
+-- | Get language and extensions from the cabal file for this source path
 getCabalExtensions :: FilePath -> IO (Language, [Extension])
 getCabalExtensions srcpath = do
   mstanza <- getCabalStanza srcpath
   return $
     case mstanza of
       Nothing -> (Haskell98, [])
-      Just (MkStanza bi _) -> do
-        (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
+      Just (MkStanza bi _) ->
+        ( fromMaybe Haskell98 $ defaultLanguage bi
+        , mapMaybe fromCabalExtension $ defaultExtensions bi)
 
 -- | Get extensions from the cabal file for this source path
-getCabalExtensionsForSourcePath :: FilePath -> IO [GLP.Extension]
+getCabalExtensionsForSourcePath :: FilePath -> IO [Extension]
 getCabalExtensionsForSourcePath srcpath = do
   (lang, exts) <- getCabalExtensions srcpath
   let allExts = exts ++ implicitExtensions (convertLanguage lang)
-  return $ EC.uniqueExtensions $ concatMap extensionImplies allExts
+  return $ concatMap extensionImplies allExts
