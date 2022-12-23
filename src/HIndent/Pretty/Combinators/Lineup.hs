@@ -1,27 +1,33 @@
 -- | Printer combinators for lining up multiple elements.
 module HIndent.Pretty.Combinators.Lineup
-  ( hvTuple
+  ( -- * Tuples
+    hvTuple
   , hvTuple'
   , hTuple
   , vTuple
   , vTuple'
-  , hvFields
+  , hPromotedTuple
+  , -- * Records
+    hvFields
   , hFields
   , vFields
   , vFields'
-  , hList
+  , -- * Lists
+    hList
   , vList
-  , hPromotedTuple
   , hPromotedList
-  , spaced
-  , lined
-  , blanklined
-  , hvBarSep
+  , -- * Bars
+    hvBarSep
   , hBarSep
   , vBarSep
-  , hvCommaSep
+  , -- * Commas
+    hvCommaSep
   , hCommaSep
   , vCommaSep
+  , -- * Others
+    spaced
+  , lined
+  , blanklined
   , hDotSep
   , spacePrefixed
   , newlinePrefixed
