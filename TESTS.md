@@ -1349,7 +1349,7 @@ f = undefined
 
 `OPAQUE`
 
-```haskell from 9.4.0
+```haskell since 9.4.0
 {-# OPAQUE f #-}
 f :: a
 f = undefined
@@ -2096,7 +2096,7 @@ f =
 
 cases
 
-```haskell from 9.4.1
+```haskell since 9.4.1
 foo =
   \cases
     1 1 -> 1
@@ -2729,7 +2729,7 @@ f = undefined
 
 `OverloadedRecordDot`
 
-```haskell from 9.2.2
+```haskell since 9.2.2
 {-# LANGUAGE OverloadedRecordDot #-}
 
 data Rectangle =
@@ -2746,7 +2746,7 @@ foo = (.x.y)
 
 `OverloadedRecordUpdate`
 
-```haskell from 9.2.0
+```haskell since 9.2.0
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedRecordUpdate #-}
 

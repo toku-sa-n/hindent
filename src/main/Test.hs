@@ -87,7 +87,7 @@ toSpec = go
     go (CodeFence {}:next) = go next
     go [] = return ()
     pendingForVersionMsg from =
-      "The test is for GHC versions from " ++
+      "The test is for GHC versions since " ++
       showVersion from ++
       " but you are using GHC version " ++
       showVersion fullCompilerVersion ++ "."
@@ -99,7 +99,7 @@ toSpec = go
         Just $ Version [x', y', z'] []
     fromVersion _ = Nothing
     fromRegex :: String
-    fromRegex = "haskell from ([0-9]+)\\.([0-9]+)\\.([0-9]+)"
+    fromRegex = "haskell since ([0-9]+)\\.([0-9]+)\\.([0-9]+)"
 
 -- | Version of 'shouldBe' that prints strings in a readable way,
 -- better for our use-case.
