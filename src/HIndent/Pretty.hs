@@ -876,7 +876,7 @@ prettyMatchExpr Match {m_ctxt = CaseAlt, ..} = do
   pretty $ GRHSsExpr GRHSExprCase m_grhss
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 prettyMatchExpr Match {m_ctxt = LamCaseAlt {}, ..} = do
-  mapM_ pretty m_pats
+  spaced $ fmap pretty m_pats
   pretty $ GRHSsExpr GRHSExprCase m_grhss
 #endif
 prettyMatchExpr Match {..} =
