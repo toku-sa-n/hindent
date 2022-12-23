@@ -15,15 +15,15 @@ import           Language.Haskell.GhclibParserEx.GHC.Settings.Config
 
 -- | Prints the given value using the type's 'Outputable' implementation.
 --
--- The use of this function should be avoided for two reasons:
+-- The use of this function should be avoided for these reasons:
 --
--- - It may raise an error due to 'showPpr' returning a 'String' containing
+-- * It may raise an error due to 'showPpr' returning a 'String' containing
 -- @\n@s. Use 'newline' to print @\n@s.
 --
--- - ghc-lib-parser may change a type's implementation of 'Outputable',
+-- * ghc-lib-parser may change a type's implementation of 'Outputable',
 -- causing a sudden test failure. It becomes a maintaince burden.
 --
--- - All comments of the node's children are ignored.
+-- * All comments of the node's children are ignored.
 output :: (HasCallStack, Outputable a) => a -> Printer ()
 output = string . showOutputable
 
