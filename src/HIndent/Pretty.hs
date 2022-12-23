@@ -1232,7 +1232,7 @@ instance Pretty (HsSplice GhcPs) where
       printers ps s ('\n':xs) =
         printers (newline : string (reverse s) : ps) "" xs
       printers ps s (x:xs) = printers ps (x : s) xs
-  pretty' HsSpliced {} = notUsedInParsedStage
+  pretty' HsSpliced {} = notGeneratedByParser
 
 instance Pretty (Pat GhcPs) where
   pretty' = prettyPat
@@ -1298,7 +1298,7 @@ instance Pretty (HsBracket GhcPs) where
   pretty' (PatBr _ expr) = brackets $ string "p" >> wrapWithBars (pretty expr)
   pretty' (DecBrL _ decls) =
     brackets $ string "d| " |=> lined (fmap pretty decls) >> string " |"
-  pretty' DecBrG {} = notUsedInParsedStage
+  pretty' DecBrG {} = notGeneratedByParser
   pretty' (TypBr _ expr) = brackets $ string "t" >> wrapWithBars (pretty expr)
   pretty' (VarBr _ True var) = string "'" >> pretty var
   pretty' (VarBr _ False var) = string "''" >> pretty var
