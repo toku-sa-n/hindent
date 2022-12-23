@@ -15,4 +15,3 @@ src/main/TestGenerate
 cabal.sandbox.config
 dist-newstyle/
 cabal.project.local
-ghcid.txt
