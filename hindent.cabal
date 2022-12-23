@@ -37,6 +37,7 @@ library
                      HIndent.Language
                      HIndent.LanguageExtension
                      HIndent.LanguageExtension.Conversion
+                     HIndent.LanguageExtension.Types
                      HIndent.ModulePreprocessing
                      HIndent.ModulePreprocessing.CommentRelocation
                      HIndent.Parse

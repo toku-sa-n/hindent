@@ -10,22 +10,21 @@ module HIndent.Types
   ( Printer(..)
   , PrintState(..)
   , Config(..)
-  , readExtension
   , defaultConfig
   ) where
 
 import           Control.Applicative
 import           Control.Monad
-import           Control.Monad.State.Strict (MonadState (..), StateT)
+import           Control.Monad.State.Strict           (MonadState (..), StateT)
 import           Control.Monad.Trans.Maybe
 import           Data.ByteString.Builder
 import           Data.Functor.Identity
-import           Data.Int                   (Int64)
+import           Data.Int                             (Int64)
 import           Data.Maybe
-import           Data.Yaml                  (FromJSON (..))
-import qualified Data.Yaml                  as Y
-import           Language.Haskell.Extension (Extension (UnknownExtension),
-                                             classifyExtension)
+import           Data.Yaml                            (FromJSON (..))
+import qualified Data.Yaml                            as Y
+import           HIndent.LanguageExtension.Conversion
+import           HIndent.LanguageExtension.Types
 
 -- | A pretty printing monad.
 newtype Printer a =
@@ -74,17 +73,6 @@ data Config =
     , configExtensions      :: [Extension]
       -- ^ Extra language extensions enabled by default.
     }
--- | Parse an extension.
-#if __GLASGOW_HASKELL__ >= 808
-readExtension :: (Monad m, MonadFail m) => String -> m Extension
-#else
-readExtension :: Monad m => String -> m Extension
-#endif
-readExtension x =
-  case classifyExtension x -- Foo
-        of
-    UnknownExtension _ -> fail ("Unknown extension: " ++ x)
-    x'                 -> return x'
 
 instance FromJSON Config where
   parseJSON (Y.Object v) =
@@ -98,7 +86,12 @@ instance FromJSON Config where
       (v Y..:? "force-trailing-newline") <*>
     fmap (fromMaybe (configSortImports defaultConfig)) (v Y..:? "sort-imports") <*>
     fmap (fromMaybe (configLineBreaks defaultConfig)) (v Y..:? "line-breaks") <*>
-    (traverse readExtension . fromMaybe [] =<< v Y..:? "extensions")
+    (traverse convertExt . fromMaybe [] =<< v Y..:? "extensions")
+    where
+      convertExt x =
+        case strToExt x of
+          Just x' -> pure x'
+          Nothing -> error $ "Unknow extension: " ++ show x
   parseJSON _ = fail "Expected Object for Config value"
 
 -- | Default style configuration.

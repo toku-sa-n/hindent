@@ -37,17 +37,17 @@ import           GHC.Types.SrcLoc
 import           HIndent.CodeBlock
 import           HIndent.LanguageExtension
 import qualified HIndent.LanguageExtension.Conversion as CE
+import           HIndent.LanguageExtension.Types
 import           HIndent.ModulePreprocessing
 import           HIndent.Parse
 import           HIndent.Pretty
 import           HIndent.Types
-import qualified Language.Haskell.Extension           as Cabal
 import           Prelude
 
 -- | Format the given source.
 reformat ::
      Config
-  -> Maybe [Cabal.Extension]
+  -> Maybe [Extension]
   -> Maybe FilePath
   -> ByteString
   -> Either String Builder

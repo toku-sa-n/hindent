@@ -17,58 +17,52 @@ import           Data.List.Split
 import           Data.Maybe
 import qualified Data.Text                            as T
 import qualified GHC.Driver.Session                   as GLP
+import qualified GHC.LanguageExtensions               as GLP
 import           HIndent.LanguageExtension.Conversion
-import qualified HIndent.LanguageExtension.Conversion as EC
+import           HIndent.LanguageExtension.Types
 import           HIndent.Pragma
-import           HIndent.Read
-import           HIndent.Types
-import qualified Language.Haskell.Extension           as Cabal
-import           Text.Read
 import           Text.Regex.TDFA
 
 -- | This function returns a list of extensions that the passed language
 -- (e.g., GHC2021) enables.
-implicitExtensions :: GLP.Language -> [Cabal.Extension]
-implicitExtensions =
-  mapMaybe glpExtensionToCabalExtension . GLP.languageExtensions . Just
+implicitExtensions :: GLP.Language -> [Extension]
+implicitExtensions = fmap EnableExtension . GLP.languageExtensions . Just
 
 -- | This function returns a list of extensions that the passed extension
 -- enables and disables.
 --
 -- For example, @GADTs@ enables @GADTSyntax@ and @RebindableSyntax@
 -- disables @ImplicitPrelude@.
-extensionImplies :: Cabal.Extension -> [Cabal.Extension]
-extensionImplies (Cabal.EnableExtension e) =
-  toExtension <$>
-  filter (\(a, _, _) -> EC.convertExtension e == Just a) GLP.impliedXFlags
+extensionImplies :: Extension -> [Extension]
+extensionImplies (EnableExtension e) =
+  toExtension <$> filter (\(a, _, _) -> e == a) GLP.impliedXFlags
   where
-    toExtension (_, True, e')  = Cabal.EnableExtension $ readOrFail $ show e'
-    toExtension (_, False, e') = Cabal.DisableExtension $ readOrFail $ show e'
+    toExtension (_, True, e')  = EnableExtension e'
+    toExtension (_, False, e') = DisableExtension e'
 extensionImplies _ = []
 
 -- | Collect pragmas specified in the source code.
-collectLanguageExtensionsFromSource :: String -> [Cabal.Extension]
+collectLanguageExtensionsFromSource :: String -> [Extension]
 collectLanguageExtensionsFromSource =
   (++) <$> collectLanguageExtensionsSpecifiedViaLanguagePragma <*>
   collectLanguageExtensionsFromSourceViaOptionsPragma
 
 -- | Consume an extensions list from arguments.
-getExtensions :: [T.Text] -> [Cabal.Extension]
+getExtensions :: [T.Text] -> [Extension]
 getExtensions = foldr (f . T.unpack) defaultExtensions
   where
     f "Haskell98" _ = []
-    f ('N':'o':x) a
-      | Just x' <- readExtension x = delete x' a
-    f x a
-      | Just x' <- readExtension x = x' : delete x' a
-    f x _ = error $ "Unknown extension: " ++ x
+    f x a =
+      case strToExt x of
+        Just x'@EnableExtension {} -> x' : delete x' a
+        Just (DisableExtension x') -> delete (EnableExtension x') a
+        _                          -> error $ "Unknown extension: " ++ x
 
 -- | Collects language extensions enabled or disabled by @{-# LANGUAGE FOO
 -- #-}@.
 --
 -- This function ignores language extensions not supported by Cabal.
-collectLanguageExtensionsSpecifiedViaLanguagePragma ::
-     String -> [Cabal.Extension]
+collectLanguageExtensionsSpecifiedViaLanguagePragma :: String -> [Extension]
 collectLanguageExtensionsSpecifiedViaLanguagePragma =
   mapMaybe (strToExt . stripSpaces) .
   concatMap (splitOn ",") .
@@ -76,8 +70,7 @@ collectLanguageExtensionsSpecifiedViaLanguagePragma =
 
 -- | Extracts the language extensions specified by @-XFOO@ from @OPTIONS@
 -- or @OPTIONS_GHC@ pragmas
-collectLanguageExtensionsFromSourceViaOptionsPragma ::
-     String -> [Cabal.Extension]
+collectLanguageExtensionsFromSourceViaOptionsPragma :: String -> [Extension]
 collectLanguageExtensionsFromSourceViaOptionsPragma =
   mapMaybe (strToExt . stripSpaces) .
   concatMap extractLanguageExtensionsFromOptions .
@@ -99,58 +92,48 @@ extractLanguageExtensionsFromOptions options =
 stripSpaces :: String -> String
 stripSpaces = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 
--- | Converts the given string to an extension, or returns a 'Nothing' on
--- fail.
-strToExt :: String -> Maybe Cabal.Extension
-strToExt ('N':'o':s) = Cabal.DisableExtension <$> readMaybe s
-strToExt s           = Cabal.EnableExtension <$> readMaybe s
-
 -- | Default extensions.
-defaultExtensions :: [Cabal.Extension]
-defaultExtensions = fmap Cabal.EnableExtension $ [minBound ..] \\ badExtensions
+defaultExtensions :: [Extension]
+defaultExtensions = fmap EnableExtension $ [minBound ..] \\ badExtensions
 
 -- | All extensions supported by Cabal.
-allExtensions :: [Cabal.Extension]
-allExtensions = fmap Cabal.EnableExtension [minBound ..]
+allExtensions :: [Extension]
+allExtensions = fmap EnableExtension [minBound ..]
 
 -- | Extensions which steal too much syntax.
-badExtensions :: [Cabal.KnownExtension]
+badExtensions :: [GLP.Extension]
 badExtensions =
-  [ Cabal.Arrows -- steals proc
-  , Cabal.TransformListComp -- steals the group keyword
-  , Cabal.XmlSyntax
-  , Cabal.RegularPatterns -- steals a-b
-  , Cabal.UnboxedTuples -- breaks (#) lens operator
-  , Cabal.UnboxedSums -- Same as 'UnboxedTuples'
+  [ GLP.Arrows -- steals proc
+  , GLP.TransformListComp -- steals the group keyword
+  , GLP.UnboxedTuples -- breaks (#) lens operator
+  , GLP.UnboxedSums -- Same as 'UnboxedTuples'
     -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
-  , Cabal.PatternSynonyms -- steals the pattern keyword
-  , Cabal.RecursiveDo -- steals the rec keyword
-  , Cabal.DoRec -- same
-  , Cabal.TypeApplications -- since GHC
-  , Cabal.StaticPointers -- Steals the `static` keyword
+  , GLP.PatternSynonyms -- steals the pattern keyword
+  , GLP.RecursiveDo -- steals the rec keyword
+  , GLP.TypeApplications -- since GHC
+  , GLP.StaticPointers -- Steals the `static` keyword
+  , GLP.AlternativeLayoutRule -- Breaks a few tests
+  , GLP.AlternativeLayoutRuleTransitional -- Same as `AlternativeLayoutRule`
   ] ++
-  badExtensionsSinceGhc920 ++ badExtensionsSinceGhc941
+  badExtensionsSinceGhc901 ++ badExtensionsSinceGhc920
 
+-- | Additional disabled extensions since GHC 9.0.1.
+badExtensionsSinceGhc901 :: [GLP.Extension]
+#if MIN_VERSION_GLASGOW_HASKELL(9,0,1,0)
+badExtensionsSinceGhc901 =
+  [ GLP.LexicalNegation -- Cannot handle minus signs in some cases
+  ]
+#else
+badExtensionsSinceGhc901 = []
+#endif
 -- | Additional disabled extensions since GHC 9.2.0.
-badExtensionsSinceGhc920 :: [Cabal.KnownExtension]
+badExtensionsSinceGhc920 :: [GLP.Extension]
 #if MIN_VERSION_GLASGOW_HASKELL(9,2,0,0)
 badExtensionsSinceGhc920 =
-  [ Cabal.OverloadedRecordDot -- Breaks 'a.b'
-  , Cabal.LexicalNegation -- Cannot handle minus signs in some cases
+  [ GLP.OverloadedRecordDot -- Breaks 'a.b'
+  , GLP.OverloadedRecordUpdate -- Cannot handle symbol members starting
+                               -- with a dot in a record well
   ]
 #else
 badExtensionsSinceGhc920 = []
-#endif
--- | Additionally disabled extensions since GHC 9.4.1.
---
--- With these extensions enabled, a few tests fail.
-badExtensionsSinceGhc941 :: [Cabal.KnownExtension]
-#if MIN_VERSION_GLASGOW_HASKELL(9,4,1,0)
-badExtensionsSinceGhc941 =
-  [ Cabal.OverloadedRecordUpdate
-  , Cabal.AlternativeLayoutRule
-  , Cabal.AlternativeLayoutRuleTransitional
-  ]
-#else
-badExtensionsSinceGhc941 = []
 #endif
