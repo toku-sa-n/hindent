@@ -56,8 +56,8 @@ uniqueExtensions ((DisableExtension e):xs) =
 -- 'ghc-lib-parser'.
 --
 -- This function returns a 'Just' value if it succeeds in converting.
--- Otherwise (e.g., neigher GHC nor 'ghc-lib-parser' does not the passed
--- extension, or it is deprecated or removed), it returns a 'Nothing'.
+-- Otherwise (e.g., 'ghc-lib-parser' does not the passed extension, or it
+-- is deprecated or removed), it returns a 'Nothing'.
 convertExtension :: Cabal.KnownExtension -> Maybe GLP.Extension
 convertExtension = GLP.readExtension . show
 
