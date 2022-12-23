@@ -44,6 +44,7 @@ module HIndent.Pretty.Types
   , GRHSProcType(..)
   , HsTypeFor(..)
   , HsTypeDir(..)
+  , CaseOrCases(..)
   ) where
 
 import           GHC.Hs
@@ -106,13 +107,20 @@ data HsSigType' =
     }
 
 pattern HsSigTypeInsideInstDecl :: HsSigType GhcPs -> HsSigType'
-pattern HsSigTypeInsideInstDecl x = HsSigType' HsTypeForInstDecl HsTypeNoDir x
 
-pattern HsSigTypeInsideVerticalFuncSig :: HsSigType GhcPs -> HsSigType'
-pattern HsSigTypeInsideVerticalFuncSig x = HsSigType' HsTypeForFuncSig HsTypeVertical x
+pattern HsSigTypeInsideInstDecl x =
+        HsSigType' HsTypeForInstDecl HsTypeNoDir x
+
+pattern HsSigTypeInsideVerticalFuncSig ::
+        HsSigType GhcPs -> HsSigType'
+
+pattern HsSigTypeInsideVerticalFuncSig x =
+        HsSigType' HsTypeForFuncSig HsTypeVertical x
 
 pattern HsSigTypeInsideDeclSig :: HsSigType GhcPs -> HsSigType'
-pattern HsSigTypeInsideDeclSig x = HsSigType' HsTypeForDeclSig HsTypeNoDir x
+
+pattern HsSigTypeInsideDeclSig x =
+        HsSigType' HsTypeForDeclSig HsTypeNoDir x
 
 data HsType' =
   HsType'
@@ -122,14 +130,19 @@ data HsType' =
     }
 
 pattern HsTypeInsideVerticalFuncSig :: HsType GhcPs -> HsType'
+
 pattern HsTypeInsideVerticalFuncSig x =
-  HsType' HsTypeForFuncSig HsTypeVertical x
+        HsType' HsTypeForFuncSig HsTypeVertical x
 
 pattern HsTypeInsideDeclSig :: HsType GhcPs -> HsType'
-pattern HsTypeInsideDeclSig x = HsType' HsTypeForDeclSig HsTypeNoDir x
+
+pattern HsTypeInsideDeclSig x =
+        HsType' HsTypeForDeclSig HsTypeNoDir x
 
 pattern HsTypeInsideInstDecl :: HsType GhcPs -> HsType'
-pattern HsTypeInsideInstDecl x = HsType' HsTypeForInstDecl HsTypeNoDir x
+
+pattern HsTypeInsideInstDecl x =
+        HsType' HsTypeForInstDecl HsTypeNoDir x
 
 newtype StmtLRInsideVerticalList =
   StmtLRInsideVerticalList (StmtLR GhcPs GhcPs (LHsExpr GhcPs))
@@ -186,8 +199,11 @@ newtype ModuleNameWithPrefix =
 newtype PatInsidePatDecl =
   PatInsidePatDecl (Pat GhcPs)
 
-newtype LambdaCase =
-  LambdaCase (MatchGroup GhcPs (LHsExpr GhcPs))
+data LambdaCase =
+  LambdaCase
+    { lamCaseGroup :: MatchGroup GhcPs (LHsExpr GhcPs)
+    , caseOrCases  :: CaseOrCases
+    }
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 newtype ModuleDeprecatedPragma =
   ModuleDeprecatedPragma (WarningTxt GhcPs)
@@ -219,9 +235,9 @@ data LetIn =
 -- | Comments belonging to an AST node.
 data NodeComments =
   NodeComments
-    { commentsBefore    :: [LEpaComment]
+    { commentsBefore     :: [LEpaComment]
     , commentsOnSameLine :: [LEpaComment]
-    , commentsAfter     :: [LEpaComment]
+    , commentsAfter      :: [LEpaComment]
     }
 
 data DoOrMdo
@@ -248,3 +264,7 @@ data HsTypeFor
 data HsTypeDir
   = HsTypeNoDir
   | HsTypeVertical
+
+data CaseOrCases
+  = Case
+  | Cases

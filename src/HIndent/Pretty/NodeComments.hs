@@ -125,7 +125,7 @@ instance CommentExtraction (HsExpr GhcPs) where
   nodeComments = nodeCommentsHsExpr
 
 instance CommentExtraction LambdaCase where
-  nodeComments (LambdaCase x) = nodeComments x
+  nodeComments (LambdaCase x _) = nodeComments x
 
 nodeCommentsHsExpr :: HsExpr GhcPs -> NodeComments
 nodeCommentsHsExpr HsVar {}               = emptyNodeComments

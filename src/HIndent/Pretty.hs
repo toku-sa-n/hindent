@@ -461,9 +461,10 @@ prettyHsExpr (HsOverLit _ x) = pretty x
 prettyHsExpr (HsLit _ l) = pretty l
 prettyHsExpr (HsLam _ body) = pretty body
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
-prettyHsExpr (HsLamCase _ _ matches) = pretty $ LambdaCase matches
+prettyHsExpr (HsLamCase _ LamCase matches) = pretty $ LambdaCase matches Case
+prettyHsExpr (HsLamCase _ LamCases matches) = pretty $ LambdaCase matches Cases
 #else
-prettyHsExpr (HsLamCase _ matches) = pretty $ LambdaCase matches
+prettyHsExpr (HsLamCase _ matches) = pretty $ LambdaCase matches Case
 #endif
 prettyHsExpr (HsApp _ l r) = horizontal <-|> vertical
   where
@@ -681,8 +682,10 @@ prettyHsExpr HsRnBracketOut {} = notGeneratedByParser
 prettyHsExpr HsTcBracketOut {} = notGeneratedByParser
 #endif
 instance Pretty LambdaCase where
-  pretty' (LambdaCase matches) = do
-    string "\\case"
+  pretty' (LambdaCase matches caseOrCases) = do
+    case caseOrCases of
+      Case  -> string "\\case"
+      Cases -> string "\\cases"
     if null $ unLoc $ mg_alts matches
       then string " {}"
       else do
