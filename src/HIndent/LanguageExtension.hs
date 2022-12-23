@@ -114,26 +114,8 @@ badExtensions =
   , GLP.StaticPointers -- Steals the `static` keyword
   , GLP.AlternativeLayoutRule -- Breaks a few tests
   , GLP.AlternativeLayoutRuleTransitional -- Same as `AlternativeLayoutRule`
-  ] ++
-  badExtensionsSinceGhc901 ++ badExtensionsSinceGhc920
-
--- | Additional disabled extensions since GHC 9.0.1.
-badExtensionsSinceGhc901 :: [GLP.Extension]
-#if MIN_VERSION_GLASGOW_HASKELL(9,0,1,0)
-badExtensionsSinceGhc901 =
-  [ GLP.LexicalNegation -- Cannot handle minus signs in some cases
-  ]
-#else
-badExtensionsSinceGhc901 = []
-#endif
--- | Additional disabled extensions since GHC 9.2.0.
-badExtensionsSinceGhc920 :: [GLP.Extension]
-#if MIN_VERSION_GLASGOW_HASKELL(9,2,0,0)
-badExtensionsSinceGhc920 =
-  [ GLP.OverloadedRecordDot -- Breaks 'a.b'
+  , GLP.LexicalNegation -- Cannot handle minus signs in some cases
+  , GLP.OverloadedRecordDot -- Breaks 'a.b'
   , GLP.OverloadedRecordUpdate -- Cannot handle symbol members starting
                                -- with a dot in a record well
   ]
-#else
-badExtensionsSinceGhc920 = []
-#endif
