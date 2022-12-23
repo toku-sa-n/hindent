@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Test the pretty printer.
@@ -19,7 +20,7 @@ import           HIndent.CodeBlock
 import qualified HIndent.LanguageExtension  as HIndent
 import           HIndent.Types
 import           Markdone
-import           System.Info
+import qualified System.Info
 import           Test.Hspec
 import           Text.Read
 import           Text.Regex.TDFA
@@ -72,7 +73,7 @@ toSpec = go
           go next
         s
           | Just from <- fromVersion $ UTF8.toString s ->
-            if fullCompilerVersion >= from
+            if compilerVersion >= from
               then do
                 it (UTF8.toString desc) $
                   shouldBeReadable (reformat cfg code) (L.fromStrict code)
@@ -89,8 +90,7 @@ toSpec = go
     pendingForVersionMsg from =
       "The test is for GHC versions since " ++
       showVersion from ++
-      " but you are using GHC version " ++
-      showVersion fullCompilerVersion ++ "."
+      " but you are using GHC version " ++ showVersion compilerVersion ++ "."
     fromVersion :: String -> Maybe Version
     fromVersion s
       | (_, _, _, [x, y, z]) <-
@@ -206,3 +206,16 @@ markdoneSpec = do
             "This is a heading"
             [PlainText "This is plain text\nsplit across two lines."]
         ]
+
+-- | Returns the version of the compiler used to build this program.
+--
+-- This function is a wrapper for `compilerVersion` and
+-- `fullCompilerVersion` defined in `System.info`. If the `base` package
+-- 4.15.0.0 or later is used, the latter function is defined and hence the
+-- value is returned, otherwise the former value is returned.
+compilerVersion :: Version
+#if MIN_VERSION_base(4,15,0)
+compilerVersion = System.Info.fullCompilerVersion
+#else
+compilerVersion = System.Info.compilerVersion
+#endif
