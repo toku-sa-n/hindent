@@ -4,7 +4,6 @@ module HIndent.Pretty.Combinators.Wrap
   , parensIfSymbol
   , bananaBrackets
   , braces
-  , singleQuotes
   , doubleQuotes
   , brackets
   , typedBrackets
@@ -47,10 +46,6 @@ brackets = wrap "[" "]"
 -- | Wraps with @[|| @ and @ ||]@.
 typedBrackets :: Printer a -> Printer a
 typedBrackets = wrap "[|| " " ||]"
-
--- | Wraps with single quotes.
-singleQuotes :: Printer a -> Printer a
-singleQuotes = wrap "'" "'"
 
 -- | Wraps with double quotes.
 doubleQuotes :: Printer a -> Printer a
