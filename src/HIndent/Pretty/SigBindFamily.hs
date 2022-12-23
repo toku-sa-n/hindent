@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
--- | A module defining 'SigMethodFamily' and other related types and
+-- | A module defining 'SigBindFamily' and other related types and
 -- functions.
 module HIndent.Pretty.SigBindFamily
   ( SigBindFamily(..)
