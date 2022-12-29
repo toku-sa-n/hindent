@@ -137,7 +137,7 @@ codeBlocksSpec :: Spec
 codeBlocksSpec =
   describe "splitting source into code blocks" $ do
     it "should put just Haskell code in its own block" $ do
-      let input = "this is totally haskell code\n\nit deserves its own block!\n"
+      let input = "this is totally haskell code\n\nit deserves its own block!"
       cppSplitBlocks input `shouldBe` [HaskellSource 0 input]
     it "should put #if/#endif and Haskell code into separate blocks" $ do
       cppSplitBlocks
@@ -146,19 +146,19 @@ codeBlocksSpec =
         , CPPDirectives "#if DEBUG"
         , HaskellSource 2 "debug code"
         , CPPDirectives "#endif"
-        , HaskellSource 4 "more haskell code\n"
+        , HaskellSource 4 "more haskell code"
         ]
     it "should put the shebang line into its own block" $ do
       cppSplitBlocks
         "#!/usr/bin/env runhaskell\n{-# LANGUAGE OverloadedStrings #-}\n" `shouldBe`
         [ Shebang "#!/usr/bin/env runhaskell"
-        , HaskellSource 1 "{-# LANGUAGE OverloadedStrings #-}\n"
+        , HaskellSource 1 "{-# LANGUAGE OverloadedStrings #-}"
         ]
     it "should put a multi-line #define into its own block" $ do
       let input = "#define A \\\n  macro contents \\\n  go here\nhaskell code\n"
       cppSplitBlocks input `shouldBe`
         [ CPPDirectives "#define A \\\n  macro contents \\\n  go here"
-        , HaskellSource 3 "haskell code\n"
+        , HaskellSource 3 "haskell code"
         ]
     it "should put an unterminated multi-line #define into its own block" $ do
       cppSplitBlocks "#define A \\" `shouldBe` [CPPDirectives "#define A \\"]

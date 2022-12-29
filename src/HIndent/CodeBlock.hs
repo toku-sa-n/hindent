@@ -30,10 +30,7 @@ data CodeBlock
 --
 -- will become five blocks, one for each CPP line and one for each pair of declarations.
 cppSplitBlocks :: ByteString -> [CodeBlock]
-cppSplitBlocks inp =
-  modifyLast (inBlock (<> trailing)) .
-  groupLines . classifyLines . zip [0 ..] . S8.lines $
-  inp
+cppSplitBlocks = groupLines . classifyLines . zip [0 ..] . S8.lines
   where
     groupLines :: [CodeBlock] -> [CodeBlock]
     groupLines (line1:line2:remainingLines) =
@@ -86,18 +83,3 @@ cppSplitBlocks inp =
          in (line : cppLines, nextLines')
       | otherwise = ([line], nextLines)
     spanCPPLines [] = ([], [])
-    -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
-    -- need to have a newline following them in order to parse properly, so we include
-    -- the trailing newline in the code block if it existed.
-    trailing :: ByteString
-    trailing =
-      if S8.isSuffixOf "\n" inp
-        then "\n"
-        else ""
-    modifyLast :: (a -> a) -> [a] -> [a]
-    modifyLast _ [] = []
-    modifyLast f [x] = [f x]
-    modifyLast f (x:xs) = x : modifyLast f xs
-    inBlock :: (ByteString -> ByteString) -> CodeBlock -> CodeBlock
-    inBlock f (HaskellSource line txt) = HaskellSource line (f txt)
-    inBlock _ dir = dir
