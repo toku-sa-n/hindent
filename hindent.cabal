@@ -72,6 +72,7 @@ library
       HIndent.Pretty.SigBindFamily
       HIndent.Pretty.Types
       HIndent.Printer
+      HIndent.Reformat
       Paths_hindent
   autogen-modules:
       Paths_hindent
