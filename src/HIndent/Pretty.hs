@@ -126,7 +126,7 @@ class CommentExtraction a =>
 -- comments are present in the source code. See
 -- https://github.com/mihaimaruseac/hindent/issues/586#issuecomment-1374992624.
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
-instance Pretty (Ast GhcPs) where
+instance Pretty Ast where
   pretty' m@HsModule {hsmodName = Nothing, hsmodImports = [], hsmodDecls = []}
     | not (pragmaExists m) = pure ()
   pretty' m = blanklined printers >> newline
