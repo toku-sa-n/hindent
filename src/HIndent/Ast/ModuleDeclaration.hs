@@ -13,15 +13,10 @@ import           HIndent.Ast.WithComments
 import           HIndent.Pretty.Combinators.Outputable
 import           HIndent.Pretty.NodeComments
 import           HIndent.Pretty.Types
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-type HsModule' = GHC.HsModule GHC.GhcPs
-#else
-type HsModule' = GHC.HsModule
-#endif
+
 data ModuleDeclaration = ModuleDeclaration
   { name    :: WithComments String
   , exports :: Maybe [Export]
-  , module' :: HsModule'
   }
 
 instance CommentExtraction ModuleDeclaration where
@@ -31,7 +26,7 @@ mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> Maybe ModuleDeclaration
 #else
 mkModuleDeclaration :: GHC.HsModule -> Maybe ModuleDeclaration
 #endif
-mkModuleDeclaration m@GHC.HsModule {..} =
+mkModuleDeclaration GHC.HsModule {..} =
   case hsmodName of
     Nothing -> Nothing
     Just name ->
@@ -41,5 +36,4 @@ mkModuleDeclaration m@GHC.HsModule {..} =
               WithComments
                 {comments = NodeComments [] [] [], node = showOutputable name}
           , exports = Nothing
-          , module' = m
           }
