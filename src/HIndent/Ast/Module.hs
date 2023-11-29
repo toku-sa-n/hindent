@@ -18,6 +18,7 @@ import qualified GHC.Hs                        as GHC
 import           GHC.Types.SrcLoc
 import           HIndent.Applicative
 import           HIndent.Ast.ModuleDeclaration
+import           HIndent.Ast.Pragma
 import           HIndent.Ast.WithComments
 import           HIndent.Config
 import           HIndent.Pretty
@@ -37,7 +38,8 @@ type HsModule' = HsModule GHC.GhcPs
 type HsModule' = HsModule
 #endif
 data Module = Module
-  { declaration :: Maybe ModuleDeclaration
+  { pragmas     :: [Pragma]
+  , declaration :: Maybe ModuleDeclaration
   , module'     :: HsModule'
   }
 
@@ -163,7 +165,8 @@ mkModule :: HsModule' -> WithComments Module
 mkModule m =
   WithComments
     { comments = epas m
-    , node = Module {declaration = mkModuleDeclaration m, module' = m}
+    , node =
+        Module {pragmas = [], declaration = mkModuleDeclaration m, module' = m}
     }
   where
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
