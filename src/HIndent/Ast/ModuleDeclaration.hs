@@ -8,6 +8,7 @@ module HIndent.Ast.ModuleDeclaration
   ) where
 
 import qualified GHC.Hs                                as GHC
+import           HIndent.Ast.Export
 import           HIndent.Ast.WithComments
 import           HIndent.Pretty.Combinators.Outputable
 import           HIndent.Pretty.NodeComments
@@ -19,6 +20,7 @@ type HsModule' = GHC.HsModule
 #endif
 data ModuleDeclaration = ModuleDeclaration
   { name    :: WithComments String
+  , exports :: Maybe [Export]
   , module' :: HsModule'
   }
 
@@ -38,5 +40,6 @@ mkModuleDeclaration m@GHC.HsModule {..} =
           { name =
               WithComments
                 {comments = NodeComments [] [] [], node = showOutputable name}
+          , exports = Nothing
           , module' = m
           }
