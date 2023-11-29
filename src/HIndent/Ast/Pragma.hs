@@ -5,6 +5,7 @@
 module HIndent.Ast.Pragma
   ( Pragma
   , mkPragmas
+  , isPragma
   ) where
 
 import           Data.Bifunctor
@@ -19,6 +20,7 @@ import           HIndent.Pretty
 import           HIndent.Pretty.Combinators.String
 import           HIndent.Pretty.NodeComments
 import           HIndent.Pretty.Types
+import           Text.Regex.TDFA
 
 newtype Pragma =
   Pragma String
@@ -33,9 +35,9 @@ type HsModule' = HsModule GhcPs
 #else
 type HsModule' = HsModule
 #endif
-mkPragmas :: HsModule' -> [String]
+mkPragmas :: HsModule' -> [Pragma]
 mkPragmas =
-  fmap (uncurry constructPragma) .
+  fmap (Pragma . uncurry constructPragma) .
   mapMaybe extractPragma . listify isBlockComment . getModuleAnn
 
 -- | This function returns a 'Just' value with the pragma
@@ -57,6 +59,12 @@ constructPragma optionOrPragma xs =
 isBlockComment :: EpaCommentTok -> Bool
 isBlockComment EpaBlockComment {} = True
 isBlockComment _                  = False
+
+-- | This function returns a 'True' if the passed 'EpaCommentTok' is
+-- a pragma. Otherwise, it returns a 'False'.
+isPragma :: EpaCommentTok -> Bool
+isPragma (EpaBlockComment c) = match pragmaRegex c
+isPragma _                   = False
 
 getModuleAnn :: HsModule' -> EpAnn AnnsModule
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)

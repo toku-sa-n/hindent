@@ -25,7 +25,6 @@ import           HIndent.Pretty
 import           HIndent.Pretty.Combinators
 import           HIndent.Pretty.Import
 import           HIndent.Pretty.NodeComments
-import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.Types
 import           HIndent.Printer
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
@@ -104,15 +103,15 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #else
 instance Pretty Module where
-  pretty' (Module { declaration = Nothing
-                  , module' = m@HsModule {hsmodImports = [], hsmodDecls = []}
-                  })
+  pretty' (m@Module { declaration = Nothing
+                    , module' = HsModule {hsmodImports = [], hsmodDecls = []}
+                    })
     | not (pragmaExists m) = pure ()
-  pretty' (Module {module' = m}) = blanklined printers >> newline
+  pretty' (mo@Module {module' = m}) = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
-        [ (pragmaExists m, prettyPragmas m)
+        [ (pragmaExists mo, prettyPragmas mo)
         , (moduleDeclExists m, prettyModuleDecl m)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
@@ -166,7 +165,11 @@ mkModule m =
   WithComments
     { comments = epas m
     , node =
-        Module {pragmas = [], declaration = mkModuleDeclaration m, module' = m}
+        Module
+          { pragmas = mkPragmas m
+          , declaration = mkModuleDeclaration m
+          , module' = m
+          }
     }
   where
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
@@ -241,3 +244,9 @@ printCommentsAfter p =
         let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
         indentedWithFixedLevel col $ pretty c
         eolCommentsArePrinted
+
+pragmaExists :: Module -> Bool
+pragmaExists = not . null . pragmas
+
+prettyPragmas :: Module -> Printer ()
+prettyPragmas = lined . fmap pretty . pragmas
