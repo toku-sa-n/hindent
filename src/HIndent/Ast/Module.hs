@@ -13,10 +13,11 @@ module HIndent.Ast.Module
 import           Control.Monad
 import           Control.Monad.RWS
 import           Data.Maybe
-import           GHC.Hs                      hiding (comments)
-import qualified GHC.Hs                      as GHC
+import           GHC.Hs                        hiding (comments)
+import qualified GHC.Hs                        as GHC
 import           GHC.Types.SrcLoc
 import           HIndent.Applicative
+import           HIndent.Ast.ModuleDeclaration
 import           HIndent.Ast.WithComments
 import           HIndent.Config
 import           HIndent.Pretty
@@ -36,8 +37,8 @@ type HsModule' = HsModule GHC.GhcPs
 type HsModule' = HsModule
 #endif
 data Module = Module
-  { name    :: Maybe (WithComments String)
-  , module' :: HsModule'
+  { declaration :: Maybe ModuleDeclaration
+  , module'     :: HsModule'
   }
 
 instance CommentExtraction Module where
@@ -101,7 +102,7 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #else
 instance Pretty Module where
-  pretty' (Module { name = Nothing
+  pretty' (Module { declaration = Nothing
                   , module' = m@HsModule {hsmodImports = [], hsmodDecls = []}
                   })
     | not (pragmaExists m) = pure ()
@@ -159,14 +160,12 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #endif
 mkModule :: HsModule' -> WithComments Module
-mkModule m = WithComments {comments = epas m, node = Module {name, module' = m}}
+mkModule m =
+  WithComments
+    { comments = epas m
+    , node = Module {declaration = mkModuleDeclaration m, module' = m}
+    }
   where
-    name =
-      fmap
-        (\x ->
-           WithComments
-             {comments = NodeComments [] [] [], node = showOutputable x}) $ -- TODO
-      hsmodName m
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
       where
         filterOutEofAndPragmasFromAnn EpAnn {..} =
