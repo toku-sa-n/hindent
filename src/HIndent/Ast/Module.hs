@@ -165,7 +165,7 @@ mkModule m = WithComments {comments = epas m, node = Module {name, module' = m}}
       fmap
         (\x ->
            WithComments
-             {comments = NodeComments [] [] [], node = showOutputable x}) $
+             {comments = NodeComments [] [] [], node = showOutputable x}) $ -- TODO
       hsmodName m
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
       where
