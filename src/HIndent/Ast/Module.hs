@@ -1,27 +1,61 @@
 -- | Module type.
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module
   ( Module(..)
   , mkModule
-  , pragmaExists
   ) where
 
-import qualified GHC.Hs                as GHC
-import qualified HIndent.Pretty.Pragma as Pretty
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-newtype Module =
-  Module (GHC.HsModule GHC.GhcPs)
-#else
-newtype Module =
-  Module GHC.HsModule
+import           GHC.Hs                   hiding (comments)
+import qualified GHC.Hs                   as GHC
+import           GHC.Types.SrcLoc
+import           HIndent.Ast.WithComments
+import           HIndent.Pretty.Pragma
+import           HIndent.Pretty.Types
+#if MIN_VERSION_ghc_lib_parser(9,6,1)
+import           GHC.Core.DataCon
 #endif
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkModule :: GHC.HsModule GHC.GhcPs -> Module
-#else
-mkModule :: GHC.HsModule -> Module
-#endif
-mkModule = Module
 
-pragmaExists :: Module -> Bool
-pragmaExists (Module m) = Pretty.pragmaExists m
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+type HsModule' = HsModule GHC.GhcPs
+#else
+type HsModule' = HsModule
+#endif
+newtype Module =
+  Module HsModule'
+
+mkModule :: HsModule' -> WithComments Module
+mkModule m = WithComments {comments = epas m, node = Module m}
+  where
+    epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
+      where
+        filterOutEofAndPragmasFromAnn EpAnn {..} =
+          EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
+        filterOutEofAndPragmasFromAnn EpAnnNotUsed = EpAnnNotUsed
+        filterOutEofAndPragmasFromComments comments =
+          EpaCommentsBalanced
+            { priorComments = filterOutEofAndPragmas $ priorComments comments
+            , followingComments =
+                filterOutEofAndPragmas $ getFollowingComments comments
+            }
+        filterOutEofAndPragmas = filter isNeitherEofNorPragmaComment
+        isNeitherEofNorPragmaComment (L _ (EpaComment EpaEofComment _)) = False
+        isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) =
+          not $ isPragma tok
+
+getAnn :: HsModule' -> EpAnn GHC.AnnsModule
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+getAnn = hsmodAnn . hsmodExt
+#else
+getAnn = hsmodAnn
+#endif
+epaComments :: EpAnn a -> NodeComments
+epaComments (EpAnn ann _ cs) = NodeComments {..}
+  where
+    commentsBefore = priorComments cs
+    commentsOnSameLine = filter isCommentOnSameLine $ getFollowingComments cs
+    commentsAfter = filter (not . isCommentOnSameLine) $ getFollowingComments cs
+    isCommentOnSameLine (L comAnn _) =
+      srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
+epaComments EpAnnNotUsed = NodeComments [] [] []

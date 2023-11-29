@@ -39,7 +39,7 @@ import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
 import           GHC.Unit.Module.Warnings
 import           HIndent.Applicative
-import           HIndent.Ast                                 (Module (..))
+import           HIndent.Ast                                 hiding (comments)
 import           HIndent.Config
 import           HIndent.Fixity
 import           HIndent.Pretty.Combinators
@@ -247,6 +247,9 @@ instance Pretty Module where
 #endif
 instance (CommentExtraction l, Pretty e) => Pretty (GenLocated l e) where
   pretty' (L _ e) = pretty e
+
+instance (Pretty a) => Pretty (WithComments a) where
+  pretty' (WithComments {..}) = pretty' node
 
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d)      = pretty d
