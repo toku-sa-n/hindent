@@ -20,8 +20,7 @@ import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
-import           HIndent.Ast                  hiding (comments)
-import qualified HIndent.Ast                  as Ast
+import qualified HIndent.Ast.WithComments     as Ast
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
 import           HIndent.Pretty.Types
@@ -68,13 +67,10 @@ instance CommentExtraction HsModule where
       isNeitherEofNorPragmaComment (L _ (EpaComment EpaEofComment _)) = False
       isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) = not $ isPragma tok
 #endif
-instance CommentExtraction Module where
-  nodeComments (Module {..}) = nodeComments module'
-
 instance CommentExtraction l => CommentExtraction (GenLocated l e) where
   nodeComments (L l _) = nodeComments l
 
-instance CommentExtraction (WithComments a) where
+instance CommentExtraction (Ast.WithComments a) where
   nodeComments = Ast.comments
 
 instance CommentExtraction (HsDecl GhcPs) where
