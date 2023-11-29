@@ -8,10 +8,11 @@ module HIndent.Ast.Module
   , mkModule
   ) where
 
-import           GHC.Hs                   hiding (comments)
-import qualified GHC.Hs                   as GHC
+import           GHC.Hs                                hiding (comments)
+import qualified GHC.Hs                                as GHC
 import           GHC.Types.SrcLoc
 import           HIndent.Ast.WithComments
+import           HIndent.Pretty.Combinators.Outputable
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.Types
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
@@ -29,9 +30,14 @@ data Module = Module
   }
 
 mkModule :: HsModule' -> WithComments Module
-mkModule m =
-  WithComments {comments = epas m, node = Module {name = Nothing, module' = m}}
+mkModule m = WithComments {comments = epas m, node = Module {name, module' = m}}
   where
+    name =
+      fmap
+        (\x ->
+           WithComments
+             {comments = NodeComments [] [] [], node = showOutputable x}) $
+      hsmodName m
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
       where
         filterOutEofAndPragmasFromAnn EpAnn {..} =
