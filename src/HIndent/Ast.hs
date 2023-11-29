@@ -7,12 +7,7 @@
 {-# LANGUAGE CPP #-}
 
 module HIndent.Ast
-  ( Ast
+  ( module HIndent.Ast.Module
   ) where
 
-import qualified GHC.Hs as GHC
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-type Ast = GHC.HsModule GHC.GhcPs
-#else
-type Ast = GHC.HsModule
-#endif
+import           HIndent.Ast.Module

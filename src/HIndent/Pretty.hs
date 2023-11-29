@@ -56,7 +56,7 @@ import qualified Data.Foldable                               as NonEmpty
 import           GHC.Core.DataCon
 #endif
 #if !MIN_VERSION_ghc_lib_parser(9,6,1)
-import           GHC.Unit
+import           GHC.Unit hiding (Module)
 #endif
 #if MIN_VERSION_ghc_lib_parser(9,4,1)
 import           GHC.Types.PkgQual
@@ -126,7 +126,7 @@ class CommentExtraction a =>
 -- comments are present in the source code. See
 -- https://github.com/mihaimaruseac/hindent/issues/586#issuecomment-1374992624.
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
-instance Pretty Ast where
+instance Pretty Module where
   pretty' m@HsModule {hsmodName = Nothing, hsmodImports = [], hsmodDecls = []}
     | not (pragmaExists m) = pure ()
   pretty' m = blanklined printers >> newline
@@ -183,7 +183,7 @@ instance Pretty Ast where
           True  -> pure $ extractImportsSorted m
           False -> pure $ extractImports m
 #else
-instance Pretty Ast where
+instance Pretty Module where
   pretty' m@HsModule {hsmodName = Nothing, hsmodImports = [], hsmodDecls = []}
     | not (pragmaExists m) = pure ()
   pretty' m = blanklined printers >> newline
