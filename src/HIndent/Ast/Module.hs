@@ -101,10 +101,9 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #else
 instance Pretty Module where
-  pretty' (Module {module' = m@HsModule { hsmodName = Nothing
-                                        , hsmodImports = []
-                                        , hsmodDecls = []
-                                        }})
+  pretty' (Module { name = Nothing
+                  , module' = m@HsModule {hsmodImports = [], hsmodDecls = []}
+                  })
     | not (pragmaExists m) = pure ()
   pretty' (Module {module' = m}) = blanklined printers >> newline
     where
