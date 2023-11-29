@@ -44,64 +44,7 @@ data Module = Module
 
 instance CommentExtraction Module where
   nodeComments (Module {..}) = nodeComments module'
-#if MIN_VERSION_ghc_lib_parser(9,6,1)
-instance Pretty Module where
-  pretty' (m@Module {module' = HsModule {hsmodImports = [], hsmodDecls = []}})
-    | not (pragmaExists m) = pure ()
-  pretty' (mo@Module {module' = m}) = blanklined printers >> newline
-    where
-      printers = snd <$> filter fst pairs
-      pairs =
-        [ (pragmaExists mo, prettyPragmas mo)
-        , (moduleDeclExists m, prettyModuleDecl m)
-        , (importsExist m, prettyImports)
-        , (declsExist m, prettyDecls)
-        ]
-      prettyModuleDecl :: HsModule GhcPs -> Printer ()
-      prettyModuleDecl HsModule {hsmodName = Nothing} =
-        error "The module declaration does not exist."
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Nothing
-                                , hsmodExt = XModulePs {..}
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        string " where"
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Just exports
-                                , hsmodExt = XModulePs {..}
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        newline
-        indentedBlock $ do
-          printCommentsAnd exports (vTuple . fmap pretty)
-          string " where"
-      moduleDeclExists HsModule {hsmodName = Nothing} = False
-      moduleDeclExists _                              = True
-      prettyDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
-        addDeclSeparator $ hsmodDecls m
-      addDeclSeparator [] = []
-      addDeclSeparator [x] = [(x, Nothing)]
-      addDeclSeparator (x:xs) =
-        (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
-      declSeparator (SigD _ TypeSig {})   = newline
-      declSeparator (SigD _ InlineSig {}) = newline
-      declSeparator (SigD _ PatSynSig {}) = newline
-      declSeparator _                     = blankline
-      declsExist = not . null . hsmodDecls
-      prettyImports = importDecls >>= blanklined . fmap outputImportGroup
-      outputImportGroup = lined . fmap pretty
-      importDecls =
-        gets (configSortImports . psConfig) >>= \case
-          True  -> pure $ extractImportsSorted m
-          False -> pure $ extractImports m
-#else
+
 instance Pretty Module where
   pretty' (m@Module { declaration = Nothing
                     , module' = HsModule {hsmodImports = [], hsmodDecls = []}
@@ -159,7 +102,7 @@ instance Pretty Module where
         gets (configSortImports . psConfig) >>= \case
           True  -> pure $ extractImportsSorted m
           False -> pure $ extractImports m
-#endif
+
 mkModule :: HsModule' -> WithComments Module
 mkModule m =
   WithComments
