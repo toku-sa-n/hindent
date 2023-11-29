@@ -20,7 +20,8 @@ import           GHC.Types.Name
 import           GHC.Types.Name.Reader
 import           GHC.Types.SourceText
 import           GHC.Types.SrcLoc
-import           HIndent.Ast                  (Module (..))
+import           HIndent.Ast                  hiding (comments)
+import qualified HIndent.Ast                  as Ast
 import           HIndent.Pretty.Pragma
 import           HIndent.Pretty.SigBindFamily
 import           HIndent.Pretty.Types
@@ -72,6 +73,9 @@ instance CommentExtraction Module where
 
 instance CommentExtraction l => CommentExtraction (GenLocated l e) where
   nodeComments (L l _) = nodeComments l
+
+instance CommentExtraction (WithComments a) where
+  nodeComments = Ast.comments
 
 instance CommentExtraction (HsDecl GhcPs) where
   nodeComments TyClD {} = emptyNodeComments

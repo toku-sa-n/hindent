@@ -8,6 +8,8 @@
 
 module HIndent.Ast
   ( module HIndent.Ast.Module
+  , module HIndent.Ast.WithComments
   ) where
 
 import           HIndent.Ast.Module
+import           HIndent.Ast.WithComments
