@@ -69,7 +69,7 @@ instance CommentExtraction HsModule where
       isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) = not $ isPragma tok
 #endif
 instance CommentExtraction Module where
-  nodeComments (Module m) = nodeComments m
+  nodeComments (Module {..}) = nodeComments module'
 
 instance CommentExtraction l => CommentExtraction (GenLocated l e) where
   nodeComments (L l _) = nodeComments l

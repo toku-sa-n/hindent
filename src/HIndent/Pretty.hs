@@ -187,12 +187,12 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #else
 instance Pretty Module where
-  pretty' (Module (m@HsModule { hsmodName = Nothing
-                              , hsmodImports = []
-                              , hsmodDecls = []
-                              }))
+  pretty' (Module {module' = m@HsModule { hsmodName = Nothing
+                                        , hsmodImports = []
+                                        , hsmodDecls = []
+                                        }})
     | not (pragmaExists m) = pure ()
-  pretty' (Module m) = blanklined printers >> newline
+  pretty' (Module {module' = m}) = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =

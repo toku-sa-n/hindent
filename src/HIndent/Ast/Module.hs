@@ -1,5 +1,6 @@
 -- | Module type.
 {-# LANGUAGE CPP             #-}
+{-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module
@@ -22,11 +23,14 @@ type HsModule' = HsModule GHC.GhcPs
 #else
 type HsModule' = HsModule
 #endif
-newtype Module =
-  Module HsModule'
+data Module = Module
+  { name    :: Maybe (WithComments String)
+  , module' :: HsModule'
+  }
 
 mkModule :: HsModule' -> WithComments Module
-mkModule m = WithComments {comments = epas m, node = Module m}
+mkModule m =
+  WithComments {comments = epas m, node = Module {name = Nothing, module' = m}}
   where
     epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
       where
