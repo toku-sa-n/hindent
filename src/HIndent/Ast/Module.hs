@@ -46,13 +46,13 @@ instance CommentExtraction Module where
   nodeComments (Module {..}) = nodeComments module'
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
 instance Pretty Module where
-  pretty' Module {module' = m@HsModule {hsmodImports = [], hsmodDecls = []}}
+  pretty' (m@Module {module' = HsModule {hsmodImports = [], hsmodDecls = []}})
     | not (pragmaExists m) = pure ()
-  pretty' Module m = blanklined printers >> newline
+  pretty' (mo@Module {module' = m}) = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
-        [ (pragmaExists m, prettyPragmas m)
+        [ (pragmaExists mo, prettyPragmas mo)
         , (moduleDeclExists m, prettyModuleDecl m)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)

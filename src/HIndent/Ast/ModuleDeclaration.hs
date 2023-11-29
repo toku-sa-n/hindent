@@ -25,7 +25,7 @@ data ModuleDeclaration = ModuleDeclaration
 instance CommentExtraction ModuleDeclaration where
   nodeComments ModuleDeclaration {} = NodeComments [] [] []
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> ModuleDeclaration
+mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> Maybe ModuleDeclaration
 #else
 mkModuleDeclaration :: GHC.HsModule -> Maybe ModuleDeclaration
 #endif
