@@ -13,8 +13,9 @@ import           HIndent.Pretty.Combinators.Outputable
 import           HIndent.Pretty.NodeComments
 import           HIndent.Pretty.Types
 
-newtype ModuleDeclaration = ModuleDeclaration
-  { name :: WithComments String
+data ModuleDeclaration = ModuleDeclaration
+  { name    :: WithComments String
+  , exports :: Maybe ()
   }
 
 instance CommentExtraction ModuleDeclaration where
@@ -33,4 +34,5 @@ mkModuleDeclaration GHC.HsModule {..} =
           { name =
               WithComments
                 {comments = NodeComments [] [] [], node = showOutputable name}
+          , exports = Nothing
           }
