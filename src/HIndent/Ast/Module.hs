@@ -44,10 +44,7 @@ instance CommentExtraction Module where
   nodeComments (Module {..}) = nodeComments module'
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
 instance Pretty Module where
-  pretty' Module (m@HsModule { hsmodName = Nothing
-                             , hsmodImports = []
-                             , hsmodDecls = []
-                             })
+  pretty' Module {module' = m@HsModule {hsmodImports = [], hsmodDecls = []}}
     | not (pragmaExists m) = pure ()
   pretty' Module m = blanklined printers >> newline
     where
