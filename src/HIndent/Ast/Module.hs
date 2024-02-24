@@ -54,7 +54,7 @@ instance Pretty Module where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists mo, prettyPragmas mo)
-        , (moduleDeclExists m, prettyModuleDecl m)
+        , (moduleDeclExists mo, prettyModuleDecl m)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
         ]
@@ -81,8 +81,7 @@ instance Pretty Module where
         indentedBlock $ do
           printCommentsAnd exports (vTuple . fmap pretty)
           string " where"
-      moduleDeclExists HsModule {hsmodName = Nothing} = False
-      moduleDeclExists _                              = True
+      moduleDeclExists = isJust . declaration
       prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
         addDeclSeparator $ hsmodDecls m
