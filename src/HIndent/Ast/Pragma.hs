@@ -1,6 +1,5 @@
 -- | Pragma AST.
-{-# LANGUAGE CPP             #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module HIndent.Ast.Pragma
   ( Pragma

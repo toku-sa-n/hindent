@@ -1,7 +1,6 @@
 -- | Module type.
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns    #-}
 
@@ -46,11 +45,11 @@ instance CommentExtraction Module where
   nodeComments (Module {..}) = nodeComments module'
 
 instance Pretty Module where
-  pretty' (m@Module { declaration = Nothing
-                    , module' = HsModule {hsmodImports = [], hsmodDecls = []}
-                    })
+  pretty' m@Module { declaration = Nothing
+                   , module' = HsModule {hsmodImports = [], hsmodDecls = []}
+                   }
     | not (pragmaExists m) = pure ()
-  pretty' (mo@Module {module' = m}) = blanklined printers >> newline
+  pretty' mo@Module {module' = m} = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =

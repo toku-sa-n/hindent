@@ -1,6 +1,5 @@
 -- | AST for an element of an export list.
-{-# LANGUAGE CPP             #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module HIndent.Ast.Export
   ( Export
