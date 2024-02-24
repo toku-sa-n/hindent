@@ -6,7 +6,7 @@
 -- We define new types to pretty-print AST nodes rather than define
 -- functions to print comments easily using the 'Pretty' implementation of
 -- 'GenLocated'.
-module HIndent.Pretty.Types
+module HIndent.Pretty.Module
   ( InfixExpr(..)
   , InfixOp(..)
   , PrefixOp(..)
