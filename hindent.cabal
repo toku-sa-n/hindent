@@ -41,6 +41,7 @@ library
       HIndent.Ast.ExportGroup
       HIndent.Ast.Module
       HIndent.Ast.Module.Declaration
+      HIndent.Ast.Module.Name
       HIndent.Ast.Module.WarningOrDeprecated
       HIndent.Ast.Pragma
       HIndent.Ast.WithComments
