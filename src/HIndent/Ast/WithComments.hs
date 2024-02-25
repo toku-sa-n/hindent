@@ -7,15 +7,16 @@ module HIndent.Ast.WithComments
   , mkWithCommentsWithEpAnn
   ) where
 
-import           GHC.Hs
-import           GHC.Types.SrcLoc
-import           HIndent.Pretty
-import           HIndent.Pretty.NodeComments
-import           HIndent.Pretty.Types
+import GHC.Hs
+import GHC.Types.SrcLoc
+import HIndent.Ast.Pragma
+import HIndent.Pretty
+import HIndent.Pretty.NodeComments
+import HIndent.Pretty.Types
 
 data WithComments a = WithComments
   { comments :: NodeComments
-  , node     :: a
+  , node :: a
   }
 
 instance CommentExtraction (WithComments a) where
@@ -29,7 +30,8 @@ mkWithComments :: a -> WithComments a
 mkWithComments = WithComments (NodeComments [] [] [])
 
 mkWithCommentsWithEpAnn :: EpAnn a -> b -> WithComments b
-mkWithCommentsWithEpAnn ann = WithComments (epaComments ann)
+mkWithCommentsWithEpAnn ann =
+  WithComments (epaComments $ filterOutEofAndPragmasFromAnn ann)
 
 epaComments :: EpAnn a -> NodeComments
 epaComments (EpAnn ann _ cs) = NodeComments {..}
@@ -40,3 +42,22 @@ epaComments (EpAnn ann _ cs) = NodeComments {..}
     isCommentOnSameLine (L comAnn _) =
       srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
 epaComments EpAnnNotUsed = NodeComments [] [] []
+
+filterOutEofAndPragmasFromAnn :: EpAnn ann -> EpAnn ann
+filterOutEofAndPragmasFromAnn EpAnn {..} =
+  EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
+filterOutEofAndPragmasFromAnn EpAnnNotUsed = EpAnnNotUsed
+
+filterOutEofAndPragmasFromComments :: EpAnnComments -> EpAnnComments
+filterOutEofAndPragmasFromComments comments =
+  EpaCommentsBalanced
+    { priorComments = filterOutEofAndPragmas $ priorComments comments
+    , followingComments = filterOutEofAndPragmas $ getFollowingComments comments
+    }
+
+filterOutEofAndPragmas :: [GenLocated l EpaComment] -> [GenLocated l EpaComment]
+filterOutEofAndPragmas = filter isNeitherEofNorPragmaComment
+
+isNeitherEofNorPragmaComment :: GenLocated l EpaComment -> Bool
+isNeitherEofNorPragmaComment (L _ (EpaComment EpaEofComment _)) = False
+isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) = not $ isPragma tok

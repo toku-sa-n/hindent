@@ -165,26 +165,12 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #endif
 mkModule :: HsModule' -> WithComments Module
-mkModule m = mkWithCommentsWithEpAnn epas Module {..}
+mkModule m = mkWithCommentsWithEpAnn ann Module {..}
   where
+    ann = getAnn m
     declaration = mkModuleDeclaration m
     pragmas = mkPragmas m
     module' = m
-    epas = filterOutEofAndPragmasFromAnn $ getAnn m
-      where
-        filterOutEofAndPragmasFromAnn EpAnn {..} =
-          EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
-        filterOutEofAndPragmasFromAnn EpAnnNotUsed = EpAnnNotUsed
-        filterOutEofAndPragmasFromComments comments =
-          EpaCommentsBalanced
-            { priorComments = filterOutEofAndPragmas $ priorComments comments
-            , followingComments =
-                filterOutEofAndPragmas $ getFollowingComments comments
-            }
-        filterOutEofAndPragmas = filter isNeitherEofNorPragmaComment
-        isNeitherEofNorPragmaComment (L _ (EpaComment EpaEofComment _)) = False
-        isNeitherEofNorPragmaComment (L _ (EpaComment tok _)) =
-          not $ isPragma tok
 
 getAnn :: HsModule' -> EpAnn GHC.AnnsModule
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
