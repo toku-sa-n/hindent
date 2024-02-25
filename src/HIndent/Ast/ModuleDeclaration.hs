@@ -10,6 +10,8 @@ module HIndent.Ast.ModuleDeclaration
 import Control.Monad
 import qualified GHC.Hs as GHC
 import HIndent.Ast.ExportGroup
+import HIndent.Ast.ModuleWarning
+import HIndent.Ast.WithComments
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
@@ -17,6 +19,7 @@ import HIndent.Pretty.Types
 
 data ModuleDeclaration = ModuleDeclaration
   { name :: String
+  , warning :: Maybe (WithComments ModuleWarning)
   , exports :: ExportGroup
   }
 
@@ -42,4 +45,7 @@ mkModuleDeclaration m@GHC.HsModule {..} =
     Just name ->
       Just
         ModuleDeclaration
-          {name = showOutputable name, exports = mkExportGroup m}
+          { name = showOutputable name
+          , warning = mkModuleWarning m
+          , exports = mkExportGroup m
+          }

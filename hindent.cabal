@@ -41,6 +41,7 @@ library
       HIndent.Ast.ExportGroup
       HIndent.Ast.Module
       HIndent.Ast.ModuleDeclaration
+      HIndent.Ast.ModuleWarning
       HIndent.Ast.Pragma
       HIndent.Ast.WithComments
       HIndent.ByteString
