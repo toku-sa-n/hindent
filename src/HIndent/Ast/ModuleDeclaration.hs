@@ -7,6 +7,7 @@ module HIndent.Ast.ModuleDeclaration
   , mkModuleDeclaration
   ) where
 
+import Control.Monad
 import qualified GHC.Hs as GHC
 import HIndent.Ast.ExportGroup
 import HIndent.Pretty
@@ -26,9 +27,10 @@ instance Pretty ModuleDeclaration where
   pretty' ModuleDeclaration {..} = do
     string "module "
     string name
-    newline
-    pretty' exports
-    string "where"
+    when (hasExportList exports) $ do
+      newline
+      indentedBlock $ pretty exports
+    string " where"
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> Maybe ModuleDeclaration
 #else

@@ -4,6 +4,7 @@
 module HIndent.Ast.ExportGroup
   ( ExportGroup
   , mkExportGroup
+  , hasExportList
   ) where
 
 import GHC.Hs
@@ -37,3 +38,7 @@ mkExportGroup HsModule {..} =
     Nothing -> ExportAll
     Just (L _ exports) ->
       ExportList $ fmap (fmap mkExport . mkWithCommentsWithGenLocated) exports
+
+hasExportList :: ExportGroup -> Bool
+hasExportList ExportAll = False
+hasExportList (ExportList _) = True
