@@ -1,5 +1,5 @@
 -- | Module declaration AST.
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.ModuleDeclaration
@@ -7,16 +7,16 @@ module HIndent.Ast.ModuleDeclaration
   , mkModuleDeclaration
   ) where
 
-import qualified GHC.Hs as GHC
-import HIndent.Ast.Export
-import HIndent.Ast.WithComments
-import HIndent.Pretty.Combinators.Outputable
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
+import qualified GHC.Hs                                as GHC
+import           HIndent.Ast.ExportGroup
+import           HIndent.Ast.WithComments
+import           HIndent.Pretty.Combinators.Outputable
+import           HIndent.Pretty.NodeComments
+import           HIndent.Pretty.Types
 
 data ModuleDeclaration = ModuleDeclaration
-  { name :: WithComments String
-  , exports :: Maybe [Export]
+  { name    :: WithComments String
+  , exports :: ExportGroup
   }
 
 instance CommentExtraction ModuleDeclaration where
@@ -26,7 +26,7 @@ mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> Maybe ModuleDeclaration
 #else
 mkModuleDeclaration :: GHC.HsModule -> Maybe ModuleDeclaration
 #endif
-mkModuleDeclaration GHC.HsModule {..} =
+mkModuleDeclaration m@GHC.HsModule {..} =
   case hsmodName of
     Nothing -> Nothing
     Just name ->
@@ -35,5 +35,5 @@ mkModuleDeclaration GHC.HsModule {..} =
           { name =
               WithComments
                 {comments = NodeComments [] [] [], node = showOutputable name}
-          , exports = Nothing
+          , exports = mkExportGroup m
           }

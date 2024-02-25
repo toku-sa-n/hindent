@@ -38,6 +38,7 @@ library
       HIndent.Applicative
       HIndent.Ast
       HIndent.Ast.Export
+      HIndent.Ast.ExportGroup
       HIndent.Ast.Module
       HIndent.Ast.ModuleDeclaration
       HIndent.Ast.Pragma
