@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module.WarningOrDeprecated
@@ -6,17 +6,17 @@ module HIndent.Ast.Module.WarningOrDeprecated
   , mkModuleWarningOrDeprecated
   ) where
 
-import GHC.Hs hiding (Warning)
-import GHC.Types.SrcLoc
-import GHC.Unit.Module.Warnings
-import HIndent.Ast.WithComments
-import HIndent.Pretty
-import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
+import           GHC.Hs                      hiding (Warning)
+import           GHC.Types.SrcLoc
+import           GHC.Unit.Module.Warnings
+import           HIndent.Ast.WithComments
+import           HIndent.Pretty
+import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.NodeComments
+import           HIndent.Pretty.Types
 
 data ModuleWarningOrDeprecated = ModuleWarningOrDeprecated
-  { kind :: Kind
+  { kind   :: Kind
   , reason :: String
   }
 
@@ -39,7 +39,7 @@ instance CommentExtraction Kind where
   nodeComments _ = NodeComments [] [] []
 
 instance Pretty Kind where
-  pretty' Warning = string "WARNING"
+  pretty' Warning    = string "WARNING"
   pretty' Deprecated = string "DEPRECATED"
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkModuleWarningOrDeprecated ::
@@ -59,7 +59,7 @@ mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
            (ModuleWarningOrDeprecated
               {kind = Deprecated, reason = showOutputable reason}))
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
-#elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
+#elif MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkModuleWarningOrDeprecated ::
      HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
