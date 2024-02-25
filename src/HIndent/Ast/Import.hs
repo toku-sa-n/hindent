@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Import
@@ -6,12 +6,12 @@ module HIndent.Ast.Import
   , mkImport
   ) where
 
-import GHC.Hs
+import           GHC.Hs
 
 newtype Import =
   Import (LImportDecl GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkImport :: HsModule GhcPs -> Import
+mkImport :: HsModule GhcPs -> [Import]
 #else
 mkImport :: HsModule -> [Import]
 #endif
