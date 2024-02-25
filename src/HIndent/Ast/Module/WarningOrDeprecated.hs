@@ -41,7 +41,7 @@ instance CommentExtraction Kind where
 instance Pretty Kind where
   pretty' Warning = string "WARNING"
   pretty' Deprecated = string "DEPRECATED"
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+#if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkModuleWarningOrDeprecated ::
      HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
@@ -53,6 +53,24 @@ mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
            (ModuleWarningOrDeprecated
               {kind = Warning, reason = showOutputable reason}))
     Just (L _ (WarningTxt _ _ _)) -> error "implement me"
+    Just (L _ (DeprecatedTxt _ [reason])) ->
+      Just
+        (mkWithCommentsWithEmptyComments
+           (ModuleWarningOrDeprecated
+              {kind = Deprecated, reason = showOutputable reason}))
+    Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
+#elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
+mkModuleWarningOrDeprecated ::
+     HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
+mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
+  case hsmodDeprecMessage of
+    Nothing -> Nothing
+    Just (L _ (WarningTxt _ [reason])) ->
+      Just
+        (mkWithCommentsWithEmptyComments
+           (ModuleWarningOrDeprecated
+              {kind = Warning, reason = showOutputable reason}))
+    Just (L _ (WarningTxt _ _)) -> error "implement me"
     Just (L _ (DeprecatedTxt _ [reason])) ->
       Just
         (mkWithCommentsWithEmptyComments
