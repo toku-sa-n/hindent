@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module
@@ -34,7 +35,7 @@ type HsModule' = HsModule GHC.GhcPs
 type HsModule' = HsModule
 #endif
 data Module = Module
-  { pragmas :: [Pragma]
+  { pragmas :: FileHeaderPragmaCollection
   , declaration :: Maybe ModuleDeclaration
   , module' :: HsModule'
   }
@@ -103,23 +104,24 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #else
 instance Pretty Module where
-  pretty' m@Module { declaration = Nothing
-                   , module' = HsModule {hsmodImports = [], hsmodDecls = []}
-                   }
-    | not (pragmaExists m) = pure ()
-  pretty' mo@Module {module' = m} = blanklined printers >> newline
+  pretty' Module { declaration = Nothing
+                 , pragmas
+                 , module' = HsModule {hsmodImports = [], hsmodDecls = []}
+                 }
+    | not (pragmaExists pragmas) = pure ()
+  pretty' mo@Module {module' = m, ..} = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
-        [ (pragmaExists mo, prettyPragmas mo)
-        , (moduleDeclExists mo, prettyModuleDecl mo)
+        [ (pragmaExists pragmas, pretty pragmas)
+        , (moduleDeclExists, prettyModuleDecl mo)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
         ]
       prettyModuleDecl Module {declaration = Nothing} =
         error "The module declaration does not exist."
       prettyModuleDecl Module {declaration = Just d} = pretty d
-      moduleDeclExists = isJust . declaration
+      moduleDeclExists = isJust declaration
       prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
           $ addDeclSeparator
@@ -145,7 +147,7 @@ mkModule m = mkWithCommentsWithEpAnn ann Module {..}
   where
     ann = getAnn m
     declaration = mkModuleDeclaration m
-    pragmas = mkPragmas m
+    pragmas = mkFileHeaderPragmaCollection m
     module' = m
 
 getAnn :: HsModule' -> EpAnn GHC.AnnsModule
@@ -154,8 +156,3 @@ getAnn = hsmodAnn . hsmodExt
 #else
 getAnn = hsmodAnn
 #endif
-pragmaExists :: Module -> Bool
-pragmaExists = not . null . pragmas
-
-prettyPragmas :: Module -> Printer ()
-prettyPragmas = lined . fmap pretty . pragmas

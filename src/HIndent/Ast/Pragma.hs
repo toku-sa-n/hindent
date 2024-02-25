@@ -2,8 +2,9 @@
 {-# LANGUAGE CPP #-}
 
 module HIndent.Ast.Pragma
-  ( Pragma
-  , mkPragmas
+  ( FileHeaderPragmaCollection
+  , mkFileHeaderPragmaCollection
+  , pragmaExists
   , isPragma
   ) where
 
@@ -16,10 +17,19 @@ import Data.Maybe
 import GHC.Hs
 import HIndent.Pragma
 import HIndent.Pretty
-import HIndent.Pretty.Combinators.String
+import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import Text.Regex.TDFA
+
+newtype FileHeaderPragmaCollection =
+  FileHeaderPragmaCollection [Pragma]
+
+instance CommentExtraction FileHeaderPragmaCollection where
+  nodeComments (FileHeaderPragmaCollection _) = NodeComments [] [] []
+
+instance Pretty FileHeaderPragmaCollection where
+  pretty' (FileHeaderPragmaCollection pragmas) = lined $ fmap pretty pragmas
 
 newtype Pragma =
   Pragma String
@@ -34,12 +44,16 @@ type HsModule' = HsModule GhcPs
 #else
 type HsModule' = HsModule
 #endif
-mkPragmas :: HsModule' -> [Pragma]
-mkPragmas =
-  fmap (Pragma . uncurry constructPragma)
+mkFileHeaderPragmaCollection :: HsModule' -> FileHeaderPragmaCollection
+mkFileHeaderPragmaCollection =
+  FileHeaderPragmaCollection
+    . fmap (Pragma . uncurry constructPragma)
     . mapMaybe extractPragma
     . listify isBlockComment
     . getModuleAnn
+
+pragmaExists :: FileHeaderPragmaCollection -> Bool
+pragmaExists (FileHeaderPragmaCollection pragmas) = not $ null pragmas
 
 -- | This function returns a 'Just' value with the pragma
 -- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
