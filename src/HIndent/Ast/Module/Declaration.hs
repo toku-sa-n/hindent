@@ -10,6 +10,7 @@ module HIndent.Ast.Module.Declaration
 
 import Control.Monad
 import qualified GHC.Hs as GHC
+import HIndent.Applicative
 import HIndent.Ast.ExportGroup
 import HIndent.Ast.Module.Name
 import HIndent.Ast.Module.WarningOrDeprecated
@@ -31,6 +32,9 @@ instance CommentExtraction ModuleDeclaration where
 instance Pretty ModuleDeclaration where
   pretty' ModuleDeclaration {..} = do
     pretty name
+    whenJust warning $ \w -> do
+      space
+      pretty w
     when (hasExportList exports) $ do
       newline
       indentedBlock $ pretty exports

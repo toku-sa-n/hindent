@@ -4,20 +4,17 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module HIndent.Ast.Module
   ( Module(..)
   , mkModule
   ) where
 
-import Control.Monad
 import Control.Monad.RWS
 import Data.Maybe
 import GHC.Hs hiding (comments)
 import qualified GHC.Hs as GHC
 import GHC.Types.SrcLoc
-import HIndent.Applicative
 import HIndent.Ast.Module.Declaration
 import HIndent.Ast.Pragma
 import HIndent.Ast.WithComments
@@ -26,7 +23,6 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.Import
 import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
 import HIndent.Printer
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
 import GHC.Core.DataCon
@@ -116,33 +112,13 @@ instance Pretty Module where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists mo, prettyPragmas mo)
-        , (moduleDeclExists mo, prettyModuleDecl m)
+        , (moduleDeclExists mo, prettyModuleDecl mo)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
         ]
-      prettyModuleDecl HsModule {hsmodName = Nothing} =
+      prettyModuleDecl Module {declaration = Nothing} =
         error "The module declaration does not exist."
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Nothing
-                                , ..
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        string " where"
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Just exports
-                                , ..
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        newline
-        indentedBlock $ do
-          printCommentsAnd exports (vTuple . fmap pretty)
-          string " where"
+      prettyModuleDecl Module {declaration = Just d} = pretty d
       moduleDeclExists = isJust . declaration
       prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
@@ -178,49 +154,6 @@ getAnn = hsmodAnn . hsmodExt
 #else
 getAnn = hsmodAnn
 #endif
-printCommentsAnd ::
-     (CommentExtraction l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
-printCommentsAnd (L l e) f = do
-  printCommentsBefore l
-  f e
-  printCommentOnSameLine l
-  printCommentsAfter l
-
--- | Prints comments that are before the given AST node.
-printCommentsBefore :: CommentExtraction a => a -> Printer ()
-printCommentsBefore p =
-  forM_ (commentsBefore $ nodeComments p) $ \(L loc c) -> do
-    let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
-    indentedWithFixedLevel col $ pretty c
-    newline
-
--- | Prints comments that are on the same line as the given AST node.
-printCommentOnSameLine :: CommentExtraction a => a -> Printer ()
-printCommentOnSameLine (commentsOnSameLine . nodeComments -> (c:cs)) = do
-  col <- gets psColumn
-  if col == 0
-    then indentedWithFixedLevel
-           (fromIntegral $ srcSpanStartCol $ anchor $ getLoc c)
-           $ spaced
-           $ fmap pretty
-           $ c : cs
-    else spacePrefixed $ fmap pretty $ c : cs
-  eolCommentsArePrinted
-printCommentOnSameLine _ = return ()
-
--- | Prints comments that are after the given AST node.
-printCommentsAfter :: CommentExtraction a => a -> Printer ()
-printCommentsAfter p =
-  case commentsAfter $ nodeComments p of
-    [] -> return ()
-    xs -> do
-      isThereCommentsOnSameLine <- gets psEolComment
-      unless isThereCommentsOnSameLine newline
-      forM_ xs $ \(L loc c) -> do
-        let col = fromIntegral $ srcSpanStartCol (anchor loc) - 1
-        indentedWithFixedLevel col $ pretty c
-        eolCommentsArePrinted
-
 pragmaExists :: Module -> Bool
 pragmaExists = not . null . pragmas
 
