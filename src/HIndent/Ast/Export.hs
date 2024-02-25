@@ -6,7 +6,7 @@ module HIndent.Ast.Export
   , mkExport
   ) where
 
-import           GHC.Hs
+import GHC.Hs
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 type HsModule' = HsModule GhcPs
 #else

@@ -1,33 +1,33 @@
 -- | Module type.
-{-# LANGUAGE CPP             #-}
-{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module HIndent.Ast.Module
   ( Module(..)
   , mkModule
   ) where
 
-import           Control.Monad
-import           Control.Monad.RWS
-import           Data.Maybe
-import           GHC.Hs                        hiding (comments)
-import qualified GHC.Hs                        as GHC
-import           GHC.Types.SrcLoc
-import           HIndent.Applicative
-import           HIndent.Ast.ModuleDeclaration
-import           HIndent.Ast.Pragma
-import           HIndent.Ast.WithComments
-import           HIndent.Config
-import           HIndent.Pretty
-import           HIndent.Pretty.Combinators
-import           HIndent.Pretty.Import
-import           HIndent.Pretty.NodeComments
-import           HIndent.Pretty.Types
-import           HIndent.Printer
+import Control.Monad
+import Control.Monad.RWS
+import Data.Maybe
+import GHC.Hs hiding (comments)
+import qualified GHC.Hs as GHC
+import GHC.Types.SrcLoc
+import HIndent.Applicative
+import HIndent.Ast.ModuleDeclaration
+import HIndent.Ast.Pragma
+import HIndent.Ast.WithComments
+import HIndent.Config
+import HIndent.Pretty
+import HIndent.Pretty.Combinators
+import HIndent.Pretty.Import
+import HIndent.Pretty.NodeComments
+import HIndent.Pretty.Types
+import HIndent.Printer
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
-import           GHC.Core.DataCon
+import GHC.Core.DataCon
 #endif
 
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
@@ -36,9 +36,9 @@ type HsModule' = HsModule GHC.GhcPs
 type HsModule' = HsModule
 #endif
 data Module = Module
-  { pragmas     :: [Pragma]
+  { pragmas :: [Pragma]
   , declaration :: Maybe ModuleDeclaration
-  , module'     :: HsModule'
+  , module' :: HsModule'
   }
 
 instance CommentExtraction Module where
@@ -83,22 +83,23 @@ instance Pretty Module where
           string " where"
       moduleDeclExists = isJust . declaration
       prettyDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
-        addDeclSeparator $ hsmodDecls m
+        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
+          $ addDeclSeparator
+          $ hsmodDecls m
       addDeclSeparator [] = []
       addDeclSeparator [x] = [(x, Nothing)]
       addDeclSeparator (x:xs) =
         (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
-      declSeparator (SigD _ TypeSig {})   = newline
+      declSeparator (SigD _ TypeSig {}) = newline
       declSeparator (SigD _ InlineSig {}) = newline
       declSeparator (SigD _ PatSynSig {}) = newline
-      declSeparator _                     = blankline
+      declSeparator _ = blankline
       declsExist = not . null . hsmodDecls
       prettyImports = importDecls >>= blanklined . fmap outputImportGroup
       outputImportGroup = lined . fmap pretty
       importDecls =
         gets (configSortImports . psConfig) >>= \case
-          True  -> pure $ extractImportsSorted m
+          True -> pure $ extractImportsSorted m
           False -> pure $ extractImports m
 
 mkModule :: HsModule' -> WithComments Module
@@ -167,8 +168,10 @@ printCommentOnSameLine (commentsOnSameLine . nodeComments -> (c:cs)) = do
   col <- gets psColumn
   if col == 0
     then indentedWithFixedLevel
-           (fromIntegral $ srcSpanStartCol $ anchor $ getLoc c) $
-         spaced $ fmap pretty $ c : cs
+           (fromIntegral $ srcSpanStartCol $ anchor $ getLoc c)
+           $ spaced
+           $ fmap pretty
+           $ c : cs
     else spacePrefixed $ fmap pretty $ c : cs
   eolCommentsArePrinted
 printCommentOnSameLine _ = return ()
