@@ -23,6 +23,8 @@ data ExportGroup
 mkExportGroup :: HsModule' -> ExportGroup
 mkExportGroup HsModule {..} =
   case hsmodExports of
-    Nothing       -> ExportAll
-    Just (L _ []) -> NoExports
-    Just _        -> ExportList (fromList [])
+    Nothing -> ExportAll
+    Just (L _ exports) ->
+      case nonEmpty exports of
+        Nothing       -> NoExports
+        Just exports' -> ExportList (fmap mkExport exports')

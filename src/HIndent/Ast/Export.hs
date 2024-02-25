@@ -6,14 +6,10 @@ module HIndent.Ast.Export
   , mkExport
   ) where
 
-import GHC.Hs
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-type HsModule' = HsModule GhcPs
-#else
-type HsModule' = HsModule
-#endif
-newtype Export =
-  Export HsModule'
+import           GHC.Hs
 
-mkExport :: HsModule' -> Export
+newtype Export =
+  Export (LIE GhcPs)
+
+mkExport :: LIE GhcPs -> Export
 mkExport = Export
