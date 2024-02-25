@@ -1,5 +1,5 @@
 -- | Module declaration AST.
-{-# LANGUAGE CPP             #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.ModuleDeclaration
@@ -7,15 +7,15 @@ module HIndent.Ast.ModuleDeclaration
   , mkModuleDeclaration
   ) where
 
-import qualified GHC.Hs                                as GHC
-import           HIndent.Ast.ExportGroup
-import           HIndent.Ast.WithComments
-import           HIndent.Pretty.Combinators.Outputable
-import           HIndent.Pretty.NodeComments
-import           HIndent.Pretty.Types
+import qualified GHC.Hs as GHC
+import HIndent.Ast.ExportGroup
+import HIndent.Ast.WithComments
+import HIndent.Pretty.Combinators.Outputable
+import HIndent.Pretty.NodeComments
+import HIndent.Pretty.Types
 
 data ModuleDeclaration = ModuleDeclaration
-  { name    :: WithComments String
+  { name :: WithComments String
   , exports :: ExportGroup
   }
 

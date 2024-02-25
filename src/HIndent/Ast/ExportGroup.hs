@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP             #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.ExportGroup
@@ -6,10 +6,10 @@ module HIndent.Ast.ExportGroup
   , mkExportGroup
   ) where
 
-import           Data.List.NonEmpty
-import           GHC.Hs
-import           GHC.Types.SrcLoc
-import           HIndent.Ast.Export
+import Data.List.NonEmpty
+import GHC.Hs
+import GHC.Types.SrcLoc
+import HIndent.Ast.Export
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 type HsModule' = HsModule GHC.GhcPs
 #else
@@ -26,5 +26,5 @@ mkExportGroup HsModule {..} =
     Nothing -> ExportAll
     Just (L _ exports) ->
       case nonEmpty exports of
-        Nothing       -> NoExports
+        Nothing -> NoExports
         Just exports' -> ExportList (fmap mkExport exports')

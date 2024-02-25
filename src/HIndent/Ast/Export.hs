@@ -6,7 +6,7 @@ module HIndent.Ast.Export
   , mkExport
   ) where
 
-import           GHC.Hs
+import GHC.Hs
 
 newtype Export =
   Export (LIE GhcPs)
