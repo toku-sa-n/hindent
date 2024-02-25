@@ -40,7 +40,6 @@ import GHC.Types.SourceText
 import GHC.Types.SrcLoc
 import GHC.Unit.Module.Warnings
 import HIndent.Applicative
-import qualified HIndent.Ast.WithComments as Ast
 import HIndent.Config
 import HIndent.Fixity
 import HIndent.Pretty.Combinators
@@ -129,9 +128,6 @@ class CommentExtraction a =>
 -- https://github.com/mihaimaruseac/hindent/issues/586#issuecomment-1374992624.
 instance (CommentExtraction l, Pretty e) => Pretty (GenLocated l e) where
   pretty' (L _ e) = pretty e
-
-instance (Pretty a) => Pretty (Ast.WithComments a) where
-  pretty' (Ast.WithComments {..}) = pretty' node
 
 instance Pretty (HsDecl GhcPs) where
   pretty' (TyClD _ d) = pretty d

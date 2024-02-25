@@ -165,18 +165,12 @@ instance Pretty Module where
           False -> pure $ extractImports m
 #endif
 mkModule :: HsModule' -> WithComments Module
-mkModule m =
-  WithComments
-    { comments = epas m
-    , node =
-        Module
-          { pragmas = mkPragmas m
-          , declaration = mkModuleDeclaration m
-          , module' = m
-          }
-    }
+mkModule m = mkWithCommentsWithEpAnn epas Module {..}
   where
-    epas = epaComments . filterOutEofAndPragmasFromAnn . getAnn
+    declaration = mkModuleDeclaration m
+    pragmas = mkPragmas m
+    module' = m
+    epas = filterOutEofAndPragmasFromAnn $ getAnn m
       where
         filterOutEofAndPragmasFromAnn EpAnn {..} =
           EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
@@ -198,16 +192,6 @@ getAnn = hsmodAnn . hsmodExt
 #else
 getAnn = hsmodAnn
 #endif
-epaComments :: EpAnn a -> NodeComments
-epaComments (EpAnn ann _ cs) = NodeComments {..}
-  where
-    commentsBefore = priorComments cs
-    commentsOnSameLine = filter isCommentOnSameLine $ getFollowingComments cs
-    commentsAfter = filter (not . isCommentOnSameLine) $ getFollowingComments cs
-    isCommentOnSameLine (L comAnn _) =
-      srcSpanEndLine (anchor ann) == srcSpanStartLine (anchor comAnn)
-epaComments EpAnnNotUsed = NodeComments [] [] []
-
 printCommentsAnd ::
      (CommentExtraction l) => GenLocated l e -> (e -> Printer ()) -> Printer ()
 printCommentsAnd (L l e) f = do

@@ -20,7 +20,6 @@ import GHC.Types.Name
 import GHC.Types.Name.Reader
 import GHC.Types.SourceText
 import GHC.Types.SrcLoc
-import qualified HIndent.Ast.WithComments as Ast
 import HIndent.Pretty.Pragma
 import HIndent.Pretty.SigBindFamily
 import HIndent.Pretty.Types
@@ -69,9 +68,6 @@ instance CommentExtraction HsModule where
 #endif
 instance CommentExtraction l => CommentExtraction (GenLocated l e) where
   nodeComments (L l _) = nodeComments l
-
-instance CommentExtraction (Ast.WithComments a) where
-  nodeComments = Ast.comments
 
 instance CommentExtraction (HsDecl GhcPs) where
   nodeComments TyClD {} = emptyNodeComments
