@@ -18,7 +18,7 @@ import GHC.Hs hiding (comments)
 import qualified GHC.Hs as GHC
 import GHC.Types.SrcLoc
 import HIndent.Applicative
-import HIndent.Ast.ModuleDeclaration
+import HIndent.Ast.Module.Declaration
 import HIndent.Ast.Pragma
 import HIndent.Ast.WithComments
 import HIndent.Config

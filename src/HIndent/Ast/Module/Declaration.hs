@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module HIndent.Ast.ModuleDeclaration
+module HIndent.Ast.Module.Declaration
   ( ModuleDeclaration
   , mkModuleDeclaration
   ) where
@@ -10,7 +10,7 @@ module HIndent.Ast.ModuleDeclaration
 import Control.Monad
 import qualified GHC.Hs as GHC
 import HIndent.Ast.ExportGroup
-import HIndent.Ast.ModuleWarning
+import HIndent.Ast.Module.WarningOrDeprecated
 import HIndent.Ast.WithComments
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
@@ -19,7 +19,7 @@ import HIndent.Pretty.Types
 
 data ModuleDeclaration = ModuleDeclaration
   { name :: String
-  , warning :: Maybe (WithComments ModuleWarning)
+  , warning :: Maybe (WithComments ModuleWarningOrDeprecated)
   , exports :: ExportGroup
   }
 
@@ -46,6 +46,6 @@ mkModuleDeclaration m@GHC.HsModule {..} =
       Just
         ModuleDeclaration
           { name = showOutputable name
-          , warning = mkModuleWarning m
+          , warning = mkModuleWarningOrDeprecated m
           , exports = mkExportGroup m
           }

@@ -40,8 +40,8 @@ library
       HIndent.Ast.Export
       HIndent.Ast.ExportGroup
       HIndent.Ast.Module
-      HIndent.Ast.ModuleDeclaration
-      HIndent.Ast.ModuleWarning
+      HIndent.Ast.Module.Declaration
+      HIndent.Ast.Module.WarningOrDeprecated
       HIndent.Ast.Pragma
       HIndent.Ast.WithComments
       HIndent.ByteString
