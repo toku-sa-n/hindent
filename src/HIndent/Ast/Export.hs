@@ -9,7 +9,7 @@ module HIndent.Ast.Export
 import GHC.Hs
 
 newtype Export =
-  Export (LIE GhcPs)
+  Export (IE GhcPs)
 
-mkExport :: LIE GhcPs -> Export
+mkExport :: IE GhcPs -> Export
 mkExport = Export

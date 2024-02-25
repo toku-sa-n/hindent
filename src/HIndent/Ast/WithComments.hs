@@ -5,6 +5,8 @@ module HIndent.Ast.WithComments
   ( WithComments
   , mkWithComments
   , mkWithCommentsWithEpAnn
+  , mkWithCommentsWithSrcAnn
+  , mkWithCommentsWithGenLocated
   ) where
 
 import GHC.Hs
@@ -19,6 +21,9 @@ data WithComments a = WithComments
   , node :: a
   }
 
+instance Functor WithComments where
+  fmap f (WithComments c n) = WithComments c (f n)
+
 instance CommentExtraction (WithComments a) where
   nodeComments (WithComments c _) = c
 
@@ -32,6 +37,12 @@ mkWithComments = WithComments (NodeComments [] [] [])
 mkWithCommentsWithEpAnn :: EpAnn a -> b -> WithComments b
 mkWithCommentsWithEpAnn ann =
   WithComments (epaComments $ filterOutEofAndPragmasFromAnn ann)
+
+mkWithCommentsWithSrcAnn :: SrcAnn a -> b -> WithComments b
+mkWithCommentsWithSrcAnn SrcSpanAnn {..} = mkWithCommentsWithEpAnn ann
+
+mkWithCommentsWithGenLocated :: GenLocated (SrcAnn a) b -> WithComments b
+mkWithCommentsWithGenLocated (L ann x) = mkWithCommentsWithSrcAnn ann x
 
 epaComments :: EpAnn a -> NodeComments
 epaComments (EpAnn ann _ cs) = NodeComments {..}
