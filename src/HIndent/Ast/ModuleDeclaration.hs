@@ -32,6 +32,6 @@ mkModuleDeclaration m@GHC.HsModule {..} =
     Just name ->
       Just
         ModuleDeclaration
-          { name = mkWithComments $ showOutputable name
+          { name = mkWithCommentsWithEmptyComments $ showOutputable name
           , exports = mkExportGroup m
           }

@@ -3,7 +3,7 @@
 -- | AST with comments.
 module HIndent.Ast.WithComments
   ( WithComments
-  , mkWithComments
+  , mkWithCommentsWithEmptyComments
   , mkWithCommentsWithEpAnn
   , mkWithCommentsWithSrcAnn
   , mkWithCommentsWithGenLocated
@@ -30,9 +30,8 @@ instance CommentExtraction (WithComments a) where
 instance (Pretty a) => Pretty (WithComments a) where
   pretty' (WithComments {..}) = pretty' node
 
--- TODO: Remove this function.
-mkWithComments :: a -> WithComments a
-mkWithComments = WithComments (NodeComments [] [] [])
+mkWithCommentsWithEmptyComments :: a -> WithComments a
+mkWithCommentsWithEmptyComments = WithComments (NodeComments [] [] [])
 
 mkWithCommentsWithEpAnn :: EpAnn a -> b -> WithComments b
 mkWithCommentsWithEpAnn ann =
