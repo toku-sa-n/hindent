@@ -46,47 +46,26 @@ instance CommentExtraction Module where
 instance Pretty Module where
   pretty' m@Module { declaration = Nothing
                    , module' = HsModule {hsmodImports = [], hsmodDecls = []}
+                   , ..
                    }
-    | not (pragmaExists m) = pure ()
-  pretty' mo@Module {module' = m} = blanklined printers >> newline
+    | not (pragmaExists pragmas) = pure ()
+  pretty' mo@Module {module' = m, ..} = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
-        [ (pragmaExists mo, prettyPragmas mo)
-        , (moduleDeclExists mo, prettyModuleDecl m)
+        [ (pragmaExists pragmas, pretty pragmas)
+        , (moduleDeclExists, prettyModuleDecl mo)
         , (importsExist m, prettyImports)
         , (declsExist m, prettyDecls)
         ]
-      prettyModuleDecl HsModule {hsmodName = Nothing} =
-        error "The module declaration does not exist."
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Nothing
-                                , hsmodExt = XModulePs {..}
-                                , ..
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        string " where"
-      prettyModuleDecl HsModule { hsmodName = Just name
-                                , hsmodExports = Just exports
-                                , hsmodExt = XModulePs {..}
-                                , ..
-                                } = do
-        pretty $ fmap ModuleNameWithPrefix name
-        whenJust hsmodDeprecMessage $ \x -> do
-          space
-          pretty $ fmap ModuleDeprecatedPragma x
-        newline
-        indentedBlock $ do
-          printCommentsAnd exports (vTuple . fmap pretty)
-          string " where"
-      moduleDeclExists = isJust . declaration
+      moduleDeclExists = isJust declaration
       prettyDecls =
         mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
           $ addDeclSeparator
           $ hsmodDecls m
+      prettyModuleDecl Module {declaration = Nothing} =
+        error "The module declaration does not exist."
+      prettyModuleDecl Module {declaration = Just d} = pretty d
       addDeclSeparator [] = []
       addDeclSeparator [x] = [(x, Nothing)]
       addDeclSeparator (x:xs) =

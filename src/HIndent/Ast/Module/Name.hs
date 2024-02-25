@@ -5,8 +5,11 @@ module HIndent.Ast.Module.Name
   ( ModuleName
   , mkModuleName
   ) where
-
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+import GHC.Hs hiding (ModuleName, mkModuleName)
+#else
 import GHC.Hs
+#endif
 import HIndent.Ast.WithComments
 import HIndent.Pretty
 import HIndent.Pretty.Combinators

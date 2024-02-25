@@ -44,10 +44,24 @@ instance Pretty Kind where
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkModuleWarningOrDeprecated ::
      HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
+mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
+  case hsmodDeprecMessage of
+    Nothing -> Nothing
+    Just (L _ (WarningTxt _ _ [reason])) ->
+      Just
+        (mkWithCommentsWithEmptyComments
+           (ModuleWarningOrDeprecated
+              {kind = Warning, reason = showOutputable reason}))
+    Just (L _ (WarningTxt _ _ _)) -> error "implement me"
+    Just (L _ (DeprecatedTxt _ [reason])) ->
+      Just
+        (mkWithCommentsWithEmptyComments
+           (ModuleWarningOrDeprecated
+              {kind = Deprecated, reason = showOutputable reason}))
+    Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #else
 mkModuleWarningOrDeprecated ::
      HsModule -> Maybe (WithComments ModuleWarningOrDeprecated)
-#endif
 mkModuleWarningOrDeprecated HsModule {..} =
   case hsmodDeprecMessage of
     Nothing -> Nothing
@@ -63,3 +77,4 @@ mkModuleWarningOrDeprecated HsModule {..} =
            (ModuleWarningOrDeprecated
               {kind = Deprecated, reason = showOutputable reason}))
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
+#endif

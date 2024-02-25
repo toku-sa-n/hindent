@@ -9,7 +9,6 @@ module HIndent.Ast.Module.Declaration
   ) where
 
 import Control.Monad
-import GHC.Hs
 import HIndent.Applicative
 import HIndent.Ast.ExportGroup
 import HIndent.Ast.Module.Name
@@ -19,7 +18,11 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
-
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+import GHC.Hs hiding (ModuleName, mkModuleName)
+#else
+import GHC.Hs
+#endif
 data ModuleDeclaration = ModuleDeclaration
   { name :: WithComments ModuleName
   , warning :: Maybe (WithComments ModuleWarningOrDeprecated)
