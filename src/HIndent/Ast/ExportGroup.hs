@@ -11,7 +11,7 @@ import GHC.Hs
 import GHC.Types.SrcLoc
 import HIndent.Ast.Export
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-type HsModule' = HsModule GHC.GhcPs
+type HsModule' = HsModule GhcPs
 #else
 type HsModule' = HsModule
 #endif
