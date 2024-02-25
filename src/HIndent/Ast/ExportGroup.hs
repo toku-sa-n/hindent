@@ -6,7 +6,6 @@ module HIndent.Ast.ExportGroup
   , mkExportGroup
   ) where
 
-import Data.List.NonEmpty
 import GHC.Hs
 import GHC.Types.SrcLoc
 import HIndent.Ast.Export
@@ -22,26 +21,19 @@ type HsModule' = HsModule
 #endif
 data ExportGroup
   = ExportAll
-  | NoExports
-  | ExportList (NonEmpty (WithComments Export))
+  | ExportList [WithComments Export]
 
 instance CommentExtraction ExportGroup where
   nodeComments ExportAll = NodeComments [] [] []
-  nodeComments NoExports = NodeComments [] [] []
   nodeComments (ExportList _) = NodeComments [] [] []
 
 instance Pretty ExportGroup where
   pretty' ExportAll = pure ()
-  pretty' NoExports = string "()"
-  pretty' (ExportList exports) = vTuple (pretty <$> toList exports)
+  pretty' (ExportList exports) = vTuple (fmap pretty exports)
 
 mkExportGroup :: HsModule' -> ExportGroup
 mkExportGroup HsModule {..} =
   case hsmodExports of
     Nothing -> ExportAll
     Just (L _ exports) ->
-      case nonEmpty exports of
-        Nothing -> NoExports
-        Just exports' ->
-          ExportList
-            $ fmap (fmap mkExport . mkWithCommentsWithGenLocated) exports'
+      ExportList $ fmap (fmap mkExport . mkWithCommentsWithGenLocated) exports
