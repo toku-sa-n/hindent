@@ -9,18 +9,26 @@ module HIndent.Ast.ModuleDeclaration
 
 import qualified GHC.Hs as GHC
 import HIndent.Ast.ExportGroup
-import HIndent.Ast.WithComments
-import HIndent.Pretty.Combinators.Outputable
+import HIndent.Pretty
+import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 
 data ModuleDeclaration = ModuleDeclaration
-  { name :: WithComments String
+  { name :: String
   , exports :: ExportGroup
   }
 
 instance CommentExtraction ModuleDeclaration where
   nodeComments ModuleDeclaration {} = NodeComments [] [] []
+
+instance Pretty ModuleDeclaration where
+  pretty' ModuleDeclaration {..} = do
+    string "module "
+    string name
+    newline
+    pretty' exports
+    string "where"
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkModuleDeclaration :: GHC.HsModule GHC.GhcPs -> Maybe ModuleDeclaration
 #else
@@ -32,6 +40,4 @@ mkModuleDeclaration m@GHC.HsModule {..} =
     Just name ->
       Just
         ModuleDeclaration
-          { name = mkWithCommentsWithEmptyComments $ showOutputable name
-          , exports = mkExportGroup m
-          }
+          {name = showOutputable name, exports = mkExportGroup m}
