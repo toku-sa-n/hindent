@@ -12,7 +12,6 @@ module HIndent.Ast.Module
 
 import Data.Maybe
 import GHC.Hs hiding (comments)
-import qualified GHC.Hs as GHC
 import GHC.Types.SrcLoc
 import HIndent.Ast.Import
 import HIndent.Ast.Module.Declaration
@@ -23,7 +22,7 @@ import HIndent.Pretty.Combinators
 import HIndent.Pretty.Import
 import HIndent.Pretty.NodeComments
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-type HsModule' = HsModule GHC.GhcPs
+type HsModule' = HsModule GhcPs
 #else
 type HsModule' = HsModule
 #endif
@@ -79,7 +78,7 @@ mkModule m = mkWithCommentsWithEpAnn ann Module {..}
     imports = mkImportCollection m
     module' = m
 
-getAnn :: HsModule' -> EpAnn GHC.AnnsModule
+getAnn :: HsModule' -> EpAnn AnnsModule
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 getAnn = hsmodAnn . hsmodExt
 #else
