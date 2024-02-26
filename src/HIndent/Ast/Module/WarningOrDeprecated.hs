@@ -14,7 +14,11 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
-
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+type HsModule' = HsModule GhcPs
+#else
+type HsModule' = HsModule
+#endif
 data ModuleWarningOrDeprecated = ModuleWarningOrDeprecated
   { kind :: Kind
   , reason :: String
@@ -41,9 +45,10 @@ instance CommentExtraction Kind where
 instance Pretty Kind where
   pretty' Warning = string "WARNING"
   pretty' Deprecated = string "DEPRECATED"
-#if MIN_VERSION_ghc_lib_parser(9, 8, 1)
+
 mkModuleWarningOrDeprecated ::
-     HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
+     HsModule' -> Maybe (WithComments ModuleWarningOrDeprecated)
+#if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
   case hsmodDeprecMessage of
     Nothing -> Nothing
@@ -60,8 +65,6 @@ mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
               {kind = Deprecated, reason = showOutputable reason}))
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #elif MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkModuleWarningOrDeprecated ::
-     HsModule GhcPs -> Maybe (WithComments ModuleWarningOrDeprecated)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
   case hsmodDeprecMessage of
     Nothing -> Nothing
@@ -78,8 +81,6 @@ mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
               {kind = Deprecated, reason = showOutputable reason}))
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #else
-mkModuleWarningOrDeprecated ::
-     HsModule -> Maybe (WithComments ModuleWarningOrDeprecated)
 mkModuleWarningOrDeprecated HsModule {..} =
   case hsmodDeprecMessage of
     Nothing -> Nothing
