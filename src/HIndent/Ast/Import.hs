@@ -16,9 +16,9 @@ import Data.Char
 import Data.Function
 import Data.List
 import Data.Maybe
-import GHC.Hs
+import qualified GHC.Hs as GHC
 import GHC.Stack
-import GHC.Types.SrcLoc
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.WithComments
 import HIndent.Config
 import HIndent.Pretty
@@ -27,7 +27,7 @@ import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import HIndent.Printer
 #if !MIN_VERSION_ghc_lib_parser(9, 6, 1)
-import GHC.Unit.Types hiding (moduleName)
+import qualified GHC.Unit.Types as GHC
 #endif
 newtype ImportCollection =
   ImportCollection [[WithComments Import]] -- Imports are not sorted by their names.
@@ -49,7 +49,7 @@ data Import = Import
   { moduleName :: WithComments String
   , isSourceImport :: Bool
   , isSafeImport :: Bool
-  , import' :: ImportDecl GhcPs
+  , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
 instance CommentExtraction Import where
@@ -58,20 +58,20 @@ instance CommentExtraction Import where
 instance Pretty Import where
   pretty' Import {..} = pretty import'
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkImportCollection :: HsModule GhcPs -> ImportCollection
+mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
-mkImportCollection :: HsModule -> ImportCollection
+mkImportCollection :: GHC.HsModule -> ImportCollection
 #endif
-mkImportCollection HsModule {..} =
+mkImportCollection GHC.HsModule {..} =
   ImportCollection
     $ fmap (fmap mkImport . mkWithCommentsWithGenLocated)
         <$> extractImports hsmodImports
 
-mkImport :: ImportDecl GhcPs -> Import
-mkImport import'@ImportDecl {..} =
+mkImport :: GHC.ImportDecl GHC.GhcPs -> Import
+mkImport import'@GHC.ImportDecl {..} =
   Import
     { moduleName = showOutputable <$> mkWithCommentsWithGenLocated ideclName
-    , isSourceImport = ideclSource == IsBoot
+    , isSourceImport = ideclSource == GHC.IsBoot
     , isSafeImport = ideclSafe
     , import'
     }
@@ -79,15 +79,17 @@ mkImport import'@ImportDecl {..} =
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
 
-extractImports :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
+extractImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 extractImports = groupImports . sortImportsByLocation
 
 -- | Combines adjacent import declarations into a single list.
-groupImports :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
+groupImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 groupImports = groupImports' []
   where
     groupImports' ::
-         [[LImportDecl GhcPs]] -> [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
+         [[GHC.LImportDecl GHC.GhcPs]]
+      -> [GHC.LImportDecl GHC.GhcPs]
+      -> [[GHC.LImportDecl GHC.GhcPs]]
     groupImports' xs [] = xs
     groupImports' [] (x:xs) = groupImports' [[x]] xs
     groupImports' [[]] (x:xs) = groupImports' [[x]] xs
@@ -96,11 +98,11 @@ groupImports = groupImports' []
       | z `isAdjacentTo` y = groupImports' ((y : z : zs) : xs) ys
       | otherwise = groupImports' ([y] : (z : zs) : xs) ys
     a `isAdjacentTo` b =
-      srcSpanEndLine (sp a) + 1 == srcSpanStartLine (sp b)
-        || srcSpanEndLine (sp b) + 1 == srcSpanStartLine (sp a)
+      GHC.srcSpanEndLine (sp a) + 1 == GHC.srcSpanStartLine (sp b)
+        || GHC.srcSpanEndLine (sp b) + 1 == GHC.srcSpanStartLine (sp a)
     sp x =
-      case locA $ getLoc x of
-        RealSrcSpan x' _ -> x'
+      case GHC.locA $ GHC.getLoc x of
+        GHC.RealSrcSpan x' _ -> x'
         _ -> error "Src span unavailable."
 
 -- | The letter type of a 'Char'.
@@ -120,14 +122,16 @@ sortImportsByName :: [WithComments Import] -> [WithComments Import]
 sortImportsByName = fmap sortExplicitImportsInDecl . sortByModuleName
 
 -- | This function sorts imports by their start line numbers.
-sortImportsByLocation :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
+sortImportsByLocation ::
+     [GHC.LImportDecl GHC.GhcPs] -> [GHC.LImportDecl GHC.GhcPs]
 sortImportsByLocation = sortBy (flip compare `on` lineIdx)
   where
-    lineIdx = startLine . locA . getLoc
+    lineIdx = startLine . GHC.locA . GHC.getLoc
 
 -- | This function sorts import declarations by their module names.
 sortByModuleName :: [WithComments Import] -> [WithComments Import]
-sortByModuleName = sortBy (compare `on` unLoc . ideclName . import' . getNode)
+sortByModuleName =
+  sortBy (compare `on` GHC.unLoc . GHC.ideclName . import' . getNode)
 
 -- | This function sorts explicit imports in the given import declaration
 -- by their names.
@@ -135,45 +139,47 @@ sortExplicitImportsInDecl :: WithComments Import -> WithComments Import
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
 sortExplicitImportsInDecl = fmap f
   where
-    f Import {import' = d@ImportDecl {ideclImportList = Just (x, imports)}, ..} =
-      Import {import' = d {ideclImportList = Just (x, sorted)}, ..}
+    f Import { import' = d@GHC.ImportDecl {ideclImportList = Just (x, imports)}
+             , ..
+             } =
+      Import {import' = d {GHC.ideclImportList = Just (x, sorted)}, ..}
       where
         sorted = fmap (fmap sortVariants . sortExplicitImports) imports
     f x = x
 #else
 sortExplicitImportsInDecl = fmap f
   where
-    f Import {import' = d@ImportDecl {ideclHiding = Just (x, imports)}, ..} =
-      Import {import' = d {ideclHiding = Just (x, sorted)}, ..}
+    f Import {import' = d@GHC.ImportDecl {ideclHiding = Just (x, imports)}, ..} =
+      Import {import' = d {GHC.ideclHiding = Just (x, sorted)}, ..}
       where
         sorted = fmap (fmap sortVariants . sortExplicitImports) imports
     f x = x
 #endif
 -- | This function sorts the given explicit imports by their names.
-sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
+sortExplicitImports :: [GHC.LIE GHC.GhcPs] -> [GHC.LIE GHC.GhcPs]
 sortExplicitImports = sortBy compareImportEntities
 
 -- | This function sorts variants (e.g., data constructors and class
 -- methods) in the given explicit import by their names.
-sortVariants :: LIE GhcPs -> LIE GhcPs
-sortVariants (L l (IEThingWith x x' x'' xs)) =
-  L l $ IEThingWith x x' x'' (sortWrappedNames xs)
+sortVariants :: GHC.LIE GHC.GhcPs -> GHC.LIE GHC.GhcPs
+sortVariants (GHC.L l (GHC.IEThingWith x x' x'' xs)) =
+  GHC.L l $ GHC.IEThingWith x x' x'' (sortWrappedNames xs)
   where
     sortWrappedNames = sortBy (compare `on` showOutputable)
 sortVariants x = x
 
 -- | This function compares two import declarations by their module names.
-compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
-compareImportEntities (L _ a) (L _ b) =
+compareImportEntities :: GHC.LIE GHC.GhcPs -> GHC.LIE GHC.GhcPs -> Ordering
+compareImportEntities (GHC.L _ a) (GHC.L _ b) =
   fromMaybe LT $ compareIdentifier <$> getModuleName a <*> getModuleName b
 
 -- | This function returns a 'Just' value with the module name extracted
 -- from the import declaration. Otherwise, it returns a 'Nothing'.
-getModuleName :: IE GhcPs -> Maybe String
-getModuleName (IEVar _ wrapped) = Just $ showOutputable wrapped
-getModuleName (IEThingAbs _ wrapped) = Just $ showOutputable wrapped
-getModuleName (IEThingAll _ wrapped) = Just $ showOutputable wrapped
-getModuleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
+getModuleName :: GHC.IE GHC.GhcPs -> Maybe String
+getModuleName (GHC.IEVar _ wrapped) = Just $ showOutputable wrapped
+getModuleName (GHC.IEThingAbs _ wrapped) = Just $ showOutputable wrapped
+getModuleName (GHC.IEThingAll _ wrapped) = Just $ showOutputable wrapped
+getModuleName (GHC.IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
 getModuleName _ = Nothing
 
 -- | This function compares two identifiers in order of capitals, symbols,
@@ -221,6 +227,6 @@ charToLetterType c
 
 -- | This function returns the start line of the given 'SrcSpan'. If it is
 -- not available, it raises an error.
-startLine :: HasCallStack => SrcSpan -> Int
-startLine (RealSrcSpan x _) = srcSpanStartLine x
-startLine (UnhelpfulSpan _) = error "The src span is unavailable."
+startLine :: HasCallStack => GHC.SrcSpan -> Int
+startLine (GHC.RealSrcSpan x _) = GHC.srcSpanStartLine x
+startLine (GHC.UnhelpfulSpan _) = error "The src span is unavailable."
