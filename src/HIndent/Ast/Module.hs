@@ -13,6 +13,7 @@ module HIndent.Ast.Module
 import Data.Maybe
 import GHC.Hs hiding (comments)
 import GHC.Types.SrcLoc
+import HIndent.Ast.Declaration
 import HIndent.Ast.Import
 import HIndent.Ast.Module.Declaration
 import HIndent.Ast.Pragma
@@ -30,6 +31,7 @@ data Module = Module
   { pragmas :: FileHeaderPragmaCollection
   , declaration :: Maybe ModuleDeclaration
   , imports :: ImportCollection
+  , declarations :: DeclarationCollection
   , module' :: HsModule'
   }
 
@@ -76,6 +78,7 @@ mkModule m = mkWithCommentsWithEpAnn ann Module {..}
     declaration = mkModuleDeclaration m
     pragmas = mkFileHeaderPragmaCollection m
     imports = mkImportCollection m
+    declarations = mkDeclarationCollection m
     module' = m
 
 getAnn :: HsModule' -> EpAnn AnnsModule

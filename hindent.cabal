@@ -37,6 +37,7 @@ library
   other-modules:
       HIndent.Applicative
       HIndent.Ast
+      HIndent.Ast.Declaration
       HIndent.Ast.Export
       HIndent.Ast.ExportGroup
       HIndent.Ast.Import
