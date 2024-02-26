@@ -55,6 +55,7 @@ data Import = Import
   , isSafeImport :: Bool
   , qualification :: Qualification
   , packageName :: Maybe String
+  , list :: ImportList
   , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
@@ -68,6 +69,11 @@ data Qualification
   = NotQualified
   | FullyQualified
   | QualifiedAs (WithComments String)
+
+data ImportList
+  = ExplicitImports (WithComments [GHC.LIE GHC.GhcPs])
+  | Hiding (WithComments [GHC.LIE GHC.GhcPs])
+  | NoImportList
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
@@ -86,6 +92,7 @@ mkImport import'@GHC.ImportDecl {..} =
     , isSafeImport = ideclSafe
     , packageName = getPackageName import'
     , qualification
+    , list
     , import'
     }
   where
@@ -95,6 +102,7 @@ mkImport import'@GHC.ImportDecl {..} =
         (_, Nothing) -> FullyQualified
         (_, Just name) ->
           QualifiedAs $ showOutputable <$> mkWithCommentsWithGenLocated name
+    list = getImportList import'
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
@@ -106,6 +114,23 @@ getPackageName (GHC.ideclPkgQual -> GHC.RawPkgQual name) =
 getPackageName _ = Nothing
 #else
 getPackageName = fmap showOutputable . GHC.ideclPkgQual
+#endif
+getImportList :: GHC.ImportDecl GHC.GhcPs -> ImportList
+#if MIN_VERSION_ghc_lib_parser(9, 4, 1)
+getImportList GHC.ImportDecl {..} =
+  case ideclImportList of
+    Just (GHC.Exactly, imports) ->
+      ExplicitImports $ mkWithCommentsWithGenLocated imports
+    Just (GHC.EverythingBut, imports) ->
+      Hiding $ mkWithCommentsWithGenLocated imports
+    Nothing -> NoImportList
+#else
+getImportList GHC.ImportDecl {..} =
+  case ideclHiding of
+    Just (False, imports) ->
+      ExplicitImports $ mkWithCommentsWithGenLocated imports
+    Just (True, imports) -> Hiding $ mkWithCommentsWithGenLocated imports
+    Nothing -> NoImportList
 #endif
 extractImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 extractImports = groupImports . sortImportsByLocation
