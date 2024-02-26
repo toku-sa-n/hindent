@@ -2,17 +2,20 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Import
-  ( Import
-  , mkImport
+  ( ImportCollection
+  , mkImportCollection
   ) where
 
 import           GHC.Hs
 
+newtype ImportCollection =
+  ImportCollection [Import]
+
 newtype Import =
   Import (LImportDecl GhcPs)
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-mkImport :: HsModule GhcPs -> [Import]
+mkImportCollection :: HsModule GhcPs -> ImportCollection
 #else
-mkImport :: HsModule -> [Import]
+mkImportCollection :: HsModule -> ImportCollection
 #endif
-mkImport HsModule {..} = fmap Import hsmodImports
+mkImportCollection HsModule {..} = ImportCollection $ fmap Import hsmodImports
