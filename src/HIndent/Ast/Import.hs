@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Import
@@ -31,17 +32,22 @@ instance Pretty ImportCollection where
       outputImportGroup = lined . fmap pretty
       importDecls =
         gets (configSortImports . psConfig) >>= \case
-          True -> pure $ extractImportsSorted' $ fmap (\(Import x) -> x) imports
-          False -> pure $ extractImports' $ fmap (\(Import x) -> x) imports
+          True -> pure $ extractImportsSorted' $ fmap import' imports
+          False -> pure $ extractImports' $ fmap import' imports
 
-newtype Import =
-  Import (LImportDecl GhcPs)
+data Import = Import
+  { isSafeImport :: Bool
+  , import' :: LImportDecl GhcPs
+  }
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: HsModule GhcPs -> ImportCollection
 #else
 mkImportCollection :: HsModule -> ImportCollection
 #endif
-mkImportCollection HsModule {..} = ImportCollection $ fmap Import hsmodImports
+mkImportCollection HsModule {..} = ImportCollection $ fmap mkImport hsmodImports
+
+mkImport :: LImportDecl GhcPs -> Import
+mkImport import' = Import {isSafeImport = True, import'}
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
