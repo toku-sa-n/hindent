@@ -1,7 +1,6 @@
 -- TODO: Split this file into multiple files
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 #if MIN_VERSION_ghc_lib_parser(9, 4, 1)
