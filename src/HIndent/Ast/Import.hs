@@ -55,7 +55,7 @@ data Import = Import
   , isSafeImport :: Bool
   , qualification :: Qualification
   , packageName :: Maybe String
-  , list :: ImportList
+  , list :: ImportEntries
   , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
@@ -70,10 +70,10 @@ data Qualification
   | FullyQualified
   | QualifiedAs (WithComments String)
 
-data ImportList
+data ImportEntries
   = ExplicitImports (WithComments [GHC.LIE GHC.GhcPs])
   | Hiding (WithComments [GHC.LIE GHC.GhcPs])
-  | NoImportList
+  | NoImportEntries
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
@@ -115,7 +115,7 @@ getPackageName _ = Nothing
 #else
 getPackageName = fmap showOutputable . GHC.ideclPkgQual
 #endif
-getImportList :: GHC.ImportDecl GHC.GhcPs -> ImportList
+getImportList :: GHC.ImportDecl GHC.GhcPs -> ImportEntries
 #if MIN_VERSION_ghc_lib_parser(9, 4, 1)
 getImportList GHC.ImportDecl {..} =
   case ideclImportList of
@@ -123,14 +123,14 @@ getImportList GHC.ImportDecl {..} =
       ExplicitImports $ mkWithCommentsWithGenLocated imports
     Just (GHC.EverythingBut, imports) ->
       Hiding $ mkWithCommentsWithGenLocated imports
-    Nothing -> NoImportList
+    Nothing -> NoImportEntries
 #else
 getImportList GHC.ImportDecl {..} =
   case ideclHiding of
     Just (False, imports) ->
       ExplicitImports $ mkWithCommentsWithGenLocated imports
     Just (True, imports) -> Hiding $ mkWithCommentsWithGenLocated imports
-    Nothing -> NoImportList
+    Nothing -> NoImportEntries
 #endif
 extractImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 extractImports = groupImports . sortImportsByLocation
