@@ -195,8 +195,7 @@ sortImportsByLocation = sortBy (flip compare `on` lineIdx)
 
 -- | This function sorts import declarations by their module names.
 sortByModuleName :: [WithComments Import] -> [WithComments Import]
-sortByModuleName =
-  sortBy (compare `on` GHC.unLoc . GHC.ideclName . import' . getNode)
+sortByModuleName = sortBy (compare `on` getNode . moduleName . getNode)
 
 -- | This function sorts explicit imports in the given import declaration
 -- by their names.
