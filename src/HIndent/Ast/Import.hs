@@ -13,6 +13,7 @@ module HIndent.Ast.Import
   , hasImports
   ) where
 
+import Control.Monad
 import Control.Monad.RWS
 import Data.Char
 import Data.Function
@@ -21,7 +22,6 @@ import Data.Maybe
 import qualified GHC.Hs as GHC
 import GHC.Stack
 import qualified GHC.Types.SrcLoc as GHC
-import qualified GHC.Unit.Types as GHC
 import HIndent.Applicative
 import HIndent.Ast.WithComments
 import HIndent.Config
@@ -30,6 +30,9 @@ import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import HIndent.Printer
+#if !MIN_VERSION_ghc_lib_parser(9, 6, 1)
+import qualified GHC.Unit.Types as GHC
+#endif
 #if MIN_VERSION_ghc_lib_parser(9, 4, 1)
 import qualified GHC.Types.PkgQual as GHC
 #endif
@@ -217,23 +220,12 @@ sortByModuleName = sortBy (compare `on` getNode . moduleName . getNode)
 -- | This function sorts explicit imports in the given import declaration
 -- by their names.
 sortExplicitImportsInDecl :: WithComments Import -> WithComments Import
-#if MIN_VERSION_ghc_lib_parser(9,6,1)
-sortExplicitImportsInDecl = fmap f
-  where
-    f Import { import' = d@GHC.ImportDecl {ideclImportList = Just (x, imports)}
-             , ..
-             } =
-      Import {import' = d {GHC.ideclImportList = Just (x, sorted)}, ..}
-      where
-        sorted = fmap (fmap sortVariants . sortExplicitImports) imports
-    f x = x
-#else
 sortExplicitImportsInDecl = fmap f
   where
     f Import {..} = Import {list = sorted, ..}
       where
         sorted = fmap (fmap (sortVariants' . sortExplicitImports)) list
-#endif
+
 -- | This function sorts the given explicit imports by their names.
 sortExplicitImports :: ImportEntries -> ImportEntries
 sortExplicitImports ImportEntries {..} = ImportEntries {entries = sorted, ..}
