@@ -55,7 +55,7 @@ data Import = Import
   , isSafeImport :: Bool
   , qualification :: Qualification
   , packageName :: Maybe String
-  , list :: ImportEntries
+  , list :: Maybe (WithComments ImportEntries)
   , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
@@ -70,10 +70,14 @@ data Qualification
   | FullyQualified
   | QualifiedAs (WithComments String)
 
-data ImportEntries
-  = ExplicitImports (WithComments [GHC.LIE GHC.GhcPs])
-  | Hiding (WithComments [GHC.LIE GHC.GhcPs])
-  | NoImportEntries
+data ImportEntries = ImportEntries
+  { entries :: [GHC.LIE GHC.GhcPs]
+  , kind :: EntriesKind
+  }
+
+data EntriesKind
+  = Explicit
+  | Hiding
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
@@ -115,22 +119,31 @@ getPackageName _ = Nothing
 #else
 getPackageName = fmap showOutputable . GHC.ideclPkgQual
 #endif
-getImportList :: GHC.ImportDecl GHC.GhcPs -> ImportEntries
+getImportList :: GHC.ImportDecl GHC.GhcPs -> Maybe (WithComments ImportEntries)
 #if MIN_VERSION_ghc_lib_parser(9, 4, 1)
 getImportList GHC.ImportDecl {..} =
   case ideclImportList of
     Just (GHC.Exactly, imports) ->
-      ExplicitImports $ mkWithCommentsWithGenLocated imports
+      Just
+        $ (\entries -> ImportEntries {kind = Explicit, ..})
+            <$> mkWithCommentsWithGenLocated imports
     Just (GHC.EverythingBut, imports) ->
-      Hiding $ mkWithCommentsWithGenLocated imports
-    Nothing -> NoImportEntries
+      Just
+        $ (\entries -> ImportEntries {kind = Hiding, ..})
+            <$> mkWithCommentsWithGenLocated imports
+    Nothing -> Nothing
 #else
 getImportList GHC.ImportDecl {..} =
   case ideclHiding of
     Just (False, imports) ->
-      ExplicitImports $ mkWithCommentsWithGenLocated imports
-    Just (True, imports) -> Hiding $ mkWithCommentsWithGenLocated imports
-    Nothing -> NoImportEntries
+      Just
+        $ (\entries -> ImportEntries {kind = Explicit, ..})
+            <$> mkWithCommentsWithGenLocated imports
+    Just (True, imports) ->
+      Just
+        $ (\entries -> ImportEntries {kind = Hiding, ..})
+            <$> mkWithCommentsWithGenLocated imports
+    Nothing -> Nothing
 #endif
 extractImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 extractImports = groupImports . sortImportsByLocation
