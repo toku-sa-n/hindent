@@ -1,5 +1,6 @@
 -- TODO: Split this file into multiple files
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -18,6 +19,7 @@ import Data.Maybe
 import GHC.Hs
 import GHC.Stack
 import GHC.Types.SrcLoc
+import HIndent.Ast.WithComments
 import HIndent.Config
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
@@ -26,7 +28,7 @@ import HIndent.Pretty.Types
 import HIndent.Printer
 
 newtype ImportCollection =
-  ImportCollection [[Import]] -- Imports are not sorted by their names.
+  ImportCollection [[WithComments Import]] -- Imports are not sorted by their names.
 
 instance CommentExtraction ImportCollection where
   nodeComments (ImportCollection _) = NodeComments [] [] []
@@ -38,22 +40,30 @@ instance Pretty ImportCollection where
       outputImportGroup = lined . fmap pretty
       importDecls =
         gets (configSortImports . psConfig) >>= \case
-          True -> pure $ fmap (sortImportsByName . fmap import') imports
-          False -> pure $ fmap (fmap import') imports
+          True -> pure $ fmap sortImportsByName imports
+          False -> pure imports
 
 data Import = Import
   { isSafeImport :: Bool
-  , import' :: LImportDecl GhcPs
+  , import' :: ImportDecl GhcPs
   }
+
+instance CommentExtraction Import where
+  nodeComments Import {} = NodeComments [] [] []
+
+instance Pretty Import where
+  pretty' Import {..} = pretty import'
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: HsModule GhcPs -> ImportCollection
 #else
 mkImportCollection :: HsModule -> ImportCollection
 #endif
 mkImportCollection HsModule {..} =
-  ImportCollection $ fmap mkImport <$> extractImports hsmodImports
+  ImportCollection
+    $ fmap (fmap mkImport . mkWithCommentsWithGenLocated)
+        <$> extractImports hsmodImports
 
-mkImport :: LImportDecl GhcPs -> Import
+mkImport :: ImportDecl GhcPs -> Import
 mkImport import' = Import {isSafeImport = True, import'}
 
 hasImports :: ImportCollection -> Bool
@@ -96,7 +106,7 @@ data LetterType
 
 -- | This function sorts import declarations and explicit imports in them
 -- by their names.
-sortImportsByName :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
+sortImportsByName :: [WithComments Import] -> [WithComments Import]
 sortImportsByName = fmap sortExplicitImportsInDecl . sortByModuleName
 
 -- | This function sorts imports by their start line numbers.
@@ -106,25 +116,29 @@ sortImportsByLocation = sortBy (flip compare `on` lineIdx)
     lineIdx = startLine . locA . getLoc
 
 -- | This function sorts import declarations by their module names.
-sortByModuleName :: [LImportDecl GhcPs] -> [LImportDecl GhcPs]
-sortByModuleName = sortBy (compare `on` unLoc . ideclName . unLoc)
+sortByModuleName :: [WithComments Import] -> [WithComments Import]
+sortByModuleName = sortBy (compare `on` unLoc . ideclName . import' . getNode)
 
 -- | This function sorts explicit imports in the given import declaration
 -- by their names.
-sortExplicitImportsInDecl :: LImportDecl GhcPs -> LImportDecl GhcPs
+sortExplicitImportsInDecl :: WithComments Import -> WithComments Import
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
-sortExplicitImportsInDecl (L l d@ImportDecl {ideclImportList = Just (x, imports)}) =
-  L l d {ideclImportList = Just (x, sorted)}
+sortExplicitImportsInDecl = fmap f
   where
-    sorted = fmap (fmap sortVariants . sortExplicitImports) imports
+    f Import {import' = d@ImportDecl {ideclImportList = Just (x, imports)}, ..} =
+      Import {import' = d {ideclImportList = Just (x, sorted)}, ..}
+      where
+        sorted = fmap (fmap sortVariants . sortExplicitImports) imports
+    f x = x
 #else
-sortExplicitImportsInDecl (L l d@ImportDecl {ideclHiding = Just (x, imports)}) =
-  L l d {ideclHiding = Just (x, sorted)}
+sortExplicitImportsInDecl = fmap f
   where
-    sorted = fmap (fmap sortVariants . sortExplicitImports) imports
+    f Import {import' = d@ImportDecl {ideclHiding = Just (x, imports)}, ..} =
+      Import {import' = d {ideclHiding = Just (x, sorted)}, ..}
+      where
+        sorted = fmap (fmap sortVariants . sortExplicitImports) imports
+    f x = x
 #endif
-sortExplicitImportsInDecl x = x
-
 -- | This function sorts the given explicit imports by their names.
 sortExplicitImports :: [LIE GhcPs] -> [LIE GhcPs]
 sortExplicitImports = sortBy compareImportEntities

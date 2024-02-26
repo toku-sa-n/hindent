@@ -7,6 +7,7 @@ module HIndent.Ast.WithComments
   , mkWithCommentsWithEpAnn
   , mkWithCommentsWithSrcAnn
   , mkWithCommentsWithGenLocated
+  , getNode
   ) where
 
 import GHC.Hs
@@ -42,6 +43,9 @@ mkWithCommentsWithSrcAnn SrcSpanAnn {..} = mkWithCommentsWithEpAnn ann
 
 mkWithCommentsWithGenLocated :: GenLocated (SrcAnn a) b -> WithComments b
 mkWithCommentsWithGenLocated (L ann x) = mkWithCommentsWithSrcAnn ann x
+
+getNode :: WithComments a -> a
+getNode = node
 
 epaComments :: EpAnn a -> NodeComments
 epaComments (EpAnn ann _ cs) = NodeComments {..}
