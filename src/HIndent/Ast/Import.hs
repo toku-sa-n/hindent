@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP             #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Import
@@ -6,7 +6,7 @@ module HIndent.Ast.Import
   , mkImportCollection
   ) where
 
-import           GHC.Hs
+import GHC.Hs
 
 newtype ImportCollection =
   ImportCollection [Import]
