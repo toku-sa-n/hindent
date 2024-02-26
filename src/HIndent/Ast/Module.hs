@@ -1,29 +1,29 @@
 -- | Module type.
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP              #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE NamedFieldPuns   #-}
+{-# LANGUAGE RecordWildCards  #-}
 
 module HIndent.Ast.Module
   ( Module(..)
   , mkModule
   ) where
 
-import Data.Maybe
-import GHC.Hs hiding (comments)
-import qualified GHC.Hs as GHC
-import GHC.Types.SrcLoc
-import HIndent.Ast.Import
-import HIndent.Ast.Module.Declaration
-import HIndent.Ast.Pragma
-import HIndent.Ast.WithComments
-import HIndent.Pretty
-import HIndent.Pretty.Combinators
-import HIndent.Pretty.Import
-import HIndent.Pretty.NodeComments
+import           Data.Maybe
+import           GHC.Hs                         hiding (comments)
+import qualified GHC.Hs                         as GHC
+import           GHC.Types.SrcLoc
+import           HIndent.Ast.Import
+import           HIndent.Ast.Module.Declaration
+import           HIndent.Ast.Pragma
+import           HIndent.Ast.WithComments
+import           HIndent.Pretty
+import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.Import
+import           HIndent.Pretty.NodeComments
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
-import GHC.Core.DataCon
+import           GHC.Core.DataCon
 #endif
 
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
@@ -32,10 +32,10 @@ type HsModule' = HsModule GHC.GhcPs
 type HsModule' = HsModule
 #endif
 data Module = Module
-  { pragmas :: FileHeaderPragmaCollection
+  { pragmas     :: FileHeaderPragmaCollection
   , declaration :: Maybe ModuleDeclaration
-  , imports :: ImportCollection
-  , module' :: HsModule'
+  , imports     :: ImportCollection
+  , module'     :: HsModule'
   }
 
 instance CommentExtraction Module where
@@ -53,14 +53,13 @@ instance Pretty Module where
       pairs =
         [ (pragmaExists pragmas, pretty pragmas)
         , (moduleDeclExists, prettyModuleDecl mo)
-        , (importsExist m, prettyImports)
+        , (importsExist m, pretty imports)
         , (declsExist m, prettyDecls)
         ]
       moduleDeclExists = isJust declaration
       prettyDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
-          $ addDeclSeparator
-          $ hsmodDecls m
+        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
+        addDeclSeparator $ hsmodDecls m
       prettyModuleDecl Module {declaration = Nothing} =
         error "The module declaration does not exist."
       prettyModuleDecl Module {declaration = Just d} = pretty d
@@ -68,17 +67,11 @@ instance Pretty Module where
       addDeclSeparator [x] = [(x, Nothing)]
       addDeclSeparator (x:xs) =
         (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
-      declSeparator (SigD _ TypeSig {}) = newline
+      declSeparator (SigD _ TypeSig {})   = newline
       declSeparator (SigD _ InlineSig {}) = newline
       declSeparator (SigD _ PatSynSig {}) = newline
-      declSeparator _ = blankline
+      declSeparator _                     = blankline
       declsExist = not . null . hsmodDecls
-      prettyImports = importDecls >>= blanklined . fmap outputImportGroup
-      outputImportGroup = lined . fmap pretty
-      importDecls =
-        gets (configSortImports . psConfig) >>= \case
-          True -> pure $ extractImportsSorted m
-          False -> pure $ extractImports m
 #else
 instance Pretty Module where
   pretty' Module { declaration = Nothing
@@ -100,17 +93,16 @@ instance Pretty Module where
       prettyModuleDecl Module {declaration = Just d} = pretty d
       moduleDeclExists = isJust declaration
       prettyDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
-          $ addDeclSeparator
-          $ hsmodDecls m
+        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp) $
+        addDeclSeparator $ hsmodDecls m
       addDeclSeparator [] = []
       addDeclSeparator [x] = [(x, Nothing)]
       addDeclSeparator (x:xs) =
         (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
-      declSeparator (SigD _ TypeSig {}) = newline
+      declSeparator (SigD _ TypeSig {})   = newline
       declSeparator (SigD _ InlineSig {}) = newline
       declSeparator (SigD _ PatSynSig {}) = newline
-      declSeparator _ = blankline
+      declSeparator _                     = blankline
       declsExist = not . null . hsmodDecls
 #endif
 mkModule :: HsModule' -> WithComments Module
