@@ -13,7 +13,6 @@ import Data.Function
 import Data.List
 import Data.Maybe
 import qualified GHC.Hs as GHC
-import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.WithComments
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
@@ -21,7 +20,7 @@ import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 
 data ImportEntries = ImportEntries
-  { entries :: [Entry]
+  { entries :: [WithComments Entry]
   , kind :: EntriesKind
   }
 
@@ -40,7 +39,7 @@ data EntriesKind
   deriving (Eq)
 
 newtype Entry =
-  Entry (GHC.LIE GHC.GhcPs)
+  Entry (GHC.IE GHC.GhcPs)
 
 instance CommentExtraction Entry where
   nodeComments (Entry _) = NodeComments [] [] []
@@ -48,7 +47,7 @@ instance CommentExtraction Entry where
 instance Pretty Entry where
   pretty' (Entry x) = pretty x
 
-mkEntry :: GHC.LIE GHC.GhcPs -> Entry
+mkEntry :: GHC.IE GHC.GhcPs -> Entry
 mkEntry = Entry
 
 mkImportEntries ::
@@ -59,12 +58,22 @@ mkImportEntries GHC.ImportDecl {..} =
     Just (GHC.Exactly, imports) ->
       Just
         $ (\entries ->
-             ImportEntries {entries = fmap mkEntry entries, kind = Explicit, ..})
+             ImportEntries
+               { entries =
+                   fmap (fmap mkEntry . mkWithCommentsWithGenLocated) entries
+               , kind = Explicit
+               , ..
+               })
             <$> mkWithCommentsWithGenLocated imports
     Just (GHC.EverythingBut, imports) ->
       Just
         $ (\entries ->
-             ImportEntries {entries = fmap mkEntry entries, kind = Hiding, ..})
+             ImportEntries
+               { entries =
+                   fmap (fmap mkEntry . mkWithCommentsWithGenLocated) entries
+               , kind = Hiding
+               , ..
+               })
             <$> mkWithCommentsWithGenLocated imports
     Nothing -> Nothing
 #else
@@ -73,12 +82,22 @@ mkImportEntries GHC.ImportDecl {..} =
     Just (False, imports) ->
       Just
         $ (\entries ->
-             ImportEntries {entries = fmap mkEntry entries, kind = Explicit, ..})
+             ImportEntries
+               { entries =
+                   fmap (fmap mkEntry . mkWithCommentsWithGenLocated) entries
+               , kind = Explicit
+               , ..
+               })
             <$> mkWithCommentsWithGenLocated imports
     Just (True, imports) ->
       Just
         $ (\entries ->
-             ImportEntries {entries = fmap mkEntry entries, kind = Hiding, ..})
+             ImportEntries
+               { entries =
+                   fmap (fmap mkEntry . mkWithCommentsWithGenLocated) entries
+               , kind = Hiding
+               , ..
+               })
             <$> mkWithCommentsWithGenLocated imports
     Nothing -> Nothing
 #endif
@@ -88,13 +107,13 @@ sortEntriesAndVariants = sortExplicitImports . sortVariants'
 sortVariants' :: ImportEntries -> ImportEntries
 sortVariants' ImportEntries {..} = ImportEntries {entries = sorted, ..}
   where
-    sorted = fmap sortVariants entries
+    sorted = fmap (fmap sortVariants) entries
 
 -- | This function sorts variants (e.g., data constructors and class
 -- methods) in the given explicit import by their names.
 sortVariants :: Entry -> Entry
-sortVariants (Entry (GHC.L l (GHC.IEThingWith x x' x'' xs))) =
-  Entry $ GHC.L l $ GHC.IEThingWith x x' x'' (sortWrappedNames xs)
+sortVariants (Entry (GHC.IEThingWith x x' x'' xs)) =
+  Entry $ GHC.IEThingWith x x' x'' (sortWrappedNames xs)
   where
     sortWrappedNames = sortBy (compare `on` showOutputable)
 sortVariants x = x
@@ -102,12 +121,12 @@ sortVariants x = x
 sortExplicitImports :: ImportEntries -> ImportEntries
 sortExplicitImports ImportEntries {..} = ImportEntries {entries = sorted, ..}
   where
-    sorted = sortBy compareImportEntities entries
+    sorted = sortBy (compareImportEntities `on` getNode) entries
 
 -- | This function sorts the given explicit imports by their names.
 -- | This function compares two import declarations by their module names.
 compareImportEntities :: Entry -> Entry -> Ordering
-compareImportEntities (Entry (GHC.L _ a)) (Entry (GHC.L _ b)) =
+compareImportEntities (Entry a) (Entry b) =
   fromMaybe LT $ compareIdentifier <$> getModuleName a <*> getModuleName b
 
 -- | This function compares two identifiers in order of capitals, symbols,
