@@ -5,6 +5,7 @@
 module HIndent.Ast.Import
   ( ImportCollection
   , mkImportCollection
+  , hasImports
   ) where
 
 import Control.Monad.RWS
@@ -41,3 +42,6 @@ mkImportCollection :: HsModule GhcPs -> ImportCollection
 mkImportCollection :: HsModule -> ImportCollection
 #endif
 mkImportCollection HsModule {..} = ImportCollection $ fmap Import hsmodImports
+
+hasImports :: ImportCollection -> Bool
+hasImports (ImportCollection imports) = not $ null imports

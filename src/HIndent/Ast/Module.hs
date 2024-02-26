@@ -19,7 +19,6 @@ import HIndent.Ast.Pragma
 import HIndent.Ast.WithComments
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.Import
 import HIndent.Pretty.NodeComments
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 type HsModule' = HsModule GhcPs
@@ -49,7 +48,7 @@ instance Pretty Module where
       pairs =
         [ (pragmaExists pragmas, pretty pragmas)
         , (moduleDeclExists, prettyModuleDecl mo)
-        , (importsExist m, pretty imports)
+        , (hasImports imports, pretty imports)
         , (declsExist m, pretty declarations)
         ]
       prettyModuleDecl Module {declaration = Nothing} =
