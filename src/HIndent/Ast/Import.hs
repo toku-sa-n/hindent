@@ -33,8 +33,8 @@ instance Pretty ImportCollection where
       outputImportGroup = lined . fmap pretty
       importDecls =
         gets (configSortImports . psConfig) >>= \case
-          True -> pure $ extractImportsSorted' $ fmap import' imports
-          False -> pure $ extractImports' $ fmap import' imports
+          True -> pure $ extractImportsSorted $ fmap import' imports
+          False -> pure $ extractImports $ fmap import' imports
 
 data Import = Import
   { isSafeImport :: Bool
@@ -53,11 +53,11 @@ mkImport import' = Import {isSafeImport = True, import'}
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
 
-extractImports' :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
-extractImports' = groupImports . sortImportsByLocation
+extractImports :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
+extractImports = groupImports . sortImportsByLocation
 
-extractImportsSorted' :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
-extractImportsSorted' = fmap sortImportsByName . extractImports'
+extractImportsSorted :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
+extractImportsSorted = fmap sortImportsByName . extractImports
 
 -- | Combines adjacent import declarations into a single list.
 groupImports :: [LImportDecl GhcPs] -> [[LImportDecl GhcPs]]
