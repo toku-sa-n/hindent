@@ -287,7 +287,7 @@ data NodeComments = NodeComments
   { commentsBefore :: [LEpaComment]
   , commentsOnSameLine :: [LEpaComment]
   , commentsAfter :: [LEpaComment]
-  }
+  } deriving (Eq)
 
 instance Semigroup NodeComments where
   x <> y =

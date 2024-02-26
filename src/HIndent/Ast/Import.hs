@@ -22,6 +22,7 @@ import qualified GHC.Hs as GHC
 import GHC.Stack
 import qualified GHC.Types.SrcLoc as GHC
 import qualified GHC.Unit.Types as GHC
+import HIndent.Applicative
 import HIndent.Ast.WithComments
 import HIndent.Config
 import HIndent.Pretty
@@ -62,12 +63,27 @@ instance CommentExtraction Import where
   nodeComments Import {} = NodeComments [] [] []
 
 instance Pretty Import where
-  pretty' Import {..} = pretty import'
+  pretty' Import {..} = do
+    string "import "
+    when isSourceImport $ string "{-# SOURCE #-} "
+    when isSafeImport $ string "safe "
+    unless (qualification == NotQualified) $ string "qualified "
+    whenJust packageName $ \name -> string name >> space
+    printCommentsAnd moduleName string
+    case qualification of
+      QualifiedAs name -> string " as " >> printCommentsAnd name string
+      _ -> pure ()
+    whenJust list $ \xs ->
+      printCommentsAnd xs $ \ImportEntries {..} -> do
+        when (kind == Hiding) $ string " hiding"
+        (space >> hTuple (fmap pretty entries))
+          <-|> (newline >> indentedBlock (vTuple $ fmap pretty entries))
 
 data Qualification
   = NotQualified
   | FullyQualified
   | QualifiedAs (WithComments String)
+  deriving (Eq)
 
 data ImportEntries = ImportEntries
   { entries :: [GHC.LIE GHC.GhcPs]
@@ -77,6 +93,7 @@ data ImportEntries = ImportEntries
 data EntriesKind
   = Explicit
   | Hiding
+  deriving (Eq)
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
@@ -213,15 +230,20 @@ sortExplicitImportsInDecl = fmap f
 #else
 sortExplicitImportsInDecl = fmap f
   where
-    f Import {import' = d@GHC.ImportDecl {ideclHiding = Just (x, imports)}, ..} =
-      Import {import' = d {GHC.ideclHiding = Just (x, sorted)}, ..}
+    f Import {..} = Import {list = sorted, ..}
       where
-        sorted = fmap (fmap sortVariants . sortExplicitImports) imports
-    f x = x
+        sorted = fmap (fmap (sortVariants' . sortExplicitImports)) list
 #endif
 -- | This function sorts the given explicit imports by their names.
-sortExplicitImports :: [GHC.LIE GHC.GhcPs] -> [GHC.LIE GHC.GhcPs]
-sortExplicitImports = sortBy compareImportEntities
+sortExplicitImports :: ImportEntries -> ImportEntries
+sortExplicitImports ImportEntries {..} = ImportEntries {entries = sorted, ..}
+  where
+    sorted = sortBy compareImportEntities entries
+
+sortVariants' :: ImportEntries -> ImportEntries
+sortVariants' ImportEntries {..} = ImportEntries {entries = sorted, ..}
+  where
+    sorted = fmap sortVariants entries
 
 -- | This function sorts variants (e.g., data constructors and class
 -- methods) in the given explicit import by their names.

@@ -24,7 +24,7 @@ import HIndent.Printer
 data WithComments a = WithComments
   { comments :: NodeComments
   , node :: a
-  }
+  } deriving (Eq)
 
 instance Functor WithComments where
   fmap f (WithComments c n) = WithComments c (f n)
