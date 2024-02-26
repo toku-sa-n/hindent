@@ -26,7 +26,9 @@ import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import HIndent.Printer
-
+#if !MIN_VERSION_ghc_lib_parser(9, 6, 1)
+import GHC.Unit.Types hiding (moduleName)
+#endif
 newtype ImportCollection =
   ImportCollection [[WithComments Import]] -- Imports are not sorted by their names.
 
@@ -44,7 +46,8 @@ instance Pretty ImportCollection where
           False -> pure imports
 
 data Import = Import
-  { isSafeImport :: Bool
+  { isSourceImport :: Bool
+  , isSafeImport :: Bool
   , import' :: ImportDecl GhcPs
   }
 
@@ -64,7 +67,13 @@ mkImportCollection HsModule {..} =
         <$> extractImports hsmodImports
 
 mkImport :: ImportDecl GhcPs -> Import
-mkImport import' = Import {isSafeImport = ideclSafe import', import'}
+mkImport import' = Import {..}
+  where
+    isSourceImport =
+      case ideclSource import' of
+        NotBoot -> False
+        IsBoot -> True
+    isSafeImport = ideclSafe import'
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
