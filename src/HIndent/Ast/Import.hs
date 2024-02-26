@@ -49,6 +49,7 @@ data Import = Import
   { moduleName :: WithComments String
   , isSourceImport :: Bool
   , isSafeImport :: Bool
+  , qualification :: Qualification
   , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
@@ -57,6 +58,11 @@ instance CommentExtraction Import where
 
 instance Pretty Import where
   pretty' Import {..} = pretty import'
+
+data Qualification
+  = NotQualified
+  | FullyQualified
+  | QualifiedAs (WithComments String)
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkImportCollection :: GHC.HsModule GHC.GhcPs -> ImportCollection
 #else
@@ -73,8 +79,16 @@ mkImport import'@GHC.ImportDecl {..} =
     { moduleName = showOutputable <$> mkWithCommentsWithGenLocated ideclName
     , isSourceImport = ideclSource == GHC.IsBoot
     , isSafeImport = ideclSafe
+    , qualification
     , import'
     }
+  where
+    qualification =
+      case (ideclQualified, ideclAs) of
+        (GHC.NotQualified, _) -> NotQualified
+        (_, Nothing) -> FullyQualified
+        (_, Just name) ->
+          QualifiedAs $ showOutputable <$> mkWithCommentsWithGenLocated name
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
