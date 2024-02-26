@@ -10,6 +10,7 @@ module HIndent.Ast.Module
   , mkModule
   ) where
 
+import Control.Monad
 import Data.Maybe
 import GHC.Hs hiding (comments)
 import HIndent.Ast.Declaration
@@ -37,12 +38,8 @@ instance CommentExtraction Module where
   nodeComments (Module {}) = NodeComments [] [] []
 
 instance Pretty Module where
-  pretty' Module {..}
-    | not (pragmaExists pragmas)
-        && isNothing moduleDeclaration
-        && not (hasImports imports)
-        && not (hasDeclarations declarations) = pure ()
-    | otherwise = blanklined printers >> newline
+  pretty' Module {..} =
+    when (not $ null printers) (blanklined printers >> newline)
     where
       printers = snd <$> filter fst pairs
       pairs =
