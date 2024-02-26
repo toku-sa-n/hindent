@@ -46,7 +46,8 @@ instance Pretty ImportCollection where
           False -> pure imports
 
 data Import = Import
-  { isSourceImport :: Bool
+  { moduleName :: WithComments String
+  , isSourceImport :: Bool
   , isSafeImport :: Bool
   , import' :: ImportDecl GhcPs
   }
@@ -67,13 +68,13 @@ mkImportCollection HsModule {..} =
         <$> extractImports hsmodImports
 
 mkImport :: ImportDecl GhcPs -> Import
-mkImport import' = Import {..}
-  where
-    isSourceImport =
-      case ideclSource import' of
-        NotBoot -> False
-        IsBoot -> True
-    isSafeImport = ideclSafe import'
+mkImport import'@ImportDecl {..} =
+  Import
+    { moduleName = showOutputable <$> mkWithCommentsWithGenLocated ideclName
+    , isSourceImport = ideclSource == IsBoot
+    , isSafeImport = ideclSafe
+    , import'
+    }
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
@@ -164,16 +165,16 @@ sortVariants x = x
 -- | This function compares two import declarations by their module names.
 compareImportEntities :: LIE GhcPs -> LIE GhcPs -> Ordering
 compareImportEntities (L _ a) (L _ b) =
-  fromMaybe LT $ compareIdentifier <$> moduleName a <*> moduleName b
+  fromMaybe LT $ compareIdentifier <$> getModuleName a <*> getModuleName b
 
 -- | This function returns a 'Just' value with the module name extracted
 -- from the import declaration. Otherwise, it returns a 'Nothing'.
-moduleName :: IE GhcPs -> Maybe String
-moduleName (IEVar _ wrapped) = Just $ showOutputable wrapped
-moduleName (IEThingAbs _ wrapped) = Just $ showOutputable wrapped
-moduleName (IEThingAll _ wrapped) = Just $ showOutputable wrapped
-moduleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
-moduleName _ = Nothing
+getModuleName :: IE GhcPs -> Maybe String
+getModuleName (IEVar _ wrapped) = Just $ showOutputable wrapped
+getModuleName (IEThingAbs _ wrapped) = Just $ showOutputable wrapped
+getModuleName (IEThingAll _ wrapped) = Just $ showOutputable wrapped
+getModuleName (IEThingWith _ wrapped _ _) = Just $ showOutputable wrapped
+getModuleName _ = Nothing
 
 -- | This function compares two identifiers in order of capitals, symbols,
 -- and lowers.
