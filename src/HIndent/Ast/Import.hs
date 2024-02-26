@@ -4,7 +4,9 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
-
+#if MIN_VERSION_ghc_lib_parser(9, 4, 1)
+{-# LANGUAGE ViewPatterns #-}
+#endif
 module HIndent.Ast.Import
   ( ImportCollection
   , mkImportCollection
@@ -26,7 +28,9 @@ import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import HIndent.Printer
-#if !MIN_VERSION_ghc_lib_parser(9, 6, 1)
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+import qualified GHC.Types.PkgQual as GHC
+#else
 import qualified GHC.Unit.Types as GHC
 #endif
 newtype ImportCollection =
@@ -50,6 +54,7 @@ data Import = Import
   , isSourceImport :: Bool
   , isSafeImport :: Bool
   , qualification :: Qualification
+  , packageName :: Maybe String
   , import' :: GHC.ImportDecl GHC.GhcPs
   }
 
@@ -79,6 +84,7 @@ mkImport import'@GHC.ImportDecl {..} =
     { moduleName = showOutputable <$> mkWithCommentsWithGenLocated ideclName
     , isSourceImport = ideclSource == GHC.IsBoot
     , isSafeImport = ideclSafe
+    , packageName = getPackageName import'
     , qualification
     , import'
     }
@@ -93,6 +99,14 @@ mkImport import'@GHC.ImportDecl {..} =
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
 
+getPackageName :: GHC.ImportDecl GHC.GhcPs -> Maybe String
+#if MIN_VERSION_ghc_lib_parser(9, 4, 1)
+getPackageName (GHC.ideclPkgQual -> GHC.RawPkgQual name) =
+  Just $ showOutputable name
+getPackageName _ = Nothing
+#else
+getPackageName = fmap showOutputable . GHC.ideclPkgQual
+#endif
 extractImports :: [GHC.LImportDecl GHC.GhcPs] -> [[GHC.LImportDecl GHC.GhcPs]]
 extractImports = groupImports . sortImportsByLocation
 
