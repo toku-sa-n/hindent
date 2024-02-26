@@ -38,8 +38,7 @@ instance CommentExtraction Module where
   nodeComments (Module {}) = NodeComments [] [] []
 
 instance Pretty Module where
-  pretty' Module {..} =
-    when (not $ null printers) (blanklined printers >> newline)
+  pretty' Module {..} = unless (null printers) (blanklined printers >> newline)
     where
       printers = snd <$> filter fst pairs
       pairs =
