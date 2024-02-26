@@ -4,6 +4,7 @@
 module HIndent.Ast.Declaration
   ( DeclarationCollection
   , mkDeclarationCollection
+  , hasDeclarations
   ) where
 
 import Data.Maybe
@@ -40,3 +41,6 @@ mkDeclarationCollection :: HsModule GhcPs -> DeclarationCollection
 mkDeclarationCollection :: HsModule -> DeclarationCollection
 #endif
 mkDeclarationCollection HsModule {..} = DeclarationCollection hsmodDecls
+
+hasDeclarations :: DeclarationCollection -> Bool
+hasDeclarations (DeclarationCollection decls) = not $ null decls

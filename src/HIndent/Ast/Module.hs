@@ -42,20 +42,19 @@ instance Pretty Module where
                  , module' = HsModule {hsmodImports = [], hsmodDecls = []}
                  }
     | not (pragmaExists pragmas) = pure ()
-  pretty' mo@Module {module' = m, ..} = blanklined printers >> newline
+  pretty' mo@Module {..} = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists pragmas, pretty pragmas)
         , (moduleDeclExists, prettyModuleDecl mo)
         , (hasImports imports, pretty imports)
-        , (declsExist m, pretty declarations)
+        , (hasDeclarations declarations, pretty declarations)
         ]
       prettyModuleDecl Module {declaration = Nothing} =
         error "The module declaration does not exist."
       prettyModuleDecl Module {declaration = Just d} = pretty d
       moduleDeclExists = isJust declaration
-      declsExist = not . null . hsmodDecls
 
 mkModule :: HsModule' -> WithComments Module
 mkModule m = mkWithCommentsWithEpAnn ann Module {..}
