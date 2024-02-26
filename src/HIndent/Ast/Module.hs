@@ -37,11 +37,12 @@ instance CommentExtraction Module where
   nodeComments (Module {}) = NodeComments [] [] []
 
 instance Pretty Module where
-  pretty' Module {moduleDeclaration = Nothing, pragmas, imports, declarations}
+  pretty' Module {..}
     | not (pragmaExists pragmas)
+        && isNothing moduleDeclaration
         && not (hasImports imports)
         && not (hasDeclarations declarations) = pure ()
-  pretty' Module {..} = blanklined printers >> newline
+    | otherwise = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
