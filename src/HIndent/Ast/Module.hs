@@ -28,7 +28,7 @@ type HsModule' = HsModule
 #endif
 data Module = Module
   { pragmas :: FileHeaderPragmaCollection
-  , declaration :: Maybe ModuleDeclaration
+  , moduleDeclaration :: Maybe ModuleDeclaration
   , imports :: ImportCollection
   , declarations :: DeclarationCollection
   }
@@ -37,7 +37,7 @@ instance CommentExtraction Module where
   nodeComments (Module {}) = NodeComments [] [] []
 
 instance Pretty Module where
-  pretty' Module {declaration = Nothing, pragmas, imports, declarations}
+  pretty' Module {moduleDeclaration = Nothing, pragmas, imports, declarations}
     | not (pragmaExists pragmas)
         && not (hasImports imports)
         && not (hasDeclarations declarations) = pure ()
@@ -46,19 +46,19 @@ instance Pretty Module where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists pragmas, pretty pragmas)
-        , (moduleDeclExists, prettyModuleDecl declaration)
+        , (moduleDeclExists, prettyModuleDecl moduleDeclaration)
         , (hasImports imports, pretty imports)
         , (hasDeclarations declarations, pretty declarations)
         ]
       prettyModuleDecl Nothing = error "The module declaration does not exist."
       prettyModuleDecl (Just d) = pretty d
-      moduleDeclExists = isJust declaration
+      moduleDeclExists = isJust moduleDeclaration
 
 mkModule :: HsModule' -> WithComments Module
 mkModule m = mkWithCommentsWithEpAnn ann Module {..}
   where
     ann = getAnn m
-    declaration = mkModuleDeclaration m
+    moduleDeclaration = mkModuleDeclaration m
     pragmas = mkFileHeaderPragmaCollection m
     imports = mkImportCollection m
     declarations = mkDeclarationCollection m
