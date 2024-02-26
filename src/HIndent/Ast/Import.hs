@@ -64,7 +64,7 @@ mkImportCollection HsModule {..} =
         <$> extractImports hsmodImports
 
 mkImport :: ImportDecl GhcPs -> Import
-mkImport import' = Import {isSafeImport = True, import'}
+mkImport import' = Import {isSafeImport = ideclSafe import', import'}
 
 hasImports :: ImportCollection -> Bool
 hasImports (ImportCollection imports) = not $ null imports
