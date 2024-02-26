@@ -12,7 +12,6 @@ module HIndent.Ast.Module
 
 import Data.Maybe
 import GHC.Hs hiding (comments)
-import GHC.Types.SrcLoc
 import HIndent.Ast.Declaration
 import HIndent.Ast.Import
 import HIndent.Ast.Module.Declaration
@@ -51,24 +50,12 @@ instance Pretty Module where
         [ (pragmaExists pragmas, pretty pragmas)
         , (moduleDeclExists, prettyModuleDecl mo)
         , (importsExist m, pretty imports)
-        , (declsExist m, prettyDecls)
+        , (declsExist m, pretty declarations)
         ]
       prettyModuleDecl Module {declaration = Nothing} =
         error "The module declaration does not exist."
       prettyModuleDecl Module {declaration = Just d} = pretty d
       moduleDeclExists = isJust declaration
-      prettyDecls =
-        mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
-          $ addDeclSeparator
-          $ hsmodDecls m
-      addDeclSeparator [] = []
-      addDeclSeparator [x] = [(x, Nothing)]
-      addDeclSeparator (x:xs) =
-        (x, Just $ declSeparator $ unLoc x) : addDeclSeparator xs
-      declSeparator (SigD _ TypeSig {}) = newline
-      declSeparator (SigD _ InlineSig {}) = newline
-      declSeparator (SigD _ PatSynSig {}) = newline
-      declSeparator _ = blankline
       declsExist = not . null . hsmodDecls
 
 mkModule :: HsModule' -> WithComments Module
