@@ -4,21 +4,20 @@
 module HIndent.Ast.WithComments
   ( WithComments
   , mkWithCommentsWithEpAnn
-  , mkWithCommentsWithSrcAnn
   , mkWithCommentsWithGenLocated
   , getNode
   ) where
 
-import GHC.Hs
-import GHC.Types.SrcLoc
-import HIndent.Ast.Pragma
-import HIndent.Pretty
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
+import           GHC.Hs
+import           GHC.Types.SrcLoc
+import           HIndent.Ast.Pragma
+import           HIndent.Pretty
+import           HIndent.Pretty.NodeComments
+import           HIndent.Pretty.Types
 
 data WithComments a = WithComments
   { comments :: NodeComments
-  , node :: a
+  , node     :: a
   }
 
 instance Functor WithComments where
