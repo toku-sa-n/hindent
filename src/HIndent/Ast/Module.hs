@@ -13,7 +13,7 @@ import Control.Monad
 import Data.Maybe
 import GHC.Hs hiding (comments)
 import HIndent.Ast.Declaration
-import HIndent.Ast.Import
+import HIndent.Ast.Import.Collection
 import HIndent.Ast.Module.Declaration
 import HIndent.Ast.Pragma
 import HIndent.Ast.WithComments
