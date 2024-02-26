@@ -41,18 +41,17 @@ instance Pretty Module where
     | not (pragmaExists pragmas)
         && not (hasImports imports)
         && not (hasDeclarations declarations) = pure ()
-  pretty' mo@Module {..} = blanklined printers >> newline
+  pretty' Module {..} = blanklined printers >> newline
     where
       printers = snd <$> filter fst pairs
       pairs =
         [ (pragmaExists pragmas, pretty pragmas)
-        , (moduleDeclExists, prettyModuleDecl mo)
+        , (moduleDeclExists, prettyModuleDecl declaration)
         , (hasImports imports, pretty imports)
         , (hasDeclarations declarations, pretty declarations)
         ]
-      prettyModuleDecl Module {declaration = Nothing} =
-        error "The module declaration does not exist."
-      prettyModuleDecl Module {declaration = Just d} = pretty d
+      prettyModuleDecl Nothing = error "The module declaration does not exist."
+      prettyModuleDecl (Just d) = pretty d
       moduleDeclExists = isJust declaration
 
 mkModule :: HsModule' -> WithComments Module
