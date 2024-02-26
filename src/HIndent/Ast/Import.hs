@@ -21,6 +21,7 @@ import Data.Maybe
 import qualified GHC.Hs as GHC
 import GHC.Stack
 import qualified GHC.Types.SrcLoc as GHC
+import qualified GHC.Unit.Types as GHC
 import HIndent.Ast.WithComments
 import HIndent.Config
 import HIndent.Pretty
@@ -28,10 +29,8 @@ import HIndent.Pretty.Combinators
 import HIndent.Pretty.NodeComments
 import HIndent.Pretty.Types
 import HIndent.Printer
-#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
+#if MIN_VERSION_ghc_lib_parser(9, 4, 1)
 import qualified GHC.Types.PkgQual as GHC
-#else
-import qualified GHC.Unit.Types as GHC
 #endif
 newtype ImportCollection =
   ImportCollection [[WithComments Import]] -- Imports are not sorted by their names.
@@ -120,7 +119,7 @@ getPackageName _ = Nothing
 getPackageName = fmap showOutputable . GHC.ideclPkgQual
 #endif
 getImportList :: GHC.ImportDecl GHC.GhcPs -> Maybe (WithComments ImportEntries)
-#if MIN_VERSION_ghc_lib_parser(9, 4, 1)
+#if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 getImportList GHC.ImportDecl {..} =
   case ideclImportList of
     Just (GHC.Exactly, imports) ->
