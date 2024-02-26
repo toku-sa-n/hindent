@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module.WarningOrDeprecated
@@ -6,21 +6,20 @@ module HIndent.Ast.Module.WarningOrDeprecated
   , mkModuleWarningOrDeprecated
   ) where
 
-import GHC.Hs hiding (Warning)
-import GHC.Types.SrcLoc
-import GHC.Unit.Module.Warnings
-import HIndent.Ast.WithComments
-import HIndent.Pretty
-import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
+import           GHC.Hs                      hiding (Warning)
+import           GHC.Types.SrcLoc
+import           GHC.Unit.Module.Warnings
+import           HIndent.Pretty
+import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.NodeComments
+import           HIndent.Pretty.Types
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 type HsModule' = HsModule GhcPs
 #else
 type HsModule' = HsModule
 #endif
 data ModuleWarningOrDeprecated = ModuleWarningOrDeprecated
-  { kind :: Kind
+  { kind   :: Kind
   , reason :: String
   }
 
@@ -43,26 +42,23 @@ instance CommentExtraction Kind where
   nodeComments _ = NodeComments [] [] []
 
 instance Pretty Kind where
-  pretty' Warning = string "WARNING"
+  pretty' Warning    = string "WARNING"
   pretty' Deprecated = string "DEPRECATED"
 
-mkModuleWarningOrDeprecated ::
-     HsModule' -> Maybe (WithComments ModuleWarningOrDeprecated)
+mkModuleWarningOrDeprecated :: HsModule' -> Maybe ModuleWarningOrDeprecated
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
   case hsmodDeprecMessage of
     Nothing -> Nothing
     Just (L _ (WarningTxt _ _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Warning, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Warning, reason = showOutputable reason})
     Just (L _ (WarningTxt _ _ _)) -> error "implement me"
     Just (L _ (DeprecatedTxt _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Deprecated, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Deprecated, reason = showOutputable reason})
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #elif MIN_VERSION_ghc_lib_parser(9, 6, 1)
 mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
@@ -70,15 +66,13 @@ mkModuleWarningOrDeprecated HsModule {hsmodExt = XModulePs {..}} =
     Nothing -> Nothing
     Just (L _ (WarningTxt _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Warning, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Warning, reason = showOutputable reason})
     Just (L _ (WarningTxt _ _)) -> error "implement me"
     Just (L _ (DeprecatedTxt _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Deprecated, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Deprecated, reason = showOutputable reason})
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #else
 mkModuleWarningOrDeprecated HsModule {..} =
@@ -86,14 +80,12 @@ mkModuleWarningOrDeprecated HsModule {..} =
     Nothing -> Nothing
     Just (L _ (WarningTxt _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Warning, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Warning, reason = showOutputable reason})
     Just (L _ (WarningTxt _ _)) -> error "implement me"
     Just (L _ (DeprecatedTxt _ [reason])) ->
       Just
-        (mkWithCommentsWithEmptyComments
-           (ModuleWarningOrDeprecated
-              {kind = Deprecated, reason = showOutputable reason}))
+        (ModuleWarningOrDeprecated
+           {kind = Deprecated, reason = showOutputable reason})
     Just (L _ (DeprecatedTxt _ _)) -> error "implement me"
 #endif

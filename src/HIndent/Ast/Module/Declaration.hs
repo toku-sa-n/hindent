@@ -1,6 +1,6 @@
 -- | Module declaration AST.
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.Module.Declaration
@@ -8,24 +8,25 @@ module HIndent.Ast.Module.Declaration
   , mkModuleDeclaration
   ) where
 
-import Control.Monad
-import HIndent.Applicative
-import HIndent.Ast.ExportGroup
-import HIndent.Ast.Module.Name
-import HIndent.Ast.Module.WarningOrDeprecated
-import HIndent.Ast.WithComments
-import HIndent.Pretty
-import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types
+import           Control.Monad
+import           HIndent.Applicative
+import           HIndent.Ast.ExportGroup
+import           HIndent.Ast.Module.Name
+import           HIndent.Ast.Module.WarningOrDeprecated
+import           HIndent.Ast.WithComments
+import           HIndent.Pretty
+import           HIndent.Pretty.Combinators
+import           HIndent.Pretty.NodeComments
+import           HIndent.Pretty.Types
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
-import GHC.Hs hiding (ModuleName, mkModuleName)
+import           GHC.Hs                                 hiding (ModuleName,
+                                                         mkModuleName)
 #else
-import GHC.Hs
+import           GHC.Hs
 #endif
 data ModuleDeclaration = ModuleDeclaration
-  { name :: WithComments ModuleName
-  , warning :: Maybe (WithComments ModuleWarningOrDeprecated)
+  { name    :: WithComments ModuleName
+  , warning :: Maybe ModuleWarningOrDeprecated
   , exports :: ExportGroup
   }
 
