@@ -95,8 +95,6 @@ instance Pretty (GHC.RoleAnnotDecl GHC.GhcPs)
 
 instance Pretty (GHC.HsSigType GHC.GhcPs)
 
-instance Pretty Context
-
 instance Pretty (GHC.DerivClauseTys GHC.GhcPs)
 
 instance Pretty a => Pretty (GHC.HsScaled GHC.GhcPs a)
