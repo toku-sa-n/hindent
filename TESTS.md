@@ -1249,7 +1249,8 @@ The indent after a `where` inside a `case` depends on the indent space setting
 f =
     case x of
         x -> undefined
-            where y = undefined
+          where
+            y = undefined
 ```
 
 #### Pattern matchings
@@ -3576,11 +3577,12 @@ quasiQuotes =
                                       typeString
                                       (map (snd $(presentVar)) xs))
                                 ]
-                              where getCh (CharPresentation "GHC.Types.Char" ch) =
-                                      ch
-                                    getCh (ChoicePresentation _ ((_, CharPresentation _ ch):_)) =
-                                      ch
-                                    getCh _ = ""
+                              where
+                                getCh (CharPresentation "GHC.Types.Char" ch) =
+                                  ch
+                                getCh (ChoicePresentation _ ((_, CharPresentation _ ch):_)) =
+                                  ch
+                                getCh _ = ""
                             _ ->
                               ListPresentation
                                 typeString
