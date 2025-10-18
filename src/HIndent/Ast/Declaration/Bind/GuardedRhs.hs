@@ -41,11 +41,12 @@ instance Pretty GuardedRhs where
   pretty' GuardedRhs {..} = do
     mapM_ pretty guards
     case localBinds of
-      GHC.HsValBinds epa lr ->
-        indentedWithSpace 2
+      GHC.HsValBinds epa lr -> do
+        indentSpaces <- getIndentSpaces
+        indentedWithSpace indentSpaces
           $ newlinePrefixed
               [ string "where"
-              , printCommentsAnd (GHC.L epa lr) (indentedWithSpace 2 . pretty)
+              , printCommentsAnd (GHC.L epa lr) (indentedWithSpace indentSpaces . pretty)
               ]
       _ -> return ()
 

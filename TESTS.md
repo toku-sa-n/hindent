@@ -1235,12 +1235,12 @@ g x =
        in y
 ```
 
-The indent after a top-level `where` has always 2 spaces.
+The indent after a top-level `where` respects the indent space setting.
 
 ```haskell 4
 f = undefined
-  where
-    g = undefined
+    where
+        g = undefined
 ```
 
 The indent after a `where` inside a `case` depends on the indent space setting
@@ -1249,8 +1249,8 @@ The indent after a `where` inside a `case` depends on the indent space setting
 f =
     case x of
         x -> undefined
-          where
-            y = undefined
+            where
+                y = undefined
 ```
 
 #### Pattern matchings
@@ -1821,12 +1821,12 @@ Multiple line function signature inside a `where`
 
 ```haskell 4
 foo = undefined
-  where
-    go :: Fooooooooooooooooooooooo
-       -> Fooooooooooooooooooooooo
-       -> Fooooooooooooooooooooooo
-       -> Fooooooooooooooooooooooo
-    go = undefined
+    where
+        go :: Fooooooooooooooooooooooo
+           -> Fooooooooooooooooooooooo
+           -> Fooooooooooooooooooooooo
+           -> Fooooooooooooooooooooooo
+        go = undefined
 ```
 
 Types with many type applications
