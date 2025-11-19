@@ -938,6 +938,9 @@ instance CommentExtraction (HsQuote GhcPs) where
 instance CommentExtraction (WithHsDocIdentifiers StringLiteral GhcPs) where
   nodeComments WithHsDocIdentifiers {} = emptyNodeComments
 
+instance CommentExtraction (DotFieldOcc GhcPs) where
+  nodeComments DotFieldOcc {..} = nodeComments dfoExt
+
 instance CommentExtraction (HsFieldBind a b) where
   nodeComments = nodeCommentsHsFieldBind
 
@@ -953,6 +956,8 @@ nodeCommentsHsFieldBind HsFieldBind {..} = nodeComments hfbAnn
 instance CommentExtraction (HsFieldLabel GhcPs) where
   nodeComments HsFieldLabel {..} = nodeComments hflExt
 #endif
+instance CommentExtraction (HsPragE GhcPs) where
+  nodeComments _ = emptyNodeComments
 #if !MIN_VERSION_ghc_lib_parser(9, 4, 1)
 instance CommentExtraction (HsBracket GhcPs) where
   nodeComments ExpBr {} = emptyNodeComments

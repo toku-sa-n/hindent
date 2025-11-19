@@ -368,6 +368,18 @@ instance Pretty
 instance Pretty (GHC.WithHsDocIdentifiers GHC.StringLiteral GHC.GhcPs) where
   pretty' GHC.WithHsDocIdentifiers {..} = pretty hsDocString
 #endif
+#if MIN_VERSION_ghc_lib_parser(9,6,1)
+instance Pretty (GHC.DotFieldOcc GHC.GhcPs) where
+  pretty' GHC.DotFieldOcc {..} = printCommentsAnd dfoLabel pretty
+#elif MIN_VERSION_ghc_lib_parser(9,4,1)
+instance Pretty (GHC.DotFieldOcc GHC.GhcPs) where
+  pretty' GHC.DotFieldOcc {..} =
+    printCommentsAnd dfoLabel (string . GHC.unpackFS)
+#else
+instance Pretty (GHC.HsFieldLabel GHC.GhcPs) where
+  pretty' GHC.HsFieldLabel {..} =
+    printCommentsAnd hflLabel (string . GHC.unpackFS)
+#endif
 -- | 'Pretty' for 'LHsWcType'
 instance Pretty
            (GHC.HsWildCardBndrs
@@ -447,7 +459,15 @@ prettyHsLit x =
             indentedWithSpace (-1)
               $ lined
               $ fmap (string . dropWhile (/= '\\')) ss
-
+#if MIN_VERSION_ghc_lib_parser(9,6,1)
+instance Pretty (GHC.HsPragE GHC.GhcPs) where
+  pretty' (GHC.HsPragSCC _ x) =
+    spaced [string "{-# SCC", pretty x, string "#-}"]
+#else
+instance Pretty (GHC.HsPragE GHC.GhcPs) where
+  pretty' (GHC.HsPragSCC _ _ x) =
+    spaced [string "{-# SCC", pretty x, string "#-}"]
+#endif
 instance Pretty DoOrMdo where
   pretty' Do = string "do"
   pretty' Mdo = string "mdo"
