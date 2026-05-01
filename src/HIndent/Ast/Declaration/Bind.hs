@@ -4,16 +4,22 @@
 module HIndent.Ast.Declaration.Bind
   ( Bind
   , mkBind
+  , prettyBind
   ) where
 
 import HIndent.Ast.Declaration.Bind.GuardedRhs
+  ( GuardedRhs
+  , addWhereComments
+  , mkGuardedRhs
+  )
 import HIndent.Ast.Declaration.PatternSynonym
 import HIndent.Ast.MatchGroup (MatchGroup, mkExprMatchGroup)
+import qualified HIndent.Ast.NodeComments as NodeComments
 import HIndent.Ast.Pattern
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
-import HIndent.Pretty.NodeComments
+import HIndent.Printer
 
 -- The difference between `Function` and `Pattern` is the same as the difference
 -- between `FunBind` and `PatBind` in GHC AST. See
@@ -28,22 +34,23 @@ data Bind
       }
   | PatternSynonym (WithComments PatternSynonym)
 
-instance CommentExtraction Bind where
-  nodeComments Function {} = emptyNodeComments
-  nodeComments Pattern {} = emptyNodeComments
-  nodeComments PatternSynonym {} = emptyNodeComments
-
 instance Pretty Bind where
   pretty' (Function matches) = pretty matches
   pretty' Pattern {..} = pretty lhs >> pretty rhs
   pretty' (PatternSynonym ps) = pretty ps
+
+prettyBind :: GHC.HsBind GHC.GhcPs -> Printer ()
+prettyBind = pretty . mkBind
 
 mkBind :: GHC.HsBind GHC.GhcPs -> Bind
 mkBind GHC.FunBind {..} = Function $ mkExprMatchGroup fun_matches
 mkBind GHC.PatBind {..} = Pattern {..}
   where
     lhs = mkPattern <$> fromGenLocated pat_lhs
-    rhs = mkWithComments $ mkGuardedRhs pat_rhs
+    rhs =
+      mkWithComments
+        $ addWhereComments (NodeComments.fromAnnotation pat_ext)
+        $ mkGuardedRhs pat_rhs
 mkBind (GHC.PatSynBind _ psb) =
   PatternSynonym $ mkWithComments $ mkPatternSynonym psb
 mkBind _ = error "This AST node should not appear."

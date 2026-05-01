@@ -13,11 +13,9 @@ import HIndent.Ast.LocalBinds.ImplicitBindings
   ( ImplicitBindings
   , mkImplicitBindings
   )
-import HIndent.Ast.NodeComments (NodeComments(..))
 import HIndent.Ast.WithComments (WithComments, fromEpAnn, fromGenLocated)
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import qualified HIndent.Pretty.SigBindFamily as SBF
 
 data LocalBinds
@@ -27,10 +25,6 @@ data LocalBinds
   | ImplicitParameters
       { implicitBindings :: ImplicitBindings
       }
-
-instance CommentExtraction LocalBinds where
-  nodeComments Value {} = NodeComments [] [] []
-  nodeComments ImplicitParameters {} = NodeComments [] [] []
 
 instance Pretty LocalBinds where
   pretty' Value {sigBindFamilies = families} = lined $ fmap pretty families

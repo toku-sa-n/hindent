@@ -7,14 +7,14 @@ module HIndent.Ast.Expression.RecordUpdateField
   , mkRecordUpdateFields
   ) where
 
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 import qualified GHC.Hs as GHC
 import HIndent.Applicative (whenJust)
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
-import HIndent.Ast.NodeComments (NodeComments(..))
 import HIndent.Ast.WithComments
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import HIndent.Printer (Printer)
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
 import HIndent.Ast.Name.RecordField
@@ -39,9 +39,6 @@ data RecordUpdateFields = RecordUpdateFields
   { expression :: WithComments Expression
   , fields :: [WithComments Field]
   }
-
-instance CommentExtraction RecordUpdateFields where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty RecordUpdateFields where
   pretty' RecordUpdateFields {..} = horizontal <-|> vertical
@@ -70,9 +67,6 @@ data Field = Field
   , value :: Maybe (WithComments Expression)
   }
 
-instance CommentExtraction Field where
-  nodeComments _ = NodeComments [] [] []
-
 prettyFieldHorizontal :: Field -> Printer ()
 prettyFieldHorizontal Field {..} = do
   pretty fieldName
@@ -88,7 +82,7 @@ prettyFieldVertical Field {..} = do
     (space >> pretty val) <-|> (newline >> indentedBlock (pretty val))
 
 collectFieldsWith ::
-     CommentExtraction (GHC.Anno label)
+     (Data (GHC.Anno label), Typeable (GHC.Anno label))
   => (label -> FieldName)
   -> [GHC.LocatedA
         (GHC.HsFieldBind (GHC.XRec GHC.GhcPs label) (GHC.LHsExpr GHC.GhcPs))]

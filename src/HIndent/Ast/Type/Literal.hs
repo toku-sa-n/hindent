@@ -4,20 +4,15 @@ module HIndent.Ast.Type.Literal
   ) where
 
 import qualified GHC.Data.FastString as GHC
-import HIndent.Ast.NodeComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import Text.Show.Unicode
 
 data Literal
   = Numeric Integer
   | String String
   | Character Char
-
-instance CommentExtraction Literal where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty Literal where
   pretty' (Numeric n) = string $ show n

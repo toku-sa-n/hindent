@@ -16,13 +16,9 @@ import HIndent.Ast.WithComments
   )
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators (lined)
-import HIndent.Pretty.NodeComments (CommentExtraction(..))
 
 newtype MatchGroup =
   MatchGroup (WithComments [WithComments Match])
-
-instance CommentExtraction MatchGroup where
-  nodeComments (MatchGroup alts) = getComments alts
 
 instance Pretty MatchGroup where
   pretty' (MatchGroup alts) = prettyWith alts (lined . fmap pretty)

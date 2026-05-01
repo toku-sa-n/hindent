@@ -6,25 +6,20 @@ module HIndent.Ast.Declaration.Warning
   , mkWarningDeclaration
   ) where
 
-import qualified GHC.Types.SourceText as GHC
 import HIndent.Ast.Declaration.Warning.Kind
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments
+import HIndent.Ast.StringLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Unit.Module.Warnings as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data WarningDeclaration = WarningDeclaration
   { names :: [WithComments PrefixName]
   , kind :: Kind
-  , reasons :: [WithComments GHC.StringLiteral]
+  , reasons :: [WithComments StringLiteral]
   }
-
-instance CommentExtraction WarningDeclaration where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty WarningDeclaration where
   pretty' WarningDeclaration {..} = do
@@ -40,43 +35,49 @@ mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 #elif MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 #elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap GHC.hsDocString) rs
+    reasons =
+      fmap (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString)) rs
 #else
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap fromGenLocated rs
+    reasons = fmap (fromGenLocated . fmap mkStringLiteral) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap fromGenLocated rs
+    reasons = fmap (fromGenLocated . fmap mkStringLiteral) rs
 #endif

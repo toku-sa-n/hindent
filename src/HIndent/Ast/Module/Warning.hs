@@ -6,38 +6,18 @@ module HIndent.Ast.Module.Warning
   , mkModuleWarning
   ) where
 
-import qualified GHC.Types.SourceText as GHC
 import HIndent.Ast.Declaration.Warning.Kind
-import HIndent.Ast.NodeComments
+import HIndent.Ast.StringLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Unit.Module.Warnings as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-#if !MIN_VERSION_ghc_lib_parser(9, 10, 0)
-import qualified GHC.Types.SrcLoc as GHC
-#endif
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+
 data ModuleWarning = ModuleWarning
-  { messages :: [GHC.LocatedE
-                   (GHC.WithHsDocIdentifiers GHC.StringLiteral GHC.GhcPs)]
+  { messages :: [WithComments StringLiteral]
   , kind :: Kind
   }
-#elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
-data ModuleWarning = ModuleWarning
-  { messages :: [GHC.Located
-                   (GHC.WithHsDocIdentifiers GHC.StringLiteral GHC.GhcPs)]
-  , kind :: Kind
-  }
-#else
-data ModuleWarning = ModuleWarning
-  { messages :: [GHC.GenLocated GHC.SrcSpan GHC.StringLiteral]
-  , kind :: Kind
-  }
-#endif
-instance CommentExtraction ModuleWarning where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty ModuleWarning where
   pretty' ModuleWarning {..} =
@@ -54,20 +34,36 @@ mkModuleWarning =
 
 fromWarningTxt :: GHC.WarningTxt' -> ModuleWarning
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-fromWarningTxt (GHC.WarningTxt _ _ messages) = ModuleWarning {..}
+fromWarningTxt (GHC.WarningTxt _ _ warningMessages) = ModuleWarning {..}
   where
     kind = Warning
+    messages =
+      fmap
+        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+        warningMessages
 #else
-fromWarningTxt (GHC.WarningTxt _ messages) = ModuleWarning {..}
+fromWarningTxt (GHC.WarningTxt _ warningMessages) = ModuleWarning {..}
   where
     kind = Warning
+    messages =
+      fmap
+        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+        warningMessages
 #endif
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-fromWarningTxt (GHC.DeprecatedTxt _ messages) = ModuleWarning {..}
+fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) = ModuleWarning {..}
   where
     kind = Deprecated
+    messages =
+      fmap
+        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+        warningMessages
 #else
-fromWarningTxt (GHC.DeprecatedTxt _ messages) = ModuleWarning {..}
+fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) = ModuleWarning {..}
   where
     kind = Deprecated
+    messages =
+      fmap
+        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+        warningMessages
 #endif

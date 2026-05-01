@@ -12,12 +12,10 @@ import HIndent.Applicative
 import HIndent.Ast.Context
 import HIndent.Ast.Declaration.Class.FunctionalDependency
 import HIndent.Ast.Declaration.Class.NameAndTypeVariables
-import HIndent.Ast.NodeComments
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import HIndent.Pretty.SigBindFamily
 #if !MIN_VERSION_ghc_lib_parser(9, 12, 1)
 import qualified GHC.Data.Bag as GHC
@@ -26,11 +24,8 @@ data ClassDeclaration = ClassDeclaration
   { context :: Maybe (WithComments Context)
   , nameAndTypeVariables :: NameAndTypeVariables
   , functionalDependencies :: [WithComments FunctionalDependency]
-  , associatedThings :: [LSigBindFamily]
+  , associatedThings :: [WithComments SigBindFamily]
   }
-
-instance CommentExtraction ClassDeclaration where
-  nodeComments ClassDeclaration {} = NodeComments [] [] []
 
 instance Pretty ClassDeclaration where
   pretty' ClassDeclaration {..} = do
@@ -66,7 +61,8 @@ mkClassDeclaration x@GHC.ClassDecl {..}
     functionalDependencies =
       fmap (fmap mkFunctionalDependency . fromGenLocated) tcdFDs
     associatedThings =
-      mkSortedLSigBindFamilyList tcdSigs tcdMeths tcdATs [] tcdATDefs []
+      fmap fromGenLocated
+        $ mkSortedLSigBindFamilyList tcdSigs tcdMeths tcdATs [] tcdATDefs []
 #else
 mkClassDeclaration x@GHC.ClassDecl {..}
   | Just nameAndTypeVariables <- mkNameAndTypeVariables x =
@@ -76,12 +72,13 @@ mkClassDeclaration x@GHC.ClassDecl {..}
     functionalDependencies =
       fmap (fmap mkFunctionalDependency . fromGenLocated) tcdFDs
     associatedThings =
-      mkSortedLSigBindFamilyList
-        tcdSigs
-        (GHC.bagToList tcdMeths)
-        tcdATs
-        []
-        tcdATDefs
-        []
+      fromGenLocated
+        <$> mkSortedLSigBindFamilyList
+              tcdSigs
+              (GHC.bagToList tcdMeths)
+              tcdATs
+              []
+              tcdATDefs
+              []
 #endif
 mkClassDeclaration _ = Nothing

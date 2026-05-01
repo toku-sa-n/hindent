@@ -16,7 +16,6 @@ import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data Parameters
   = Prefix
@@ -38,14 +37,6 @@ data PatternSynonym = PatternSynonym
   , definition :: WithComments PatInsidePatDecl
   }
 
-instance CommentExtraction Parameters where
-  nodeComments Prefix {} = emptyNodeComments
-  nodeComments Infix {} = emptyNodeComments
-  nodeComments Record {} = emptyNodeComments
-
-instance CommentExtraction PatternSynonym where
-  nodeComments PatternSynonym {} = emptyNodeComments
-
 instance Pretty Parameters where
   pretty' Prefix {..} = spaced $ fmap pretty args
   pretty' Infix {..} = spaced [pretty leftArg, pretty rightArg]
@@ -56,9 +47,15 @@ instance Pretty PatternSynonym where
     string "pattern "
     case getNode parameters of
       Infix {..} ->
-        spaced [pretty leftArg, pretty $ fmap mkInfixName name, pretty rightArg]
-      Prefix {args = []} -> pretty $ fmap mkPrefixName name
-      _ -> spaced [pretty $ fmap mkPrefixName name, pretty parameters]
+        spaced
+          [ pretty leftArg
+          , pretty $ fromGenLocated $ fmap mkInfixName name
+          , pretty rightArg
+          ]
+      Prefix {args = []} -> pretty $ fromGenLocated $ fmap mkPrefixName name
+      _ ->
+        spaced
+          [pretty $ fromGenLocated $ fmap mkPrefixName name, pretty parameters]
     let arrow =
           if isImplicitBidirectional
             then "="

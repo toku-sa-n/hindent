@@ -10,18 +10,16 @@ module HIndent.Ast.Import
 import Control.Monad
 import Data.Function
 import Data.List (sortBy)
-import qualified GHC.Types.SourceText as GHC
 import qualified GHC.Unit as GHC
 import HIndent.Applicative
 import HIndent.Ast.Import.Entry.Collection
 import HIndent.Ast.Module.Name (ModuleName, mkModuleName)
-import HIndent.Ast.NodeComments
+import HIndent.Ast.StringLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs.ImpExp as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data QualificationPosition
   = Pre
@@ -34,12 +32,9 @@ data Import = Import
   , isBoot :: Bool
   , qualifiedAs :: Maybe (WithComments ModuleName)
   , qualification :: Maybe QualificationPosition
-  , packageName :: Maybe GHC.StringLiteral
+  , packageName :: Maybe StringLiteral
   , importEntries :: Maybe (WithComments ImportEntryCollection)
   }
-
-instance CommentExtraction Import where
-  nodeComments Import {} = NodeComments [] [] []
 
 instance Pretty Import where
   pretty' Import {..} = do
@@ -67,7 +62,7 @@ mkImport decl@GHC.ImportDecl {..} = Import {..}
         GHC.QualifiedPre -> Just Pre
         GHC.QualifiedPost -> Just Post
     qualifiedAs = fmap mkModuleName . fromGenLocated <$> ideclAs
-    packageName = GHC.getPackageName decl
+    packageName = mkStringLiteral <$> GHC.getPackageName decl
     importEntries = mkImportEntryCollection decl
 
 sortByName :: [WithComments Import] -> [WithComments Import]

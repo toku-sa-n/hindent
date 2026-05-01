@@ -9,13 +9,11 @@ module HIndent.Ast.Declaration.Data.GADT.Constructor.Signature
   ) where
 
 import HIndent.Ast.Declaration.Data.Record.Field
-import HIndent.Ast.NodeComments
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import HIndent.Printer
 
 data ConstructorSignature
@@ -24,10 +22,6 @@ data ConstructorSignature
       { fields :: WithComments [WithComments RecordField]
       , result :: WithComments Type
       }
-
-instance CommentExtraction ConstructorSignature where
-  nodeComments (ByArrows _) = NodeComments [] [] []
-  nodeComments Record {} = NodeComments [] [] []
 
 prettyHorizontally :: ConstructorSignature -> Printer ()
 prettyHorizontally (ByArrows signature) = pretty signature

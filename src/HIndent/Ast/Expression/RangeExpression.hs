@@ -11,7 +11,6 @@ import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data RangeExpression
   = From (WithComments Expression)
@@ -28,12 +27,6 @@ data RangeExpression
       , next :: WithComments Expression
       , to :: WithComments Expression
       }
-
-instance CommentExtraction RangeExpression where
-  nodeComments From {} = emptyNodeComments
-  nodeComments FromThen {} = emptyNodeComments
-  nodeComments FromTo {} = emptyNodeComments
-  nodeComments FromThenTo {} = emptyNodeComments
 
 instance Pretty RangeExpression where
   pretty' (From f) = brackets $ spaced [pretty f, string ".."]

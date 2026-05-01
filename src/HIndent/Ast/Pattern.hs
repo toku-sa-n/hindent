@@ -19,14 +19,13 @@ import HIndent.Ast.Expression.Splice
 import HIndent.Ast.Name.Infix hiding (unlessSpecialOp)
 import qualified HIndent.Ast.Name.Infix as InfixName
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments hiding (fromEpAnn)
 import HIndent.Ast.Pattern.RecordFields
 import HIndent.Ast.Type
+import HIndent.Ast.ValueLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments (CommentExtraction(..))
 
 data Pattern
   = WildCard
@@ -66,20 +65,17 @@ data Pattern
       , pat :: WithComments Pattern
       }
   | Splice (WithComments Splice)
-  | Literal (GHC.HsLit GHC.GhcPs)
-  | Overloaded (GHC.HsOverLit GHC.GhcPs)
+  | Literal LiteralValue
+  | Overloaded OverloadedValue
   | NPlusK
       { n :: WithComments PrefixName
-      , k :: GHC.HsOverLit GHC.GhcPs
+      , k :: OverloadedValue
       }
   | Signature
       { pat :: WithComments Pattern
       , sig :: WithComments Type
       }
   | Or (NonEmpty (WithComments Pattern))
-
-instance CommentExtraction Pattern where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty Pattern where
   pretty' WildCard = string "_"
@@ -199,10 +195,11 @@ mkPattern (GHC.ViewPat _ l r) =
     , pat = mkPattern <$> fromGenLocated r
     }
 mkPattern (GHC.SplicePat _ x) = Splice $ mkWithComments $ mkSplice x
-mkPattern (GHC.LitPat _ x) = Literal x
-mkPattern (GHC.NPat _ x _ _) = Overloaded $ GHC.unLoc x
+mkPattern (GHC.LitPat _ x) = Literal $ mkLiteralValue x
+mkPattern (GHC.NPat _ x _ _) = Overloaded $ mkOverloadedValue $ GHC.unLoc x
 mkPattern (GHC.NPlusKPat _ n k _ _ _) =
-  NPlusK {n = mkPrefixName <$> fromGenLocated n, k = GHC.unLoc k}
+  NPlusK
+    {n = mkPrefixName <$> fromGenLocated n, k = mkOverloadedValue $ GHC.unLoc k}
 mkPattern (GHC.SigPat _ l r) =
   Signature
     { pat = mkPattern <$> fromGenLocated l
@@ -216,9 +213,6 @@ mkPattern (GHC.OrPat _ pats) = Or $ fmap (fmap mkPattern . fromGenLocated) pats
 #endif
 newtype PatInsidePatDecl =
   PatInsidePatDecl Pattern
-
-instance CommentExtraction PatInsidePatDecl where
-  nodeComments (PatInsidePatDecl p) = nodeComments p
 
 instance Pretty PatInsidePatDecl where
   pretty' (PatInsidePatDecl InfixConstructor {..}) =

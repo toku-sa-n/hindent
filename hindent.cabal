@@ -135,6 +135,7 @@ library
       HIndent.Ast.Record.Field
       HIndent.Ast.Role
       HIndent.Ast.Statement
+      HIndent.Ast.StringLiteral
       HIndent.Ast.Type
       HIndent.Ast.Type.Bang
       HIndent.Ast.Type.Forall
@@ -144,6 +145,7 @@ library
       HIndent.Ast.Type.Strictness
       HIndent.Ast.Type.Unpackedness
       HIndent.Ast.Type.Variable
+      HIndent.Ast.ValueLiteral
       HIndent.Ast.WithComments
       HIndent.ByteString
       HIndent.CabalFile

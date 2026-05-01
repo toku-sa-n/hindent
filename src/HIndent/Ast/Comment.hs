@@ -6,15 +6,11 @@ module HIndent.Ast.Comment
 import qualified GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments (CommentExtraction(..))
 
 data Comment
   = Line String
   | Block String
   deriving (Eq, Show)
-
-instance CommentExtraction Comment where
-  nodeComments _ = mempty
 
 instance Pretty Comment where
   pretty' (Line c) = string c

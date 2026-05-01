@@ -7,7 +7,6 @@ module HIndent.Ast.LocalBinds.ImplicitBinding
   ) where
 
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
-import HIndent.Ast.NodeComments (NodeComments(..))
 import HIndent.Ast.Type.ImplicitParameterName
   ( ImplicitParameterName
   , mkImplicitParameterName
@@ -16,15 +15,11 @@ import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data ImplicitBinding = ImplicitBinding
   { name :: WithComments ImplicitParameterName
   , expression :: WithComments Expression
   }
-
-instance CommentExtraction ImplicitBinding where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty ImplicitBinding where
   pretty' ImplicitBinding {..} =

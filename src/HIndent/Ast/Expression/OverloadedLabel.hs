@@ -8,13 +8,9 @@ module HIndent.Ast.Expression.OverloadedLabel
 import qualified GHC.Data.FastString as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 newtype OverloadedLabel =
   OverloadedLabel String
-
-instance CommentExtraction OverloadedLabel where
-  nodeComments OverloadedLabel {} = emptyNodeComments
 
 instance Pretty OverloadedLabel where
   pretty' (OverloadedLabel s) = string "#" >> string s

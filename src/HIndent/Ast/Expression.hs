@@ -50,9 +50,8 @@ import HIndent.Ast.Expression.RecordUpdateField
 import HIndent.Ast.Guard (Guard, mkMultiWayIfExprGuard)
 import HIndent.Ast.LocalBinds (LocalBinds, mkLocalBinds)
 import HIndent.Ast.MatchGroup (MatchGroup, hasMatches, mkExprMatchGroup)
-import HIndent.Ast.Module.Name (mkModuleName)
+import HIndent.Ast.Module.Name (ModuleName, mkModuleName)
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments (NodeComments(..))
 import HIndent.Ast.Pattern
 import HIndent.Ast.Statement (ExprStatement, mkExprStatement)
 import HIndent.Ast.Type
@@ -60,12 +59,11 @@ import HIndent.Ast.Type.ImplicitParameterName
   ( ImplicitParameterName
   , mkImplicitParameterName
   )
+import HIndent.Ast.ValueLiteral
 import HIndent.Ast.WithComments
 import HIndent.CabalFile ()
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-import HIndent.Pretty.Types (DoOrMdo(..), QualifiedDo(..))
 import HIndent.Printer
 import qualified Language.Haskell.Syntax.Basic as HS
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
@@ -82,8 +80,8 @@ data Expression
   | UnboundVariable (WithComments PrefixName)
   | OverloadedLabel OverloadedLabel
   | ImplicitParameter ImplicitParameterName
-  | OverloadedLiteral (GHC.HsOverLit GHC.GhcPs)
-  | Literal (GHC.HsLit GHC.GhcPs)
+  | OverloadedLiteral OverloadedValue
+  | Literal LiteralValue
   | Lambda MatchGroup
   | LambdaCase
       { usesCases :: Bool
@@ -170,8 +168,12 @@ data Expression
       , expression :: WithComments Expression
       }
 
-instance CommentExtraction Expression where
-  nodeComments _ = NodeComments [] [] []
+data DoOrMdo
+  = Do
+  | Mdo
+
+data QualifiedDo =
+  QualifiedDo (Maybe ModuleName) DoOrMdo
 
 instance Pretty Expression where
   pretty' (Variable name) = pretty name
@@ -333,6 +335,17 @@ instance Pretty Expression where
   pretty' PragmaticExpression {..} = spaced [pretty pragma, pretty expression]
   pretty' (Splice splice') = pretty splice'
 
+instance Pretty DoOrMdo where
+  pretty' Do = string "do"
+  pretty' Mdo = string "mdo"
+
+instance Pretty QualifiedDo where
+  pretty' (QualifiedDo (Just moduleName) doOrMdo) = do
+    pretty moduleName
+    string "."
+    pretty doOrMdo
+  pretty' (QualifiedDo Nothing doOrMdo) = pretty doOrMdo
+
 mkExpression :: GHC.HsExpr GHC.GhcPs -> Expression
 mkExpression (GHC.HsVar _ name) =
   Variable $ mkPrefixName <$> fromGenLocated name
@@ -357,8 +370,8 @@ mkExpression (GHC.HsOverLabel _ label) =
 #endif
 mkExpression (GHC.HsIPVar _ name) =
   ImplicitParameter $ mkImplicitParameterName name
-mkExpression (GHC.HsOverLit _ lit) = OverloadedLiteral lit
-mkExpression (GHC.HsLit _ lit) = Literal lit
+mkExpression (GHC.HsOverLit _ lit) = OverloadedLiteral $ mkOverloadedValue lit
+mkExpression (GHC.HsLit _ lit) = Literal $ mkLiteralValue lit
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExpression (GHC.HsEmbTy _ _) =
   error "`ghc-lib-parser` never generates this AST node."
@@ -520,7 +533,10 @@ mkExpression (GHC.HsIf _ predicateExpr thenExpr elseExpr) =
     , elseBranch = mkExpression <$> fromGenLocated elseExpr
     }
 mkExpression (GHC.HsMultiIf _ clauses) =
-  MultiIf $ fmap (fmap mkMultiWayIfExprGuard . fromGenLocated) (toList clauses)
+  MultiIf
+    $ fmap
+        (flattenComments . fmap mkMultiWayIfExprGuard . fromGenLocated)
+        (toList clauses)
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExpression (GHC.HsLet _ localBinds body) =
   case mkLocalBinds localBinds of
@@ -649,9 +665,6 @@ mkExpression (GHC.HsRecSel _ _) =
 newtype InfixExpr =
   InfixExpr Expression
 
-instance CommentExtraction InfixExpr where
-  nodeComments _ = NodeComments [] [] []
-
 instance Pretty InfixExpr where
   pretty' (InfixExpr (Variable name)) = pretty $ mkPrefixAsInfix <$> name
   pretty' (InfixExpr (UnboundVariable name)) = pretty $ mkPrefixAsInfix <$> name
@@ -662,11 +675,6 @@ data GuardExpression
   = GuardWithDo Expression
   | GuardWithAppAndDo Expression
   | GuardExpression Expression
-
-instance CommentExtraction GuardExpression where
-  nodeComments (GuardWithDo expr) = nodeComments expr
-  nodeComments (GuardWithAppAndDo expr) = nodeComments expr
-  nodeComments (GuardExpression expr) = nodeComments expr
 
 instance Pretty GuardExpression where
   pretty' (GuardWithDo expr) = space >> pretty expr

@@ -13,13 +13,11 @@ import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.Declaration.Foreign.CallingConvention
 import HIndent.Ast.Declaration.Foreign.Safety
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments
 import HIndent.Ast.Type (Type, mkTypeFromHsSigType)
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 #if MIN_VERSION_ghc_lib_parser(9, 8, 0)
 import qualified GHC.Data.FastString as GHC
 #endif
@@ -37,10 +35,6 @@ data ForeignDeclaration
       , dstIdent :: WithComments PrefixName
       , signature :: WithComments Type
       }
-
-instance CommentExtraction ForeignDeclaration where
-  nodeComments ForeignImport {} = NodeComments [] [] []
-  nodeComments ForeignExport {} = NodeComments [] [] []
 
 instance Pretty ForeignDeclaration where
   pretty' ForeignImport {..} =

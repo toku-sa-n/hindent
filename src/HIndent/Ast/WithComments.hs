@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module HIndent.Ast.WithComments
@@ -17,13 +18,18 @@ module HIndent.Ast.WithComments
 
 import Control.Monad
 import Control.Monad.RWS
+import Data.Data (Data)
+import Data.Foldable (asum)
+import Data.Maybe (fromMaybe)
+import Data.Typeable (cast)
 import qualified GHC.Hs as GHC
 import qualified GHC.Types.SrcLoc as GHC
+import HIndent.Ast.Comment (mkComment)
 import HIndent.Ast.NodeComments (NodeComments(..))
 import qualified HIndent.Ast.NodeComments as NodeComments
+import qualified HIndent.GhcLibParserWrapper.GHC.Parser.Annotation as Annotation
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 import HIndent.Printer
 
 data WithComments a = WithComments
@@ -34,11 +40,8 @@ data WithComments a = WithComments
 instance Functor WithComments where
   fmap f WithComments {..} = WithComments comments (f node)
 
-instance CommentExtraction (WithComments a) where
-  nodeComments WithComments {..} = comments
-
 instance (Pretty a) => Pretty (WithComments a) where
-  pretty' WithComments {..} = pretty' node
+  pretty' withComments = prettyWith withComments pretty'
 
 -- | Prints comments included in the location information and then the
 -- AST node body.
@@ -57,13 +60,13 @@ printCommentsBefore p =
     let col =
           fromIntegral
             $ GHC.srcSpanStartCol (GHC.epaLocationRealSrcSpan loc) - 1
-    indentedWithFixedLevel col $ pretty c
+    indentedWithFixedLevel col $ pretty $ mkComment $ GHC.ac_tok c
     newline
 #else
 printCommentsBefore p =
   forM_ (commentsBefore p) $ \(GHC.L loc c) -> do
     let col = fromIntegral $ GHC.srcSpanStartCol (GHC.anchor loc) - 1
-    indentedWithFixedLevel col $ pretty c
+    indentedWithFixedLevel col $ pretty $ mkComment $ GHC.ac_tok c
     newline
 #endif
 -- | Prints comments that are on the same line as the given AST node.
@@ -78,9 +81,9 @@ printCommentOnSameLine (commentsOnSameLine -> (c:cs)) = do
               $ GHC.epaLocationRealSrcSpan
               $ GHC.getLoc c)
            $ spaced
-           $ fmap pretty
+           $ fmap prettyComment
            $ c : cs
-    else spacePrefixed $ fmap pretty $ c : cs
+    else spacePrefixed $ fmap prettyComment $ c : cs
   eolCommentsArePrinted
 #else
 printCommentOnSameLine (commentsOnSameLine -> (c:cs)) = do
@@ -89,9 +92,9 @@ printCommentOnSameLine (commentsOnSameLine -> (c:cs)) = do
     then indentedWithFixedLevel
            (fromIntegral $ GHC.srcSpanStartCol $ GHC.anchor $ GHC.getLoc c)
            $ spaced
-           $ fmap pretty
+           $ fmap prettyComment
            $ c : cs
-    else spacePrefixed $ fmap pretty $ c : cs
+    else spacePrefixed $ fmap prettyComment $ c : cs
   eolCommentsArePrinted
 #endif
 printCommentOnSameLine _ = return ()
@@ -109,7 +112,7 @@ printCommentsAfter p =
         let col =
               fromIntegral
                 $ GHC.srcSpanStartCol (GHC.epaLocationRealSrcSpan loc) - 1
-        indentedWithFixedLevel col $ pretty c
+        indentedWithFixedLevel col $ pretty $ mkComment $ GHC.ac_tok c
         eolCommentsArePrinted
 #else
 printCommentsAfter p =
@@ -120,11 +123,11 @@ printCommentsAfter p =
       unless isThereCommentsOnSameLine newline
       forM_ xs $ \(GHC.L loc c) -> do
         let col = fromIntegral $ GHC.srcSpanStartCol (GHC.anchor loc) - 1
-        indentedWithFixedLevel col $ pretty c
+        indentedWithFixedLevel col $ pretty $ mkComment $ GHC.ac_tok c
         eolCommentsArePrinted
 #endif
-fromGenLocated :: (CommentExtraction l) => GHC.GenLocated l a -> WithComments a
-fromGenLocated (GHC.L l a) = WithComments (nodeComments l) a
+fromGenLocated :: Data l => GHC.GenLocated l a -> WithComments a
+fromGenLocated (GHC.L l a) = WithComments (getLocatedComments l) a
 
 fromEpAnn :: GHC.EpAnn a -> b -> WithComments b
 fromEpAnn ann = WithComments (NodeComments.fromEpAnn ann)
@@ -145,3 +148,43 @@ flattenComments (WithComments outerComments (WithComments innerComments node)) =
 addComments :: NodeComments -> WithComments a -> WithComments a
 addComments extra (WithComments current node) =
   WithComments (extra <> current) node
+
+prettyComment :: GHC.LEpaComment -> Printer ()
+prettyComment (GHC.L _ comment) = pretty $ mkComment $ GHC.ac_tok comment
+
+getLocatedComments :: Data l => l -> NodeComments
+getLocatedComments location =
+  fromMaybe
+    (NodeComments.fromAnnotation location)
+    (asum
+       [ commentsFromSrcSpanAnnA location
+       , commentsFromSrcSpanAnnL location
+       , commentsFromSrcSpanAnnN location
+       , commentsFromSrcSpanAnnP location
+       , commentsFromSrcSpanAnnC location
+       ])
+
+commentsFromSrcSpanAnnA :: Data l => l -> Maybe NodeComments
+commentsFromSrcSpanAnnA location =
+  NodeComments.fromEpAnn . Annotation.srcSpanAnnAToEpAnn
+    <$> (cast location :: Maybe Annotation.SrcSpanAnnA)
+
+commentsFromSrcSpanAnnL :: Data l => l -> Maybe NodeComments
+commentsFromSrcSpanAnnL location =
+  NodeComments.fromEpAnn . Annotation.srcSpanAnnLToEpAnn
+    <$> (cast location :: Maybe Annotation.SrcSpanAnnL)
+
+commentsFromSrcSpanAnnN :: Data l => l -> Maybe NodeComments
+commentsFromSrcSpanAnnN location =
+  NodeComments.fromEpAnn . Annotation.srcSpanAnnNToEpAnn
+    <$> (cast location :: Maybe Annotation.SrcSpanAnnN)
+
+commentsFromSrcSpanAnnP :: Data l => l -> Maybe NodeComments
+commentsFromSrcSpanAnnP location =
+  NodeComments.fromEpAnn . Annotation.srcSpanAnnPToEpAnn
+    <$> (cast location :: Maybe Annotation.SrcSpanAnnP)
+
+commentsFromSrcSpanAnnC :: Data l => l -> Maybe NodeComments
+commentsFromSrcSpanAnnC location =
+  NodeComments.fromEpAnn . Annotation.srcSpanAnnCToEpAnn
+    <$> (cast location :: Maybe Annotation.SrcSpanAnnC)

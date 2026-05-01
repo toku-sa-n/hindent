@@ -6,28 +6,17 @@ module HIndent.Ast.Declaration.Instance.Family.Type
   ) where
 
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+
 data TypeFamilyInstance = TypeFamilyInstance
   { name :: WithComments PrefixName
-  , types :: GHC.HsFamEqnPats GHC.GhcPs
+  , types :: [TypeArgument]
   , bind :: WithComments Type
   }
-#else
-data TypeFamilyInstance = TypeFamilyInstance
-  { name :: WithComments PrefixName
-  , types :: GHC.HsTyPats GHC.GhcPs
-  , bind :: WithComments Type
-  }
-#endif
-instance CommentExtraction TypeFamilyInstance where
-  nodeComments TypeFamilyInstance {} = NodeComments [] [] []
 
 instance Pretty TypeFamilyInstance where
   pretty' TypeFamilyInstance {..} = do
@@ -40,6 +29,6 @@ mkTypeFamilyInstance GHC.TyFamInstD {GHC.tfid_inst = GHC.TyFamInstDecl {GHC.tfid
   Just $ TypeFamilyInstance {..}
   where
     name = fromGenLocated $ fmap mkPrefixName feqn_tycon
-    types = feqn_pats
+    types = mkTypeArguments feqn_pats
     bind = mkType <$> fromGenLocated feqn_rhs
 mkTypeFamilyInstance _ = Nothing

@@ -17,6 +17,16 @@ import Data.List (sortBy)
 import Data.Maybe
 import GHC.Hs
 import GHC.Types.SrcLoc
+import {-# SOURCE #-} HIndent.Ast.Declaration.Bind (prettyBind)
+import HIndent.Ast.Declaration.Family.Data
+import HIndent.Ast.Declaration.Family.Type
+import HIndent.Ast.Declaration.Instance.Family.Data
+  ( mkAssociatedDataFamilyInstance
+  )
+import HIndent.Ast.Declaration.Instance.Family.Type.Associated
+import HIndent.Ast.Declaration.Instance.Family.Type.Associated.Default
+import HIndent.Ast.Declaration.Signature
+import HIndent.Pretty
 
 -- | A sum type containing one of those: function signature, function
 -- binding, family declaration (type or data), type family instance, and data family instance.
@@ -27,6 +37,17 @@ data SigBindFamily
   | TyFamInst (TyFamInstDecl GhcPs)
   | TyFamDeflt (TyFamDefltDecl GhcPs)
   | DataFamInst (DataFamInstDecl GhcPs)
+
+instance Pretty SigBindFamily where
+  pretty' (Sig signature) = pretty $ mkSignature signature
+  pretty' (Bind bind) = prettyBind bind
+  pretty' (Family familyDecl)
+    | Just typeFamily <- mkTypeFamily familyDecl = pretty typeFamily
+    | Just dataFamily <- mkDataFamily familyDecl = pretty dataFamily
+    | otherwise = error "Unreachable"
+  pretty' (TyFamInst inst) = pretty $ mkAssociatedType inst
+  pretty' (TyFamDeflt deflt) = pretty $ mkAssociatedTypeDefault deflt
+  pretty' (DataFamInst inst) = pretty $ mkAssociatedDataFamilyInstance inst
 
 -- | 'SigBindFamily' with the location information.
 type LSigBindFamily = GenLocated SrcSpanAnnA SigBindFamily

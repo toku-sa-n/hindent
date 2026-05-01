@@ -1,11 +1,18 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.NodeComments
   ( NodeComments(..)
+  , fromAnnotation
+  , fromEpAnnComments
   , fromEpAnn
   ) where
 
+import Data.Data (Data, gmapQl)
+import Data.Foldable (asum)
+import Data.Maybe (fromMaybe)
+import Data.Typeable (cast)
 import qualified GHC.Hs as GHC
 import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Pragma
@@ -32,6 +39,25 @@ instance Monoid NodeComments where
 
 fromEpAnn :: GHC.EpAnn a -> NodeComments
 fromEpAnn = fromEpAnn' . filterOutEofAndPragmasFromAnn
+
+fromEpAnnComments :: GHC.EpAnnComments -> NodeComments
+fromEpAnnComments comments =
+  NodeComments
+    { commentsBefore = GHC.priorComments filteredComments
+    , commentsOnSameLine = []
+    , commentsAfter = GHC.getFollowingComments filteredComments
+    }
+  where
+    filteredComments = filterOutEofAndPragmasFromComments comments
+
+fromAnnotation :: Data a => a -> NodeComments
+fromAnnotation annotation =
+  fromMaybe
+    (gmapQl (<>) mempty fromAnnotation annotation)
+    (asum
+       [ fromEpAnnComments <$> cast annotation
+       , fromEpaLocation <$> cast annotation
+       ])
 
 fromEpAnn' :: GHC.EpAnn a -> NodeComments
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -85,3 +111,15 @@ isNeitherEofNorPragmaComment (GHC.L _ (GHC.EpaComment GHC.EpaEofComment _)) =
 #endif
 isNeitherEofNorPragmaComment (GHC.L _ (GHC.EpaComment tok _)) =
   not $ isPragma tok
+
+fromEpaLocation :: GHC.EpaLocation -> NodeComments
+fromEpaLocation GHC.EpaSpan {} = mempty
+#if MIN_VERSION_ghc_lib_parser(9, 12, 1)
+fromEpaLocation (GHC.EpaDelta _ _ trailing) =
+  foldMap fromTrailingCommentLocation trailing
+#else
+fromEpaLocation (GHC.EpaDelta _ trailing) =
+  foldMap fromTrailingCommentLocation trailing
+#endif
+fromTrailingCommentLocation :: GHC.LEpaComment -> NodeComments
+fromTrailingCommentLocation comment = mempty {commentsAfter = [comment]}

@@ -18,6 +18,7 @@ import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Applicative (whenJust)
 import HIndent.Ast.Declaration.Bind.GuardedRhs
   ( GuardedRhs
+  , addWhereComments
   , mkCaseCmdGuardedRhs
   , mkCaseGuardedRhs
   , mkGuardedRhs
@@ -26,7 +27,7 @@ import HIndent.Ast.Declaration.Bind.GuardedRhs
   )
 import HIndent.Ast.Name.Infix (InfixName, mkInfixName)
 import HIndent.Ast.Name.Prefix (PrefixName, mkPrefixName)
-import HIndent.Ast.NodeComments
+import qualified HIndent.Ast.NodeComments as NodeComments
 import HIndent.Ast.Pattern (Pattern, mkPattern)
 import HIndent.Ast.Type.Strictness (Strictness, mkStrictness)
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -41,7 +42,6 @@ import HIndent.Ast.WithComments
 #endif
 import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments (CommentExtraction(..))
 
 data InfixOperands = InfixOperands
   { left :: WithComments Pattern
@@ -49,9 +49,6 @@ data InfixOperands = InfixOperands
   , right :: WithComments Pattern
   , rest :: [WithComments Pattern]
   }
-
-instance CommentExtraction InfixOperands where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty InfixOperands where
   pretty' InfixOperands {..} =
@@ -78,9 +75,6 @@ data Match
       , rhs :: GuardedRhs
       }
 
-instance CommentExtraction Match where
-  nodeComments _ = NodeComments [] [] []
-
 instance Pretty Match where
   pretty' Lambda {..} = do
     string "\\"
@@ -106,22 +100,31 @@ mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
     { needsSpaceAfterLambda = lambdaNeedsSpace $ GHC.unLoc m_pats
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
-    , rhs = mkLambdaGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkLambdaGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
   Case
-    { rhs = mkCaseGuardedRhs m_grhss
+    { rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
-    { rhs = mkCaseGuardedRhs m_grhss
+    { rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch ctxt patterns (mkGuardedRhs m_grhss)
+  mkFunctionMatch
+    ctxt
+    patterns
+    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
   where
     patterns =
       fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
@@ -132,25 +135,36 @@ mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkLambdaGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkLambdaGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCase, ..} =
   Case
-    { rhs = mkCaseGuardedRhs m_grhss
+    { rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCases, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkCaseGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkCaseGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch ctxt patterns (mkGuardedRhs m_grhss)
+  mkFunctionMatch
+    ctxt
+    patterns
+    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
@@ -160,22 +174,31 @@ mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = patterns
-    , rhs = mkLambdaGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkLambdaGuardedRhs m_grhss
     }
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamCaseAlt {}, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkCaseGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkCaseGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch ctxt patterns (mkGuardedRhs m_grhss)
+  mkFunctionMatch
+    ctxt
+    patterns
+    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
@@ -185,15 +208,22 @@ mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkLambdaGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkLambdaGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs = mkCaseGuardedRhs m_grhss
+    , rhs =
+        addWhereComments (NodeComments.fromAnnotation m_ext)
+          $ mkCaseGuardedRhs m_grhss
     }
 mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch ctxt patterns (mkGuardedRhs m_grhss)
+  mkFunctionMatch
+    ctxt
+    patterns
+    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."

@@ -8,17 +8,16 @@ module HIndent.Ast.Declaration.TypeSynonym.Lhs
 import qualified GHC.Types.Fixity as GHC
 import HIndent.Ast.Name.Infix
 import HIndent.Ast.Name.Prefix
-import HIndent.Ast.NodeComments
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data TypeSynonymLhs
   = Prefix
-      { pName :: WithComments PrefixName -- Using `name` in both `Prefix` and `Infix` causes a type conflict.
+      { pName :: WithComments PrefixName
+                                         -- Using `name` in both `Prefix` and `Infix` causes a type conflict.
       , typeVariables :: [WithComments TypeVariable]
       }
   | Infix
@@ -26,10 +25,6 @@ data TypeSynonymLhs
       , iName :: WithComments InfixName
       , right :: WithComments TypeVariable
       }
-
-instance CommentExtraction TypeSynonymLhs where
-  nodeComments Prefix {} = NodeComments [] [] []
-  nodeComments Infix {} = NodeComments [] [] []
 
 instance Pretty TypeSynonymLhs where
   pretty' Prefix {..} = spaced $ pretty pName : fmap pretty typeVariables

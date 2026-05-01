@@ -4,10 +4,8 @@ module HIndent.Ast.Declaration.Foreign.CallingConvention
   ) where
 
 import qualified GHC.Types.ForeignCall as GHC
-import HIndent.Ast.NodeComments
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 data CallingConvention
   = CCall
@@ -15,9 +13,6 @@ data CallingConvention
   | StdCall
   | Prim
   | JavaScript
-
-instance CommentExtraction CallingConvention where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty CallingConvention where
   pretty' CCall = string "ccall"

@@ -6,22 +6,29 @@ module HIndent.Ast.Declaration.Instance.Family.Type.Associated.Default
   , mkAssociatedTypeDefault
   ) where
 
-import HIndent.Ast.NodeComments
+import HIndent.Ast.Name.Prefix
+import HIndent.Ast.Type
+import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import {-# SOURCE #-} HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
-newtype AssociatedTypeDefault =
-  AssociatedTypeDefault
-    (GHC.FamEqn GHC.GhcPs (GHC.LocatedA (GHC.HsType GHC.GhcPs)))
-
-instance CommentExtraction AssociatedTypeDefault where
-  nodeComments (AssociatedTypeDefault _) = NodeComments [] [] []
+data AssociatedTypeDefault = AssociatedTypeDefault
+  { name :: WithComments PrefixName
+  , types :: [TypeArgument]
+  , bind :: WithComments Type
+  }
 
 instance Pretty AssociatedTypeDefault where
-  pretty' (AssociatedTypeDefault equation) =
-    string "type instance " >> pretty equation
+  pretty' AssociatedTypeDefault {..} = do
+    spaced $ string "type instance" : pretty name : fmap pretty types
+    string " = "
+    pretty bind
 
 mkAssociatedTypeDefault :: GHC.TyFamInstDecl GHC.GhcPs -> AssociatedTypeDefault
-mkAssociatedTypeDefault GHC.TyFamInstDecl {..} = AssociatedTypeDefault tfid_eqn
+mkAssociatedTypeDefault GHC.TyFamInstDecl {GHC.tfid_eqn = GHC.FamEqn {..}} =
+  AssociatedTypeDefault
+    { name = fromGenLocated $ fmap mkPrefixName feqn_tycon
+    , types = mkTypeArguments feqn_pats
+    , bind = mkType <$> fromGenLocated feqn_rhs
+    }

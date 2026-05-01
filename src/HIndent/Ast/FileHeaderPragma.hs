@@ -8,17 +8,12 @@ import Data.Char
 import Data.List (intercalate)
 import Data.List.Split
 import qualified GHC.Hs as GHC
-import HIndent.Ast.NodeComments
 import HIndent.Pragma
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
-import HIndent.Pretty.NodeComments
 
 newtype FileHeaderPragma =
   FileHeaderPragma String
-
-instance CommentExtraction FileHeaderPragma where
-  nodeComments _ = NodeComments [] [] []
 
 instance Pretty FileHeaderPragma where
   pretty' (FileHeaderPragma x) = string x
