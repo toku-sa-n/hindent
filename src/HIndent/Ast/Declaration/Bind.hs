@@ -7,14 +7,9 @@ module HIndent.Ast.Declaration.Bind
   , prettyBind
   ) where
 
-import HIndent.Ast.Declaration.Bind.GuardedRhs
-  ( GuardedRhs
-  , addWhereComments
-  , mkGuardedRhs
-  )
+import HIndent.Ast.Declaration.Bind.GuardedRhs (GuardedRhs, mkPatternGuardedRhs)
 import HIndent.Ast.Declaration.PatternSynonym
 import HIndent.Ast.MatchGroup (MatchGroup, mkExprMatchGroup)
-import qualified HIndent.Ast.NodeComments as NodeComments
 import HIndent.Ast.Pattern
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
@@ -44,13 +39,10 @@ prettyBind = pretty . mkBind
 
 mkBind :: GHC.HsBind GHC.GhcPs -> Bind
 mkBind GHC.FunBind {..} = Function $ mkExprMatchGroup fun_matches
-mkBind GHC.PatBind {..} = Pattern {..}
+mkBind bind@GHC.PatBind {..} = Pattern {..}
   where
     lhs = mkPattern <$> fromGenLocated pat_lhs
-    rhs =
-      mkWithComments
-        $ addWhereComments (NodeComments.fromAnnotation pat_ext)
-        $ mkGuardedRhs pat_rhs
+    rhs = mkWithComments $ mkPatternGuardedRhs bind
 mkBind (GHC.PatSynBind _ psb) =
   PatternSynonym $ mkWithComments $ mkPatternSynonym psb
 mkBind _ = error "This AST node should not appear."

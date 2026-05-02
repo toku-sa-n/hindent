@@ -18,16 +18,11 @@ import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Applicative (whenJust)
 import HIndent.Ast.Declaration.Bind.GuardedRhs
   ( GuardedRhs
-  , addWhereComments
-  , mkCaseCmdGuardedRhs
-  , mkCaseGuardedRhs
-  , mkGuardedRhs
-  , mkLambdaCmdGuardedRhs
-  , mkLambdaGuardedRhs
+  , mkCmdGuardedRhs
+  , mkExprGuardedRhs
   )
 import HIndent.Ast.Name.Infix (InfixName, mkInfixName)
 import HIndent.Ast.Name.Prefix (PrefixName, mkPrefixName)
-import qualified HIndent.Ast.NodeComments as NodeComments
 import HIndent.Ast.Pattern (Pattern, mkPattern)
 import HIndent.Ast.Type.Strictness (Strictness, mkStrictness)
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -95,135 +90,99 @@ instance Pretty Match where
     pretty rhs
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
 mkExprMatch :: GHC.Match GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> Match
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace $ GHC.unLoc m_pats
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkLambdaGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
   Case
-    { rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    { rhs = mkExprGuardedRhs match
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
-    { rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    { rhs = mkExprGuardedRhs match
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch
-    ctxt
-    patterns
-    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
+mkExprMatch match@GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
+  mkFunctionMatch ctxt patterns (mkExprGuardedRhs match)
   where
     patterns =
       fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #elif MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExprMatch :: GHC.Match GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> Match
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkLambdaGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCase, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCase, ..} =
   Case
-    { rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    { rhs = mkExprGuardedRhs match
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCases, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCases, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch
-    ctxt
-    patterns
-    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
+mkExprMatch match@GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
+  mkFunctionMatch ctxt patterns (mkExprGuardedRhs match)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
 mkExprMatch :: GHC.Match GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> Match
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = patterns
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkLambdaGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LamCaseAlt {}, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamCaseAlt {}, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch
-    ctxt
-    patterns
-    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
+mkExprMatch match@GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
+  mkFunctionMatch ctxt patterns (mkExprGuardedRhs match)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #else
 mkExprMatch :: GHC.Match GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> Match
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkLambdaGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
-    , rhs =
-        addWhereComments (NodeComments.fromAnnotation m_ext)
-          $ mkCaseGuardedRhs m_grhss
+    , rhs = mkExprGuardedRhs match
     }
-mkExprMatch GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
-  mkFunctionMatch
-    ctxt
-    patterns
-    (addWhereComments (NodeComments.fromAnnotation m_ext) $ mkGuardedRhs m_grhss)
+mkExprMatch match@GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
+  mkFunctionMatch ctxt patterns (mkExprGuardedRhs match)
   where
     patterns = mkWithComments $ fmap (fmap mkPattern . fromGenLocated) m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
@@ -231,80 +190,80 @@ mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
 
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
 mkCmdMatch :: GHC.Match GHC.GhcPs (GHC.LHsCmd GHC.GhcPs) -> Match
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace (GHC.unLoc m_pats)
     , patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
-    , rhs = mkLambdaCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
   Case
     { patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns =
         fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #elif MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkCmdMatch :: GHC.Match GHC.GhcPs (GHC.LHsCmd GHC.GhcPs) -> Match
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkLambdaCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCase, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCase, ..} =
   Case
     { patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCases, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamCases, ..} =
   Case
     { patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
 mkCmdMatch :: GHC.Match GHC.GhcPs (GHC.LHsCmd GHC.GhcPs) -> Match
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkLambdaCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LamCaseAlt {}, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamCaseAlt {}, ..} =
   Case
     { patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkCaseCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #else
 mkCmdMatch :: GHC.Match GHC.GhcPs (GHC.LHsCmd GHC.GhcPs) -> Match
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LambdaExpr, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace m_pats
     , patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
-    , rhs = mkLambdaCmdGuardedRhs m_grhss
+    , rhs = mkCmdGuardedRhs match
     }
-mkCmdMatch GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
+mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
-    { rhs = mkCaseCmdGuardedRhs m_grhss
+    { rhs = mkCmdGuardedRhs match
     , patterns = mkWithComments $ fmap mkPattern . fromGenLocated <$> m_pats
     }
 mkCmdMatch _ = error "`ghc-lib-parser` never generates this AST node."

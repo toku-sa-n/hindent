@@ -25,14 +25,22 @@ epaLocationToRealSrcSpan = anchor
 
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 srcSpanAnnAToEpAnn = id
+
 srcSpanAnnLToEpAnn = id
+
 srcSpanAnnNToEpAnn = id
+
 srcSpanAnnPToEpAnn = id
+
 srcSpanAnnCToEpAnn = id
 #else
 srcSpanAnnAToEpAnn = ann
+
 srcSpanAnnLToEpAnn = ann
+
 srcSpanAnnNToEpAnn = ann
+
 srcSpanAnnPToEpAnn = ann
+
 srcSpanAnnCToEpAnn = ann
 #endif
