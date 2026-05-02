@@ -18,8 +18,7 @@ import HIndent.Pretty.Combinators
 
 data Haskell98ConstructorBody
   = Infix
-      { iName :: WithComments InfixName
-                                        -- Using `name` in all constructors causes a type clash
+      { iName :: WithComments InfixName -- Using `name` in all constructors causes a type clash
       , left :: ConstructorField
       , right :: ConstructorField
       }
