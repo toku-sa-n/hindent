@@ -57,7 +57,7 @@ pragmaRegex =
   makeRegexOpts
     compOption
     execOption
-    "^{-#[[:space:]]*([^[:space:]]+)[[:space:]]+([^#]+)#-}"
+    ("^{-#[[:space:]]*([^[:space:]]+)[[:space:]]+([^#]+)#-}" :: String)
 
 -- | The option for matching against a pragma.
 execOption :: ExecOption

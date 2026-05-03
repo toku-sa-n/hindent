@@ -4,15 +4,15 @@ module HIndent.Ast.Module.Name
   ) where
 
 import qualified GHC.Unit as GHC
+import HIndent.Ast.TextValue
 import HIndent.Pretty
-import HIndent.Pretty.Combinators
 
 newtype ModuleName =
-  ModuleName String
+  ModuleName TextValue
   deriving (Eq, Ord)
 
 instance Pretty ModuleName where
-  pretty (ModuleName x) = string x
+  pretty (ModuleName x) = pretty x
 
 mkModuleName :: GHC.ModuleName -> ModuleName
-mkModuleName = ModuleName . GHC.moduleNameString
+mkModuleName = ModuleName . mkTextValueFromString . GHC.moduleNameString

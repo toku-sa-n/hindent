@@ -25,6 +25,8 @@ data-files: elisp/hindent.el
 github: mihaimaruseac/hindent
 
 ghc-options: -Wall -O2 -threaded
+default-extensions:
+  - OverloadedStrings
 
 dependencies:
   - Cabal
@@ -45,6 +47,7 @@ dependencies:
   - regex-tdfa
   - split
   - syb
+  - text
   - transformers
   - unicode-show
   - utf8-string

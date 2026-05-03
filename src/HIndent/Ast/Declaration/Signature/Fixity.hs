@@ -6,6 +6,7 @@ module HIndent.Ast.Declaration.Signature.Fixity
   , mkFixity
   ) where
 
+import qualified Data.Text as Text
 import qualified GHC.Types.Fixity as GHC
 import HIndent.Ast.Declaration.Signature.Fixity.Associativity
 import HIndent.Pretty
@@ -17,7 +18,8 @@ data Fixity = Fixity
   }
 
 instance Pretty Fixity where
-  pretty Fixity {..} = spaced [pretty associativity, string $ show level]
+  pretty Fixity {..} =
+    spaced [pretty associativity, string $ Text.pack $ show level]
 
 mkFixity :: GHC.Fixity -> Fixity
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)

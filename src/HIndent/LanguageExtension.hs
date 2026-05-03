@@ -93,7 +93,7 @@ extractLanguageExtensionsFromOptions :: String -> [String]
 extractLanguageExtensionsFromOptions options =
   fmap
     trimXOption
-    (getAllTextMatches (options =~ "-X[^,[:space:]]+") :: [String])
+    (getAllTextMatches (options =~ ("-X[^,[:space:]]+" :: String)) :: [String])
   where
     trimXOption ('-':'X':xs) = xs
     trimXOption _ = error "Unreachable: the option must have the `-X` prefix."

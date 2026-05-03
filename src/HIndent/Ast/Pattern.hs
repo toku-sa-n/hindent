@@ -21,8 +21,7 @@ import qualified HIndent.Ast.Name.Infix as InfixName
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Pattern.RecordFields
 import HIndent.Ast.Type
-import HIndent.Ast.ValueLiteral.LiteralValue
-import HIndent.Ast.ValueLiteral.OverloadedValue
+import HIndent.Ast.ValueLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
@@ -66,11 +65,10 @@ data Pattern
       , pat :: WithComments Pattern
       }
   | Splice (WithComments Splice)
-  | Literal LiteralValue
-  | Overloaded OverloadedValue
+  | Literal ValueLiteral
   | NPlusK
       { n :: WithComments PrefixName
-      , k :: OverloadedValue
+      , k :: ValueLiteral
       }
   | Signature
       { pat :: WithComments Pattern
@@ -109,7 +107,6 @@ instance Pretty Pattern where
   pretty View {..} = spaced [pretty expression, string "->", pretty pat]
   pretty (Splice splice) = pretty splice
   pretty (Literal lit) = pretty lit
-  pretty (Overloaded lit) = pretty lit
   pretty NPlusK {..} = pretty n >> string "+" >> pretty k
   pretty Signature {..} = spaced [pretty pat, string "::", pretty sig]
   pretty (Or pats) = inter (string "; ") $ pretty <$> NE.toList pats
@@ -196,11 +193,14 @@ mkPattern (GHC.ViewPat _ l r) =
     , pat = mkPattern <$> fromGenLocated r
     }
 mkPattern (GHC.SplicePat _ x) = Splice $ mkWithComments $ mkSplice x
-mkPattern (GHC.LitPat _ x) = Literal $ mkLiteralValue x
-mkPattern (GHC.NPat _ x _ _) = Overloaded $ mkOverloadedValue $ GHC.unLoc x
+mkPattern (GHC.LitPat _ x) = Literal $ mkValueLiteralFromHsLit x
+mkPattern (GHC.NPat _ x _ _) =
+  Literal $ mkValueLiteralFromHsOverLit $ GHC.unLoc x
 mkPattern (GHC.NPlusKPat _ n k _ _ _) =
   NPlusK
-    {n = mkPrefixName <$> fromGenLocated n, k = mkOverloadedValue $ GHC.unLoc k}
+    { n = mkPrefixName <$> fromGenLocated n
+    , k = mkValueLiteralFromHsOverLit $ GHC.unLoc k
+    }
 mkPattern (GHC.SigPat _ l r) =
   Signature
     { pat = mkPattern <$> fromGenLocated l

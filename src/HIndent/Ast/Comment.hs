@@ -3,19 +3,21 @@ module HIndent.Ast.Comment
   , mkComment
   ) where
 
+import qualified Data.Text as Text
 import qualified GHC.Hs as GHC
+import HIndent.Ast.TextValue
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Comment
-  = Line String
-  | Block String
+  = Line TextValue
+  | Block TextValue
   deriving (Eq, Show)
 
 instance Pretty Comment where
-  pretty (Line c) = string c
+  pretty (Line c) = pretty c
   pretty (Block c) =
-    case lines c of
+    case Text.lines $ toText c of
       [] -> pure ()
       [x] -> string x
       (x:xs) -> do
@@ -26,6 +28,6 @@ instance Pretty Comment where
         indentedWithFixedLevel 0 $ lined $ fmap string xs
 
 mkComment :: GHC.EpaCommentTok -> Comment
-mkComment (GHC.EpaLineComment c) = Line c
-mkComment (GHC.EpaBlockComment c) = Block c
-mkComment _ = Line ""
+mkComment (GHC.EpaLineComment c) = Line $ mkTextValueFromString c
+mkComment (GHC.EpaBlockComment c) = Block $ mkTextValueFromString c
+mkComment _ = Line $ mkTextValueFromString ""

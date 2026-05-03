@@ -59,8 +59,7 @@ import HIndent.Ast.Type.ImplicitParameterName
   ( ImplicitParameterName
   , mkImplicitParameterName
   )
-import HIndent.Ast.ValueLiteral.LiteralValue
-import HIndent.Ast.ValueLiteral.OverloadedValue
+import HIndent.Ast.ValueLiteral
 import HIndent.Ast.WithComments
 import HIndent.CabalFile ()
 import HIndent.Pretty (Pretty(..))
@@ -80,8 +79,7 @@ data Expression
   | UnboundVariable (WithComments PrefixName)
   | OverloadedLabel OverloadedLabel
   | ImplicitParameter ImplicitParameterName
-  | OverloadedLiteral OverloadedValue
-  | Literal LiteralValue
+  | Literal ValueLiteral
   | Lambda MatchGroup
   | LambdaCase
       { usesCases :: Bool
@@ -180,7 +178,6 @@ instance Pretty Expression where
   pretty (UnboundVariable name) = pretty name
   pretty (OverloadedLabel label) = pretty label
   pretty (ImplicitParameter name) = pretty name
-  pretty (OverloadedLiteral lit) = pretty lit
   pretty (Literal lit) = pretty lit
   pretty (Lambda matches) = pretty matches
   pretty LambdaCase {..} = do
@@ -370,8 +367,8 @@ mkExpression (GHC.HsOverLabel _ label) =
 #endif
 mkExpression (GHC.HsIPVar _ name) =
   ImplicitParameter $ mkImplicitParameterName name
-mkExpression (GHC.HsOverLit _ lit) = OverloadedLiteral $ mkOverloadedValue lit
-mkExpression (GHC.HsLit _ lit) = Literal $ mkLiteralValue lit
+mkExpression (GHC.HsOverLit _ lit) = Literal $ mkValueLiteralFromHsOverLit lit
+mkExpression (GHC.HsLit _ lit) = Literal $ mkValueLiteralFromHsLit lit
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExpression (GHC.HsEmbTy _ _) =
   error "`ghc-lib-parser` never generates this AST node."

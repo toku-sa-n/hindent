@@ -7,7 +7,7 @@ module HIndent.Ast.Module.Warning
   ) where
 
 import HIndent.Ast.Declaration.Warning.Kind
-import HIndent.Ast.StringLiteral
+import HIndent.Ast.QuotedText
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Unit.Module.Warnings as GHC
@@ -15,7 +15,7 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data ModuleWarning = ModuleWarning
-  { messages :: [WithComments StringLiteral]
+  { messages :: [WithComments QuotedText]
   , kind :: Kind
   }
 
@@ -39,7 +39,7 @@ fromWarningTxt (GHC.WarningTxt _ _ warningMessages) =
     { kind = Warning
     , messages =
         fmap
-          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
           warningMessages
     }
 #else
@@ -48,7 +48,7 @@ fromWarningTxt (GHC.WarningTxt _ warningMessages) =
     { kind = Warning
     , messages =
         fmap
-          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
           warningMessages
     }
 #endif
@@ -58,7 +58,7 @@ fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
     { kind = Deprecated
     , messages =
         fmap
-          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
           warningMessages
     }
 #else
@@ -67,7 +67,7 @@ fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
     { kind = Deprecated
     , messages =
         fmap
-          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
           warningMessages
     }
 #endif

@@ -3,20 +3,19 @@ module HIndent.Ast.FileHeaderPragma
   , mkFileHeaderPragma
   ) where
 
-import Data.Bifunctor
 import Data.Char
-import Data.List (intercalate)
 import Data.List.Split
+import qualified Data.Text as Text
 import qualified GHC.Hs as GHC
+import HIndent.Ast.TextValue
 import HIndent.Pragma
 import HIndent.Pretty
-import HIndent.Pretty.Combinators
 
 newtype FileHeaderPragma =
-  FileHeaderPragma String
+  FileHeaderPragma TextValue
 
 instance Pretty FileHeaderPragma where
-  pretty (FileHeaderPragma x) = string x
+  pretty (FileHeaderPragma x) = pretty x
 
 mkFileHeaderPragma :: GHC.EpaCommentTok -> Maybe FileHeaderPragma
 mkFileHeaderPragma =
@@ -25,14 +24,25 @@ mkFileHeaderPragma =
 -- | This function returns a @Just@ value with the pragma
 -- extracted from the passed @EpaCommentTok@ if it has one. Otherwise, it
 -- returns @Nothing@.
-extractPragma :: GHC.EpaCommentTok -> Maybe (String, [String])
+extractPragma :: GHC.EpaCommentTok -> Maybe (TextValue, [TextValue])
 extractPragma (GHC.EpaBlockComment c) =
-  second (fmap strip . splitOn ",") <$> extractPragmaNameAndElement c
+  fmap
+    (\(name, elements) ->
+       ( mkTextValueFromString name
+       , mkTextValueFromString . strip <$> splitOn "," elements))
+    (extractPragmaNameAndElement c)
   where
     strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 extractPragma _ = Nothing
 
 -- | Construct a pragma.
-constructPragma :: String -> [String] -> String
+constructPragma :: TextValue -> [TextValue] -> TextValue
 constructPragma optionOrPragma xs =
-  "{-# " ++ fmap toUpper optionOrPragma ++ " " ++ intercalate ", " xs ++ " #-}"
+  mkTextValueFromText
+    $ Text.concat
+        [ "{-# "
+        , Text.map toUpper $ toText optionOrPragma
+        , " "
+        , Text.intercalate ", " $ fmap toText xs
+        , " #-}"
+        ]

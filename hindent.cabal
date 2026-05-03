@@ -138,12 +138,14 @@ library
       HIndent.Ast.Name.Prefix
       HIndent.Ast.Name.RecordField
       HIndent.Ast.NodeComments
+      HIndent.Ast.PackageName
       HIndent.Ast.Pattern
       HIndent.Ast.Pattern.RecordFields
+      HIndent.Ast.QuotedText
       HIndent.Ast.Record.Field
       HIndent.Ast.Role
       HIndent.Ast.Statement
-      HIndent.Ast.StringLiteral
+      HIndent.Ast.TextValue
       HIndent.Ast.Type
       HIndent.Ast.Type.Bang
       HIndent.Ast.Type.Forall
@@ -153,8 +155,7 @@ library
       HIndent.Ast.Type.Strictness
       HIndent.Ast.Type.Unpackedness
       HIndent.Ast.Type.Variable
-      HIndent.Ast.ValueLiteral.LiteralValue
-      HIndent.Ast.ValueLiteral.OverloadedValue
+      HIndent.Ast.ValueLiteral
       HIndent.Ast.WhereClause
       HIndent.Ast.WithComments
       HIndent.ByteString
@@ -194,6 +195,8 @@ library
       Paths_hindent
   hs-source-dirs:
       src
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -214,6 +217,7 @@ library
     , regex-tdfa
     , split
     , syb
+    , text
     , transformers
     , unicode-show
     , utf8-string
@@ -229,6 +233,8 @@ library hindent-internal
       Paths_hindent
   hs-source-dirs:
       internal
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -250,6 +256,7 @@ library hindent-internal
     , regex-tdfa
     , split
     , syb
+    , text
     , transformers
     , unicode-show
     , utf8-string
@@ -264,6 +271,8 @@ executable hindent
       Paths_hindent
   hs-source-dirs:
       app
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -285,6 +294,7 @@ executable hindent
     , regex-tdfa
     , split
     , syb
+    , text
     , transformers
     , unicode-show
     , utf8-string
@@ -300,6 +310,8 @@ test-suite hindent-test
       Paths_hindent
   hs-source-dirs:
       tests
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -324,6 +336,7 @@ test-suite hindent-test
     , regex-tdfa
     , split
     , syb
+    , text
     , transformers
     , unicode-show
     , utf8-string
@@ -339,6 +352,8 @@ benchmark hindent-bench
       Paths_hindent
   hs-source-dirs:
       benchmarks
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -363,6 +378,7 @@ benchmark hindent-bench
     , regex-tdfa
     , split
     , syb
+    , text
     , transformers
     , unicode-show
     , utf8-string

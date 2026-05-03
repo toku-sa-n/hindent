@@ -5,15 +5,16 @@ module HIndent.Ast.Declaration.Rule.Name
 
 import qualified GHC.Data.FastString as GHC
 import qualified GHC.Types.Basic as GHC
+import HIndent.Ast.TextValue
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype RuleName =
-  RuleName String
+  RuleName TextValue
   deriving (Eq, Show)
 
 instance Pretty RuleName where
-  pretty (RuleName name) = doubleQuotes $ string name
+  pretty (RuleName name) = doubleQuotes $ pretty name
 
 mkRuleName :: GHC.RuleName -> RuleName
-mkRuleName = RuleName . GHC.unpackFS
+mkRuleName = RuleName . mkTextValueFromString . GHC.unpackFS

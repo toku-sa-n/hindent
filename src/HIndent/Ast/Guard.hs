@@ -13,6 +13,7 @@ module HIndent.Ast.Guard
   ) where
 
 import Control.Monad (unless)
+import qualified Data.Text as Text
 import HIndent.Ast.Cmd (Cmd, mkCmd)
 import {-# SOURCE #-} HIndent.Ast.Expression
   ( GuardExpression
@@ -84,7 +85,7 @@ instance Pretty Guard where
             ver = newline >> indentedBlock (pretty cmd)
          in hor <-|> ver
 
-contextSeparator :: GuardContext -> String
+contextSeparator :: GuardContext -> Text.Text
 contextSeparator PlainGuard = "="
 contextSeparator CaseGuard = "->"
 contextSeparator LambdaGuard = "->"
