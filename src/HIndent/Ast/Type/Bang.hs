@@ -5,8 +5,7 @@ module HIndent.Ast.Type.Bang
   , mkBang
   ) where
 
-import Control.Monad
-import Data.Maybe
+import HIndent.Applicative (whenJust)
 import HIndent.Ast.Type.Strictness
 import HIndent.Ast.Type.Unpackedness
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
@@ -18,9 +17,8 @@ data Bang =
 
 instance Pretty Bang where
   pretty (Bang unpack strictness) = do
-    maybe (pure ()) pretty unpack
-    unless (isNothing unpack) space
-    maybe (pure ()) pretty strictness
+    whenJust unpack $ \x -> pretty x >> space
+    whenJust strictness pretty
 #if MIN_VERSION_ghc_lib_parser(9, 14, 0)
 mkBang :: GHC.HsSrcBang -> Bang
 mkBang (GHC.HsSrcBang _ unpack strictness) =
