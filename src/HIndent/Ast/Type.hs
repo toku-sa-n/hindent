@@ -331,9 +331,8 @@ mkTypeFromHsSigType :: GHC.HsSigType GHC.GhcPs -> WithComments Type
 mkTypeFromHsSigType GHC.HsSig {..} =
   case mkForallFromOuter sig_bndrs of
     Just telescope ->
-      mkWithComments
-        $ UniversalType
-            {telescope = telescope, body = mkType <$> fromGenLocated sig_body}
+      let body = mkType <$> fromGenLocated sig_body
+       in mkWithComments $ UniversalType {..}
     Nothing -> mkType <$> fromGenLocated sig_body
 
 mkTypeFromLHsWcType ::

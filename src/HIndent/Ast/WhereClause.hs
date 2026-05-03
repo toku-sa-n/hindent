@@ -32,7 +32,7 @@ mkWhereClause GHC.GRHSs {..} = do
   binds <- mkLocalBinds grhssLocalBinds
   pure
     $ addComments (NodeComments.fromEpAnnComments grhssExt)
-    $ mkWithComments WhereClause {binds = binds}
+    $ mkWithComments WhereClause {..}
 
 mkMatchWhereClause ::
      GHC.Match GHC.GhcPs body -> Maybe (WithComments WhereClause)

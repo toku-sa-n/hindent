@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -46,7 +45,9 @@ data PatternSynonym
 instance Pretty PatternSynonym where
   pretty Prefix {..} = do
     string "pattern "
-    spaced $ pretty name : fmap pretty args
+    case args of
+      [] -> pretty name
+      _ -> spaced $ pretty name : fmap pretty args
     prettySuffix isImplicitBidirectional definition explicitMatches
   pretty Infix {..} = do
     string "pattern "
@@ -63,7 +64,6 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon prefixArgs, ..} =
   Prefix
     { name = fromGenLocated $ mkPrefixName <$> psb_id
     , args = map (fromGenLocated . fmap mkPrefixName) prefixArgs
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -73,12 +73,12 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon prefixArgs, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
   Infix
     { leftArg = fromGenLocated $ mkPrefixName <$> leftArg
     , operator = fromGenLocated $ mkInfixName <$> psb_id
     , rightArg = fromGenLocated $ mkPrefixName <$> rightArg
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -88,6 +88,7 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
   Record
     { name = fromGenLocated $ mkPrefixName <$> psb_id
@@ -95,7 +96,6 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
         map
           (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
           recordFields
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -105,12 +105,12 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 #else
 mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon _ prefixArgs, ..} =
   Prefix
     { name = fromGenLocated $ mkPrefixName <$> psb_id
     , args = map (fromGenLocated . fmap mkPrefixName) prefixArgs
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -120,12 +120,12 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon _ prefixArgs, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
   Infix
     { leftArg = fromGenLocated $ mkPrefixName <$> leftArg
     , operator = fromGenLocated $ mkInfixName <$> psb_id
     , rightArg = fromGenLocated $ mkPrefixName <$> rightArg
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -135,6 +135,7 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
   Record
     { name = fromGenLocated $ mkPrefixName <$> psb_id
@@ -142,7 +143,6 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
         map
           (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
           recordFields
-    , definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
     , ..
     }
   where
@@ -152,6 +152,7 @@ mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
         GHC.ImplicitBidirectional -> (True, Nothing)
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
+    definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
 #endif
 prettySuffix ::
      Bool -> WithComments PatInsidePatDecl -> Maybe MatchGroup -> Printer ()
