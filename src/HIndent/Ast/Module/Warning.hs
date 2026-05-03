@@ -34,36 +34,40 @@ mkModuleWarning =
 
 fromWarningTxt :: GHC.WarningTxt' -> ModuleWarning
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-fromWarningTxt (GHC.WarningTxt _ _ warningMessages) = ModuleWarning {..}
-  where
-    kind = Warning
-    messages =
-      fmap
-        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
-        warningMessages
+fromWarningTxt (GHC.WarningTxt _ _ warningMessages) =
+  ModuleWarning
+    { kind = Warning
+    , messages =
+        fmap
+          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          warningMessages
+    }
 #else
-fromWarningTxt (GHC.WarningTxt _ warningMessages) = ModuleWarning {..}
-  where
-    kind = Warning
-    messages =
-      fmap
-        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
-        warningMessages
+fromWarningTxt (GHC.WarningTxt _ warningMessages) =
+  ModuleWarning
+    { kind = Warning
+    , messages =
+        fmap
+          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          warningMessages
+    }
 #endif
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) = ModuleWarning {..}
-  where
-    kind = Deprecated
-    messages =
-      fmap
-        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
-        warningMessages
+fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
+  ModuleWarning
+    { kind = Deprecated
+    , messages =
+        fmap
+          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          warningMessages
+    }
 #else
-fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) = ModuleWarning {..}
-  where
-    kind = Deprecated
-    messages =
-      fmap
-        (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
-        warningMessages
+fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
+  ModuleWarning
+    { kind = Deprecated
+    , messages =
+        fmap
+          (fromGenLocated . fmap (mkStringLiteral . GHC.hsDocString))
+          warningMessages
+    }
 #endif

@@ -23,11 +23,10 @@ instance Pretty RuleBinder where
     parens $ spaced [pretty name, string "::", pretty sig]
 
 mkRuleBinder :: GHC.RuleBndr GHC.GhcPs -> RuleBinder
-mkRuleBinder (GHC.RuleBndr _ n) = RuleBinder {..}
-  where
-    signature = Nothing
-    name = fromGenLocated $ fmap mkPrefixName n
-mkRuleBinder (GHC.RuleBndrSig _ n GHC.HsPS {..}) = RuleBinder {..}
-  where
-    signature = Just $ fromGenLocated $ fmap mkType hsps_body
-    name = fromGenLocated $ fmap mkPrefixName n
+mkRuleBinder (GHC.RuleBndr _ n) =
+  RuleBinder {name = fromGenLocated $ fmap mkPrefixName n, signature = Nothing}
+mkRuleBinder (GHC.RuleBndrSig _ n GHC.HsPS {..}) =
+  RuleBinder
+    { name = fromGenLocated $ fmap mkPrefixName n
+    , signature = Just $ fromGenLocated $ fmap mkType hsps_body
+    }

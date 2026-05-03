@@ -25,10 +25,7 @@ data DataFamilyInstance = DataFamilyInstance
 instance Pretty DataFamilyInstance where
   pretty DataFamilyInstance {..} = do
     spaced
-      $ pretty newOrData
-          : string "instance"
-          : pretty name
-          : fmap pretty types
+      $ pretty newOrData : string "instance" : pretty name : fmap pretty types
     pretty body
 
 mkDataFamilyInstance ::

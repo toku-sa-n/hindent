@@ -16,81 +16,54 @@ import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
+import qualified HIndent.Printer as Printer
 
-data Parameters
+data PatternSynonym
   = Prefix
-      { args :: [WithComments PrefixName]
-      }
+      (WithComments PrefixName)
+      [WithComments PrefixName]
+      Bool
+      (Maybe MatchGroup)
+      (WithComments PatInsidePatDecl)
   | Infix
-      { leftArg :: WithComments PrefixName
-      , rightArg :: WithComments PrefixName
-      }
+      (WithComments PrefixName)
+      (WithComments InfixName)
+      (WithComments PrefixName)
+      Bool
+      (Maybe MatchGroup)
+      (WithComments PatInsidePatDecl)
   | Record
-      { fields :: [WithComments FieldName]
-      }
-
-data PatternSynonym = PatternSynonym
-  { name :: GHC.LIdP GHC.GhcPs
-  , parameters :: WithComments Parameters
-  , isImplicitBidirectional :: Bool
-  , explicitMatches :: Maybe MatchGroup
-  , definition :: WithComments PatInsidePatDecl
-  }
-
-instance Pretty Parameters where
-  pretty Prefix {..} = spaced $ fmap pretty args
-  pretty Infix {..} = spaced [pretty leftArg, pretty rightArg]
-  pretty Record {..} = hFields $ fmap pretty fields
+      (WithComments PrefixName)
+      [WithComments FieldName]
+      Bool
+      (Maybe MatchGroup)
+      (WithComments PatInsidePatDecl)
 
 instance Pretty PatternSynonym where
-  pretty PatternSynonym {..} = do
+  pretty (Prefix name args isImplicitBidirectional explicitMatches definition) = do
     string "pattern "
-    case getNode parameters of
-      Infix {..} ->
-        spaced
-          [ pretty leftArg
-          , pretty $ fromGenLocated $ fmap mkInfixName name
-          , pretty rightArg
-          ]
-      Prefix {args = []} -> pretty $ fromGenLocated $ fmap mkPrefixName name
-      _ ->
-        spaced
-          [pretty $ fromGenLocated $ fmap mkPrefixName name, pretty parameters]
-    let arrow =
-          if isImplicitBidirectional
-            then "="
-            else "<-"
-    spacePrefixed [string arrow, pretty definition]
-    whenJust explicitMatches $ \matches -> do
-      newline
-      indentedBlock $ string "where " |=> pretty matches
-
-mkParameters :: GHC.HsPatSynDetails GHC.GhcPs -> Parameters
-#if MIN_VERSION_ghc_lib_parser(9, 14, 0)
-mkParameters (GHC.PrefixCon args) =
-  Prefix {args = map (fromGenLocated . fmap mkPrefixName) args}
-#else
-mkParameters (GHC.PrefixCon _ args) =
-  Prefix {args = map (fromGenLocated . fmap mkPrefixName) args}
-#endif
-mkParameters (GHC.InfixCon l r) =
-  Infix
-    { leftArg = fromGenLocated $ fmap mkPrefixName l
-    , rightArg = fromGenLocated $ fmap mkPrefixName r
-    }
-mkParameters (GHC.RecCon fields) =
-  Record
-    { fields =
-        map
-          (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
-          fields
-    }
+    case args of
+      [] -> pretty name
+      _ -> spaced $ pretty name : fmap pretty args
+    prettySuffix isImplicitBidirectional definition explicitMatches
+  pretty (Infix leftArg operator rightArg isImplicitBidirectional explicitMatches definition) = do
+    string "pattern "
+    spaced [pretty leftArg, pretty operator, pretty rightArg]
+    prettySuffix isImplicitBidirectional definition explicitMatches
+  pretty (Record name fields isImplicitBidirectional explicitMatches definition) = do
+    string "pattern "
+    spaced [pretty name, hFields $ fmap pretty fields]
+    prettySuffix isImplicitBidirectional definition explicitMatches
 
 mkPatternSynonym :: GHC.PatSynBind GHC.GhcPs GHC.GhcPs -> PatternSynonym
-mkPatternSynonym GHC.PSB {..} = PatternSynonym {..}
+mkPatternSynonym GHC.PSB {..} =
+  mkPatternSynonymBody
+    psb_id
+    psb_args
+    isImplicitBidirectional
+    explicitMatches
+    definition
   where
-    name = psb_id
-    parameters = mkWithComments $ mkParameters psb_args
     (isImplicitBidirectional, explicitMatches) =
       case psb_dir of
         GHC.Unidirectional -> (False, Nothing)
@@ -98,3 +71,60 @@ mkPatternSynonym GHC.PSB {..} = PatternSynonym {..}
         GHC.ExplicitBidirectional matches ->
           (False, Just $ mkExprMatchGroup matches)
     definition = mkPatInsidePatDecl <$> fromGenLocated psb_def
+
+mkPatternSynonymBody ::
+     GHC.LIdP GHC.GhcPs
+  -> GHC.HsPatSynDetails GHC.GhcPs
+  -> Bool
+  -> Maybe MatchGroup
+  -> WithComments PatInsidePatDecl
+  -> PatternSynonym
+#if MIN_VERSION_ghc_lib_parser(9, 14, 0)
+mkPatternSynonymBody name (GHC.PrefixCon args) isImplicitBidirectional explicitMatches definition =
+  Prefix
+    (fromGenLocated $ fmap mkPrefixName name)
+    (map (fromGenLocated . fmap mkPrefixName) args)
+    isImplicitBidirectional
+    explicitMatches
+    definition
+#else
+mkPatternSynonymBody name (GHC.PrefixCon _ args) isImplicitBidirectional explicitMatches definition =
+  Prefix
+    (fromGenLocated $ fmap mkPrefixName name)
+    (map (fromGenLocated . fmap mkPrefixName) args)
+    isImplicitBidirectional
+    explicitMatches
+    definition
+#endif
+mkPatternSynonymBody name (GHC.InfixCon l r) isImplicitBidirectional explicitMatches definition =
+  Infix
+    (fromGenLocated $ fmap mkPrefixName l)
+    (fromGenLocated $ fmap mkInfixName name)
+    (fromGenLocated $ fmap mkPrefixName r)
+    isImplicitBidirectional
+    explicitMatches
+    definition
+mkPatternSynonymBody name (GHC.RecCon fields) isImplicitBidirectional explicitMatches definition =
+  Record
+    (fromGenLocated $ fmap mkPrefixName name)
+    (map
+       (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
+       fields)
+    isImplicitBidirectional
+    explicitMatches
+    definition
+
+prettySuffix ::
+     Bool
+  -> WithComments PatInsidePatDecl
+  -> Maybe MatchGroup
+  -> Printer.Printer ()
+prettySuffix isImplicitBidirectional definition explicitMatches = do
+  let arrow =
+        if isImplicitBidirectional
+          then "="
+          else "<-"
+  spacePrefixed [string arrow, pretty definition]
+  whenJust explicitMatches $ \matches -> do
+    newline
+    indentedBlock $ string "where " |=> pretty matches

@@ -9,45 +9,41 @@ import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 #if !MIN_VERSION_ghc_lib_parser(9, 12, 1)
 import qualified GHC.Data.Bag as GHC
 #endif
+import HIndent.Ast.LocalBinds.Elements
 import HIndent.Ast.LocalBinds.ImplicitBindings
   ( ImplicitBindings
   , mkImplicitBindings
   )
-import HIndent.Ast.WithComments (WithComments, fromEpAnn, fromGenLocated)
+import HIndent.Ast.WithComments (WithComments, fromEpAnn)
 import HIndent.Pretty (Pretty(..))
-import HIndent.Pretty.Combinators
-import qualified HIndent.Pretty.SigBindFamily as SBF
 
 data LocalBinds
   = Value
-      { sigBindFamilies :: [WithComments SBF.SigBindFamily]
+      { localElements :: LocalBindElements
       }
   | ImplicitParameters
       { implicitBindings :: ImplicitBindings
       }
 
 instance Pretty LocalBinds where
-  pretty Value {sigBindFamilies = families} = lined $ fmap pretty families
+  pretty Value {localElements = elements} = pretty elements
   pretty (ImplicitParameters {implicitBindings = binds}) = pretty binds
 
 mkLocalBinds :: GHC.HsLocalBinds GHC.GhcPs -> Maybe (WithComments LocalBinds)
 mkLocalBinds (GHC.HsValBinds ann binds) =
-  Just $ fromEpAnn ann $ Value {sigBindFamilies = mkSigBindFamilies binds}
+  Just $ fromEpAnn ann $ Value {localElements = mkLocalElements binds}
 mkLocalBinds (GHC.HsIPBinds ann binds) =
   Just
     $ fromEpAnn ann
     $ ImplicitParameters {implicitBindings = mkImplicitBindings binds}
 mkLocalBinds GHC.EmptyLocalBinds {} = Nothing
 
-mkSigBindFamilies ::
-     GHC.HsValBindsLR GHC.GhcPs GHC.GhcPs -> [WithComments SBF.SigBindFamily]
+mkLocalElements :: GHC.HsValBindsLR GHC.GhcPs GHC.GhcPs -> LocalBindElements
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
-mkSigBindFamilies (GHC.ValBinds _ binds sigs) =
-  fmap fromGenLocated $ SBF.mkSortedLSigBindFamilyList sigs binds [] [] [] []
+mkLocalElements (GHC.ValBinds _ binds sigs) = mkLocalBindElements sigs binds
 #else
-mkSigBindFamilies (GHC.ValBinds _ bindBag sigs) =
-  fromGenLocated
-    <$> SBF.mkSortedLSigBindFamilyList sigs (GHC.bagToList bindBag) [] [] [] []
+mkLocalElements (GHC.ValBinds _ bindBag sigs) =
+  mkLocalBindElements sigs (GHC.bagToList bindBag)
 #endif
-mkSigBindFamilies GHC.XValBindsLR {} =
+mkLocalElements GHC.XValBindsLR {} =
   error "`ghc-lib-parser` never generates this AST node."

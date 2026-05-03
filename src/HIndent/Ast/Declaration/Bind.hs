@@ -4,7 +4,6 @@
 module HIndent.Ast.Declaration.Bind
   ( Bind
   , mkBind
-  , prettyBind
   ) where
 
 import HIndent.Ast.Declaration.Bind.GuardedRhs (GuardedRhs, mkPatternGuardedRhs)
@@ -14,7 +13,6 @@ import HIndent.Ast.Pattern
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
-import HIndent.Printer
 
 -- The difference between `Function` and `Pattern` is the same as the difference
 -- between `FunBind` and `PatBind` in GHC AST. See
@@ -33,9 +31,6 @@ instance Pretty Bind where
   pretty (Function matches) = pretty matches
   pretty Pattern {..} = pretty lhs >> pretty rhs
   pretty (PatternSynonym ps) = pretty ps
-
-prettyBind :: GHC.HsBind GHC.GhcPs -> Printer ()
-prettyBind = pretty . mkBind
 
 mkBind :: GHC.HsBind GHC.GhcPs -> Bind
 mkBind GHC.FunBind {..} = Function $ mkExprMatchGroup fun_matches

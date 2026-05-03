@@ -1,8 +1,13 @@
 module HIndent.Ast.Declaration.Bind
-  ( prettyBind
+  ( Bind
+  , mkBind
   ) where
 
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import HIndent.Printer
+import HIndent.Pretty (Pretty)
 
-prettyBind :: GHC.HsBind GHC.GhcPs -> Printer ()
+data Bind
+
+instance Pretty Bind
+
+mkBind :: GHC.HsBind GHC.GhcPs -> Bind

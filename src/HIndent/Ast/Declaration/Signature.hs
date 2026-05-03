@@ -44,8 +44,7 @@ data Signature
       , methodSig :: WithComments DeclSigType
       }
   | Fixity
-      { opNames :: [WithComments InfixName]
-                                            -- Using `names` causes a type conflict.
+      { opNames :: [WithComments InfixName] -- Using `names` causes a type conflict.
       , fixity :: Fixity
       }
   | Inline

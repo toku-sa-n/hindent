@@ -16,8 +16,7 @@ import HIndent.Pretty.Combinators
 
 data TypeSynonymLhs
   = Prefix
-      { pName :: WithComments PrefixName
-                                         -- Using `name` in both `Prefix` and `Infix` causes a type conflict.
+      { pName :: WithComments PrefixName -- Using `name` in both `Prefix` and `Infix` causes a type conflict.
       , typeVariables :: [WithComments TypeVariable]
       }
   | Infix

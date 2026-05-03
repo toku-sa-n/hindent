@@ -47,6 +47,8 @@ library
       HIndent.Ast.Declaration.Bind
       HIndent.Ast.Declaration.Bind.GuardedRhs
       HIndent.Ast.Declaration.Class
+      HIndent.Ast.Declaration.Class.Element
+      HIndent.Ast.Declaration.Class.Elements
       HIndent.Ast.Declaration.Class.FunctionalDependency
       HIndent.Ast.Declaration.Class.NameAndTypeVariables
       HIndent.Ast.Declaration.Collection
@@ -73,6 +75,8 @@ library
       HIndent.Ast.Declaration.Foreign.CallingConvention
       HIndent.Ast.Declaration.Foreign.Safety
       HIndent.Ast.Declaration.Instance.Class
+      HIndent.Ast.Declaration.Instance.Class.Element
+      HIndent.Ast.Declaration.Instance.Class.Elements
       HIndent.Ast.Declaration.Instance.Class.OverlapMode
       HIndent.Ast.Declaration.Instance.Family.Data
       HIndent.Ast.Declaration.Instance.Family.Data.Associated
@@ -117,6 +121,8 @@ library
       HIndent.Ast.Import.Entry.Collection
       HIndent.Ast.Import.ImportingOrHiding
       HIndent.Ast.LocalBinds
+      HIndent.Ast.LocalBinds.Element
+      HIndent.Ast.LocalBinds.Elements
       HIndent.Ast.LocalBinds.ImplicitBinding
       HIndent.Ast.LocalBinds.ImplicitBindings
       HIndent.Ast.Match
@@ -182,7 +188,6 @@ library
       HIndent.Pretty.Combinators.String
       HIndent.Pretty.Combinators.Switch
       HIndent.Pretty.Combinators.Wrap
-      HIndent.Pretty.SigBindFamily
       HIndent.Printer
       Paths_hindent
   autogen-modules:
