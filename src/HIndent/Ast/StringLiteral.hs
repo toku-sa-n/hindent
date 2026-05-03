@@ -5,9 +5,10 @@ module HIndent.Ast.StringLiteral
   , mkStringLiteral
   ) where
 
-import qualified GHC.Data.FastString as GHC
 import qualified GHC.Types.SourceText as GHC
-import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
+#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+import qualified GHC.Data.FastString as GHC
+#endif
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 

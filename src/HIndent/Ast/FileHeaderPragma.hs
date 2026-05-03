@@ -22,9 +22,9 @@ mkFileHeaderPragma :: GHC.EpaCommentTok -> Maybe FileHeaderPragma
 mkFileHeaderPragma =
   fmap (FileHeaderPragma . uncurry constructPragma) . extractPragma
 
--- | This function returns a 'Just' value with the pragma
--- extracted from the passed 'EpaCommentTok' if it has one. Otherwise, it
--- returns a 'Nothing'.
+-- | This function returns a @Just@ value with the pragma
+-- extracted from the passed @EpaCommentTok@ if it has one. Otherwise, it
+-- returns @Nothing@.
 extractPragma :: GHC.EpaCommentTok -> Maybe (String, [String])
 extractPragma (GHC.EpaBlockComment c) =
   second (fmap strip . splitOn ",") <$> extractPragmaNameAndElement c

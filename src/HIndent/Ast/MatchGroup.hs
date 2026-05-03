@@ -10,7 +10,6 @@ import HIndent.Ast.Match (Match, mkCmdMatch, mkExprMatch)
 import HIndent.Ast.WithComments
   ( WithComments
   , fromGenLocated
-  , getComments
   , getNode
   , prettyWith
   )

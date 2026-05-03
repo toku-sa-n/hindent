@@ -47,9 +47,9 @@ lexCode code
         (mkRealSrcLoc (mkFastString "<interactive>") 1 1) = fmap unLoc tokens
   | otherwise = error "Failed to lex the code."
 
--- | This function generates a 'ParserOpts' from te given extension.
+-- | This function generates @ParserOpts@ from the given extension.
 --
--- The 'StarIsType' extension is always enabled to compile a code using
+-- The @StarIsType@ extension is always enabled to compile code using
 -- kinds like '* -> *'.
 parserOptsFromExtensions :: [GLP.Extension] -> ParserOpts
 #if MIN_VERSION_ghc_lib_parser(9, 14, 0)

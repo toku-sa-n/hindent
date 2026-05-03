@@ -20,7 +20,7 @@ import Control.Monad
 #endif
 -- | This function prints the given string.
 --
--- The string must not include '\n's. Use 'newline' to print them.
+-- The string must not include @\\n@s. Use @newline@ to print them.
 string :: HasCallStack => String -> Printer ()
 string x
   | '\n' `elem` x =
@@ -63,7 +63,7 @@ dot = string "."
 -- | This function prints a '\n'.
 --
 -- Always call this function to print it because printing it requires
--- special treatment. Do not call 'string' instead.
+-- special treatment. Do not call @string@ instead.
 newline :: Printer ()
 newline = do
   gets psFitOnOneLine >>= guard . not

@@ -75,6 +75,7 @@ library
       HIndent.Ast.Declaration.Instance.Class
       HIndent.Ast.Declaration.Instance.Class.OverlapMode
       HIndent.Ast.Declaration.Instance.Family.Data
+      HIndent.Ast.Declaration.Instance.Family.Data.Associated
       HIndent.Ast.Declaration.Instance.Family.Type
       HIndent.Ast.Declaration.Instance.Family.Type.Associated
       HIndent.Ast.Declaration.Instance.Family.Type.Associated.Default

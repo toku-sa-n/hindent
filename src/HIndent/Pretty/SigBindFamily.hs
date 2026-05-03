@@ -20,7 +20,7 @@ import GHC.Types.SrcLoc
 import {-# SOURCE #-} HIndent.Ast.Declaration.Bind (prettyBind)
 import HIndent.Ast.Declaration.Family.Data
 import HIndent.Ast.Declaration.Family.Type
-import HIndent.Ast.Declaration.Instance.Family.Data
+import HIndent.Ast.Declaration.Instance.Family.Data.Associated
   ( mkAssociatedDataFamilyInstance
   )
 import HIndent.Ast.Declaration.Instance.Family.Type.Associated
@@ -101,7 +101,7 @@ destructLSigBindFamilyList =
     <*> filterLTyFamDeflt
     <*> filterLDataFamInst
 
--- | Filters out 'Sig's and extract the wrapped values.
+-- | Filters out @Sig@s and extract the wrapped values.
 filterLSig :: [LSigBindFamily] -> [LSig GhcPs]
 filterLSig =
   mapMaybe

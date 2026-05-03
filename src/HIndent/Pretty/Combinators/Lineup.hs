@@ -54,7 +54,7 @@ import HIndent.Printer
 hvTuple :: Foldable f => f (Printer ()) -> Printer ()
 hvTuple = (<-|>) <$> hTuple <*> vTuple
 
--- | Applies 'hTuple'' if the result fits in a line or 'vTuple'' otherwise.
+-- | Applies @hTuple'@ if the result fits in a line or @vTuple'@ otherwise.
 hvTuple' :: Foldable f => f (Printer ()) -> Printer ()
 hvTuple' = (<-|>) <$> hTuple <*> vTuple'
 
