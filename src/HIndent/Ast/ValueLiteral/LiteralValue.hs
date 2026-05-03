@@ -1,40 +1,26 @@
 {-# LANGUAGE CPP #-}
 
-module HIndent.Ast.ValueLiteral
+module HIndent.Ast.ValueLiteral.LiteralValue
   ( LiteralValue
-  , OverloadedValue
   , mkLiteralValue
-  , mkOverloadedValue
   ) where
 
-import qualified GHC.Data.FastString as GHC
-import qualified GHC.Types.SourceText as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data LiteralValue
   = InlineLiteral String
   | MultilineStringLiteral [String]
 
-data OverloadedValue
-  = IntegralValue String
-  | FractionalValue String
-  | StringValue String
-
 instance Pretty LiteralValue where
-  pretty' (InlineLiteral value) = string value
-  pretty' (MultilineStringLiteral []) = pure ()
-  pretty' (MultilineStringLiteral [value]) = string value
-  pretty' (MultilineStringLiteral (value:values)) = do
+  pretty (InlineLiteral value) = string value
+  pretty (MultilineStringLiteral []) = pure ()
+  pretty (MultilineStringLiteral [value]) = string value
+  pretty (MultilineStringLiteral (value:values)) = do
     string value
     newline
     indentedWithFixedLevel 0 $ lined $ fmap string values
-
-instance Pretty OverloadedValue where
-  pretty' (IntegralValue value) = string value
-  pretty' (FractionalValue value) = string value
-  pretty' (StringValue value) = string value
 
 mkLiteralValue :: GHC.HsLit GHC.GhcPs -> LiteralValue
 mkLiteralValue x@(GHC.HsChar _ _) = InlineLiteral $ showOutputable x
@@ -67,27 +53,10 @@ mkLiteralValue x =
     [] -> InlineLiteral ""
     [value] -> InlineLiteral value
     values -> MultilineStringLiteral values
-
-mkOverloadedValue :: GHC.HsOverLit GHC.GhcPs -> OverloadedValue
-mkOverloadedValue GHC.OverLit {GHC.ol_val = value} =
-  case value of
-    GHC.HsIntegral integralLiteral ->
-      IntegralValue $ renderIntegral integralLiteral
-    GHC.HsFractional fractionalLiteral ->
-      FractionalValue $ showOutputable fractionalLiteral
-    GHC.HsIsString _ stringValue -> StringValue $ GHC.unpackFS stringValue
-
-renderIntegral :: GHC.IntegralLit -> String
-#if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-renderIntegral GHC.IL {GHC.il_text = GHC.SourceText value} = GHC.unpackFS value
-renderIntegral GHC.IL {GHC.il_value = value} = show value
-#else
-renderIntegral GHC.IL {GHC.il_text = GHC.SourceText value} = value
-renderIntegral GHC.IL {GHC.il_value = value} = show value
-#endif
+#if MIN_VERSION_ghc_lib_parser(9, 12, 1)
 notGeneratedByParser :: a
 notGeneratedByParser = error "`ghc-lib-parser` never generates this AST node."
-
+#endif
 notUsedInParsedStage :: a
 notUsedInParsedStage =
   error

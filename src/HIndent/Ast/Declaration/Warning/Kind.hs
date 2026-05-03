@@ -2,7 +2,7 @@ module HIndent.Ast.Declaration.Warning.Kind
   ( Kind(..)
   ) where
 
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Kind
@@ -10,5 +10,5 @@ data Kind
   | Deprecated
 
 instance Pretty Kind where
-  pretty' Warning = string "WARNING"
-  pretty' Deprecated = string "DEPRECATED"
+  pretty Warning = string "WARNING"
+  pretty Deprecated = string "DEPRECATED"

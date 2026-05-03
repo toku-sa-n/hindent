@@ -22,7 +22,7 @@ data ImportEntryCollection = ImportEntryCollection
   }
 
 instance Pretty ImportEntryCollection where
-  pretty' ImportEntryCollection {..} = do
+  pretty ImportEntryCollection {..} = do
     when (kind == Hiding) $ string " hiding"
     (space >> hTuple (fmap pretty entries))
       <-|> (newline >> indentedBlock (vTuple $ fmap pretty entries))

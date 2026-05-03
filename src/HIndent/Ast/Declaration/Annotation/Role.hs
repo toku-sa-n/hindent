@@ -9,7 +9,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Role
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data RoleAnnotation = RoleAnnotation
@@ -18,7 +18,7 @@ data RoleAnnotation = RoleAnnotation
   }
 
 instance Pretty RoleAnnotation where
-  pretty' RoleAnnotation {..} =
+  pretty RoleAnnotation {..} =
     spaced
       $ [string "type role", pretty name]
           ++ fmap (`prettyWith` maybe (string "_") pretty) roles

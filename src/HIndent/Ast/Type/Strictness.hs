@@ -6,7 +6,7 @@ module HIndent.Ast.Type.Strictness
   ) where
 
 import qualified GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Strictness
@@ -15,8 +15,8 @@ data Strictness
   deriving (Eq)
 
 instance Pretty Strictness where
-  pretty' Lazy = string "~"
-  pretty' Strict = string "!"
+  pretty Lazy = string "~"
+  pretty Strict = string "!"
 
 mkStrictness :: GHC.SrcStrictness -> Maybe Strictness
 mkStrictness GHC.SrcLazy = Just Lazy

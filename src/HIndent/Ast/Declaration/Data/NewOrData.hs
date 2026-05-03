@@ -7,7 +7,7 @@ module HIndent.Ast.Declaration.Data.NewOrData
   ) where
 
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data NewOrData
@@ -15,8 +15,8 @@ data NewOrData
   | Data
 
 instance Pretty NewOrData where
-  pretty' Newtype = string "newtype"
-  pretty' Data = string "data"
+  pretty Newtype = string "newtype"
+  pretty Data = string "data"
 
 mkNewOrData :: GHC.HsDataDefn GHC.GhcPs -> NewOrData
 #if MIN_VERSION_ghc_lib_parser(9, 6, 0)

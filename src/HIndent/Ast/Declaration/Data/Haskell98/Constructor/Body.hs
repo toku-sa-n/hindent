@@ -13,7 +13,7 @@ import HIndent.Ast.Name.Infix
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Haskell98ConstructorBody
@@ -32,12 +32,12 @@ data Haskell98ConstructorBody
       }
 
 instance Pretty Haskell98ConstructorBody where
-  pretty' Infix {..} = spaced [pretty left, pretty iName, pretty right]
-  pretty' Prefix {..} = pretty pName >> hor <-|> ver
+  pretty Infix {..} = spaced [pretty left, pretty iName, pretty right]
+  pretty Prefix {..} = pretty pName >> hor <-|> ver
     where
       hor = spacePrefixed $ fmap pretty types
       ver = indentedBlock $ newlinePrefixed $ fmap pretty types
-  pretty' Record {..} = do
+  pretty Record {..} = do
     pretty rName
     prettyWith records $ \r ->
       newline >> indentedBlock (vFields $ fmap pretty r)

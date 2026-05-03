@@ -59,10 +59,11 @@ import HIndent.Ast.Type.ImplicitParameterName
   ( ImplicitParameterName
   , mkImplicitParameterName
   )
-import HIndent.Ast.ValueLiteral
+import HIndent.Ast.ValueLiteral.LiteralValue
+import HIndent.Ast.ValueLiteral.OverloadedValue
 import HIndent.Ast.WithComments
 import HIndent.CabalFile ()
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 import HIndent.Printer
 import qualified Language.Haskell.Syntax.Basic as HS
@@ -176,14 +177,14 @@ data QualifiedDo =
   QualifiedDo (Maybe ModuleName) DoOrMdo
 
 instance Pretty Expression where
-  pretty' (Variable name) = pretty name
-  pretty' (UnboundVariable name) = pretty name
-  pretty' (OverloadedLabel label) = pretty label
-  pretty' (ImplicitParameter name) = pretty name
-  pretty' (OverloadedLiteral lit) = pretty lit
-  pretty' (Literal lit) = pretty lit
-  pretty' (Lambda matches) = pretty matches
-  pretty' LambdaCase {..} = do
+  pretty (Variable name) = pretty name
+  pretty (UnboundVariable name) = pretty name
+  pretty (OverloadedLabel label) = pretty label
+  pretty (ImplicitParameter name) = pretty name
+  pretty (OverloadedLiteral lit) = pretty lit
+  pretty (Literal lit) = pretty lit
+  pretty (Lambda matches) = pretty matches
+  pretty LambdaCase {..} = do
     string
       $ if usesCases
           then "\\cases"
@@ -193,7 +194,7 @@ instance Pretty Expression where
       else do
         newline
         indentedBlock $ pretty matches
-  pretty' (Application (headExpr :| argList)) = horizontal <-|> vertical
+  pretty (Application (headExpr :| argList)) = horizontal <-|> vertical
     where
       horizontal = spaced $ pretty <$> headExpr : argList
       vertical = do
@@ -213,11 +214,11 @@ instance Pretty Expression where
           else newline
         spaces' <- getIndentSpaces
         indentedWithSpace spaces' $ lined $ fmap pretty argList
-  pretty' TypeApplication {..} = do
+  pretty TypeApplication {..} = do
     pretty expression
     string " @"
     pretty typeArg
-  pretty' OperatorApplication {..} = horizontal <-|> vertical
+  pretty OperatorApplication {..} = horizontal <-|> vertical
     where
       horizontal = do
         pretty firstOperand
@@ -239,11 +240,11 @@ instance Pretty Expression where
           shouldBeInline Lambda {} = True
           shouldBeInline LambdaCase {} = True
           shouldBeInline _ = False
-  pretty' (Negation expr) = string "-" >> pretty expr
-  pretty' (Parenthesized expr) = parens $ pretty expr
-  pretty' LeftSection {..} = spaced [pretty left, pretty operator]
-  pretty' RightSection {..} = (pretty operator >> space) |=> pretty right
-  pretty' Tuple {..} = horizontal <-|> vertical
+  pretty (Negation expr) = string "-" >> pretty expr
+  pretty (Parenthesized expr) = parens $ pretty expr
+  pretty LeftSection {..} = spaced [pretty left, pretty operator]
+  pretty RightSection {..} = (pretty operator >> space) |=> pretty right
+  pretty Tuple {..} = horizontal <-|> vertical
     where
       horizontal = parH $ prettyArg pretty <$> arguments
       vertical =
@@ -255,7 +256,7 @@ instance Pretty Expression where
         if isBoxed
           then (hTuple, parens)
           else (hUnboxedTuple, unboxedParens)
-  pretty' Sum {..} = do
+  pretty Sum {..} = do
     string "(#"
     forM_ [1 .. arity] $ \idx -> do
       if idx == position
@@ -263,7 +264,7 @@ instance Pretty Expression where
         else space
       when (idx < arity) $ string "|"
     string "#)"
-  pretty' CaseExpression {..} = do
+  pretty CaseExpression {..} = do
     string "case " |=> do
       pretty scrutinee
       string " of"
@@ -272,7 +273,7 @@ instance Pretty Expression where
       else do
         newline
         indentedBlock $ pretty matches
-  pretty' IfExpression {..} = do
+  pretty IfExpression {..} = do
     string "if " |=> pretty predicate
     indentedBlock
       $ newlinePrefixed [branch "then " thenBranch, branch "else " elseBranch]
@@ -284,67 +285,67 @@ instance Pretty Expression where
               string str
               pretty expr
             _ -> string str |=> pretty expr
-  pretty' (MultiIf multiIfClauses) =
+  pretty (MultiIf multiIfClauses) =
     string "if " |=> lined (fmap pretty multiIfClauses)
-  pretty' LetBinding {..} =
+  pretty LetBinding {..} =
     lined
       [string "let " |=> pretty bindings, string " in " |=> pretty expression]
-  pretty' DoBlock {..} = do
+  pretty DoBlock {..} = do
     pretty qualifiedDo
     newline
     indentedBlock $ prettyWith statements (lined . fmap pretty)
-  pretty' (ListComprehension listComprehension) = pretty listComprehension
-  pretty' (ListLiteral listItems) = horizontal <-|> vertical
+  pretty (ListComprehension listComprehension) = pretty listComprehension
+  pretty (ListLiteral listItems) = horizontal <-|> vertical
     where
       horizontal = brackets $ hCommaSep $ fmap pretty listItems
       vertical = vList $ fmap pretty listItems
-  pretty' RecordConstruction {..} = horizontal <-|> vertical
+  pretty RecordConstruction {..} = horizontal <-|> vertical
     where
       horizontal = spaced [pretty name, pretty fields]
       vertical = do
         pretty name
         (space >> pretty fields) <-|> (newline >> indentedBlock (pretty fields))
-  pretty' (RecordUpdate fields) = pretty fields
-  pretty' FieldProjection {..} = do
+  pretty (RecordUpdate fields) = pretty fields
+  pretty FieldProjection {..} = do
     pretty expression
     dot
     pretty selector
-  pretty' (Projection projectionFields) =
+  pretty (Projection projectionFields) =
     parens $ forM_ projectionFields prettyProjectionField
     where
       prettyProjectionField projectionField = do
         string "."
         pretty projectionField
-  pretty' TypeSignature {..} =
+  pretty TypeSignature {..} =
     spaced [pretty expression, string "::", pretty signature]
-  pretty' (ArithmeticSequence rangeExpression) = pretty rangeExpression
-  pretty' (TypedQuotation expr) = typedBrackets $ pretty expr
-  pretty' (UntypedQuotation bracket) = pretty bracket
-  pretty' ProcExpression {..} = hor <-|> ver
+  pretty (ArithmeticSequence rangeExpression) = pretty rangeExpression
+  pretty (TypedQuotation expr) = typedBrackets $ pretty expr
+  pretty (UntypedQuotation bracket) = pretty bracket
+  pretty ProcExpression {..} = hor <-|> ver
     where
       hor = spaced [string "proc", pretty pat, string "->", pretty cmd]
       ver = do
         spaced [string "proc", pretty pat, string "->"]
         newline
         indentedBlock $ pretty cmd
-  pretty' ProcDo {..} = do
+  pretty ProcDo {..} = do
     spaced [string "proc", pretty pat, string "-> do"]
     newline
     indentedBlock $ pretty block
-  pretty' (StaticExpression expr) = spaced [string "static", pretty expr]
-  pretty' PragmaticExpression {..} = spaced [pretty pragma, pretty expression]
-  pretty' (Splice splice') = pretty splice'
+  pretty (StaticExpression expr) = spaced [string "static", pretty expr]
+  pretty PragmaticExpression {..} = spaced [pretty pragma, pretty expression]
+  pretty (Splice splice') = pretty splice'
 
 instance Pretty DoOrMdo where
-  pretty' Do = string "do"
-  pretty' Mdo = string "mdo"
+  pretty Do = string "do"
+  pretty Mdo = string "mdo"
 
 instance Pretty QualifiedDo where
-  pretty' (QualifiedDo (Just moduleName) doOrMdo) = do
+  pretty (QualifiedDo (Just moduleName) doOrMdo) = do
     pretty moduleName
     string "."
     pretty doOrMdo
-  pretty' (QualifiedDo Nothing doOrMdo) = pretty doOrMdo
+  pretty (QualifiedDo Nothing doOrMdo) = pretty doOrMdo
 
 mkExpression :: GHC.HsExpr GHC.GhcPs -> Expression
 mkExpression (GHC.HsVar _ name) =
@@ -666,10 +667,10 @@ newtype InfixExpr =
   InfixExpr Expression
 
 instance Pretty InfixExpr where
-  pretty' (InfixExpr (Variable name)) = pretty $ mkPrefixAsInfix <$> name
-  pretty' (InfixExpr (UnboundVariable name)) = pretty $ mkPrefixAsInfix <$> name
-  pretty' (InfixExpr (Parenthesized inner)) = pretty $ fmap InfixExpr inner
-  pretty' (InfixExpr x) = pretty x
+  pretty (InfixExpr (Variable name)) = pretty $ mkPrefixAsInfix <$> name
+  pretty (InfixExpr (UnboundVariable name)) = pretty $ mkPrefixAsInfix <$> name
+  pretty (InfixExpr (Parenthesized inner)) = pretty $ fmap InfixExpr inner
+  pretty (InfixExpr x) = pretty x
 
 data GuardExpression
   = GuardWithDo Expression
@@ -677,9 +678,9 @@ data GuardExpression
   | GuardExpression Expression
 
 instance Pretty GuardExpression where
-  pretty' (GuardWithDo expr) = space >> pretty expr
-  pretty' (GuardWithAppAndDo expr) = space >> pretty expr
-  pretty' (GuardExpression expr) = horizontal <-|> vertical
+  pretty (GuardWithDo expr) = space >> pretty expr
+  pretty (GuardWithAppAndDo expr) = space >> pretty expr
+  pretty (GuardExpression expr) = horizontal <-|> vertical
     where
       horizontal = space >> pretty expr
       vertical = newline >> indentedBlock (pretty expr)

@@ -10,7 +10,7 @@ import HIndent.Ast.Declaration.Data.Deriving.Strategy
 import HIndent.Ast.Type (Type, mkTypeFromHsSigType)
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data StandAloneDeriving = StandAloneDeriving
@@ -19,7 +19,7 @@ data StandAloneDeriving = StandAloneDeriving
   }
 
 instance Pretty StandAloneDeriving where
-  pretty' StandAloneDeriving {strategy = Just strategy, ..}
+  pretty StandAloneDeriving {strategy = Just strategy, ..}
     | isViaStrategy (getNode strategy) =
       spaced
         [ string "deriving"
@@ -27,7 +27,7 @@ instance Pretty StandAloneDeriving where
         , string "instance"
         , pretty className
         ]
-  pretty' StandAloneDeriving {..} = do
+  pretty StandAloneDeriving {..} = do
     string "deriving "
     whenJust strategy $ \x -> pretty x >> space
     string "instance "

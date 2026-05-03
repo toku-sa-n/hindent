@@ -5,7 +5,7 @@ module HIndent.Ast.Declaration.Rule.Name
 
 import qualified GHC.Data.FastString as GHC
 import qualified GHC.Types.Basic as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype RuleName =
@@ -13,7 +13,7 @@ newtype RuleName =
   deriving (Eq, Show)
 
 instance Pretty RuleName where
-  pretty' (RuleName name) = doubleQuotes $ string name
+  pretty (RuleName name) = doubleQuotes $ string name
 
 mkRuleName :: GHC.RuleName -> RuleName
 mkRuleName = RuleName . GHC.unpackFS

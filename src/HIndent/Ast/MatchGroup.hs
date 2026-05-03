@@ -14,14 +14,14 @@ import HIndent.Ast.WithComments
   , getNode
   , prettyWith
   )
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators (lined)
 
 newtype MatchGroup =
   MatchGroup (WithComments [WithComments Match])
 
 instance Pretty MatchGroup where
-  pretty' (MatchGroup alts) = prettyWith alts (lined . fmap pretty)
+  pretty (MatchGroup alts) = prettyWith alts (lined . fmap pretty)
 
 mkExprMatchGroup ::
      GHC.MatchGroup GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> MatchGroup

@@ -24,7 +24,7 @@ data Module = Module
   }
 
 instance Pretty Module where
-  pretty' Module {..}
+  pretty Module {..}
     | isEmpty = pure ()
     | otherwise = blanklined printers >> newline
     where

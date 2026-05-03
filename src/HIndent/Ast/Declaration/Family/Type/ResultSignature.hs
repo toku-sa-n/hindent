@@ -7,7 +7,7 @@ import HIndent.Ast.Type
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data ResultSignature
@@ -16,9 +16,9 @@ data ResultSignature
   | TypeVariable (WithComments TypeVariable)
 
 instance Pretty ResultSignature where
-  pretty' NoSig = return ()
-  pretty' (Kind x) = string " :: " >> pretty x
-  pretty' (TypeVariable x) = string " = " >> pretty x
+  pretty NoSig = return ()
+  pretty (Kind x) = string " :: " >> pretty x
+  pretty (TypeVariable x) = string " = " >> pretty x
 
 mkResultSignature :: GHC.FamilyResultSig GHC.GhcPs -> ResultSignature
 mkResultSignature (GHC.NoSig _) = NoSig

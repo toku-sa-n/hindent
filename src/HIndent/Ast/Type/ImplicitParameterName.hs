@@ -5,14 +5,14 @@ module HIndent.Ast.Type.ImplicitParameterName
 
 import qualified GHC.Data.FastString as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype ImplicitParameterName =
   ImplicitParameterName String
 
 instance Pretty ImplicitParameterName where
-  pretty' (ImplicitParameterName s) = string "?" >> string s
+  pretty (ImplicitParameterName s) = string "?" >> string s
 
 mkImplicitParameterName :: GHC.HsIPName -> ImplicitParameterName
 mkImplicitParameterName (GHC.HsIPName fs) =

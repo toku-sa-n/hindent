@@ -14,7 +14,7 @@ import HIndent.Ast.LocalBinds.ImplicitBindings
   , mkImplicitBindings
   )
 import HIndent.Ast.WithComments (WithComments, fromEpAnn, fromGenLocated)
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 import qualified HIndent.Pretty.SigBindFamily as SBF
 
@@ -27,8 +27,8 @@ data LocalBinds
       }
 
 instance Pretty LocalBinds where
-  pretty' Value {sigBindFamilies = families} = lined $ fmap pretty families
-  pretty' (ImplicitParameters {implicitBindings = binds}) = pretty binds
+  pretty Value {sigBindFamilies = families} = lined $ fmap pretty families
+  pretty (ImplicitParameters {implicitBindings = binds}) = pretty binds
 
 mkLocalBinds :: GHC.HsLocalBinds GHC.GhcPs -> Maybe (WithComments LocalBinds)
 mkLocalBinds (GHC.HsValBinds ann binds) =

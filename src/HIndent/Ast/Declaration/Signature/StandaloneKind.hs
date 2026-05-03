@@ -9,7 +9,7 @@ import qualified GHC.Hs as GHC
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type (Type, mkTypeFromHsSigType)
 import HIndent.Ast.WithComments
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data StandaloneKind = StandaloneKind
@@ -18,7 +18,7 @@ data StandaloneKind = StandaloneKind
   }
 
 instance Pretty StandaloneKind where
-  pretty' StandaloneKind {..} =
+  pretty StandaloneKind {..} =
     spaced [string "type", pretty name, string "::", pretty kind]
 
 mkStandaloneKind :: GHC.StandaloneKindSig GHC.GhcPs -> StandaloneKind

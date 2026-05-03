@@ -4,7 +4,7 @@ module HIndent.Ast.Role
   ) where
 
 import qualified GHC.Core.TyCon as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Role
@@ -13,9 +13,9 @@ data Role
   | Phantom
 
 instance Pretty Role where
-  pretty' Nominal = string "nominal"
-  pretty' Representational = string "representational"
-  pretty' Phantom = string "phantom"
+  pretty Nominal = string "nominal"
+  pretty Representational = string "representational"
+  pretty Phantom = string "phantom"
 
 mkRole :: GHC.Role -> Role
 mkRole GHC.Nominal = Nominal

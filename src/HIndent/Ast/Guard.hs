@@ -28,7 +28,7 @@ import HIndent.Ast.WithComments
   , mkWithComments
   )
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data GuardContext
@@ -51,7 +51,7 @@ data Guard
       }
 
 instance Pretty Guard where
-  pretty' ExprGuard {..}
+  pretty ExprGuard {..}
     | null conditions = do
       space
       string (contextSeparator guardContext)
@@ -65,7 +65,7 @@ instance Pretty Guard where
         space
         string (contextSeparator guardContext)
         pretty expr
-  pretty' CmdGuard {..}
+  pretty CmdGuard {..}
     | null conditions = do
       space
       string (contextSeparator guardContext)

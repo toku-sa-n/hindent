@@ -13,7 +13,7 @@ import qualified GHC.Hs as GHC
 import HIndent.Applicative (whenJust)
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.WithComments
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 import HIndent.Printer (Printer)
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -41,7 +41,7 @@ data RecordUpdateFields = RecordUpdateFields
   }
 
 instance Pretty RecordUpdateFields where
-  pretty' RecordUpdateFields {..} = horizontal <-|> vertical
+  pretty RecordUpdateFields {..} = horizontal <-|> vertical
     where
       horizontal =
         spaced

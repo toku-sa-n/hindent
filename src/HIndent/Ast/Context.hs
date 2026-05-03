@@ -8,14 +8,14 @@ module HIndent.Ast.Context
 import {-# SOURCE #-} HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype Context =
   Context [WithComments Type]
 
 instance Pretty Context where
-  pretty' (Context xs) = hor <-|> ver
+  pretty (Context xs) = hor <-|> ver
     where
       hor = parensConditional $ hCommaSep $ fmap pretty xs
         where

@@ -39,15 +39,15 @@ data SigBindFamily
   | DataFamInst (DataFamInstDecl GhcPs)
 
 instance Pretty SigBindFamily where
-  pretty' (Sig signature) = pretty $ mkSignature signature
-  pretty' (Bind bind) = prettyBind bind
-  pretty' (Family familyDecl)
+  pretty (Sig signature) = pretty $ mkSignature signature
+  pretty (Bind bind) = prettyBind bind
+  pretty (Family familyDecl)
     | Just typeFamily <- mkTypeFamily familyDecl = pretty typeFamily
     | Just dataFamily <- mkDataFamily familyDecl = pretty dataFamily
     | otherwise = error "Unreachable"
-  pretty' (TyFamInst inst) = pretty $ mkAssociatedType inst
-  pretty' (TyFamDeflt deflt) = pretty $ mkAssociatedTypeDefault deflt
-  pretty' (DataFamInst inst) = pretty $ mkAssociatedDataFamilyInstance inst
+  pretty (TyFamInst inst) = pretty $ mkAssociatedType inst
+  pretty (TyFamDeflt deflt) = pretty $ mkAssociatedTypeDefault deflt
+  pretty (DataFamInst inst) = pretty $ mkAssociatedDataFamilyInstance inst
 
 -- | 'SigBindFamily' with the location information.
 type LSigBindFamily = GenLocated SrcSpanAnnA SigBindFamily

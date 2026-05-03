@@ -13,7 +13,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data DataFamilyInstance = DataFamilyInstance
@@ -25,7 +25,7 @@ data DataFamilyInstance = DataFamilyInstance
   }
 
 instance Pretty DataFamilyInstance where
-  pretty' DataFamilyInstance {..} = do
+  pretty DataFamilyInstance {..} = do
     spaced
       $ pretty newOrData
           : [string "instance" | includesInstanceKeyword]

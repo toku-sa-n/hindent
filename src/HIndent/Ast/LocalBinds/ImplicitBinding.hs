@@ -13,7 +13,7 @@ import HIndent.Ast.Type.ImplicitParameterName
   )
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 data ImplicitBinding = ImplicitBinding
@@ -22,7 +22,7 @@ data ImplicitBinding = ImplicitBinding
   }
 
 instance Pretty ImplicitBinding where
-  pretty' ImplicitBinding {..} =
+  pretty ImplicitBinding {..} =
     spaced [pretty name, string "=", pretty expression]
 
 mkImplicitBinding :: GHC.IPBind GHC.GhcPs -> ImplicitBinding

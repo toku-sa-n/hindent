@@ -14,7 +14,7 @@ import HIndent.Ast.Name.RecordField (FieldName, mkFieldNameFromFieldOcc)
 import HIndent.Ast.Pattern
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Parameters
@@ -38,12 +38,12 @@ data PatternSynonym = PatternSynonym
   }
 
 instance Pretty Parameters where
-  pretty' Prefix {..} = spaced $ fmap pretty args
-  pretty' Infix {..} = spaced [pretty leftArg, pretty rightArg]
-  pretty' Record {..} = hFields $ fmap pretty fields
+  pretty Prefix {..} = spaced $ fmap pretty args
+  pretty Infix {..} = spaced [pretty leftArg, pretty rightArg]
+  pretty Record {..} = hFields $ fmap pretty fields
 
 instance Pretty PatternSynonym where
-  pretty' PatternSynonym {..} = do
+  pretty PatternSynonym {..} = do
     string "pattern "
     case getNode parameters of
       Infix {..} ->

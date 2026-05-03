@@ -37,7 +37,7 @@ data Import = Import
   }
 
 instance Pretty Import where
-  pretty' Import {..} = do
+  pretty Import {..} = do
     string "import "
     when isBoot $ string "{-# SOURCE #-} "
     when isSafe $ string "safe "

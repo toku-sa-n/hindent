@@ -9,14 +9,14 @@ module HIndent.Ast.Declaration.Data.Constructor.Field
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 
 newtype ConstructorField = ConstructorField
   { ty :: WithComments Type
   }
 
 instance Pretty ConstructorField where
-  pretty' ConstructorField {..} = pretty ty
+  pretty ConstructorField {..} = pretty ty
 #if MIN_VERSION_ghc_lib_parser(9, 14, 0)
 mkConstructorField :: GHC.HsConDeclField GHC.GhcPs -> ConstructorField
 mkConstructorField field = ConstructorField {ty = mkTypeFromConDeclField field}

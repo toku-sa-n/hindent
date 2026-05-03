@@ -6,7 +6,7 @@ module HIndent.Ast.Declaration.Instance.Class.OverlapMode
   ) where
 
 import qualified GHC.Types.Basic as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators.String
 
 data OverlapMode
@@ -16,10 +16,10 @@ data OverlapMode
   | Incoherent
 
 instance Pretty OverlapMode where
-  pretty' Overlappable = string "{-# OVERLAPPABLE #-}"
-  pretty' Overlapping = string "{-# OVERLAPPING #-}"
-  pretty' Overlaps = string "{-# OVERLAPS #-}"
-  pretty' Incoherent = string "{-# INCOHERENT #-}"
+  pretty Overlappable = string "{-# OVERLAPPABLE #-}"
+  pretty Overlapping = string "{-# OVERLAPPING #-}"
+  pretty Overlaps = string "{-# OVERLAPS #-}"
+  pretty Incoherent = string "{-# INCOHERENT #-}"
 
 mkOverlapMode :: GHC.OverlapMode -> OverlapMode
 mkOverlapMode GHC.NoOverlap {} =

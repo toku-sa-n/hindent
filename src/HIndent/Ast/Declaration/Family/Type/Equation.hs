@@ -1,8 +1,9 @@
-{-# LANGUAGE RecordWildCards, CPP #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module HIndent.Ast.Declaration.Instance.Family.Type.Associated
-  ( AssociatedType
-  , mkAssociatedType
+module HIndent.Ast.Declaration.Family.Type.Equation
+  ( TypeEquation
+  , mkTypeEquation
   ) where
 
 import HIndent.Ast.Name.Prefix
@@ -12,21 +13,21 @@ import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
-data AssociatedType = AssociatedType
+data TypeEquation = TypeEquation
   { name :: WithComments PrefixName
   , types :: [TypeArgument]
   , bind :: WithComments Type
   }
 
-instance Pretty AssociatedType where
-  pretty AssociatedType {..} = do
-    spaced $ string "type" : pretty name : fmap pretty types
+instance Pretty TypeEquation where
+  pretty TypeEquation {..} = do
+    spaced $ pretty name : fmap pretty types
     string " = "
     pretty bind
 
-mkAssociatedType :: GHC.TyFamInstDecl GHC.GhcPs -> AssociatedType
-mkAssociatedType GHC.TyFamInstDecl {GHC.tfid_eqn = GHC.FamEqn {..}} =
-  AssociatedType
+mkTypeEquation :: GHC.TyFamInstEqn GHC.GhcPs -> TypeEquation
+mkTypeEquation GHC.FamEqn {..} =
+  TypeEquation
     { name = fromGenLocated $ fmap mkPrefixName feqn_tycon
     , types = mkTypeArguments feqn_pats
     , bind = mkType <$> fromGenLocated feqn_rhs

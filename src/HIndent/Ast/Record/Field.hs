@@ -15,7 +15,7 @@ import HIndent.Ast.Name.RecordField (FieldName, mkFieldNameFromFieldOcc)
 import {-# SOURCE #-} HIndent.Ast.Pattern (Pattern, mkPattern)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
   ( (<-|>)
   , indentedBlock
@@ -34,14 +34,14 @@ data Field rhs = Field
   }
 
 instance Pretty ExprField where
-  pretty' Field {..} = do
+  pretty Field {..} = do
     pretty name
     whenJust value $ \val -> do
       string " ="
       (space >> pretty val) <-|> (newline >> indentedBlock (pretty val))
 
 instance Pretty PatField where
-  pretty' Field {..} = do
+  pretty Field {..} = do
     pretty name
     whenJust value $ \val -> do
       string " = "

@@ -2,9 +2,9 @@
 
 module HIndent.Ast.Type where
 
-import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Ast.WithComments (WithComments)
-import {-# SOURCE #-} HIndent.Pretty
+import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
+import HIndent.Pretty
 
 data Type
 

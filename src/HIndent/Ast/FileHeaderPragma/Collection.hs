@@ -17,7 +17,7 @@ newtype FileHeaderPragmaCollection =
   FileHeaderPragmaCollection [FileHeaderPragma]
 
 instance Pretty FileHeaderPragmaCollection where
-  pretty' (FileHeaderPragmaCollection xs) = lined $ fmap pretty xs
+  pretty (FileHeaderPragmaCollection xs) = lined $ fmap pretty xs
 
 mkFileHeaderPragmaCollection :: GHC.HsModule' -> FileHeaderPragmaCollection
 mkFileHeaderPragmaCollection =

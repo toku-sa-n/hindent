@@ -15,7 +15,7 @@ import qualified GHC.Data.FastString as GHC
 import qualified GHC.Hs as GHC
 import HIndent.Ast.Name.Prefix (PrefixName, fromString, mkPrefixName)
 import HIndent.Ast.WithComments (WithComments, flattenComments, fromGenLocated)
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators (hDotSep)
 import qualified Language.Haskell.Syntax.Basic as GHC
 
@@ -26,7 +26,7 @@ mkFieldNameFromLabels :: NonEmpty (WithComments PrefixName) -> FieldName
 mkFieldNameFromLabels = FieldName
 
 instance Pretty FieldName where
-  pretty' (FieldName labels) = hDotSep $ pretty <$> NonEmpty.toList labels
+  pretty (FieldName labels) = hDotSep $ pretty <$> NonEmpty.toList labels
 
 mkFieldNameFromFieldOcc :: GHC.FieldOcc GHC.GhcPs -> FieldName
 #if MIN_VERSION_ghc_lib_parser(9, 4, 1)

@@ -6,7 +6,7 @@ module HIndent.Ast.Declaration.Annotation.Provenance
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Provenance
@@ -15,9 +15,9 @@ data Provenance
   | Module
 
 instance Pretty Provenance where
-  pretty' (Value x) = pretty x
-  pretty' (Type x) = string "type " >> pretty x
-  pretty' Module = string "module"
+  pretty (Value x) = pretty x
+  pretty (Type x) = string "type " >> pretty x
+  pretty Module = string "module"
 
 mkProvenance :: GHC.AnnProvenance GHC.GhcPs -> Provenance
 mkProvenance (GHC.ValueAnnProvenance x) =

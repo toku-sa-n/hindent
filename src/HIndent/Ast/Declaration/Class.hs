@@ -14,7 +14,7 @@ import HIndent.Ast.Declaration.Class.FunctionalDependency
 import HIndent.Ast.Declaration.Class.NameAndTypeVariables
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.SigBindFamily
 #if !MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -28,7 +28,7 @@ data ClassDeclaration = ClassDeclaration
   }
 
 instance Pretty ClassDeclaration where
-  pretty' ClassDeclaration {..} = do
+  pretty ClassDeclaration {..} = do
     if isJust context
       then verHead
       else horHead <-|> verHead

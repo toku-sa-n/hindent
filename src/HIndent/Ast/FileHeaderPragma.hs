@@ -16,7 +16,7 @@ newtype FileHeaderPragma =
   FileHeaderPragma String
 
 instance Pretty FileHeaderPragma where
-  pretty' (FileHeaderPragma x) = string x
+  pretty (FileHeaderPragma x) = string x
 
 mkFileHeaderPragma :: GHC.EpaCommentTok -> Maybe FileHeaderPragma
 mkFileHeaderPragma =

@@ -28,7 +28,7 @@ import HIndent.Ast.Comment (mkComment)
 import HIndent.Ast.NodeComments (NodeComments(..))
 import qualified HIndent.Ast.NodeComments as NodeComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Parser.Annotation as Annotation
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Printer
 
@@ -41,7 +41,7 @@ instance Functor WithComments where
   fmap f WithComments {..} = WithComments comments (f node)
 
 instance (Pretty a) => Pretty (WithComments a) where
-  pretty' withComments = prettyWith withComments pretty'
+  pretty withComments = prettyWith withComments pretty
 
 -- | Prints comments included in the location information and then the
 -- AST node body.

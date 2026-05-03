@@ -4,7 +4,7 @@ module HIndent.Ast.Declaration.Foreign.Safety
   ) where
 
 import qualified GHC.Types.ForeignCall as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Safety
@@ -13,9 +13,9 @@ data Safety
   | Unsafe
 
 instance Pretty Safety where
-  pretty' Safe = string "safe"
-  pretty' Interruptible = string "interruptible"
-  pretty' Unsafe = string "unsafe"
+  pretty Safe = string "safe"
+  pretty Interruptible = string "interruptible"
+  pretty Unsafe = string "unsafe"
 
 mkSafety :: GHC.Safety -> Safety
 mkSafety GHC.PlaySafe = Safe

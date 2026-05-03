@@ -4,7 +4,7 @@ module HIndent.Ast.Declaration.Signature.Fixity.Associativity
   ) where
 
 import qualified GHC.Types.Fixity as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Associativity
@@ -13,9 +13,9 @@ data Associativity
   | None
 
 instance Pretty Associativity where
-  pretty' LeftAssoc = string "infixl"
-  pretty' RightAssoc = string "infixr"
-  pretty' None = string "infix"
+  pretty LeftAssoc = string "infixl"
+  pretty RightAssoc = string "infixr"
+  pretty None = string "infix"
 
 mkAssociativity :: GHC.FixityDirection -> Associativity
 mkAssociativity GHC.InfixL = LeftAssoc

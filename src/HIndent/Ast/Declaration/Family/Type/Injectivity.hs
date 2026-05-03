@@ -8,7 +8,7 @@ module HIndent.Ast.Declaration.Family.Type.Injectivity
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Injectivity = Injectivity
@@ -17,7 +17,7 @@ data Injectivity = Injectivity
   }
 
 instance Pretty Injectivity where
-  pretty' Injectivity {..} = spaced $ pretty from : string "->" : fmap pretty to
+  pretty Injectivity {..} = spaced $ pretty from : string "->" : fmap pretty to
 
 mkInjectivity :: GHC.InjectivityAnn GHC.GhcPs -> Injectivity
 mkInjectivity (GHC.InjectivityAnn _ f t) = Injectivity {..}

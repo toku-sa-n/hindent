@@ -11,7 +11,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data NameAndTypeVariables
@@ -27,8 +27,8 @@ data NameAndTypeVariables
       }
 
 instance Pretty NameAndTypeVariables where
-  pretty' Prefix {..} = spaced $ pretty pName : fmap pretty typeVariables
-  pretty' Infix {..} = do
+  pretty Prefix {..} = spaced $ pretty pName : fmap pretty typeVariables
+  pretty Infix {..} = do
     parens $ spaced [pretty left, pretty iName, pretty right]
     spacePrefixed $ fmap pretty remains
 

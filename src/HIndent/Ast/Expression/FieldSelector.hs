@@ -9,7 +9,7 @@ import qualified GHC.Data.FastString as GHC
 import qualified GHC.Hs as GHC
 import HIndent.Ast.Name.Prefix (PrefixName, fromString)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import qualified Language.Haskell.Syntax.Basic as GHC
 
 newtype FieldSelector = FieldSelector
@@ -17,7 +17,7 @@ newtype FieldSelector = FieldSelector
   }
 
 instance Pretty FieldSelector where
-  pretty' FieldSelector {..} = pretty name
+  pretty FieldSelector {..} = pretty name
 
 mkFieldSelector :: GHC.DotFieldOcc GHC.GhcPs -> FieldSelector
 mkFieldSelector GHC.DotFieldOcc {..} =

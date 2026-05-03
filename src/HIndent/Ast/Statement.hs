@@ -15,7 +15,7 @@ import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.LocalBinds (LocalBinds, mkLocalBinds)
 import HIndent.Ast.Pattern (Pattern, mkPattern)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated, prettyWith)
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 type ExprStatement = Statement Expression
@@ -39,22 +39,22 @@ data Statement a
       }
 
 instance Pretty a => Pretty (Statement a) where
-  pretty' (Expression expr) = pretty expr
-  pretty' Binding {..} = do
+  pretty (Expression expr) = pretty expr
+  pretty Binding {..} = do
     pretty lhsPattern
     string " <-"
     hor <-|> ver
     where
       hor = space >> pretty rhs
       ver = newline >> indentedBlock (pretty rhs)
-  pretty' (LetBinding binds) = string "let " |=> pretty binds
-  pretty' (Parallel blocks)
+  pretty (LetBinding binds) = string "let " |=> pretty binds
+  pretty (Parallel blocks)
     | any ((> 1) . length) blocks =
       vBarSep $ fmap (vCommaSep . fmap pretty) blocks
     | otherwise = hvBarSep $ fmap (hvCommaSep . fmap pretty) blocks
-  pretty' Transform {..} =
+  pretty Transform {..} =
     vCommaSep $ fmap pretty steps ++ [string "then " >> pretty using]
-  pretty' Recursive {..} =
+  pretty Recursive {..} =
     string "rec " |=> prettyWith block (lined . fmap pretty)
 
 mkExprStatement ::

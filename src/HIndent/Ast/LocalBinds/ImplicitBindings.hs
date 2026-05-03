@@ -9,7 +9,7 @@ import HIndent.Ast.LocalBinds.ImplicitBinding
   )
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 newtype ImplicitBindings = ImplicitBindings
@@ -17,7 +17,7 @@ newtype ImplicitBindings = ImplicitBindings
   }
 
 instance Pretty ImplicitBindings where
-  pretty' (ImplicitBindings xs) = lined $ fmap pretty xs
+  pretty (ImplicitBindings xs) = lined $ fmap pretty xs
 
 mkImplicitBindings :: GHC.HsIPBinds GHC.GhcPs -> ImplicitBindings
 mkImplicitBindings (GHC.IPBinds _ xs) =

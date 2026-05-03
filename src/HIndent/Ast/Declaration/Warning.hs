@@ -12,7 +12,7 @@ import HIndent.Ast.StringLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Unit.Module.Warnings as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data WarningDeclaration = WarningDeclaration
@@ -22,7 +22,7 @@ data WarningDeclaration = WarningDeclaration
   }
 
 instance Pretty WarningDeclaration where
-  pretty' WarningDeclaration {..} = do
+  pretty WarningDeclaration {..} = do
     lined
       [ string "{-# " >> pretty kind
       , spaced [hCommaSep $ fmap pretty names, hCommaSep $ fmap pretty reasons]

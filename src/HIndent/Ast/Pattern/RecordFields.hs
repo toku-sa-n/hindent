@@ -10,7 +10,7 @@ import Data.Maybe (isJust)
 import HIndent.Ast.Record.Field (PatField, mkPatField)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 data RecordFieldsPat = RecordFieldsPat
@@ -19,7 +19,7 @@ data RecordFieldsPat = RecordFieldsPat
   }
 
 instance Pretty RecordFieldsPat where
-  pretty' (RecordFieldsPat fs dd) =
+  pretty (RecordFieldsPat fs dd) =
     case fieldPrinters of
       [] -> string "{}"
       [x] -> braces x

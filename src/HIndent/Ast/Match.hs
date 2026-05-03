@@ -35,7 +35,7 @@ import HIndent.Ast.WithComments
   , prettyWith
   )
 #endif
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 data InfixOperands = InfixOperands
@@ -46,7 +46,7 @@ data InfixOperands = InfixOperands
   }
 
 instance Pretty InfixOperands where
-  pretty' InfixOperands {..} =
+  pretty InfixOperands {..} =
     spaced $ pretty left : pretty operator : pretty right : fmap pretty rest
 
 data Match
@@ -71,21 +71,21 @@ data Match
       }
 
 instance Pretty Match where
-  pretty' Lambda {..} = do
+  pretty Lambda {..} = do
     string "\\"
     when needsSpaceAfterLambda space
     prettyWith patterns $ spaced . fmap pretty
     pretty rhs
-  pretty' Case {..} = do
+  pretty Case {..} = do
     prettyWith patterns $ spaced . fmap pretty
     pretty rhs
-  pretty' FunctionPrefix {..} = do
+  pretty FunctionPrefix {..} = do
     whenJust strictness pretty
     pretty name
     prettyWith patterns $ \pats ->
       unless (null pats) $ spacePrefixed $ fmap pretty pats
     pretty rhs
-  pretty' FunctionInfix {..} = do
+  pretty FunctionInfix {..} = do
     pretty operands
     pretty rhs
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)

@@ -21,7 +21,7 @@ import HIndent.Ast.WithComments
   , fromGenLocated
   , prettyWith
   )
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 data ArrowKind
@@ -73,7 +73,7 @@ data Cmd
   | Parenthesized (WithComments Cmd)
 
 instance Pretty Cmd where
-  pretty' ArrowApp {..} =
+  pretty ArrowApp {..} =
     case arrowDirection of
       FunctionThenArgument ->
         spaced [pretty function, string operator, pretty argument]
@@ -86,22 +86,22 @@ instance Pretty Cmd where
           (Higher, ArgumentThenFunction) -> ">>-"
           (First, FunctionThenArgument) -> "-<"
           (First, ArgumentThenFunction) -> ">-"
-  pretty' ArrowForm {..} =
+  pretty ArrowForm {..} =
     bananaBrackets $ spaced $ pretty function : fmap pretty arguments
-  pretty' CmdApp {..} = spaced [pretty cmd, pretty argument]
-  pretty' Lambda {..} = pretty matches
-  pretty' LambdaCase {..} = do
+  pretty CmdApp {..} = spaced [pretty cmd, pretty argument]
+  pretty Lambda {..} = pretty matches
+  pretty LambdaCase {..} = do
     string
       $ if usesCases
           then "\\cases"
           else "\\case"
     newline
     indentedBlock $ pretty matches
-  pretty' Case {..} = do
+  pretty Case {..} = do
     spaced [string "case", pretty scrutinee, string "of"]
     newline
     indentedBlock $ pretty matches
-  pretty' If {..} = do
+  pretty If {..} = do
     string "if "
     pretty predicate
     newline
@@ -110,14 +110,14 @@ instance Pretty Cmd where
           [ string "then " >> pretty thenBranch
           , string "else " >> pretty elseBranch
           ]
-  pretty' Let {..} =
+  pretty Let {..} =
     lined
       [string "let " |=> pretty localBinds, string " in " |=> pretty inCommand]
-  pretty' DoBlock {..} = do
+  pretty DoBlock {..} = do
     string "do"
     newline
     indentedBlock $ prettyWith statements $ lined . fmap pretty
-  pretty' (Parenthesized cmd) = parens $ pretty cmd
+  pretty (Parenthesized cmd) = parens $ pretty cmd
 
 mkCmd :: GHC.HsCmd GHC.GhcPs -> Cmd
 mkCmd (GHC.HsCmdArrApp _ f arg appKind isFwd) =
@@ -218,9 +218,9 @@ newtype CmdDoBlock =
   CmdDoBlock Cmd
 
 instance Pretty CmdDoBlock where
-  pretty' (CmdDoBlock DoBlock {statements = stmts}) =
+  pretty (CmdDoBlock DoBlock {statements = stmts}) =
     prettyWith stmts $ lined . fmap pretty
-  pretty' (CmdDoBlock _) =
+  pretty (CmdDoBlock _) =
     error "mkCmdDoBlock must be used before pretty-printing CmdDoBlock"
 
 mkCmdDoBlock :: Cmd -> Maybe CmdDoBlock

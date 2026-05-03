@@ -15,7 +15,7 @@ import qualified GHC.Types.Name as GHC
 import qualified GHC.Types.Name.Reader as GHC
 import HIndent.Ast.Module.Name
 import HIndent.Fixity (fixities)
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data PrefixName = PrefixName
@@ -25,7 +25,7 @@ data PrefixName = PrefixName
   }
 
 instance Pretty PrefixName where
-  pretty' PrefixName {..} =
+  pretty PrefixName {..} =
     wrap $ hDotSep $ catMaybes [pretty <$> moduleName, Just $ string name]
     where
       wrap =
@@ -53,7 +53,7 @@ newtype PrefixAsInfix =
   PrefixAsInfix PrefixName
 
 instance Pretty PrefixAsInfix where
-  pretty' (PrefixAsInfix PrefixName {..}) =
+  pretty (PrefixAsInfix PrefixName {..}) =
     wrap $ hDotSep $ catMaybes [pretty <$> moduleName, Just $ string name]
     where
       wrap =

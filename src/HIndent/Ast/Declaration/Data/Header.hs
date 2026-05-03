@@ -12,7 +12,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Header = Header
@@ -23,7 +23,7 @@ data Header = Header
   }
 
 instance Pretty Header where
-  pretty' Header {..} = do
+  pretty Header {..} = do
     (pretty newOrData >> space) |=> do
       whenJust context $ \c -> pretty c >> string " =>" >> newline
       pretty name

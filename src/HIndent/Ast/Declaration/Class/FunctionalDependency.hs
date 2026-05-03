@@ -8,7 +8,7 @@ module HIndent.Ast.Declaration.Class.FunctionalDependency
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data FunctionalDependency = FunctionalDependency
@@ -17,7 +17,7 @@ data FunctionalDependency = FunctionalDependency
   }
 
 instance Pretty FunctionalDependency where
-  pretty' (FunctionalDependency {..}) =
+  pretty (FunctionalDependency {..}) =
     spaced $ fmap pretty from ++ [string "->"] ++ fmap pretty to
 
 mkFunctionalDependency :: GHC.FunDep GHC.GhcPs -> FunctionalDependency

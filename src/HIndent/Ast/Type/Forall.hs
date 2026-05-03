@@ -9,7 +9,7 @@ module HIndent.Ast.Type.Forall
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Forall
@@ -19,11 +19,11 @@ data Forall
                                           -- forall a b c.
 
 instance Pretty Forall where
-  pretty' (Visible vars) = do
+  pretty (Visible vars) = do
     string "forall "
     spaced $ fmap pretty vars
     string " ->"
-  pretty' (Invisible vars) = do
+  pretty (Invisible vars) = do
     string "forall "
     spaced $ fmap pretty vars
     dot

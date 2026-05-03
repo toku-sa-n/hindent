@@ -13,7 +13,7 @@ import HIndent.Ast.Declaration.Data.Haskell98.Constructor.Body
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Haskell98Constructor = Haskell98Constructor
@@ -23,10 +23,10 @@ data Haskell98Constructor = Haskell98Constructor
   }
 
 instance Pretty Haskell98Constructor where
-  pretty' Haskell98Constructor {existentialVariables = [], ..} = do
+  pretty Haskell98Constructor {existentialVariables = [], ..} = do
     whenJust context $ \c -> pretty c >> string " => "
     pretty body
-  pretty' Haskell98Constructor {..} = do
+  pretty Haskell98Constructor {..} = do
     string "forall "
     spaced (fmap pretty existentialVariables)
     string ". " |=> do

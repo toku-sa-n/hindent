@@ -15,7 +15,7 @@ import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated, mkWithComments)
 #endif
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 #if MIN_VERSION_ghc_lib_parser(9, 6, 1)
 import qualified GHC.Types.SrcLoc as GHC
@@ -27,10 +27,10 @@ data Splice
   | QuasiQuote (WithComments PrefixName) GHC.FastString
 
 instance Pretty Splice where
-  pretty' (Typed x) = string "$$" >> pretty x
-  pretty' (UntypedDollar x) = string "$" >> pretty x
-  pretty' (UntypedBare x) = pretty x
-  pretty' (QuasiQuote l r) =
+  pretty (Typed x) = string "$$" >> pretty x
+  pretty (UntypedDollar x) = string "$" >> pretty x
+  pretty (UntypedBare x) = pretty x
+  pretty (QuasiQuote l r) =
     brackets $ do
       pretty l
       wrapWithBars

@@ -12,7 +12,7 @@ import HIndent.Ast.Declaration.Rule.Name
 import HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data RuleDeclaration = RuleDeclaration
@@ -23,7 +23,7 @@ data RuleDeclaration = RuleDeclaration
   }
 
 instance Pretty RuleDeclaration where
-  pretty' (RuleDeclaration {..}) =
+  pretty (RuleDeclaration {..}) =
     spaced [pretty name, prettyLhs, string "=", pretty rhs]
     where
       prettyLhs =

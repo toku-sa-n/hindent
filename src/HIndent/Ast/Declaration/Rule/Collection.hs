@@ -8,14 +8,14 @@ module HIndent.Ast.Declaration.Rule.Collection
 import {-# SOURCE #-} HIndent.Ast.Declaration.Rule
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype RuleCollection =
   RuleCollection [WithComments RuleDeclaration]
 
 instance Pretty RuleCollection where
-  pretty' (RuleCollection xs) =
+  pretty (RuleCollection xs) =
     lined $ string "{-# RULES" : fmap pretty xs ++ [string " #-}"]
 
 mkRuleCollection :: GHC.RuleDecls GHC.GhcPs -> RuleCollection

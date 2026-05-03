@@ -4,7 +4,7 @@ module HIndent.Ast.Module.Name
   ) where
 
 import qualified GHC.Unit as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype ModuleName =
@@ -12,7 +12,7 @@ newtype ModuleName =
   deriving (Eq, Ord)
 
 instance Pretty ModuleName where
-  pretty' (ModuleName x) = string x
+  pretty (ModuleName x) = string x
 
 mkModuleName :: GHC.ModuleName -> ModuleName
 mkModuleName = ModuleName . GHC.moduleNameString

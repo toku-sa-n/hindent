@@ -13,7 +13,7 @@ import HIndent.Ast.MatchGroup (MatchGroup, mkExprMatchGroup)
 import HIndent.Ast.Pattern
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Printer
 
 -- The difference between `Function` and `Pattern` is the same as the difference
@@ -30,9 +30,9 @@ data Bind
   | PatternSynonym (WithComments PatternSynonym)
 
 instance Pretty Bind where
-  pretty' (Function matches) = pretty matches
-  pretty' Pattern {..} = pretty lhs >> pretty rhs
-  pretty' (PatternSynonym ps) = pretty ps
+  pretty (Function matches) = pretty matches
+  pretty Pattern {..} = pretty lhs >> pretty rhs
+  pretty (PatternSynonym ps) = pretty ps
 
 prettyBind :: GHC.HsBind GHC.GhcPs -> Printer ()
 prettyBind = pretty . mkBind

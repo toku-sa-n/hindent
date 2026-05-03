@@ -66,6 +66,7 @@ library
       HIndent.Ast.Declaration.Default
       HIndent.Ast.Declaration.Family.Data
       HIndent.Ast.Declaration.Family.Type
+      HIndent.Ast.Declaration.Family.Type.Equation
       HIndent.Ast.Declaration.Family.Type.Injectivity
       HIndent.Ast.Declaration.Family.Type.ResultSignature
       HIndent.Ast.Declaration.Foreign
@@ -145,7 +146,8 @@ library
       HIndent.Ast.Type.Strictness
       HIndent.Ast.Type.Unpackedness
       HIndent.Ast.Type.Variable
-      HIndent.Ast.ValueLiteral
+      HIndent.Ast.ValueLiteral.LiteralValue
+      HIndent.Ast.ValueLiteral.OverloadedValue
       HIndent.Ast.WhereClause
       HIndent.Ast.WithComments
       HIndent.ByteString
@@ -179,9 +181,7 @@ library
       HIndent.Pretty.Combinators.String
       HIndent.Pretty.Combinators.Switch
       HIndent.Pretty.Combinators.Wrap
-      HIndent.Pretty.NodeComments
       HIndent.Pretty.SigBindFamily
-      HIndent.Pretty.Types
       HIndent.Printer
       Paths_hindent
   autogen-modules:

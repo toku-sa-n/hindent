@@ -19,7 +19,7 @@ newtype DeclarationCollection =
   DeclarationCollection [WithComments Declaration]
 
 instance Pretty DeclarationCollection where
-  pretty' (DeclarationCollection decls) =
+  pretty (DeclarationCollection decls) =
     mapM_ (\(x, sp) -> pretty x >> fromMaybe (return ()) sp)
       $ addDeclSeparator decls
     where

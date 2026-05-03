@@ -11,7 +11,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type.Variable
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data TypeSynonymLhs
@@ -27,8 +27,8 @@ data TypeSynonymLhs
       }
 
 instance Pretty TypeSynonymLhs where
-  pretty' Prefix {..} = spaced $ pretty pName : fmap pretty typeVariables
-  pretty' Infix {..} = spaced [pretty left, pretty iName, pretty right]
+  pretty Prefix {..} = spaced $ pretty pName : fmap pretty typeVariables
+  pretty Infix {..} = spaced [pretty left, pretty iName, pretty right]
 
 mkTypeSynonymLhs :: GHC.TyClDecl GHC.GhcPs -> TypeSynonymLhs
 mkTypeSynonymLhs GHC.SynDecl {tcdFixity = GHC.Prefix, ..} = Prefix {..}

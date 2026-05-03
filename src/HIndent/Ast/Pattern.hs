@@ -21,10 +21,11 @@ import qualified HIndent.Ast.Name.Infix as InfixName
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Pattern.RecordFields
 import HIndent.Ast.Type
-import HIndent.Ast.ValueLiteral
+import HIndent.Ast.ValueLiteral.LiteralValue
+import HIndent.Ast.ValueLiteral.OverloadedValue
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Pattern
@@ -78,16 +79,16 @@ data Pattern
   | Or (NonEmpty (WithComments Pattern))
 
 instance Pretty Pattern where
-  pretty' WildCard = string "_"
-  pretty' (Variable name) = pretty name
-  pretty' (Lazy pat) = string "~" >> pretty pat
-  pretty' As {..} = pretty name >> string "@" >> pretty pat
-  pretty' (Parenthesized pat) = parens $ pretty pat
-  pretty' (Bang pat) = string "!" >> pretty pat
-  pretty' (List pats) = hList $ pretty <$> pats
-  pretty' Tuple {boxed = True, ..} = hTuple $ pretty <$> patterns
-  pretty' Tuple {boxed = False, ..} = hUnboxedTuple $ pretty <$> patterns
-  pretty' Sum {..} = do
+  pretty WildCard = string "_"
+  pretty (Variable name) = pretty name
+  pretty (Lazy pat) = string "~" >> pretty pat
+  pretty As {..} = pretty name >> string "@" >> pretty pat
+  pretty (Parenthesized pat) = parens $ pretty pat
+  pretty (Bang pat) = string "!" >> pretty pat
+  pretty (List pats) = hList $ pretty <$> pats
+  pretty Tuple {boxed = True, ..} = hTuple $ pretty <$> patterns
+  pretty Tuple {boxed = False, ..} = hUnboxedTuple $ pretty <$> patterns
+  pretty Sum {..} = do
     string "(#"
     forM_ [1 .. arity] $ \idx -> do
       if idx == position
@@ -95,23 +96,23 @@ instance Pretty Pattern where
         else string " "
       when (idx < arity) $ string "|"
     string "#)"
-  pretty' PrefixConstructor {..} = do
+  pretty PrefixConstructor {..} = do
     pretty name
     spacePrefixed $ pretty <$> patterns
-  pretty' InfixConstructor {..} = do
+  pretty InfixConstructor {..} = do
     pretty left
     InfixName.unlessSpecialOp (getNode operator) space
     pretty operator
     InfixName.unlessSpecialOp (getNode operator) space
     pretty right
-  pretty' RecordConstructor {..} = (pretty name >> space) |=> pretty fields
-  pretty' View {..} = spaced [pretty expression, string "->", pretty pat]
-  pretty' (Splice splice) = pretty splice
-  pretty' (Literal lit) = pretty lit
-  pretty' (Overloaded lit) = pretty lit
-  pretty' NPlusK {..} = pretty n >> string "+" >> pretty k
-  pretty' Signature {..} = spaced [pretty pat, string "::", pretty sig]
-  pretty' (Or pats) = inter (string "; ") $ pretty <$> NE.toList pats
+  pretty RecordConstructor {..} = (pretty name >> space) |=> pretty fields
+  pretty View {..} = spaced [pretty expression, string "->", pretty pat]
+  pretty (Splice splice) = pretty splice
+  pretty (Literal lit) = pretty lit
+  pretty (Overloaded lit) = pretty lit
+  pretty NPlusK {..} = pretty n >> string "+" >> pretty k
+  pretty Signature {..} = spaced [pretty pat, string "::", pretty sig]
+  pretty (Or pats) = inter (string "; ") $ pretty <$> NE.toList pats
 
 mkPattern :: GHC.Pat GHC.GhcPs -> Pattern
 mkPattern GHC.WildPat {} = WildCard
@@ -215,9 +216,9 @@ newtype PatInsidePatDecl =
   PatInsidePatDecl Pattern
 
 instance Pretty PatInsidePatDecl where
-  pretty' (PatInsidePatDecl InfixConstructor {..}) =
+  pretty (PatInsidePatDecl InfixConstructor {..}) =
     spaced [pretty left, pretty operator, pretty right]
-  pretty' (PatInsidePatDecl p) = pretty p
+  pretty (PatInsidePatDecl p) = pretty p
 
 mkPatInsidePatDecl :: GHC.Pat GHC.GhcPs -> PatInsidePatDecl
 mkPatInsidePatDecl = PatInsidePatDecl . mkPattern

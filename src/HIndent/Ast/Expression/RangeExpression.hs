@@ -9,7 +9,7 @@ module HIndent.Ast.Expression.RangeExpression
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data RangeExpression
@@ -29,11 +29,11 @@ data RangeExpression
       }
 
 instance Pretty RangeExpression where
-  pretty' (From f) = brackets $ spaced [pretty f, string ".."]
-  pretty' FromThen {..} =
+  pretty (From f) = brackets $ spaced [pretty f, string ".."]
+  pretty FromThen {..} =
     brackets $ spaced [pretty from >> comma >> pretty next, string ".."]
-  pretty' FromTo {..} = brackets $ spaced [pretty from, string "..", pretty to]
-  pretty' FromThenTo {..} =
+  pretty FromTo {..} = brackets $ spaced [pretty from, string "..", pretty to]
+  pretty FromThenTo {..} =
     brackets
       $ spaced [pretty from >> comma >> pretty next, string "..", pretty to]
 

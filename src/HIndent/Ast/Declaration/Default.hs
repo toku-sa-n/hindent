@@ -8,14 +8,14 @@ module HIndent.Ast.Declaration.Default
 import qualified GHC.Hs as GHC
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype DefaultDeclaration =
   DefaultDeclaration [WithComments Type]
 
 instance Pretty DefaultDeclaration where
-  pretty' (DefaultDeclaration xs) =
+  pretty (DefaultDeclaration xs) =
     spaced [string "default", hTuple $ fmap pretty xs]
 
 mkDefaultDeclaration :: GHC.DefaultDecl GHC.GhcPs -> DefaultDeclaration

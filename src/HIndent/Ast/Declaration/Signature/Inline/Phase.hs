@@ -6,7 +6,7 @@ module HIndent.Ast.Declaration.Signature.Inline.Phase
   ) where
 
 import qualified GHC.Types.Basic as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data BeforeOrAfter
@@ -19,9 +19,9 @@ data InlinePhase = InlinePhase
   }
 
 instance Pretty InlinePhase where
-  pretty' InlinePhase {beforeOrAfter = Before, ..} =
+  pretty InlinePhase {beforeOrAfter = Before, ..} =
     brackets (string $ '~' : show phase)
-  pretty' InlinePhase {beforeOrAfter = After, ..} =
+  pretty InlinePhase {beforeOrAfter = After, ..} =
     brackets (string $ show phase)
 
 mkInlinePhase :: GHC.Activation -> Maybe InlinePhase

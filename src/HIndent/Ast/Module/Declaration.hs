@@ -21,7 +21,7 @@ data ModuleDeclaration = ModuleDeclaration
   }
 
 instance Pretty ModuleDeclaration where
-  pretty' ModuleDeclaration {..} = do
+  pretty ModuleDeclaration {..} = do
     prettyWith name $ \n -> do
       string "module "
       pretty n

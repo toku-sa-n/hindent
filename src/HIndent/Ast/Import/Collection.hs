@@ -25,7 +25,7 @@ newtype ImportCollection =
   ImportCollection [[WithComments Import]]
 
 instance Pretty ImportCollection where
-  pretty' (ImportCollection xs) =
+  pretty (ImportCollection xs) =
     importDecls >>= blanklined . fmap outputImportGroup
     where
       outputImportGroup = lined . fmap pretty

@@ -6,7 +6,7 @@ module HIndent.Ast.Declaration.Signature.Inline.Spec
   ) where
 
 import qualified GHC.Types.Basic as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data InlineSpec
@@ -16,10 +16,10 @@ data InlineSpec
   | Opaque
 
 instance Pretty InlineSpec where
-  pretty' Inline = string "INLINE"
-  pretty' Inlinable = string "INLINABLE"
-  pretty' NoInline = string "NOINLINE"
-  pretty' Opaque = string "OPAQUE"
+  pretty Inline = string "INLINE"
+  pretty Inlinable = string "INLINABLE"
+  pretty NoInline = string "NOINLINE"
+  pretty Opaque = string "OPAQUE"
 
 mkInlineSpec :: GHC.InlineSpec -> InlineSpec
 mkInlineSpec GHC.Inline {} = Inline

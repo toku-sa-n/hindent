@@ -12,7 +12,7 @@ import HIndent.Ast.Declaration.Instance.Class.OverlapMode
 import HIndent.Ast.Type (InstDeclType, mkInstDeclType)
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Pretty.SigBindFamily
 #if !MIN_VERSION_ghc_lib_parser(9, 12, 1)
@@ -25,7 +25,7 @@ data ClassInstance = ClassInstance
   }
 
 instance Pretty ClassInstance where
-  pretty' (ClassInstance {..}) = do
+  pretty (ClassInstance {..}) = do
     string "instance " |=> do
       whenJust overlapMode $ \x -> do
         pretty x

@@ -8,14 +8,14 @@ module HIndent.Ast.StringLiteral
 import qualified GHC.Data.FastString as GHC
 import qualified GHC.Types.SourceText as GHC
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 newtype StringLiteral =
   StringLiteral String
 
 instance Pretty StringLiteral where
-  pretty' (StringLiteral value) = string value
+  pretty (StringLiteral value) = string value
 
 mkStringLiteral :: GHC.StringLiteral -> StringLiteral
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)

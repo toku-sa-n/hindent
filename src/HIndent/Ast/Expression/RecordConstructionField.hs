@@ -10,7 +10,7 @@ import Data.Maybe (isJust)
 import qualified GHC.Hs as GHC
 import HIndent.Ast.Record.Field (ExprField, mkExprField)
 import HIndent.Ast.WithComments (WithComments, fromGenLocated)
-import {-# SOURCE #-} HIndent.Pretty (Pretty(..), pretty)
+import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
 data RecordConstructionFields = RecordConstructionFields
@@ -19,7 +19,7 @@ data RecordConstructionFields = RecordConstructionFields
   }
 
 instance Pretty RecordConstructionFields where
-  pretty' RecordConstructionFields {..} =
+  pretty RecordConstructionFields {..} =
     hvFields (fmap pretty fields ++ [string ".." | dotdot])
 
 mkRecordConstructionFields ::

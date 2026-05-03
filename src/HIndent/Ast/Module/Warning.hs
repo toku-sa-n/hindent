@@ -20,7 +20,7 @@ data ModuleWarning = ModuleWarning
   }
 
 instance Pretty ModuleWarning where
-  pretty' ModuleWarning {..} =
+  pretty ModuleWarning {..} =
     spaced [string "{-#", pretty kind, prettyMsgs, string "#-}"]
     where
       prettyMsgs =

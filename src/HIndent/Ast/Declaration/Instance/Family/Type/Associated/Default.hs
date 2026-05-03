@@ -10,7 +10,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data AssociatedTypeDefault = AssociatedTypeDefault
@@ -20,7 +20,7 @@ data AssociatedTypeDefault = AssociatedTypeDefault
   }
 
 instance Pretty AssociatedTypeDefault where
-  pretty' AssociatedTypeDefault {..} = do
+  pretty AssociatedTypeDefault {..} = do
     spaced $ string "type instance" : pretty name : fmap pretty types
     string " = "
     pretty bind

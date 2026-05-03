@@ -4,7 +4,7 @@ module HIndent.Ast.Comment
   ) where
 
 import qualified GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Comment
@@ -13,8 +13,8 @@ data Comment
   deriving (Eq, Show)
 
 instance Pretty Comment where
-  pretty' (Line c) = string c
-  pretty' (Block c) =
+  pretty (Line c) = string c
+  pretty (Block c) =
     case lines c of
       [] -> pure ()
       [x] -> string x

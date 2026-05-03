@@ -7,7 +7,7 @@ module HIndent.Ast.Declaration.Data.Deriving.Strategy
 import HIndent.Ast.Type (Type, mkTypeFromHsSigType)
 import HIndent.Ast.WithComments (WithComments, flattenComments, fromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data DerivingStrategy
@@ -17,10 +17,10 @@ data DerivingStrategy
   | Via (WithComments Type)
 
 instance Pretty DerivingStrategy where
-  pretty' Stock = string "stock"
-  pretty' Anyclass = string "anyclass"
-  pretty' Newtype = string "newtype"
-  pretty' (Via x) = string "via " >> pretty x
+  pretty Stock = string "stock"
+  pretty Anyclass = string "anyclass"
+  pretty Newtype = string "newtype"
+  pretty (Via x) = string "via " >> pretty x
 
 mkDerivingStrategy :: GHC.DerivStrategy GHC.GhcPs -> DerivingStrategy
 mkDerivingStrategy GHC.StockStrategy {} = Stock

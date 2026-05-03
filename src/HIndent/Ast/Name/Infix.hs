@@ -12,7 +12,7 @@ import Data.Maybe
 import qualified GHC.Types.Name as GHC
 import qualified GHC.Types.Name.Reader as GHC
 import HIndent.Ast.Module.Name
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators hiding (unlessSpecialOp)
 import HIndent.Printer
 
@@ -23,7 +23,7 @@ data InfixName = InfixName
   }
 
 instance Pretty InfixName where
-  pretty' InfixName {..} =
+  pretty InfixName {..} =
     wrap $ hDotSep $ catMaybes [pretty <$> moduleName, Just $ string name]
     where
       wrap =

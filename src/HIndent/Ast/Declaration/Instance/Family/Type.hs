@@ -9,7 +9,7 @@ import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
-import {-# SOURCE #-} HIndent.Pretty
+import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data TypeFamilyInstance = TypeFamilyInstance
@@ -19,7 +19,7 @@ data TypeFamilyInstance = TypeFamilyInstance
   }
 
 instance Pretty TypeFamilyInstance where
-  pretty' TypeFamilyInstance {..} = do
+  pretty TypeFamilyInstance {..} = do
     spaced $ string "type instance" : pretty name : fmap pretty types
     string " = "
     pretty bind
