@@ -8,7 +8,7 @@ module HIndent.Ast.Declaration.Instance.Class
 
 import Control.Monad
 import HIndent.Applicative
-import HIndent.Ast.Declaration.Instance.Class.Elements
+import HIndent.Ast.Declaration.Instance.Class.Body
 import HIndent.Ast.Declaration.Instance.Class.OverlapMode
 import HIndent.Ast.Type (InstDeclType, mkInstDeclType)
 import HIndent.Ast.WithComments
@@ -20,7 +20,7 @@ import qualified GHC.Data.Bag as GHC
 #endif
 data ClassInstance = ClassInstance
   { overlapMode :: Maybe (WithComments OverlapMode)
-  , body :: ClassInstanceElements
+  , body :: ClassInstanceBody
   , instanceType :: WithComments InstDeclType
   }
 
@@ -30,9 +30,8 @@ instance Pretty ClassInstance where
       whenJust overlapMode $ \x -> do
         pretty x
         space
-      pretty instanceType
-        |=> when (hasClassInstanceElements body) (string " where")
-    when (hasClassInstanceElements body) $ do
+      pretty instanceType |=> when (hasClassInstanceBody body) (string " where")
+    when (hasClassInstanceBody body) $ do
       newline
       indentedBlock $ pretty body
 
@@ -44,7 +43,7 @@ mkClassInstance GHC.ClsInstD {cid_inst = GHC.ClsInstDecl {..}} =
         { instanceType =
             flattenComments $ mkInstDeclType <$> fromGenLocated cid_poly_ty
         , body =
-            mkClassInstanceElements
+            mkClassInstanceBody
               cid_sigs
               cid_binds
               cid_tyfam_insts
@@ -58,7 +57,7 @@ mkClassInstance GHC.ClsInstD {cid_inst = GHC.ClsInstDecl {..}} =
         { instanceType =
             flattenComments $ mkInstDeclType <$> fromGenLocated cid_poly_ty
         , body =
-            mkClassInstanceElements
+            mkClassInstanceBody
               cid_sigs
               (GHC.bagToList cid_binds)
               cid_tyfam_insts

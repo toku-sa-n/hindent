@@ -1,9 +1,9 @@
-module HIndent.Ast.Declaration.Class.Element
-  ( ClassElement
-  , mkClassSignatureElement
-  , mkClassMethodElement
-  , mkAssociatedFamilyElement
-  , mkAssociatedTypeDefaultElement
+module HIndent.Ast.Declaration.Class.Member
+  ( ClassMember
+  , mkClassSignatureMember
+  , mkClassMethodMember
+  , mkAssociatedFamilyMember
+  , mkAssociatedTypeDefaultMember
   ) where
 
 import HIndent.Ast.Declaration.Bind
@@ -14,14 +14,14 @@ import HIndent.Ast.Declaration.Signature
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 
-data ClassElement
+data ClassMember
   = Signature Signature
   | Method Bind
   | AssociatedDataFamily DataFamily
   | AssociatedTypeDefault AssociatedTypeDefault
   | AssociatedTypeFamily TypeFamily
 
-instance Pretty ClassElement where
+instance Pretty ClassMember where
   pretty (Signature signature) = pretty signature
   pretty (Method bind) = pretty bind
   pretty (AssociatedDataFamily dataFamily) = pretty dataFamily
@@ -29,17 +29,17 @@ instance Pretty ClassElement where
     pretty associatedTypeDefault
   pretty (AssociatedTypeFamily typeFamily) = pretty typeFamily
 
-mkClassSignatureElement :: GHC.Sig GHC.GhcPs -> ClassElement
-mkClassSignatureElement = Signature . mkSignature
+mkClassSignatureMember :: GHC.Sig GHC.GhcPs -> ClassMember
+mkClassSignatureMember = Signature . mkSignature
 
-mkClassMethodElement :: GHC.HsBind GHC.GhcPs -> ClassElement
-mkClassMethodElement = Method . mkBind
+mkClassMethodMember :: GHC.HsBind GHC.GhcPs -> ClassMember
+mkClassMethodMember = Method . mkBind
 
-mkAssociatedFamilyElement :: GHC.FamilyDecl GHC.GhcPs -> ClassElement
-mkAssociatedFamilyElement familyDecl
+mkAssociatedFamilyMember :: GHC.FamilyDecl GHC.GhcPs -> ClassMember
+mkAssociatedFamilyMember familyDecl
   | Just typeFamily <- mkTypeFamily familyDecl = AssociatedTypeFamily typeFamily
   | Just dataFamily <- mkDataFamily familyDecl = AssociatedDataFamily dataFamily
   | otherwise = error "Unreachable"
 
-mkAssociatedTypeDefaultElement :: GHC.TyFamInstDecl GHC.GhcPs -> ClassElement
-mkAssociatedTypeDefaultElement = AssociatedTypeDefault . mkAssociatedTypeDefault
+mkAssociatedTypeDefaultMember :: GHC.TyFamInstDecl GHC.GhcPs -> ClassMember
+mkAssociatedTypeDefaultMember = AssociatedTypeDefault . mkAssociatedTypeDefault

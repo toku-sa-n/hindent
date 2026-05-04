@@ -75,7 +75,7 @@ data ClassDeclItem
   | ClassMethodItem (LHsBindLR GhcPs GhcPs)
   | ClassSignatureItem (LSig GhcPs)
 
-data LocalBindItem
+data LocalDeclarationItem
   = LocalBindingItem (LHsBindLR GhcPs GhcPs)
   | LocalSignatureItem (LSig GhcPs)
 
