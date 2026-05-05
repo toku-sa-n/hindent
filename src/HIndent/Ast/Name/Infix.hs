@@ -3,7 +3,7 @@
 module HIndent.Ast.Name.Infix
   ( InfixName
   , mkInfixName
-  , getInfixNameText
+  , getInfixName
   , unlessSpecialOp
   ) where
 
@@ -55,8 +55,8 @@ mkInfixName (GHC.Exact name) =
     , backtick = backticksNeeded $ GHC.occName name
     }
 
-getInfixNameText :: InfixName -> Text
-getInfixNameText = toText . name
+getInfixName :: InfixName -> Text
+getInfixName = toText . name
 
 unlessSpecialOp :: InfixName -> Printer () -> Printer ()
 unlessSpecialOp InfixName {..} =

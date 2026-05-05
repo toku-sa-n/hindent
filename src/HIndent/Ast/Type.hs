@@ -162,7 +162,7 @@ instance Pretty Type where
   pretty Sum {..} = hvUnboxedSum' $ fmap pretty elements
   pretty InfixType {..} = do
     lineBreak <- gets (configLineBreaks . psConfig)
-    if getInfixNameText (getNode operator) `elem` lineBreak
+    if getInfixName (getNode operator) `elem` lineBreak
       then do
         pretty left
         newline
