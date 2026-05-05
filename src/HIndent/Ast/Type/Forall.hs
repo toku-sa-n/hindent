@@ -13,10 +13,8 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Forall
-  = Visible [WithComments TypeVariable]
-                                        -- forall a b c ->
-  | Invisible [WithComments TypeVariable]
-                                          -- forall a b c.
+  = Visible [WithComments TypeVariable] -- forall a b c ->
+  | Invisible [WithComments TypeVariable] -- forall a b c.
 
 instance Pretty Forall where
   pretty (Visible vars) = do
