@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module HIndent.Ast.Expression.QualifiedDo
   ( QualifiedDo(..)
   , mkQualifiedDo

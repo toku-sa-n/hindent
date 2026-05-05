@@ -197,8 +197,6 @@ library
       Paths_hindent
   hs-source-dirs:
       src
-  default-extensions:
-      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -235,8 +233,6 @@ library hindent-internal
       Paths_hindent
   hs-source-dirs:
       internal
-  default-extensions:
-      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -273,8 +269,6 @@ executable hindent
       Paths_hindent
   hs-source-dirs:
       app
-  default-extensions:
-      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -312,8 +306,6 @@ test-suite hindent-test
       Paths_hindent
   hs-source-dirs:
       tests
-  default-extensions:
-      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal
@@ -354,8 +346,6 @@ benchmark hindent-bench
       Paths_hindent
   hs-source-dirs:
       benchmarks
-  default-extensions:
-      OverloadedStrings
   ghc-options: -Wall -O2 -threaded
   build-depends:
       Cabal

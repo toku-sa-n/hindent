@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards, CPP #-}
 
 module HIndent.Ast.Declaration.Instance.Family.Type
