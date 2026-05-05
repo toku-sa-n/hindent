@@ -3,13 +3,13 @@
 module HIndent.Ast.Name.Infix
   ( InfixName
   , mkInfixName
-  , getInfixName
+  , getInfixNameText
   , unlessSpecialOp
   ) where
 
 import Control.Monad
 import Data.Maybe
-import qualified Data.Text as Text
+import Data.Text (Text)
 import qualified GHC.Types.Name as GHC
 import qualified GHC.Types.Name.Reader as GHC
 import HIndent.Ast.Module.Name
@@ -55,12 +55,12 @@ mkInfixName (GHC.Exact name) =
     , backtick = backticksNeeded $ GHC.occName name
     }
 
-getInfixName :: InfixName -> String
-getInfixName = Text.unpack . toText . name
+getInfixNameText :: InfixName -> Text
+getInfixNameText = toText . name
 
 unlessSpecialOp :: InfixName -> Printer () -> Printer ()
 unlessSpecialOp InfixName {..} =
-  unless $ Text.unpack (toText name) `elem` ["()", "[]", "->", ":"]
+  unless $ toText name `elem` ["()", "[]", "->", ":"]
 
 backticksNeeded :: GHC.OccName -> Bool
 backticksNeeded = not . GHC.isSymOcc
