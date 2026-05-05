@@ -6,10 +6,10 @@ module HIndent.Ast.Declaration.Instance.Class.Body
 
 import Data.Function
 import Data.List (sortBy)
-import GHC.Types.SrcLoc
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.Declaration.Instance.Class.Member
 import HIndent.Ast.WithComments
-import HIndent.GhcLibParserWrapper.GHC.Hs
+import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
@@ -20,15 +20,15 @@ instance Pretty ClassInstanceBody where
   pretty (ClassInstanceBody members) = lined $ fmap pretty members
 
 mkClassInstanceBody ::
-     [LSig GhcPs]
-  -> [LHsBindLR GhcPs GhcPs]
-  -> [LTyFamInstDecl GhcPs]
-  -> [LDataFamInstDecl GhcPs]
+     [GHC.LSig GHC.GhcPs]
+  -> [GHC.LHsBindLR GHC.GhcPs GHC.GhcPs]
+  -> [GHC.LTyFamInstDecl GHC.GhcPs]
+  -> [GHC.LDataFamInstDecl GHC.GhcPs]
   -> ClassInstanceBody
 mkClassInstanceBody sigs binds typeInstances dataInstances =
   ClassInstanceBody
     $ fmap fromGenLocated
-    $ sortBy (compare `on` realSrcSpan . locA . getLoc)
+    $ sortBy (compare `on` GHC.realSrcSpan . GHC.locA . GHC.getLoc)
     $ fmap (fmap mkClassInstanceSignatureMember) sigs
         ++ fmap (fmap mkClassInstanceMethodMember) binds
         ++ fmap (fmap mkAssociatedTypeInstanceMember) typeInstances

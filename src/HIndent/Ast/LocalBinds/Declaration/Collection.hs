@@ -6,10 +6,10 @@ module HIndent.Ast.LocalBinds.Declaration.Collection
 
 import Data.Function
 import Data.List (sortBy)
-import GHC.Types.SrcLoc
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.LocalBinds.Declaration
 import HIndent.Ast.WithComments
-import HIndent.GhcLibParserWrapper.GHC.Hs
+import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
@@ -21,11 +21,13 @@ instance Pretty LocalDeclarationCollection where
     lined $ fmap pretty declarations
 
 mkLocalDeclarationCollection ::
-     [LSig GhcPs] -> [LHsBindLR GhcPs GhcPs] -> LocalDeclarationCollection
+     [GHC.LSig GHC.GhcPs]
+  -> [GHC.LHsBindLR GHC.GhcPs GHC.GhcPs]
+  -> LocalDeclarationCollection
 mkLocalDeclarationCollection sigs binds =
   LocalDeclarationCollection
     $ fmap fromGenLocated
-    $ sortBy (compare `on` realSrcSpan . locA . getLoc)
+    $ sortBy (compare `on` GHC.realSrcSpan . GHC.locA . GHC.getLoc)
     $ fmap (fmap mkLocalSignatureDeclaration) sigs
         ++ fmap (fmap mkLocalBindingDeclaration) binds
 
