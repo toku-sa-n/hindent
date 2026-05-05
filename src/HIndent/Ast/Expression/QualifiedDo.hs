@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module HIndent.Ast.Expression.QualifiedDo
-  ( QualifiedDo(..)
+  ( QualifiedDo
   , mkQualifiedDo
   ) where
 

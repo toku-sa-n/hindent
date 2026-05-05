@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module HIndent.Ast.LocalBinds
   ( LocalBinds
@@ -26,8 +27,8 @@ data LocalBinds
       }
 
 instance Pretty LocalBinds where
-  pretty Value {declarations = ds} = pretty ds
-  pretty (ImplicitParameters {implicitBindings = binds}) = pretty binds
+  pretty Value {..} = pretty declarations
+  pretty ImplicitParameters {..} = pretty implicitBindings
 
 mkLocalBinds :: GHC.HsLocalBinds GHC.GhcPs -> Maybe (WithComments LocalBinds)
 mkLocalBinds (GHC.HsValBinds ann binds) =

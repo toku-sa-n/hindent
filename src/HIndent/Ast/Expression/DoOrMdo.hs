@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module HIndent.Ast.Expression.DoOrMdo
-  ( DoOrMdo(..)
+  ( DoOrMdo
   , mkDoOrMdo
   ) where
 
