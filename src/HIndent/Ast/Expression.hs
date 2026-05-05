@@ -35,6 +35,7 @@ import HIndent.Ast.Expression.OverloadedLabel
   , mkOverloadedLabel
   )
 import HIndent.Ast.Expression.Pragmatic (ExpressionPragma, mkExpressionPragma)
+import HIndent.Ast.Expression.QualifiedDo (QualifiedDo, mkQualifiedDo)
 import HIndent.Ast.Expression.RangeExpression
   ( RangeExpression
   , mkRangeExpression
@@ -50,7 +51,6 @@ import HIndent.Ast.Expression.RecordUpdateField
 import HIndent.Ast.Guard (Guard, mkMultiWayIfExprGuard)
 import HIndent.Ast.LocalBinds (LocalBinds, mkLocalBinds)
 import HIndent.Ast.MatchGroup (MatchGroup, hasMatches, mkExprMatchGroup)
-import HIndent.Ast.Module.Name (ModuleName, mkModuleName)
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Pattern
 import HIndent.Ast.Statement (ExprStatement, mkExprStatement)
@@ -165,13 +165,6 @@ data Expression
       { pragma :: WithComments ExpressionPragma
       , expression :: WithComments Expression
       }
-
-data DoOrMdo
-  = Do
-  | Mdo
-
-data QualifiedDo =
-  QualifiedDo (Maybe ModuleName) DoOrMdo
 
 instance Pretty Expression where
   pretty (Variable name) = pretty name
@@ -331,17 +324,6 @@ instance Pretty Expression where
   pretty (StaticExpression expr) = spaced [string "static", pretty expr]
   pretty PragmaticExpression {..} = spaced [pretty pragma, pretty expression]
   pretty (Splice splice') = pretty splice'
-
-instance Pretty DoOrMdo where
-  pretty Do = string "do"
-  pretty Mdo = string "mdo"
-
-instance Pretty QualifiedDo where
-  pretty (QualifiedDo (Just moduleName) doOrMdo) = do
-    pretty moduleName
-    string "."
-    pretty doOrMdo
-  pretty (QualifiedDo Nothing doOrMdo) = pretty doOrMdo
 
 mkExpression :: GHC.HsExpr GHC.GhcPs -> Expression
 mkExpression (GHC.HsVar _ name) =
@@ -567,16 +549,16 @@ mkExpression (GHC.HsDo _ GHC.MonadComp statements) =
   ListComprehension
     $ LC.mkListComprehension . fmap (fmap mkExprStatement . fromGenLocated)
         <$> fromGenLocated statements
-mkExpression (GHC.HsDo _ (GHC.DoExpr moduleName) statements) =
+mkExpression (GHC.HsDo _ stmtContext@GHC.DoExpr {} statements) =
   DoBlock
-    { qualifiedDo = QualifiedDo (fmap mkModuleName moduleName) Do
+    { qualifiedDo = mkQualifiedDo stmtContext
     , statements =
         fmap (fmap mkExprStatement . fromGenLocated)
           <$> fromGenLocated statements
     }
-mkExpression (GHC.HsDo _ (GHC.MDoExpr moduleName) statements) =
+mkExpression (GHC.HsDo _ stmtContext@GHC.MDoExpr {} statements) =
   DoBlock
-    { qualifiedDo = QualifiedDo (fmap mkModuleName moduleName) Mdo
+    { qualifiedDo = mkQualifiedDo stmtContext
     , statements =
         fmap (fmap mkExprStatement . fromGenLocated)
           <$> fromGenLocated statements
