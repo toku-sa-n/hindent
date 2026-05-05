@@ -8,6 +8,7 @@ module HIndent.Ast.Declaration.Instance.Family.Type
 
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Type
+import HIndent.Ast.Type.Argument.Collection
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
@@ -15,21 +16,23 @@ import HIndent.Pretty.Combinators
 
 data TypeFamilyInstance = TypeFamilyInstance
   { name :: WithComments PrefixName
-  , types :: [TypeArgument]
+  , types :: TypeArgumentCollection
   , bind :: WithComments Type
   }
 
 instance Pretty TypeFamilyInstance where
-  pretty TypeFamilyInstance {..} = do
-    spaced $ string "type instance" : pretty name : fmap pretty types
-    string " = "
-    pretty bind
+  pretty TypeFamilyInstance {..} = spaced [lhs, string "=", pretty bind]
+    where
+      lhs =
+        spaced
+          $ [string "type instance", pretty name]
+              <> [pretty types | hasTypeArguments types]
 
 mkTypeFamilyInstance :: GHC.InstDecl GHC.GhcPs -> Maybe TypeFamilyInstance
 mkTypeFamilyInstance GHC.TyFamInstD {GHC.tfid_inst = GHC.TyFamInstDecl {GHC.tfid_eqn = GHC.FamEqn {..}}} =
   Just $ TypeFamilyInstance {..}
   where
     name = fromGenLocated $ fmap mkPrefixName feqn_tycon
-    types = mkTypeArguments feqn_pats
+    types = mkTypeArgumentCollection feqn_pats
     bind = mkType <$> fromGenLocated feqn_rhs
 mkTypeFamilyInstance _ = Nothing

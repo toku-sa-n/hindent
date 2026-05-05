@@ -149,6 +149,8 @@ library
       HIndent.Ast.Statement
       HIndent.Ast.TextValue
       HIndent.Ast.Type
+      HIndent.Ast.Type.Argument
+      HIndent.Ast.Type.Argument.Collection
       HIndent.Ast.Type.Bang
       HIndent.Ast.Type.Forall
       HIndent.Ast.Type.ImplicitParameterName
