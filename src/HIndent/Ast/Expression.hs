@@ -513,10 +513,7 @@ mkExpression (GHC.HsIf _ predicateExpr thenExpr elseExpr) =
     , elseBranch = mkExpression <$> fromGenLocated elseExpr
     }
 mkExpression (GHC.HsMultiIf _ clauses) =
-  MultiIf
-    $ fmap
-        (flattenComments . fmap mkMultiWayIfExprGuard . fromGenLocated)
-        (toList clauses)
+  MultiIf $ fmap (fmap mkMultiWayIfExprGuard . fromGenLocated) (toList clauses)
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExpression (GHC.HsLet _ localBinds body) =
   case mkLocalBinds localBinds of

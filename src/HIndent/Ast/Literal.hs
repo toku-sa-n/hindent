@@ -66,31 +66,15 @@ mkLiteralFromHsLit x =
 
 mkLiteralFromHsOverLit :: GHC.HsOverLit GHC.GhcPs -> Literal
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-mkLiteralFromHsOverLit
-  GHC.OverLit
-    { GHC.ol_val =
-        GHC.HsIntegral GHC.IL {GHC.il_text = GHC.SourceText value}
-    } =
-    Inline $ mkTextValueFromString $ GHC.unpackFS value
-mkLiteralFromHsOverLit
-  GHC.OverLit
-    { GHC.ol_val =
-        GHC.HsIntegral GHC.IL {GHC.il_value = value}
-    } =
-    Inline $ mkTextValueFromString $ show value
+mkLiteralFromHsOverLit GHC.OverLit {GHC.ol_val = GHC.HsIntegral GHC.IL {GHC.il_text = GHC.SourceText value}} =
+  Inline $ mkTextValueFromString $ GHC.unpackFS value
+mkLiteralFromHsOverLit GHC.OverLit {GHC.ol_val = GHC.HsIntegral GHC.IL {GHC.il_value = value}} =
+  Inline $ mkTextValueFromString $ show value
 #else
-mkLiteralFromHsOverLit
-  GHC.OverLit
-    { GHC.ol_val =
-        GHC.HsIntegral GHC.IL {GHC.il_text = GHC.SourceText value}
-    } =
-    Inline $ mkTextValueFromString value
-mkLiteralFromHsOverLit
-  GHC.OverLit
-    { GHC.ol_val =
-        GHC.HsIntegral GHC.IL {GHC.il_value = value}
-    } =
-    Inline $ mkTextValueFromString $ show value
+mkLiteralFromHsOverLit GHC.OverLit {GHC.ol_val = GHC.HsIntegral GHC.IL {GHC.il_text = GHC.SourceText value}} =
+  Inline $ mkTextValueFromString value
+mkLiteralFromHsOverLit GHC.OverLit {GHC.ol_val = GHC.HsIntegral GHC.IL {GHC.il_value = value}} =
+  Inline $ mkTextValueFromString $ show value
 #endif
 mkLiteralFromHsOverLit GHC.OverLit {GHC.ol_val = GHC.HsFractional fractionalLiteral} =
   Inline $ mkTextValueFromString $ showOutputable fractionalLiteral

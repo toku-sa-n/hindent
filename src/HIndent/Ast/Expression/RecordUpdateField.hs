@@ -8,10 +8,9 @@ module HIndent.Ast.Expression.RecordUpdateField
   , mkRecordUpdateFields
   ) where
 
-import Data.Data (Data)
-import Data.Typeable (Typeable)
 import qualified GHC.Hs as GHC
 import HIndent.Applicative (whenJust)
+import HIndent.Ast.CommentGroup (HasComments)
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.WithComments
 import HIndent.Pretty (Pretty(..))
@@ -83,7 +82,7 @@ prettyFieldVertical Field {..} = do
     (space >> pretty val) <-|> (newline >> indentedBlock (pretty val))
 
 collectFieldsWith ::
-     (Data (GHC.Anno label), Typeable (GHC.Anno label))
+     HasComments (GHC.Anno label)
   => (label -> FieldName)
   -> [GHC.LocatedA
         (GHC.HsFieldBind (GHC.XRec GHC.GhcPs label) (GHC.LHsExpr GHC.GhcPs))]

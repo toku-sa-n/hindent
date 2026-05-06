@@ -8,17 +8,11 @@ module HIndent.Ast.Expression.Pragmatic
   ) where
 
 import qualified GHC.Hs as GHC
-import qualified HIndent.Ast.NodeComments as NodeComments
 import HIndent.Ast.QuotedText
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-import HIndent.Ast.WithComments (WithComments, addComments, mkWithComments)
+import HIndent.Ast.WithComments (WithComments, mkWithComments)
 #else
-import HIndent.Ast.WithComments
-  ( WithComments
-  , addComments
-  , fromEpAnn
-  , mkWithComments
-  )
+import HIndent.Ast.WithComments (WithComments, fromEpAnn)
 #endif
 import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators (spaced, string)
@@ -32,9 +26,8 @@ instance Pretty ExpressionPragma where
 
 mkExpressionPragma :: GHC.HsPragE GHC.GhcPs -> WithComments ExpressionPragma
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
-mkExpressionPragma (GHC.HsPragSCC (ann, _) literal) =
-  addComments (NodeComments.fromAnnotation ann)
-    $ mkWithComments SccPragma {label = mkQuotedText literal}
+mkExpressionPragma (GHC.HsPragSCC (_, _) literal) =
+  mkWithComments SccPragma {label = mkQuotedText literal}
 #else
 mkExpressionPragma (GHC.HsPragSCC ann _ literal) =
   fromEpAnn ann SccPragma {label = mkQuotedText literal}

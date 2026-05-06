@@ -39,6 +39,7 @@ library
       HIndent.Ast
       HIndent.Ast.Cmd
       HIndent.Ast.Comment
+      HIndent.Ast.CommentGroup
       HIndent.Ast.Context
       HIndent.Ast.Declaration
       HIndent.Ast.Declaration.Annotation
@@ -140,7 +141,6 @@ library
       HIndent.Ast.Name.Infix
       HIndent.Ast.Name.Prefix
       HIndent.Ast.Name.RecordField
-      HIndent.Ast.NodeComments
       HIndent.Ast.PackageName
       HIndent.Ast.Pattern
       HIndent.Ast.Pattern.RecordFields
