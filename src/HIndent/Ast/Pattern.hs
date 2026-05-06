@@ -17,12 +17,12 @@ import qualified GHC.Types.Basic as GHC
 import qualified GHC.Types.SrcLoc as GHC
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.Expression.Splice
+import HIndent.Ast.Literal
 import HIndent.Ast.Name.Infix hiding (unlessSpecialOp)
 import qualified HIndent.Ast.Name.Infix as InfixName
 import HIndent.Ast.Name.Prefix
 import HIndent.Ast.Pattern.RecordFields
 import HIndent.Ast.Type
-import HIndent.Ast.ValueLiteral
 import HIndent.Ast.WithComments
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
@@ -66,10 +66,10 @@ data Pattern
       , pat :: WithComments Pattern
       }
   | Splice (WithComments Splice)
-  | Literal ValueLiteral
+  | Literal Literal
   | NPlusK
       { n :: WithComments PrefixName
-      , k :: ValueLiteral
+      , k :: Literal
       }
   | Signature
       { pat :: WithComments Pattern
@@ -194,13 +194,12 @@ mkPattern (GHC.ViewPat _ l r) =
     , pat = mkPattern <$> fromGenLocated r
     }
 mkPattern (GHC.SplicePat _ x) = Splice $ mkWithComments $ mkSplice x
-mkPattern (GHC.LitPat _ x) = Literal $ mkValueLiteralFromHsLit x
-mkPattern (GHC.NPat _ x _ _) =
-  Literal $ mkValueLiteralFromHsOverLit $ GHC.unLoc x
+mkPattern (GHC.LitPat _ x) = Literal $ mkLiteralFromHsLit x
+mkPattern (GHC.NPat _ x _ _) = Literal $ mkLiteralFromHsOverLit $ GHC.unLoc x
 mkPattern (GHC.NPlusKPat _ n k _ _ _) =
   NPlusK
     { n = mkPrefixName <$> fromGenLocated n
-    , k = mkValueLiteralFromHsOverLit $ GHC.unLoc k
+    , k = mkLiteralFromHsOverLit $ GHC.unLoc k
     }
 mkPattern (GHC.SigPat _ l r) =
   Signature

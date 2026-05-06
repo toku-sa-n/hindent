@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -94,7 +93,7 @@ extractLanguageExtensionsFromOptions :: String -> [String]
 extractLanguageExtensionsFromOptions options =
   fmap
     trimXOption
-    (getAllTextMatches (options =~ ("-X[^,[:space:]]+" :: String)) :: [String])
+    (getAllTextMatches (options =~ "-X[^,[:space:]]+") :: [String])
   where
     trimXOption ('-':'X':xs) = xs
     trimXOption _ = error "Unreachable: the option must have the `-X` prefix."

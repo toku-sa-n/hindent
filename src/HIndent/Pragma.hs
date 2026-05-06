@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
 -- | Pragma-related functions.
@@ -58,7 +57,7 @@ pragmaRegex =
   makeRegexOpts
     compOption
     execOption
-    ("^{-#[[:space:]]*([^[:space:]]+)[[:space:]]+([^#]+)#-}" :: String)
+    "^{-#[[:space:]]*([^[:space:]]+)[[:space:]]+([^#]+)#-}"
 
 -- | The option for matching against a pragma.
 execOption :: ExecOption
