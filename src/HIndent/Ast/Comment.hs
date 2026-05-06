@@ -11,18 +11,18 @@ import qualified Data.Text as Text
 import qualified GHC.Hs as GHC
 import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.TextValue
-import qualified HIndent.GhcLibParserWrapper.GHC.Parser.Annotation as Annotation
+import qualified HIndent.GhcLibParserWrapper.GHC.Parser.Annotation as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data Comment
   = Line
       { text :: TextValue
-      , column :: Maybe Int
+      , column :: Int
       }
   | Block
       { text :: TextValue
-      , column :: Maybe Int
+      , column :: Int
       }
   deriving (Eq, Show)
 
@@ -41,13 +41,13 @@ instance Pretty Comment where
 
 mkComment :: GHC.LEpaComment -> Comment
 mkComment comment@(GHC.L _ (GHC.EpaComment (GHC.EpaLineComment text) _)) =
-  Line {text = mkTextValueFromString text, column = Just $ getColumn' comment}
+  Line {text = mkTextValueFromString text, column = getColumn' comment}
 mkComment comment@(GHC.L _ (GHC.EpaComment (GHC.EpaBlockComment text) _)) =
-  Block {text = mkTextValueFromString text, column = Just $ getColumn' comment}
+  Block {text = mkTextValueFromString text, column = getColumn' comment}
 mkComment comment@(GHC.L _ _) =
-  Line {text = mkTextValueFromString "", column = Just $ getColumn' comment}
+  Line {text = mkTextValueFromString "", column = getColumn' comment}
 
-getColumn :: Comment -> Maybe Int
+getColumn :: Comment -> Int
 getColumn = column
 
 getColumn' :: GHC.LEpaComment -> Int
@@ -55,5 +55,5 @@ getColumn' =
   fromIntegral
     . subtract 1
     . GHC.srcSpanStartCol
-    . Annotation.epaLocationToRealSrcSpan
+    . GHC.epaLocationToRealSrcSpan
     . GHC.getLoc

@@ -39,7 +39,6 @@ library
       HIndent.Ast
       HIndent.Ast.Cmd
       HIndent.Ast.Comment
-      HIndent.Ast.CommentGroup
       HIndent.Ast.Context
       HIndent.Ast.Declaration
       HIndent.Ast.Declaration.Annotation
