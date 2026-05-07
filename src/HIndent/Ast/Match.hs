@@ -26,16 +26,12 @@ import HIndent.Ast.Name.Infix (InfixName, mkInfixName)
 import HIndent.Ast.Name.Prefix (PrefixName, mkPrefixName)
 import HIndent.Ast.Pattern (Pattern, mkPattern)
 import HIndent.Ast.Type.Strictness (Strictness, mkStrictness)
-#if MIN_VERSION_ghc_lib_parser(9, 12, 1)
-import HIndent.Ast.WithComments (WithComments, fromGenLocated, prettyWith)
-#else
 import HIndent.Ast.WithComments
   ( WithComments
   , fromGenLocated
   , mkWithComments
   , prettyWith
   )
-#endif
 import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
 
@@ -95,26 +91,32 @@ mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace $ GHC.unLoc m_pats
     , patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     , rhs = mkExprGuardedRhs match
     }
 mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
   Case
     { rhs = mkExprGuardedRhs match
     , patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     }
 mkExprMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { rhs = mkExprGuardedRhs match
     , patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     }
 mkExprMatch match@GHC.Match {GHC.m_ctxt = ctxt@GHC.FunRhs {}, ..} =
   mkFunctionMatch ctxt patterns (mkExprGuardedRhs match)
   where
     patterns =
-      fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+      mkWithComments $ fmap (fromGenLocated . fmap mkPattern) $ GHC.unLoc m_pats
 mkExprMatch _ = error "`ghc-lib-parser` never generates this AST node."
 #elif MIN_VERSION_ghc_lib_parser(9, 10, 1)
 mkExprMatch :: GHC.Match GHC.GhcPs (GHC.LHsExpr GHC.GhcPs) -> Match
@@ -195,19 +197,25 @@ mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt GHC.LamSingle, ..} =
   Lambda
     { needsSpaceAfterLambda = lambdaNeedsSpace (GHC.unLoc m_pats)
     , patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.LamAlt _, ..} =
   Case
     { patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, ..} =
   Case
     { patterns =
-        fmap (fmap (fromGenLocated . fmap mkPattern)) $ fromGenLocated $ m_pats
+        mkWithComments
+          $ fmap (fromGenLocated . fmap mkPattern)
+          $ GHC.unLoc m_pats
     , rhs = mkCmdGuardedRhs match
     }
 mkCmdMatch _ = error "`ghc-lib-parser` never generates this AST node."

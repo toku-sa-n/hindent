@@ -7,6 +7,7 @@ module HIndent.Ast.Module.Warning
   , mkModuleWarning
   ) where
 
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.Declaration.Warning.Kind
 import HIndent.Ast.QuotedText
 import HIndent.Ast.WithComments
@@ -37,38 +38,19 @@ fromWarningTxt :: GHC.WarningTxt' -> ModuleWarning
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 fromWarningTxt (GHC.WarningTxt _ _ warningMessages) =
   ModuleWarning
-    { kind = Warning
-    , messages =
-        fmap
-          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
-          warningMessages
-    }
+    {kind = Warning, messages = fmap mkWarningMessage warningMessages}
 #else
 fromWarningTxt (GHC.WarningTxt _ warningMessages) =
   ModuleWarning
-    { kind = Warning
-    , messages =
-        fmap
-          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
-          warningMessages
-    }
+    {kind = Warning, messages = fmap mkWarningMessage warningMessages}
 #endif
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
   ModuleWarning
-    { kind = Deprecated
-    , messages =
-        fmap
-          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
-          warningMessages
-    }
+    {kind = Deprecated, messages = fmap mkWarningMessage warningMessages}
 #else
 fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
   ModuleWarning
-    { kind = Deprecated
-    , messages =
-        fmap
-          (fromGenLocated . fmap (mkQuotedText . GHC.hsDocString))
-          warningMessages
-    }
+    {kind = Deprecated, messages = fmap mkWarningMessage warningMessages}
 #endif
+mkWarningMessage = mkWithComments . mkQuotedText . GHC.hsDocString . GHC.unLoc

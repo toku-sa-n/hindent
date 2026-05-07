@@ -1,9 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module HIndent.Ast.WithComments
@@ -18,15 +15,15 @@ module HIndent.Ast.WithComments
   , flattenComments
   ) where
 
-import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.RWS
-import Data.Data (Data, cast, gmapQl)
 import Data.Int (Int64)
-import qualified GHC.Hs as Hs
-import qualified GHC.Types.SrcLoc as SrcLoc
+#if MIN_VERSION_ghc_lib_parser(9, 8, 1) && !MIN_VERSION_ghc_lib_parser(9, 10, 1)
+import qualified GHC.Parser.Annotation as GHC
+#endif
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.Comment (Comment, getColumn, mkComment)
-import qualified HIndent.GhcLibParserWrapper.GHC.Parser.Annotation as GHC
+import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pragma
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
@@ -37,20 +34,6 @@ data CommentGroup = CommentGroup
   , commentsOnSameLine :: [Comment]
   , commentsAfter :: [Comment]
   } deriving (Eq)
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-type CommentEntryLocation = Hs.EpaLocation
-#else
-type CommentEntryLocation = GHC.Anchor
-#endif
-data CommentSource
-  = forall a. FromEpAnn (Hs.EpAnn a)
-  | FromEntryAndComments CommentEntryLocation Hs.EpAnnComments
-  | FromEpAnnComments Hs.EpAnnComments
-  | FromEntryLocation CommentEntryLocation
-  | NoComments
-
-class HasComments a where
-  getCommentSource :: a -> CommentSource
 
 data WithComments a = WithComments
   { comments :: CommentGroup
@@ -69,57 +52,6 @@ instance Monoid CommentGroup where
   mempty =
     CommentGroup
       {commentsBefore = [], commentsOnSameLine = [], commentsAfter = []}
-
-instance HasComments Hs.EpAnnComments where
-  getCommentSource = FromEpAnnComments
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-instance HasComments Hs.EpaLocation where
-  getCommentSource = FromEntryLocation
-#else
-instance HasComments GHC.Anchor where
-  getCommentSource = FromEntryLocation
-#endif
-instance HasComments Hs.EpAnnCO where
-  getCommentSource = FromEpAnn
-
-instance HasComments Hs.NoEpAnns where
-  getCommentSource = const NoComments
-
-instance HasComments SrcLoc.SrcSpan where
-  getCommentSource = const NoComments
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-instance HasComments GHC.SrcSpanAnnA where
-  getCommentSource = FromEpAnn
-
-instance HasComments GHC.SrcSpanAnnL where
-  getCommentSource = FromEpAnn
-
-instance HasComments GHC.SrcSpanAnnN where
-  getCommentSource = FromEpAnn
-
-instance HasComments GHC.SrcSpanAnnP where
-  getCommentSource = FromEpAnn
-
-instance HasComments GHC.SrcSpanAnnC where
-  getCommentSource = FromEpAnn
-#else
-instance HasComments GHC.SrcSpanAnnA where
-  getCommentSource = FromEpAnn . GHC.ann
-
-instance HasComments GHC.SrcSpanAnnL where
-  getCommentSource = FromEpAnn . GHC.ann
-
-instance HasComments GHC.SrcSpanAnnN where
-  getCommentSource = FromEpAnn . GHC.ann
-
-instance HasComments GHC.SrcSpanAnnP where
-  getCommentSource = FromEpAnn . GHC.ann
-
-instance HasComments GHC.SrcSpanAnnC where
-  getCommentSource = FromEpAnn . GHC.ann
-#endif
-instance {-# OVERLAPPABLE #-} Data a => HasComments a where
-  getCommentSource = mkCommentSourceFromData
 
 instance Functor WithComments where
   fmap f WithComments {..} = WithComments comments (f node)
@@ -167,11 +99,15 @@ printCommentsAfter p =
       forM_ xs $ \comment -> do
         indentedWithFixedLevel (getCommentColumn comment) $ pretty comment
         eolCommentsArePrinted
-
-fromGenLocated :: HasComments l => SrcLoc.GenLocated l a -> WithComments a
-fromGenLocated (SrcLoc.L l a) = WithComments (mkCommentGroup l) a
-
-fromEpAnn :: Hs.EpAnn a -> b -> WithComments b
+#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+fromGenLocated :: GHC.GenLocated (GHC.EpAnn ann) a -> WithComments a
+fromGenLocated (GHC.L ann a) = fromEpAnn ann a
+#else
+fromGenLocated ::
+     GHC.GenLocated (GHC.SrcSpanAnn' (GHC.EpAnn ann)) a -> WithComments a
+fromGenLocated (GHC.L ann a) = fromEpAnn (GHC.ann ann) a
+#endif
+fromEpAnn :: GHC.EpAnn a -> b -> WithComments b
 fromEpAnn ann = WithComments (mkCommentGroupFromEpAnn ann)
 
 mkWithComments :: a -> WithComments a
@@ -194,152 +130,100 @@ addComments extra (WithComments current node) =
 getCommentColumn :: Comment -> Int64
 getCommentColumn = fromIntegral . getColumn
 
-mkCommentGroup :: HasComments a => a -> CommentGroup
-mkCommentGroup = mkCommentGroupFromCommentSource . getCommentSource
-
-mkCommentGroupFromEpAnn :: Hs.EpAnn a -> CommentGroup
+mkCommentGroupFromEpAnn :: GHC.EpAnn a -> CommentGroup
 mkCommentGroupFromEpAnn =
   mkCommentGroupFromEpAnn' . filterOutEofAndPragmasFromAnn
 
-mkCommentGroupFromCommentSource :: CommentSource -> CommentGroup
-mkCommentGroupFromCommentSource (FromEpAnn ann) = mkCommentGroupFromEpAnn ann
-mkCommentGroupFromCommentSource (FromEntryAndComments entry comments) =
-  mkCommentGroupFromEntryAndComments entry comments
-mkCommentGroupFromCommentSource (FromEpAnnComments comments) =
-  mkCommentGroupFromEpAnnComments comments
-mkCommentGroupFromCommentSource (FromEntryLocation location) =
-  mkCommentGroupFromCommentEntry location
-mkCommentGroupFromCommentSource NoComments = mempty
-
-mkCommentGroupFromEpAnnComments :: Hs.EpAnnComments -> CommentGroup
-mkCommentGroupFromEpAnnComments comments =
-  CommentGroup
-    { commentsBefore = mkComment <$> Hs.priorComments filteredComments
-    , commentsOnSameLine = []
-    , commentsAfter = mkComment <$> Hs.getFollowingComments filteredComments
-    }
-  where
-    filteredComments = filterOutEofAndPragmasFromComments comments
-
-mkCommentGroupFromEntryAndComments ::
-     CommentEntryLocation -> Hs.EpAnnComments -> CommentGroup
-mkCommentGroupFromEntryAndComments entry comments =
-  mkCommentGroupFromCommentEntry entry <> CommentGroup {..}
-  where
-    filteredComments = filterOutEofAndPragmasFromComments comments
-    commentsBefore = mkComment <$> Hs.priorComments filteredComments
-    commentsOnSameLine =
-      fmap mkComment
-        $ filter isCommentOnSameLine
-        $ Hs.getFollowingComments filteredComments
-    commentsAfter =
-      fmap mkComment
-        $ filter (not . isCommentOnSameLine)
-        $ Hs.getFollowingComments filteredComments
-    isCommentOnSameLine (SrcLoc.L commentLoc _) =
-      SrcLoc.srcSpanEndLine (GHC.epaLocationToRealSrcSpan entry)
-        == SrcLoc.srcSpanStartLine (GHC.epaLocationToRealSrcSpan commentLoc)
-
-mkCommentGroupFromEpaLocation :: Hs.EpaLocation -> CommentGroup
-mkCommentGroupFromEpaLocation Hs.EpaSpan {} = mempty
+mkCommentGroupFromEpaLocation :: GHC.EpaLocation -> CommentGroup
+mkCommentGroupFromEpaLocation GHC.EpaSpan {} = mempty
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
-mkCommentGroupFromEpaLocation (Hs.EpaDelta _ _ trailing) =
+mkCommentGroupFromEpaLocation (GHC.EpaDelta _ _ trailing) =
   foldMap mkCommentGroupFromTrailingComment trailing
 #else
-mkCommentGroupFromEpaLocation (Hs.EpaDelta _ trailing) =
+mkCommentGroupFromEpaLocation (GHC.EpaDelta _ trailing) =
   foldMap mkCommentGroupFromTrailingComment trailing
 #endif
-mkCommentGroupFromEpAnn' :: Hs.EpAnn a -> CommentGroup
+mkCommentGroupFromEpAnn' :: GHC.EpAnn a -> CommentGroup
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
-mkCommentGroupFromEpAnn' Hs.EpAnn {..} =
+mkCommentGroupFromEpAnn' GHC.EpAnn {..} =
   mkCommentGroupFromEpAnnEntry entry <> CommentGroup {..}
   where
-    commentsBefore = mkComment <$> Hs.priorComments comments
+    commentsBefore = mkComment <$> GHC.priorComments comments
     commentsOnSameLine =
       fmap mkComment
         $ filter isCommentOnSameLine
-        $ Hs.getFollowingComments comments
+        $ GHC.getFollowingComments comments
     commentsAfter =
       fmap mkComment
         $ filter (not . isCommentOnSameLine)
-        $ Hs.getFollowingComments comments
-    isCommentOnSameLine (SrcLoc.L commentLoc _) =
-      SrcLoc.srcSpanEndLine (GHC.epaLocationToRealSrcSpan entry)
-        == SrcLoc.srcSpanStartLine (GHC.epaLocationToRealSrcSpan commentLoc)
+        $ GHC.getFollowingComments comments
+    isCommentOnSameLine (GHC.L commentLoc _) =
+      GHC.srcSpanEndLine (epaLocationToRealSrcSpan entry)
+        == GHC.srcSpanStartLine (epaLocationToRealSrcSpan commentLoc)
 #else
-mkCommentGroupFromEpAnn' Hs.EpAnn {..} =
+mkCommentGroupFromEpAnn' GHC.EpAnn {..} =
   mkCommentGroupFromEpAnnEntry entry <> CommentGroup {..}
   where
-    commentsBefore = mkComment <$> Hs.priorComments comments
+    commentsBefore = mkComment <$> GHC.priorComments comments
     commentsOnSameLine =
       fmap mkComment
         $ filter isCommentOnSameLine
-        $ Hs.getFollowingComments comments
+        $ GHC.getFollowingComments comments
     commentsAfter =
       fmap mkComment
         $ filter (not . isCommentOnSameLine)
-        $ Hs.getFollowingComments comments
-    isCommentOnSameLine (SrcLoc.L commentLoc _) =
-      SrcLoc.srcSpanEndLine (GHC.epaLocationToRealSrcSpan entry)
-        == SrcLoc.srcSpanStartLine (GHC.epaLocationToRealSrcSpan commentLoc)
+        $ GHC.getFollowingComments comments
+    isCommentOnSameLine (GHC.L commentLoc _) =
+      GHC.srcSpanEndLine (epaLocationToRealSrcSpan entry)
+        == GHC.srcSpanStartLine (epaLocationToRealSrcSpan commentLoc)
 #if !MIN_VERSION_ghc_lib_parser(9, 10, 1)
-mkCommentGroupFromEpAnn' Hs.EpAnnNotUsed = mempty
+mkCommentGroupFromEpAnn' GHC.EpAnnNotUsed = mempty
 #endif
 #endif
-filterOutEofAndPragmasFromAnn :: Hs.EpAnn ann -> Hs.EpAnn ann
-filterOutEofAndPragmasFromAnn Hs.EpAnn {..} =
-  Hs.EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
+filterOutEofAndPragmasFromAnn :: GHC.EpAnn ann -> GHC.EpAnn ann
+filterOutEofAndPragmasFromAnn GHC.EpAnn {..} =
+  GHC.EpAnn {comments = filterOutEofAndPragmasFromComments comments, ..}
 #if !MIN_VERSION_ghc_lib_parser(9, 10, 1)
-filterOutEofAndPragmasFromAnn Hs.EpAnnNotUsed = Hs.EpAnnNotUsed
+filterOutEofAndPragmasFromAnn GHC.EpAnnNotUsed = GHC.EpAnnNotUsed
 #endif
-filterOutEofAndPragmasFromComments :: Hs.EpAnnComments -> Hs.EpAnnComments
+filterOutEofAndPragmasFromComments :: GHC.EpAnnComments -> GHC.EpAnnComments
 filterOutEofAndPragmasFromComments comments =
-  Hs.EpaCommentsBalanced
-    { priorComments = filterOutEofAndPragmas $ Hs.priorComments comments
+  GHC.EpaCommentsBalanced
+    { priorComments = filterOutEofAndPragmas $ GHC.priorComments comments
     , followingComments =
-        filterOutEofAndPragmas $ Hs.getFollowingComments comments
+        filterOutEofAndPragmas $ GHC.getFollowingComments comments
     }
 
 filterOutEofAndPragmas ::
-     [SrcLoc.GenLocated l Hs.EpaComment] -> [SrcLoc.GenLocated l Hs.EpaComment]
+     [GHC.GenLocated l GHC.EpaComment] -> [GHC.GenLocated l GHC.EpaComment]
 filterOutEofAndPragmas = filter isNeitherEofNorPragmaComment
 
-isNeitherEofNorPragmaComment :: SrcLoc.GenLocated l Hs.EpaComment -> Bool
+isNeitherEofNorPragmaComment :: GHC.GenLocated l GHC.EpaComment -> Bool
 #if !MIN_VERSION_ghc_lib_parser(9, 10, 1)
-isNeitherEofNorPragmaComment (SrcLoc.L _ (Hs.EpaComment Hs.EpaEofComment _)) =
+isNeitherEofNorPragmaComment (GHC.L _ (GHC.EpaComment GHC.EpaEofComment _)) =
   False
 #endif
-isNeitherEofNorPragmaComment (SrcLoc.L _ (Hs.EpaComment token _)) =
+isNeitherEofNorPragmaComment (GHC.L _ (GHC.EpaComment token _)) =
   not $ isPragma token
 
-mkCommentGroupFromTrailingComment :: Hs.LEpaComment -> CommentGroup
+mkCommentGroupFromTrailingComment :: GHC.LEpaComment -> CommentGroup
 mkCommentGroupFromTrailingComment comment =
   mempty {commentsAfter = [mkComment comment]}
-#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
-mkCommentGroupFromCommentEntry :: CommentEntryLocation -> CommentGroup
-mkCommentGroupFromCommentEntry = mkCommentGroupFromEpaLocation
-#else
-mkCommentGroupFromCommentEntry :: CommentEntryLocation -> CommentGroup
-mkCommentGroupFromCommentEntry _ = mempty
-#endif
-mkCommentSourceFromData :: Data a => a -> CommentSource
-mkCommentSourceFromData x =
-  case (findCommentEntryLocation x, findEpAnnComments x) of
-    (Just entry, Just comments) -> FromEntryAndComments entry comments
-    (Nothing, Just comments) -> FromEpAnnComments comments
-    (Just entry, Nothing) -> FromEntryLocation entry
-    (Nothing, Nothing) -> NoComments
-
-findCommentEntryLocation :: Data a => a -> Maybe CommentEntryLocation
-findCommentEntryLocation x =
-  cast x <|> gmapQl (<|>) Nothing findCommentEntryLocation x
-
-findEpAnnComments :: Data a => a -> Maybe Hs.EpAnnComments
-findEpAnnComments x = cast x <|> gmapQl (<|>) Nothing findEpAnnComments x
 #if MIN_VERSION_ghc_lib_parser(9, 12, 1)
-mkCommentGroupFromEpAnnEntry :: Hs.EpaLocation -> CommentGroup
+mkCommentGroupFromEpAnnEntry :: GHC.EpaLocation -> CommentGroup
 mkCommentGroupFromEpAnnEntry = mkCommentGroupFromEpaLocation
 #else
 mkCommentGroupFromEpAnnEntry :: GHC.Anchor -> CommentGroup
 mkCommentGroupFromEpAnnEntry _ = mempty
+#endif
+
+#if MIN_VERSION_ghc_lib_parser(9, 12, 1)
+epaLocationToRealSrcSpan :: GHC.EpaLocation' a -> GHC.RealSrcSpan
+epaLocationToRealSrcSpan = GHC.epaLocationRealSrcSpan
+#elif MIN_VERSION_ghc_lib_parser(9, 10, 1)
+epaLocationToRealSrcSpan :: GHC.EpaLocation' a -> GHC.RealSrcSpan
+epaLocationToRealSrcSpan = GHC.anchor
+#else
+epaLocationToRealSrcSpan :: GHC.Anchor -> GHC.RealSrcSpan
+epaLocationToRealSrcSpan = GHC.anchor
 #endif
