@@ -250,8 +250,7 @@ vWrappedLineup sep (prefix, suffix) ps =
     >> space |=> do
          prefixedLined (Text.pack [sep, ' ']) ps
          newline
-         indentedWithSpace (-(fromIntegral (Text.length prefix) + 1))
-           $ string suffix
+         indentedWithSpace (-(Text.length prefix + 1)) $ string suffix
 
 -- | Similar to 'vWrappedLineup' but the suffix is in the same line as the
 -- last element.

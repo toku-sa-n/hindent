@@ -7,13 +7,12 @@ module HIndent.Pretty.Combinators.Getter
   ) where
 
 import Control.Monad.RWS hiding (state)
-import Data.Int
 import HIndent.Pretty.Combinators.String
 import HIndent.Printer
 
 -- | Returns the column from which a new string is printed. It may be
 -- different from 'psColumn' immediately after printing a comment.
-startingColumn :: Printer Int64
+startingColumn :: Printer Int
 startingColumn = do
   before <- get
   string ""
@@ -24,7 +23,7 @@ startingColumn = do
 -- Returns how many characters the printer moved the cursor horizontally.
 -- The returned value maybe negative if the printer prints multiple lines
 -- and the column of the last position is less than before.
-printerLength :: Printer a -> Printer Int64
+printerLength :: Printer a -> Printer Int
 printerLength p = do
   before <- get
   _ <- p

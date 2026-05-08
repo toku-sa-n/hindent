@@ -36,10 +36,10 @@ string x
     st <- get
     let indentSpaces =
           if psNewline st
-            then Text.replicate (fromIntegral $ psIndentLevel st) " "
+            then Text.replicate (psIndentLevel st) " "
             else ""
         out = indentSpaces <> x
-        psColumn' = psColumn st + fromIntegral (Text.length out)
+        psColumn' = psColumn st + Text.length out
         columnFits = psColumn' <= configMaxColumns (psConfig st)
     when hardFail $ guard columnFits
     modify

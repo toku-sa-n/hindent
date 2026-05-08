@@ -52,8 +52,4 @@ getColumn = column
 
 getColumn' :: GHC.LEpaComment -> Int
 getColumn' =
-  fromIntegral
-    . subtract 1
-    . GHC.srcSpanStartCol
-    . GHC.epaLocationToRealSrcSpan
-    . GHC.getLoc
+  subtract 1 . GHC.srcSpanStartCol . GHC.epaLocationToRealSrcSpan . GHC.getLoc
