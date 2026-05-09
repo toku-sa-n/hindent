@@ -34,7 +34,7 @@ output = string . Text.pack . showOutputable
 showOutputable :: Outputable a => a -> String
 showOutputable = showPpr dynFlags
 
--- | 'DynFlags' for calling 'showPpr'
+-- | @DynFlags@ for calling @showPpr@.
 dynFlags :: DynFlags
 #if MIN_VERSION_ghc_lib_parser(9,6,1)
 dynFlags = defaultDynFlags fakeSettings

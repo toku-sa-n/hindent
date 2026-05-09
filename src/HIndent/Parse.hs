@@ -49,7 +49,7 @@ lexCode code
 
 -- | This function generates a 'ParserOpts' from the given extensions.
 --
--- The 'StarIsType' extension is always enabled to compile a code using
+-- The @StarIsType@ extension is always enabled to compile code using
 -- kinds like '* -> *'.
 parserOptsFromExtensions :: [GLP.Extension] -> ParserOpts
 #if MIN_VERSION_ghc_lib_parser(9, 14, 0)
