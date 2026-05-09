@@ -62,9 +62,10 @@ mkForeignDeclaration GHC.ForeignImport { fd_fi = (GHC.CImport (GHC.L _ src) (GHC
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString $ GHC.unpackFS s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ src) (GHC.L _ (GHC.CExportStatic _ _ conv)))
                                        , ..
                                        } = ForeignExport {..}
@@ -74,9 +75,10 @@ mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ src) (GHC
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString $ GHC.unpackFS s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 #elif MIN_VERSION_ghc_lib_parser(9, 6, 0)
 mkForeignDeclaration GHC.ForeignImport { fd_fi = (GHC.CImport (GHC.L _ src) (GHC.L _ conv) (GHC.L _ sfty) _ _)
                                        , ..
@@ -88,9 +90,10 @@ mkForeignDeclaration GHC.ForeignImport { fd_fi = (GHC.CImport (GHC.L _ src) (GHC
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ src) (GHC.L _ (GHC.CExportStatic _ _ conv)))
                                        , ..
                                        } = ForeignExport {..}
@@ -100,9 +103,10 @@ mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ src) (GHC
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 #else
 mkForeignDeclaration GHC.ForeignImport { fd_fi = (GHC.CImport (GHC.L _ conv) (GHC.L _ sfty) _ _ (GHC.L _ src))
                                        , ..
@@ -114,9 +118,10 @@ mkForeignDeclaration GHC.ForeignImport { fd_fi = (GHC.CImport (GHC.L _ conv) (GH
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ (GHC.CExportStatic _ _ conv)) (GHC.L _ src))
                                        , ..
                                        } = ForeignExport {..}
@@ -126,7 +131,8 @@ mkForeignDeclaration GHC.ForeignExport { fd_fe = (GHC.CExport (GHC.L _ (GHC.CExp
       case src of
         GHC.SourceText s -> Just $ mkTextValueFromString s
         _ -> Nothing
-    dstIdent = fromGenLocated $ fmap mkPrefixName fd_name
+    dstIdent = mkWithCommentsFromGenLocated $ fmap mkPrefixName fd_name
     signature =
-      flattenComments $ mkTypeFromHsSigType <$> fromGenLocated fd_sig_ty
+      flattenComments
+        $ mkTypeFromHsSigType <$> mkWithCommentsFromGenLocated fd_sig_ty
 #endif

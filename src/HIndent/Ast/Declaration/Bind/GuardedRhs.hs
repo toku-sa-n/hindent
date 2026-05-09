@@ -26,7 +26,7 @@ import HIndent.Ast.WhereClause
   , mkPatternWhereClause
   , mkWhereClause
   )
-import HIndent.Ast.WithComments (WithComments, fromGenLocated)
+import HIndent.Ast.WithComments (WithComments, mkWithCommentsFromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
@@ -50,7 +50,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamSingle
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaExprGuard . fromGenLocated)
+          (fmap mkLambdaExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -60,7 +60,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt _
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -68,7 +68,7 @@ mkExprGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -77,7 +77,9 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.FunRhs {}
                                  } =
   GuardedRhs
     { guards =
-        fmap (fmap mkExprGuard . fromGenLocated) (toList $ GHC.grhssGRHSs grhss)
+        fmap
+          (fmap mkExprGuard . mkWithCommentsFromGenLocated)
+          (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
 #elif MIN_VERSION_ghc_lib_parser(9, 10, 1)
@@ -87,7 +89,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamSingle
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaExprGuard . fromGenLocated)
+          (fmap mkLambdaExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -97,7 +99,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamCase
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -107,7 +109,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamCases
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -115,7 +117,7 @@ mkExprGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -124,7 +126,9 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.FunRhs {}
                                  } =
   GuardedRhs
     { guards =
-        fmap (fmap mkExprGuard . fromGenLocated) (toList $ GHC.grhssGRHSs grhss)
+        fmap
+          (fmap mkExprGuard . mkWithCommentsFromGenLocated)
+          (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
 #elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
@@ -134,7 +138,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LambdaExpr
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaExprGuard . fromGenLocated)
+          (fmap mkLambdaExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -144,7 +148,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamCaseAlt {}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -152,7 +156,7 @@ mkExprGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -161,7 +165,9 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.FunRhs {}
                                  } =
   GuardedRhs
     { guards =
-        fmap (fmap mkExprGuard . fromGenLocated) (toList $ GHC.grhssGRHSs grhss)
+        fmap
+          (fmap mkExprGuard . mkWithCommentsFromGenLocated)
+          (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
 #else
@@ -171,7 +177,7 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LambdaExpr
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaExprGuard . fromGenLocated)
+          (fmap mkLambdaExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -179,7 +185,7 @@ mkExprGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseExprGuard . fromGenLocated)
+          (fmap mkCaseExprGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -188,7 +194,9 @@ mkExprGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.FunRhs {}
                                  } =
   GuardedRhs
     { guards =
-        fmap (fmap mkExprGuard . fromGenLocated) (toList $ GHC.grhssGRHSs grhss)
+        fmap
+          (fmap mkExprGuard . mkWithCommentsFromGenLocated)
+          (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
 #endif
@@ -202,7 +210,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamSingle
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaCmdGuard . fromGenLocated)
+          (fmap mkLambdaCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -210,7 +218,7 @@ mkCmdGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.LamAlt _, GHC.m_grhss = grhss}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -218,7 +226,7 @@ mkCmdGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss} 
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -229,7 +237,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamSingle
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaCmdGuard . fromGenLocated)
+          (fmap mkLambdaCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -239,7 +247,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamCase
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -249,7 +257,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamAlt GHC.LamCases
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -257,7 +265,7 @@ mkCmdGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss} 
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -268,7 +276,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LambdaExpr
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaCmdGuard . fromGenLocated)
+          (fmap mkLambdaCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -278,7 +286,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LamCaseAlt {}
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -286,7 +294,7 @@ mkCmdGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss} 
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -297,7 +305,7 @@ mkCmdGuardedRhs match@GHC.Match { GHC.m_ctxt = GHC.LambdaExpr
   GuardedRhs
     { guards =
         fmap
-          (fmap mkLambdaCmdGuard . fromGenLocated)
+          (fmap mkLambdaCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -305,7 +313,7 @@ mkCmdGuardedRhs match@GHC.Match {GHC.m_ctxt = GHC.CaseAlt, GHC.m_grhss = grhss} 
   GuardedRhs
     { guards =
         fmap
-          (fmap mkCaseCmdGuard . fromGenLocated)
+          (fmap mkCaseCmdGuard . mkWithCommentsFromGenLocated)
           (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkMatchWhereClause match
     }
@@ -316,7 +324,9 @@ mkPatternGuardedRhs :: GHC.HsBind GHC.GhcPs -> GuardedRhs
 mkPatternGuardedRhs bind@GHC.PatBind {GHC.pat_rhs = grhss} =
   GuardedRhs
     { guards =
-        fmap (fmap mkExprGuard . fromGenLocated) (toList $ GHC.grhssGRHSs grhss)
+        fmap
+          (fmap mkExprGuard . mkWithCommentsFromGenLocated)
+          (toList $ GHC.grhssGRHSs grhss)
     , whereClause = mkPatternWhereClause bind
     }
 mkPatternGuardedRhs _ = error "This AST node should not appear."
@@ -326,6 +336,8 @@ mkMultiWayIfGuardedRhs ::
 mkMultiWayIfGuardedRhs grhss@GHC.GRHSs {..} =
   GuardedRhs
     { guards =
-        fmap (fmap mkMultiWayIfExprGuard . fromGenLocated) (toList grhssGRHSs)
+        fmap
+          (fmap mkMultiWayIfExprGuard . mkWithCommentsFromGenLocated)
+          (toList grhssGRHSs)
     , whereClause = mkWhereClause grhss
     }

@@ -25,9 +25,12 @@ instance Pretty RuleBinder where
 
 mkRuleBinder :: GHC.RuleBndr GHC.GhcPs -> RuleBinder
 mkRuleBinder (GHC.RuleBndr _ n) =
-  RuleBinder {name = fromGenLocated $ fmap mkPrefixName n, signature = Nothing}
+  RuleBinder
+    { name = mkWithCommentsFromGenLocated $ fmap mkPrefixName n
+    , signature = Nothing
+    }
 mkRuleBinder (GHC.RuleBndrSig _ n GHC.HsPS {..}) =
   RuleBinder
-    { name = fromGenLocated $ fmap mkPrefixName n
-    , signature = Just $ fromGenLocated $ fmap mkType hsps_body
+    { name = mkWithCommentsFromGenLocated $ fmap mkPrefixName n
+    , signature = Just $ mkWithCommentsFromGenLocated $ fmap mkType hsps_body
     }

@@ -27,7 +27,7 @@ mkClassBody ::
   -> ClassBody
 mkClassBody sigs binds families defaults =
   ClassBody
-    $ fmap fromGenLocated
+    $ fmap mkWithCommentsFromGenLocated
     $ sortBy (compare `on` GHC.realSrcSpan . GHC.locA . GHC.getLoc)
     $ fmap (fmap mkClassSignatureMember) sigs
         ++ fmap (fmap mkClassMethodMember) binds

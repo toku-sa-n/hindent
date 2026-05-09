@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -45,9 +46,7 @@ data PatternSynonym
 instance Pretty PatternSynonym where
   pretty Prefix {..} = do
     string "pattern "
-    case args of
-      [] -> pretty name
-      _ -> spaced $ pretty name : fmap pretty args
+    spaced $ pretty name : fmap pretty args
     prettySuffix isImplicitBidirectional definition explicitMatches
   pretty Infix {..} = do
     string "pattern "
@@ -60,85 +59,99 @@ instance Pretty PatternSynonym where
 
 mkPatternSynonym :: GHC.PatSynBind GHC.GhcPs GHC.GhcPs -> PatternSynonym
 #if MIN_VERSION_ghc_lib_parser(9, 14, 0)
-mkPatternSynonym psb =
-  let (isImplicitBidirectional, explicitMatches) =
-        case GHC.psb_dir psb of
-          GHC.Unidirectional -> (False, Nothing)
-          GHC.ImplicitBidirectional -> (True, Nothing)
-          GHC.ExplicitBidirectional matches ->
-            (False, Just $ mkExprMatchGroup matches)
-      definition = mkPatInsidePatDecl <$> fromGenLocated (GHC.psb_def psb)
-   in case GHC.psb_args psb of
-        GHC.PrefixCon prefixArgs ->
-          Prefix
-            { name = fromGenLocated $ mkPrefixName <$> GHC.psb_id psb
-            , args = map (fromGenLocated . fmap mkPrefixName) prefixArgs
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
-        GHC.InfixCon leftArg rightArg ->
-          Infix
-            { leftArg = fromGenLocated $ mkPrefixName <$> leftArg
-            , operator = fromGenLocated $ mkInfixName <$> GHC.psb_id psb
-            , rightArg = fromGenLocated $ mkPrefixName <$> rightArg
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
-        GHC.RecCon recordFields ->
-          Record
-            { name = fromGenLocated $ mkPrefixName <$> GHC.psb_id psb
-            , fields =
-                map
-                  (mkWithComments
-                     . mkFieldNameFromFieldOcc
-                     . GHC.recordPatSynField)
-                  recordFields
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon prefixArgs, ..} =
+  Prefix
+    { name = mkWithCommentsFromGenLocated $ mkPrefixName <$> psb_id
+    , args = map (mkWithCommentsFromGenLocated . fmap mkPrefixName) prefixArgs
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
+  Infix
+    { leftArg = mkWithCommentsFromGenLocated $ mkPrefixName <$> leftArg
+    , operator = mkWithCommentsFromGenLocated $ mkInfixName <$> psb_id
+    , rightArg = mkWithCommentsFromGenLocated $ mkPrefixName <$> rightArg
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
+  Record
+    { name = mkWithCommentsFromGenLocated $ mkPrefixName <$> psb_id
+    , fields =
+        map
+          (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
+          recordFields
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
 #else
-mkPatternSynonym psb =
-  let (isImplicitBidirectional, explicitMatches) =
-        case GHC.psb_dir psb of
-          GHC.Unidirectional -> (False, Nothing)
-          GHC.ImplicitBidirectional -> (True, Nothing)
-          GHC.ExplicitBidirectional matches ->
-            (False, Just $ mkExprMatchGroup matches)
-      definition = mkPatInsidePatDecl <$> fromGenLocated (GHC.psb_def psb)
-   in case GHC.psb_args psb of
-        GHC.PrefixCon _ prefixArgs ->
-          Prefix
-            { name = fromGenLocated $ mkPrefixName <$> GHC.psb_id psb
-            , args = map (fromGenLocated . fmap mkPrefixName) prefixArgs
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
-        GHC.InfixCon leftArg rightArg ->
-          Infix
-            { leftArg = fromGenLocated $ mkPrefixName <$> leftArg
-            , operator = fromGenLocated $ mkInfixName <$> GHC.psb_id psb
-            , rightArg = fromGenLocated $ mkPrefixName <$> rightArg
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
-        GHC.RecCon recordFields ->
-          Record
-            { name = fromGenLocated $ mkPrefixName <$> GHC.psb_id psb
-            , fields =
-                map
-                  (mkWithComments
-                     . mkFieldNameFromFieldOcc
-                     . GHC.recordPatSynField)
-                  recordFields
-            , isImplicitBidirectional = isImplicitBidirectional
-            , explicitMatches = explicitMatches
-            , definition = definition
-            }
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.PrefixCon _ prefixArgs, ..} =
+  Prefix
+    { name = mkWithCommentsFromGenLocated $ mkPrefixName <$> psb_id
+    , args = map (mkWithCommentsFromGenLocated . fmap mkPrefixName) prefixArgs
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.InfixCon leftArg rightArg, ..} =
+  Infix
+    { leftArg = mkWithCommentsFromGenLocated $ mkPrefixName <$> leftArg
+    , operator = mkWithCommentsFromGenLocated $ mkInfixName <$> psb_id
+    , rightArg = mkWithCommentsFromGenLocated $ mkPrefixName <$> rightArg
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
+mkPatternSynonym GHC.PSB {GHC.psb_args = GHC.RecCon recordFields, ..} =
+  Record
+    { name = mkWithCommentsFromGenLocated $ mkPrefixName <$> psb_id
+    , fields =
+        map
+          (mkWithComments . mkFieldNameFromFieldOcc . GHC.recordPatSynField)
+          recordFields
+    , definition = mkPatInsidePatDecl <$> mkWithCommentsFromGenLocated psb_def
+    , ..
+    }
+  where
+    (isImplicitBidirectional, explicitMatches) =
+      case psb_dir of
+        GHC.Unidirectional -> (False, Nothing)
+        GHC.ImplicitBidirectional -> (True, Nothing)
+        GHC.ExplicitBidirectional matches ->
+          (False, Just $ mkExprMatchGroup matches)
 #endif
 prettySuffix ::
      Bool -> WithComments PatInsidePatDecl -> Maybe MatchGroup -> Printer ()

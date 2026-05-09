@@ -26,7 +26,7 @@ mkLocalDeclarationCollection ::
   -> LocalDeclarationCollection
 mkLocalDeclarationCollection sigs binds =
   LocalDeclarationCollection
-    $ fmap fromGenLocated
+    $ fmap mkWithCommentsFromGenLocated
     $ sortBy (compare `on` GHC.realSrcSpan . GHC.locA . GHC.getLoc)
     $ fmap (fmap mkLocalSignatureDeclaration) sigs
         ++ fmap (fmap mkLocalBindingDeclaration) binds

@@ -31,7 +31,7 @@ instance Pretty AssociatedType where
 mkAssociatedType :: GHC.TyFamInstDecl GHC.GhcPs -> AssociatedType
 mkAssociatedType GHC.TyFamInstDecl {GHC.tfid_eqn = GHC.FamEqn {..}} =
   AssociatedType
-    { name = fromGenLocated $ fmap mkPrefixName feqn_tycon
+    { name = mkWithCommentsFromGenLocated $ fmap mkPrefixName feqn_tycon
     , types = mkTypeArgumentCollection feqn_pats
-    , bind = mkType <$> fromGenLocated feqn_rhs
+    , bind = mkType <$> mkWithCommentsFromGenLocated feqn_rhs
     }

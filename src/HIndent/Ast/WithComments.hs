@@ -6,7 +6,8 @@
 module HIndent.Ast.WithComments
   ( WithComments
   , prettyWith
-  , fromGenLocated
+  , mkWithCommentsFromGenLocated
+  , mkWithCommentsFromEpaLocated
   , fromEpAnn
   , mkWithComments
   , getNode
@@ -17,16 +18,19 @@ module HIndent.Ast.WithComments
 
 import Control.Monad
 import Control.Monad.RWS
-import Data.Int (Int64)
-import qualified GHC.Hs as GHC
-import qualified GHC.Types.SrcLoc as SrcLoc
+import qualified GHC.Parser.Annotation as GHC
+import qualified GHC.Types.SrcLoc as GHC
 import HIndent.Ast.Comment (Comment, getColumn)
-import HIndent.Ast.CommentGroup
+import HIndent.Ast.IsGenLocatedLocation
   ( CommentGroup(..)
-  , HasComments
-  , mkCommentGroup
   , mkCommentGroupFromEpAnn
   )
+#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+import HIndent.Ast.IsGenLocatedLocation
+  ( IsGenLocatedLocation(..)
+  , mkCommentGroupFromEpaLocation
+  )
+#endif
 import HIndent.Pretty
 import HIndent.Pretty.Combinators
 import HIndent.Printer
@@ -82,10 +86,26 @@ printCommentsAfter p =
       forM_ xs $ \comment -> do
         indentedWithFixedLevel (getCommentColumn comment) $ pretty comment
         eolCommentsArePrinted
+#if MIN_VERSION_ghc_lib_parser(9, 10, 1)
+mkWithCommentsFromGenLocated ::
+     IsGenLocatedLocation l => GHC.GenLocated l a -> WithComments a
+mkWithCommentsFromGenLocated (GHC.L ann a) =
+  WithComments (mkCommentGroupFromGenLocatedLocation ann) a
 
-fromGenLocated :: HasComments l => SrcLoc.GenLocated l a -> WithComments a
-fromGenLocated (SrcLoc.L l a) = WithComments (mkCommentGroup l) a
+mkWithCommentsFromEpaLocated ::
+     GHC.GenLocated GHC.EpaLocation a -> WithComments a
+mkWithCommentsFromEpaLocated (GHC.L ann a) =
+  WithComments (mkCommentGroupFromEpaLocation ann) a
+#else
+mkWithCommentsFromGenLocated ::
+     GHC.GenLocated (GHC.SrcSpanAnn' (GHC.EpAnn ann)) a -> WithComments a
+mkWithCommentsFromGenLocated (GHC.L ann a) =
+  WithComments (mkCommentGroupFromEpAnn $ GHC.ann ann) a
 
+mkWithCommentsFromEpaLocated ::
+     GHC.GenLocated (GHC.SrcSpanAnn' (GHC.EpAnn ann)) a -> WithComments a
+mkWithCommentsFromEpaLocated = mkWithCommentsFromGenLocated
+#endif
 fromEpAnn :: GHC.EpAnn a -> b -> WithComments b
 fromEpAnn ann = WithComments (mkCommentGroupFromEpAnn ann)
 
@@ -106,5 +126,5 @@ addComments :: CommentGroup -> WithComments a -> WithComments a
 addComments extra (WithComments current node) =
   WithComments (extra <> current) node
 
-getCommentColumn :: Comment -> Int64
-getCommentColumn = fromIntegral . getColumn
+getCommentColumn :: Comment -> Int
+getCommentColumn = getColumn

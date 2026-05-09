@@ -27,7 +27,7 @@ mkClassInstanceBody ::
   -> ClassInstanceBody
 mkClassInstanceBody sigs binds typeInstances dataInstances =
   ClassInstanceBody
-    $ fmap fromGenLocated
+    $ fmap mkWithCommentsFromGenLocated
     $ sortBy (compare `on` GHC.realSrcSpan . GHC.locA . GHC.getLoc)
     $ fmap (fmap mkClassInstanceSignatureMember) sigs
         ++ fmap (fmap mkClassInstanceMethodMember) binds

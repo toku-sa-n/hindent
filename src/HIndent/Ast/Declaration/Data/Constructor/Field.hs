@@ -24,5 +24,5 @@ mkConstructorField field = ConstructorField {ty = mkTypeFromConDeclField field}
 mkConstructorField ::
      GHC.HsScaled GHC.GhcPs (GHC.LBangType GHC.GhcPs) -> ConstructorField
 mkConstructorField (GHC.HsScaled _ bangTy) =
-  ConstructorField {ty = mkType <$> fromGenLocated bangTy}
+  ConstructorField {ty = mkType <$> mkWithCommentsFromGenLocated bangTy}
 #endif

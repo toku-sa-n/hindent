@@ -38,7 +38,7 @@ mkImportCollection :: GHC.HsModule' -> ImportCollection
 mkImportCollection GHC.HsModule {..} =
   ImportCollection
     $ fmap
-        (fmap (fmap mkImport . fromGenLocated))
+        (fmap (fmap mkImport . mkWithCommentsFromGenLocated))
         (extractImports' hsmodImports)
 
 hasImports :: ImportCollection -> Bool

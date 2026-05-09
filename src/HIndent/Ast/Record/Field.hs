@@ -14,7 +14,7 @@ import HIndent.Applicative (whenJust)
 import {-# SOURCE #-} HIndent.Ast.Expression (Expression, mkExpression)
 import HIndent.Ast.Name.RecordField (FieldName, mkFieldNameFromFieldOcc)
 import {-# SOURCE #-} HIndent.Ast.Pattern (Pattern, mkPattern)
-import HIndent.Ast.WithComments (WithComments, fromGenLocated)
+import HIndent.Ast.WithComments (WithComments, mkWithCommentsFromGenLocated)
 import qualified HIndent.GhcLibParserWrapper.GHC.Hs as GHC
 import HIndent.Pretty (Pretty(..))
 import HIndent.Pretty.Combinators
@@ -53,11 +53,11 @@ mkExprField ::
   -> ExprField
 mkExprField GHC.HsFieldBind {..} =
   Field
-    { name = mkFieldNameFromFieldOcc <$> fromGenLocated hfbLHS
+    { name = mkFieldNameFromFieldOcc <$> mkWithCommentsFromGenLocated hfbLHS
     , value =
         if hfbPun
           then Nothing
-          else Just (mkExpression <$> fromGenLocated hfbRHS)
+          else Just (mkExpression <$> mkWithCommentsFromGenLocated hfbRHS)
     }
 #else
 mkExprField ::
@@ -65,11 +65,13 @@ mkExprField ::
   -> ExprField
 mkExprField GHC.HsRecField {..} =
   Field
-    { name = mkFieldNameFromFieldOcc <$> fromGenLocated hsRecFieldLbl
+    { name =
+        mkFieldNameFromFieldOcc <$> mkWithCommentsFromGenLocated hsRecFieldLbl
     , value =
         if hsRecPun
           then Nothing
-          else Just (mkExpression <$> fromGenLocated hsRecFieldArg)
+          else Just
+                 (mkExpression <$> mkWithCommentsFromGenLocated hsRecFieldArg)
     }
 #endif
 
@@ -78,21 +80,22 @@ mkPatField ::
      GHC.HsFieldBind (GHC.LFieldOcc GHC.GhcPs) (GHC.LPat GHC.GhcPs) -> PatField
 mkPatField GHC.HsFieldBind {..} =
   Field
-    { name = mkFieldNameFromFieldOcc <$> fromGenLocated hfbLHS
+    { name = mkFieldNameFromFieldOcc <$> mkWithCommentsFromGenLocated hfbLHS
     , value =
         if hfbPun
           then Nothing
-          else Just (mkPattern <$> fromGenLocated hfbRHS)
+          else Just (mkPattern <$> mkWithCommentsFromGenLocated hfbRHS)
     }
 #else
 mkPatField ::
      GHC.HsRecField' (GHC.FieldOcc GHC.GhcPs) (GHC.LPat GHC.GhcPs) -> PatField
 mkPatField GHC.HsRecField {..} =
   Field
-    { name = mkFieldNameFromFieldOcc <$> fromGenLocated hsRecFieldLbl
+    { name =
+        mkFieldNameFromFieldOcc <$> mkWithCommentsFromGenLocated hsRecFieldLbl
     , value =
         if hsRecPun
           then Nothing
-          else Just (mkPattern <$> fromGenLocated hsRecFieldArg)
+          else Just (mkPattern <$> mkWithCommentsFromGenLocated hsRecFieldArg)
     }
 #endif
