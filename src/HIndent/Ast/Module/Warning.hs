@@ -17,7 +17,7 @@ import HIndent.Pretty
 import HIndent.Pretty.Combinators
 
 data ModuleWarning = ModuleWarning
-  { messages :: [WithComments QuotedText]
+  { messages :: [QuotedText]
   , kind :: Kind
   }
 
@@ -38,19 +38,30 @@ fromWarningTxt :: GHC.WarningTxt' -> ModuleWarning
 #if MIN_VERSION_ghc_lib_parser(9, 8, 1)
 fromWarningTxt (GHC.WarningTxt _ _ warningMessages) =
   ModuleWarning
-    {kind = Warning, messages = fmap mkWarningMessage warningMessages}
+    { kind = Warning
+    , messages =
+        fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) warningMessages
+    }
 #else
 fromWarningTxt (GHC.WarningTxt _ warningMessages) =
   ModuleWarning
-    {kind = Warning, messages = fmap mkWarningMessage warningMessages}
+    { kind = Warning
+    , messages =
+        fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) warningMessages
+    }
 #endif
 #if MIN_VERSION_ghc_lib_parser(9, 10, 1)
 fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
   ModuleWarning
-    {kind = Deprecated, messages = fmap mkWarningMessage warningMessages}
+    { kind = Deprecated
+    , messages =
+        fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) warningMessages
+    }
 #else
 fromWarningTxt (GHC.DeprecatedTxt _ warningMessages) =
   ModuleWarning
-    {kind = Deprecated, messages = fmap mkWarningMessage warningMessages}
+    { kind = Deprecated
+    , messages =
+        fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) warningMessages
+    }
 #endif
-mkWarningMessage = mkWithComments . mkQuotedText . GHC.hsDocString . GHC.unLoc

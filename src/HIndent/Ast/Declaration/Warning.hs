@@ -20,7 +20,7 @@ import HIndent.Pretty.Combinators
 data WarningDeclaration = WarningDeclaration
   { names :: [WithComments PrefixName]
   , kind :: Kind
-  , reasons :: [WithComments QuotedText]
+  , reasons :: [QuotedText]
   }
 
 instance Pretty WarningDeclaration where
@@ -37,44 +37,43 @@ mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 #elif MIN_VERSION_ghc_lib_parser(9, 8, 1)
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 #elif MIN_VERSION_ghc_lib_parser(9, 4, 1)
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap mkWarningReason rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 #else
 mkWarningDeclaration (GHC.Warning _ ns (GHC.DeprecatedTxt _ rs)) =
   WarningDeclaration {kind = Deprecated, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap mkQuotedText) rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 mkWarningDeclaration (GHC.Warning _ ns (GHC.WarningTxt _ rs)) =
   WarningDeclaration {kind = Warning, ..}
   where
     names = fmap (fromGenLocated . fmap mkPrefixName) ns
-    reasons = fmap (fromGenLocated . fmap mkQuotedText) rs
+    reasons = fmap (mkQuotedText . GHC.hsDocString . GHC.unLoc) rs
 #endif
-mkWarningReason = mkWithComments . mkQuotedText . GHC.hsDocString . GHC.unLoc
