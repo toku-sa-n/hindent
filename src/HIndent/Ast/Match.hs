@@ -55,8 +55,12 @@ data InfixOperands = InfixOperands
   }
 
 instance Pretty InfixOperands where
+  pretty InfixOperands {rest = [], ..} =
+    spaced [pretty left, pretty operator, pretty right]
   pretty InfixOperands {..} =
-    spaced $ pretty left : pretty operator : pretty right : fmap pretty rest
+    spaced
+      $ parens (spaced [pretty left, pretty operator, pretty right])
+          : fmap pretty rest
 
 data Match
   = Lambda
