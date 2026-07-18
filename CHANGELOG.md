@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Handle multiline CPP directives with spaces after `#` ([#1251])
 - Preserve parentheses around infix function left-hand sides with extra arguments ([#1243])
 - Recognize and normalize CPP directives with spaces after `#` ([#1249])
 
@@ -432,6 +433,7 @@ This version is accidentally pushlished, and is the same as 5.3.3.
 [@toku-sa-n]: https://github.com/toku-sa-n
 
 [#1249]: https://github.com/mihaimaruseac/hindent/pull/1249
+[#1251]: https://github.com/mihaimaruseac/hindent/pull/1251
 [#1243]: https://github.com/mihaimaruseac/hindent/pull/1243
 [#1163]: https://github.com/mihaimaruseac/hindent/pull/1163
 [#1143]: https://github.com/mihaimaruseac/hindent/pull/1143
