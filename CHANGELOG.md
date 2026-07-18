@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Correctly indent type family right-hand sides broken at operators configured with the `line-breaks` option ([#1252])
 - Preserve parentheses around infix function left-hand sides with extra arguments ([#1243])
 - Recognize and normalize CPP directives with spaces after `#` ([#1249])
 
