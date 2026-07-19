@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Preserve indentation changes across CPP branches ([#1254])
 - Preserve parentheses around infix function left-hand sides with extra arguments ([#1243])
 - Recognize and normalize CPP directives with spaces after `#` ([#1249])
 
@@ -431,6 +432,7 @@ This version is accidentally pushlished, and is the same as 5.3.3.
 [@uhbif19]: https://github.com/uhbif19
 [@toku-sa-n]: https://github.com/toku-sa-n
 
+[#1254]: https://github.com/mihaimaruseac/hindent/pull/1254
 [#1249]: https://github.com/mihaimaruseac/hindent/pull/1249
 [#1243]: https://github.com/mihaimaruseac/hindent/pull/1243
 [#1163]: https://github.com/mihaimaruseac/hindent/pull/1163
