@@ -3791,13 +3791,13 @@ Escaped newlines
   x
 ```
 
-Escaped newlines with spaces after `#`
+Escaped newlines in CPP directives
 
 ```haskell given
 -- https://github.com/mihaimaruseac/hindent/issues/651
 {-# LANGUAGE CPP #-}
 module Main where
-#     define FOO 3+ \
+#define FOO 3+ \
         5
 
 main=undefined

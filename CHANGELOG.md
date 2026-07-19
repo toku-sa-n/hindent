@@ -10,7 +10,7 @@
 
 ### Fixed
 
-- Handle multiline CPP directives with spaces after `#` ([#1251])
+- Handle multiline CPP directives ([#1251])
 - Preserve parentheses around infix function left-hand sides with extra arguments ([#1243])
 - Recognize and normalize CPP directives with spaces after `#` ([#1249])
 
