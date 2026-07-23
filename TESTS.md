@@ -3795,22 +3795,14 @@ Escaped newlines in CPP directives
 
 ```haskell given
 -- https://github.com/mihaimaruseac/hindent/issues/651
-{-# LANGUAGE CPP #-}
-module Main where
-#define FOO 3+ \
+#  define FOO 3+ \
         5
-
-main=undefined
 ```
 
 ```haskell expect
 -- https://github.com/mihaimaruseac/hindent/issues/651
-{-# LANGUAGE CPP #-}
-
-module Main where
 #define FOO 3+ \
         5
-main = undefined
 ```
 
 Language extensions are effective across CPP boundaries.
